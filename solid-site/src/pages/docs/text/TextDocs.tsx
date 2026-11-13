@@ -33,13 +33,13 @@ const API: Record<string, PropRow[]> = {
     { prop: "colors", type: "string[] (hex)", default: "['#358ff3', '#7CFF67', '#358ff3']" },
     { prop: "speed", type: "number", default: "1" },
     { prop: "class", type: "string", default: "undefined" },
-    { prop: "default slot", type: "text", default: "" },
+    { prop: "children", type: "text", default: "" },
   ],
   shinyText: [
     { prop: "speed", type: "number", default: "1" },
     { prop: "disabled", type: "boolean", default: "false" },
     { prop: "class", type: "string", default: "undefined" },
-    { prop: "default slot", type: "text", default: "" },
+    { prop: "children", type: "text", default: "" },
   ],
   glitchText: [
     { prop: "text", type: "string", default: '"GLITCH"' },
@@ -50,7 +50,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "text", type: "string", default: '"Split text"' },
     { prop: "stagger", type: "number (ms/char)", default: "40" },
     { prop: "duration", type: "number (ms)", default: "600" },
-    { prop: "replay-token", type: "number", default: "0" },
+    { prop: "replayToken", type: "number", default: "0" },
     { prop: "class", type: "string", default: "undefined" },
   ],
   rotatingText: [
@@ -73,8 +73,8 @@ const API: Record<string, PropRow[]> = {
   ],
   textType: [
     { prop: "texts", type: "string[]", default: "['Type this out.', 'Then this.']" },
-    { prop: "typing-speed", type: "number (ms)", default: "60" },
-    { prop: "deleting-speed", type: "number (ms)", default: "35" },
+    { prop: "typingSpeed", type: "number (ms)", default: "60" },
+    { prop: "deletingSpeed", type: "number (ms)", default: "35" },
     { prop: "pause", type: "number (ms)", default: "1400" },
     { prop: "loop", type: "boolean", default: "true" },
     { prop: "cursor", type: "boolean", default: "true" },
@@ -98,13 +98,13 @@ const API: Record<string, PropRow[]> = {
     { prop: "text", type: "string", default: '"Shuffle in"' },
     { prop: "stagger", type: "number (ms)", default: "55" },
     { prop: "duration", type: "number (ms)", default: "650" },
-    { prop: "replay-token", type: "number", default: "0" },
+    { prop: "replayToken", type: "number", default: "0" },
   ],
   fallingText: [
     { prop: "text", type: "string", default: '"Falling text"' },
     { prop: "stagger", type: "number (ms)", default: "45" },
     { prop: "duration", type: "number (ms)", default: "700" },
-    { prop: "replay-token", type: "number", default: "0" },
+    { prop: "replayToken", type: "number", default: "0" },
   ],
   scrollReveal: [
     { prop: "text", type: "string", default: "required" },
@@ -116,7 +116,7 @@ const API: Record<string, PropRow[]> = {
   ],
   scrollVelocity: [
     { prop: "text", type: "string", default: '"DITHER · UI · TOOLKIT ·"' },
-    { prop: "base-speed", type: "number (px/s)", default: "60" },
+    { prop: "baseSpeed", type: "number (px/s)", default: "60" },
   ],
   textCursor: [
     { prop: "text", type: "string", default: '"dither"' },
@@ -246,8 +246,8 @@ export default function TextDocs() {
       <section class="mt-16 scroll-mt-24" id="split-text">
         <h2 class="text-lg tracking-tight">Split text</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Each character rises and settles on a stagger. Bump <code class="text-foreground/80">replay-token</code> to
-          run it again; the whole word is still one labelled node for screen readers.
+          Each character rises and settles on a stagger. Bump <code class="text-foreground/80">replayToken</code> to run
+          it again; the whole word is still one labelled node for screen readers.
         </p>
         <DemoCard code={SNIPPETS.splitText}>
           <div class="grid min-h-24 place-items-center gap-4">
@@ -372,7 +372,7 @@ export default function TextDocs() {
         <h2 class="text-lg tracking-tight">Shuffle</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Characters fly in from scattered offsets and rotations, settling into place on a stagger. Bump{" "}
-          <code class="text-foreground/80">replay-token</code> to run it again.
+          <code class="text-foreground/80">replayToken</code> to run it again.
         </p>
         <DemoCard code={SNIPPETS.shuffle}>
           <div class="grid min-h-24 place-items-center gap-4">

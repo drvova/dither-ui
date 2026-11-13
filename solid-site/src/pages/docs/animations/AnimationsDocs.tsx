@@ -62,7 +62,7 @@ const SHARED_CANVAS: PropRow[] = [
   { prop: "opacity", type: "number (0-1)", default: "1" },
   { prop: "dither", type: "number (0-1) | boolean", default: "1" },
   { prop: "paused", type: "boolean", default: "false" },
-  { prop: "mix-blend-mode", type: "string", default: "undefined" },
+  { prop: "mixBlendMode", type: "string", default: "undefined" },
   { prop: "seed", type: "number", default: "undefined" },
 ]
 
@@ -72,7 +72,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "frameSteps(fps, durationMs)", type: "(p) => number, frame(fps) cadence polyfill", default: "" },
     { prop: "frameIndex(elapsedMs, fps)", type: "number: wall-clock frame gate for drivers", default: "" },
     { prop: "cssSteps(n, position?)", type: "string: one config serialized for CSS", default: '"jump-end"' },
-    { prop: "DitherAurora frame-rate", type: "number (fps)", default: "0 (smooth)" },
+    { prop: "DitherAurora frameRate", type: "number (fps)", default: "0 (smooth)" },
   ],
   stage: [
     { prop: "duration", type: "number (s): the stage clock loops over it; unset, time runs on", default: "" },
@@ -84,7 +84,11 @@ const API: Record<string, PropRow[]> = {
       type: "element tag / passthrough class. Give the stage a height: it is a size query container",
       default: '"div" / none',
     },
-    { prop: "slot props", type: "{ time, width, height }: the moment and the measured content box", default: "" },
+    {
+      prop: "children",
+      type: "function of { time, width, height }: the moment and the measured content box",
+      default: "",
+    },
     {
       prop: "data-stage / --cq-w / --cq-h",
       type: "playing | directed | paused | still, and the box for CSS",
@@ -107,8 +111,8 @@ const API: Record<string, PropRow[]> = {
     { prop: "origin", type: "string: transform-origin, container units welcome", default: '"50% 50%"' },
     { prop: "as / class", type: "element tag / class (the layer is absolute, inset 0)", default: '"div" / none' },
     {
-      prop: "slot props",
-      type: "every property resolved to px / degrees against the stage box, plus progress, cycle, time, width, height (the state is data-layer)",
+      prop: "children",
+      type: "function of every property resolved to px / degrees against the stage box, plus progress, cycle, time, width, height (the state is data-layer)",
       default: "",
     },
     {
@@ -155,8 +159,8 @@ const API: Record<string, PropRow[]> = {
     { prop: "name", type: "string: native container-name for children's @container rules", default: '"dither"' },
     { prop: "as / class", type: "element tag / passthrough class", default: '"div" / none' },
     {
-      prop: "slot props",
-      type: "{ width, height, size, index, matches }: measured content box (what @container sees), active bucket, its ordinal, every matching bucket",
+      prop: "children",
+      type: "function of { width, height, size, index, matches }: measured content box (what @container sees), active bucket, its ordinal, every matching bucket",
       default: "",
     },
     {
@@ -182,34 +186,34 @@ const API: Record<string, PropRow[]> = {
   ],
   expandTabs: [
     { prop: "tabs", type: "{ value, label, color? }[]", default: "required" },
-    { prop: "modelValue", type: "string (v-model)", default: "required" },
+    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: "required" },
     { prop: "color", type: "PixelColor: active glyph fallback", default: '"blue"' },
   ],
   island: [
-    { prop: "modelValue", type: "boolean (v-model): expanded", default: "false" },
+    { prop: "modelValue", type: "boolean (with onUpdateModelValue): expanded", default: "false" },
     { prop: "label", type: "string: compact row text", default: '"Status"' },
     { prop: "color", type: "PixelColor: status dot", default: '"green"' },
     { prop: "live", type: "boolean: pulse the dot while collapsed", default: "true" },
-    { prop: "slots", type: "compact, default (detail panel)", default: "" },
+    { prop: "compact / children", type: "JSX.Element (children: the detail panel)", default: "" },
   ],
   cardStack: [
     { prop: "items", type: "T[]: cycled forever", default: "required" },
     { prop: "depth", type: "number: visible under-cards", default: "2" },
-    { prop: "default slot", type: "scoped: { item, index, top }", default: "card face fallback" },
-    { prop: "@advance", type: "(index) after a card flies out", default: "" },
+    { prop: "children", type: "({ item, index, top }) => JSX.Element", default: "card face fallback" },
+    { prop: "onAdvance", type: "(index) after a card flies out", default: "" },
   ],
   dock: [
     { prop: "items", type: "{ value, label, color? }[]", default: "required" },
     { prop: "magnify", type: "number: peak scale over the pointer", default: "1.7" },
     { prop: "range", type: "number (px): gaussian falloff radius", default: "80" },
-    { prop: "@select", type: "(value)", default: "" },
+    { prop: "onSelect", type: "(value)", default: "" },
   ],
   previewRail: [
     { prop: "items", type: "{ value, label, hint?, color? }[]", default: "required" },
-    { prop: "modelValue", type: "string (v-model): active destination", default: "undefined" },
+    { prop: "modelValue", type: "string (with onUpdateModelValue): active destination", default: "undefined" },
     { prop: "range", type: "number (px): pyramid falloff radius", default: "56" },
     { prop: "side", type: '"left" | "right": edge the rail hugs', default: '"left"' },
-    { prop: "preview slot", type: "scoped: { item } (custom preview content)", default: "label + hint" },
+    { prop: "preview", type: "({ item }) => JSX.Element (custom preview content)", default: "label + hint" },
   ],
   scrollProgress: [
     { prop: "attach", type: '"viewport" | "parent"', default: '"viewport"' },
@@ -220,43 +224,43 @@ const API: Record<string, PropRow[]> = {
     { prop: "threshold", type: "number (px): displacement that arms the snap", default: "64" },
     { prop: "axis", type: '"x" | "y" | "both"', default: '"x"' },
     { prop: "color", type: "PixelColor: armed accent", default: '"green"' },
-    { prop: "@snap", type: "() on an armed release, or Enter/Space", default: "" },
-    { prop: "default slot", type: "label content", default: '"Pull to confirm"' },
+    { prop: "onSnap", type: "() on an armed release, or Enter/Space", default: "" },
+    { prop: "children", type: "label content", default: '"Pull to confirm"' },
   ],
   gooeyMenu: [
     { prop: "items", type: "{ value, label, color? }[]", default: "required" },
-    { prop: "modelValue", type: "boolean (v-model): expanded", default: "false" },
+    { prop: "modelValue", type: "boolean (with onUpdateModelValue): expanded", default: "false" },
     { prop: "direction", type: '"up" | "down" | "left" | "right"', default: '"up"' },
     { prop: "spacing", type: "number (px): gap between item centers", default: "52" },
-    { prop: "@select", type: "(value), also collapses", default: "" },
+    { prop: "onSelect", type: "(value), also collapses", default: "" },
   ],
   bouncyAccordion: [
     { prop: "items", type: "{ value, label, hint?, icon?, color?, content? }[]", default: "required" },
-    { prop: "modelValue", type: 'string (v-model): open item, "" closes all', default: '""' },
+    { prop: "modelValue", type: 'string (with onUpdateModelValue): open item, "" closes all', default: '""' },
     { prop: "color", type: "PixelColor: icon fallback tint", default: '"blue"' },
-    { prop: "item slots", type: "#<value>: rich panel content (else item.content)", default: "" },
+    { prop: "slots", type: "Record<value, JSX.Element>: rich panel content (else item.content)", default: "" },
   ],
   expandingArrow: [
     { prop: "color", type: "PixelColor: tile and trail accent", default: '"blue"' },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "default slot", type: "label content", default: '"Explore the kit"' },
+    { prop: "children", type: "label content", default: '"Explore the kit"' },
   ],
   slideAction: [
     { prop: "label", type: "string: track text and thumb aria-label", default: '"Slide to confirm"' },
     { prop: "color", type: "PixelColor: thumb accent", default: '"green"' },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "@confirm", type: "() when the thumb reaches the end, or Enter/Space", default: "" },
+    { prop: "onConfirm", type: "() when the thumb reaches the end, or Enter/Space", default: "" },
   ],
   holdAction: [
     { prop: "duration", type: "number (ms): hold time to complete", default: "1200" },
     { prop: "direction", type: '"vertical" | "horizontal": fill axis', default: '"vertical"' },
     { prop: "color", type: "PixelColor: fill and crest accent", default: '"orange"' },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "@complete", type: "() when the fill reaches full, once per hold", default: "" },
+    { prop: "onComplete", type: "() when the fill reaches full, once per hold", default: "" },
   ],
   walletCard: [
     { prop: "accounts", type: "{ value, label, address, balance, change?, color? }[]", default: "required" },
-    { prop: "modelValue", type: "string (v-model): selected account", default: "first account" },
+    { prop: "modelValue", type: "string (with onUpdateModelValue): selected account", default: "first account" },
     { prop: "balance / change", type: "number: override the active account's numbers", default: "account data" },
     { prop: "currency", type: "string: balance prefix", default: '"$"' },
     { prop: "defaultHidden", type: "boolean: start masked", default: "false" },
@@ -264,21 +268,25 @@ const API: Record<string, PropRow[]> = {
     { prop: "recent", type: "string[]: recent queries in the search panel", default: "undefined" },
     { prop: "notifications", type: "boolean: unread pulse on the bell", default: "false" },
     { prop: "color", type: "PixelColor: card accent", default: '"green"' },
-    { prop: "@action", type: '("send" | "deposit" | "swap" | "buy")', default: "" },
-    { prop: "@search", type: "(query), live text on every keystroke", default: "" },
-    { prop: "@submit", type: "(query) on Enter or a recent row", default: "" },
-    { prop: "@notify", type: "() when the bell is pressed", default: "" },
+    { prop: "onAction", type: '("send" | "deposit" | "swap" | "buy")', default: "" },
+    { prop: "onSearch", type: "(query), live text on every keystroke", default: "" },
+    { prop: "onSubmit", type: "(query) on Enter or a recent row", default: "" },
+    { prop: "onNotify", type: "() when the bell is pressed", default: "" },
   ],
   notificationStack: [
     { prop: "items", type: "{ id, title, body?, time?, icon?, color? }[]", default: "required" },
-    { prop: "modelValue", type: "boolean (v-model): pinned open; hover/focus expand transiently", default: "false" },
+    {
+      prop: "modelValue",
+      type: "boolean (with onUpdateModelValue): pinned open; hover/focus expand transiently",
+      default: "false",
+    },
     { prop: "maxVisible", type: "number: cards shown in the stack and list", default: "3" },
     { prop: "collapsedLabel", type: "string: header + toggle aria-label", default: '"Notifications"' },
     { prop: "expandedLabel", type: "string: view-all button text", default: '"View all"' },
     { prop: "emptyLabel", type: "string: empty-state card", default: '"All caught up"' },
     { prop: "variant", type: '"stack" | "fan" | "condensed": collapsed silhouette', default: '"stack"' },
     { prop: "color", type: "PixelColor: icon fallback tint", default: '"blue"' },
-    { prop: "@viewall", type: "() when view-all is pressed", default: "" },
+    { prop: "onViewall", type: "() when view-all is pressed", default: "" },
   ],
   animatedContent: [
     { prop: "distance", type: 'number (px) | CSS length: "4cqw" rides the nearest query container', default: "40" },
@@ -286,91 +294,91 @@ const API: Record<string, PropRow[]> = {
     { prop: "reverse", type: "boolean", default: "false" },
     { prop: "duration", type: "number (ms)", default: "800" },
     { prop: "delay", type: "number (ms)", default: "0" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   fadeContent: [
     { prop: "duration", type: "number (ms)", default: "1000" },
     { prop: "delay", type: "number (ms)", default: "0" },
     { prop: "blur", type: "boolean", default: "false" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   gradualBlur: [
     { prop: "position", type: '"bottom" | "top"', default: '"bottom"' },
     { prop: "height", type: "number (px)", default: "96" },
     { prop: "strength", type: "number (px)", default: "4" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   starBorder: [
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
     { prop: "speed", type: "number (s)", default: "6" },
     { prop: "thickness", type: "number (px)", default: "1" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   electricBorder: [
     { prop: "color", type: "string (hex)", default: '"#5227FF"' },
     { prop: "speed", type: "number", default: "1" },
     { prop: "thickness", type: "number (px)", default: "2" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
-  glareHover: [{ prop: "default slot", type: "content", default: "" }],
+  glareHover: [{ prop: "children", type: "content", default: "" }],
   magnet: [
     { prop: "strength", type: "number (0-1)", default: "0.4" },
     { prop: "radius", type: "number (px)", default: "200" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   clickSpark: [
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
     { prop: "count", type: "number", default: "8" },
     { prop: "size", type: "number (px)", default: "16" },
     { prop: "duration", type: "number (ms)", default: "420" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   blobCursor: [
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
     { prop: "size", type: "number (px)", default: "48" },
     { prop: "lag", type: "number (0-1)", default: "0.18" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   crosshair: [
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
     { prop: "thickness", type: "number (px)", default: "1" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   ghostCursor: [
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
     { prop: "count", type: "number", default: "18" },
     { prop: "size", type: "number (px)", default: "10" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   splashCursor: [
     { prop: "color", type: "string (hex)", default: '"#3DA5FF"' },
-    { prop: "max-radius", type: "number (px)", default: "60" },
+    { prop: "maxRadius", type: "number (px)", default: "60" },
     { prop: "duration", type: "number (ms)", default: "700" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   targetCursor: [
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
     { prop: "size", type: "number (px)", default: "36" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   pixelTrail: [
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
     { prop: "gap", type: "number (px)", default: "24" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   imageTrail: [
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', ...]" },
     { prop: "size", type: "number (px)", default: "40" },
     { prop: "duration", type: "number (ms)", default: "650" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   metaBalls: [
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#3DA5FF']" },
     { prop: "count", type: "number", default: "6" },
     { prop: "speed", type: "number", default: "1" },
-    { prop: "ball-size", type: "number", default: "1" },
+    { prop: "ballSize", type: "number", default: "1" },
     { prop: "glow", type: "number", default: "1.5" },
-    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    { prop: "mouseInteraction", type: "boolean", default: "true" },
     ...SHARED_CANVAS,
     { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
@@ -402,7 +410,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "count", type: "number", default: "5" },
     { prop: "thickness", type: "number", default: "0.12" },
     { prop: "amplitude", type: "number", default: "1" },
-    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    { prop: "mouseInteraction", type: "boolean", default: "true" },
     ...SHARED_CANVAS,
     { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
@@ -410,7 +418,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67']" },
     { prop: "size", type: "number", default: "0.4" },
     { prop: "softness", type: "number", default: "0.3" },
-    { prop: "mouse-interaction", type: "boolean", default: "true" },
+    { prop: "mouseInteraction", type: "boolean", default: "true" },
     ...SHARED_CANVAS,
     { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
@@ -418,14 +426,14 @@ const API: Record<string, PropRow[]> = {
     { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CE0FF']" },
     { prop: "count", type: "number", default: "40" },
     { prop: "sway", type: "number", default: "0.15" },
-    { prop: "line-width", type: "number", default: "0.01" },
+    { prop: "lineWidth", type: "number", default: "0.01" },
     ...SHARED_CANVAS,
     { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   ],
   laserFlow: [
     { prop: "colors", type: "string[] (hex)", default: "['#FF3D2E', '#FFD23D', '#FFFFFF']" },
     { prop: "count", type: "number", default: "4" },
-    { prop: "beam-width", type: "number", default: "0.02" },
+    { prop: "beamWidth", type: "number", default: "0.02" },
     { prop: "glow", type: "number", default: "1" },
     ...SHARED_CANVAS,
     { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
@@ -434,7 +442,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
     { prop: "count", type: "number", default: "40" },
     { prop: "speed", type: "number", default: "1" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   logoLoop: [
     { prop: "items", type: "string[]", default: "['DITHER', 'BAYER', ...]" },
@@ -445,13 +453,13 @@ const API: Record<string, PropRow[]> = {
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
     { prop: "count", type: "number", default: "4" },
     { prop: "duration", type: "number (s)", default: "3" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   magnetLines: [
     { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
     { prop: "gap", type: "number (px)", default: "28" },
-    { prop: "line-length", type: "number (px)", default: "14" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "lineLength", type: "number (px)", default: "14" },
+    { prop: "children", type: "content", default: "" },
   ],
   orbitImages: [
     { prop: "items", type: "string[]", default: "['A', 'B', 'C', 'D', 'E']" },
@@ -463,7 +471,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "rows", type: "number", default: "6" },
     { prop: "cols", type: "number", default: "10" },
     { prop: "color", type: "string (hex)", default: '"#111318"' },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
   ditherReveal: [
     { prop: "progress", type: "number 0–1 (manual; unset plays on the clock)", default: "" },
@@ -476,9 +484,9 @@ const API: Record<string, PropRow[]> = {
     { prop: "reverse", type: "boolean (hide instead)", default: "false" },
     { prop: "easing", type: "EasingInput", default: "'ease-in-out'" },
     { prop: "restartKey", type: "unknown (change to replay)", default: "" },
-    { prop: "default slot", type: "content", default: "" },
+    { prop: "children", type: "content", default: "" },
   ],
-  stickerPeel: [{ prop: "default slot", type: "content", default: "" }],
+  stickerPeel: [{ prop: "children", type: "content", default: "" }],
 }
 
 const SNIPPETS = {
@@ -1787,8 +1795,8 @@ export default function AnimationsDocs() {
           measures the content box (exactly what <code class="text-foreground/80">@container</code> sees), resolves a
           bucket scale onto <code class="text-foreground/80">data-cq</code> +{" "}
           <code class="text-foreground/80">--cq-w</code> / <code class="text-foreground/80">--cq-i</code>, and exposes
-          the same state through the scoped slot. Children restyle themselves in CSS while animations re-parameterize in
-          JS.
+          the same state through its function child. Children restyle themselves in CSS while animations re-parameterize
+          in JS.
         </p>
         <DemoCard code={SNIPPETS.containerQueries}>
           <div class="mb-3 flex flex-wrap items-center gap-2">
@@ -1836,12 +1844,12 @@ export default function AnimationsDocs() {
         </DemoCard>
         <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
           The grid re-columns purely from <code class="text-foreground/80">[data-cq]</code> (CSS reading the container's
-          own state), while the Sequence's stagger, origin and replay derive from the same bucket through the slot.
+          own state), while the Sequence's stagger, origin and replay derive from the same bucket through the child.
           Narrow it to <code class="text-foreground/80">xs</code> and the wave tightens to 0.03s/cell; widen to{" "}
           <code class="text-foreground/80">xl</code> and it fans from the center at 0.11s.{" "}
           <code class="text-foreground/80">quantize()</code> rounds widths to the step so readouts and canvas painters
           hold like frames: the spatial half of the timing engine's step idea. This demo overrides{" "}
-          <code class="text-foreground/80">:scale</code> so all five buckets fit the docs column; the default{" "}
+          <code class="text-foreground/80">scale</code> so all five buckets fit the docs column; the default{" "}
           <code class="text-foreground/80">CONTAINER_SCALE</code> targets wider shells. The blue bar runs the shipped{" "}
           <code class="text-foreground/80">dither-cq-traverse</code> keyframe:{" "}
           <code class="text-foreground/80">translateX(±100cqw)</code> makes its journey exactly one container width, so
@@ -1861,7 +1869,7 @@ export default function AnimationsDocs() {
           interpolation: <code class="text-foreground/80">10cqw</code> to <code class="text-foreground/80">30cqw</code>{" "}
           is <code class="text-foreground/80">20cqw</code> halfway, mixed units become a{" "}
           <code class="text-foreground/80">calc()</code>. Canvas, SVG and DOM layers move exactly relative to the stage
-          at any size, and the same sample resolves to px through the slot for anything that paints. Shrink the stage:
+          at any size, and the same sample resolves to px through the child for anything that paints. Shrink the stage:
           every path shrinks with it.
         </p>
         <DemoCard code={SNIPPETS.stage}>
@@ -1945,7 +1953,7 @@ export default function AnimationsDocs() {
           the viewport. The two hills are SVGs on their own layers at two speeds: parallax in container units. The moon
           places its keys with <code class="text-foreground/80">at</code> (seconds or a percentage) and eases one
           segment. The last layer keeps custom keys, <code class="text-foreground/80">cx</code> and{" "}
-          <code class="text-foreground/80">cy</code>, which the slot hands back resolved to px against the measured box:
+          <code class="text-foreground/80">cy</code>, which the child is handed resolved to px against the measured box:
           exactly the numbers a canvas painter needs. Nothing here is a CSS animation: the stage's clock samples every
           track, so a frame exported to video lands on the same moment.
         </p>

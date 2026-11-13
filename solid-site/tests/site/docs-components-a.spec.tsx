@@ -1,7 +1,8 @@
 // The docs' component packs Feedback, Field, Form, Layout and Media on
 // Solid: every section of each pack's nav in order under its label, its
-// prose word for word and its authored snippets and tables character for
-// character as the Vue file has them, each preview mounting its demo once
+// prose word for word (but where it named Vue's syntax) and its authored
+// snippets character for character as the Vue file has them, its tables in
+// the Vue file's shape (their words: `docs-api.spec.ts`), each preview mounting its demo once
 // it nears the view, and the demos' own state driving what they show. The
 // Vue site has no spec of these files beyond the packs' navs
 // (`tests/docs-packs.spec.ts`), carried here as the id order.
@@ -22,6 +23,7 @@ import FormDocs from "../../src/pages/docs/components/FormDocs"
 import LayoutDocs from "../../src/pages/docs/components/LayoutDocs"
 import MediaDocs from "../../src/pages/docs/components/MediaDocs"
 import { world } from "../world"
+import { sansRows } from "./docs-api"
 
 // No GPU in jsdom: a shader says so, a world keeps to its CPU engine.
 vi.mock("../../../dither-kit/engine/gl", async (original) => ({
@@ -69,6 +71,17 @@ const prose = (html: string) =>
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">"),
   )
+/** Where the Vue prose names Vue's syntax, what the Solid page says instead; every other word is the Vue file's. */
+const SOLID_WORDS: [vue: string, solid: string][] = [
+  [
+    "submit is prevented and re-emitted as a clean submit event.",
+    "submit is prevented and handed on as a clean onSubmit call.",
+  ],
+  ["Label goes in the default slot.", "Label goes in as children."],
+  ["every region a slot.", "every region a prop."],
+  ["The zoom is a v-model.", "The zoom is two-way: zoom with onUpdateZoom."],
+]
+const solidWords = (text: string) => SOLID_WORDS.reduce((said, [vue, solid]) => said.replace(vue, solid), text)
 /** The pack mounted with every preview in view. */
 function shown(Pack: () => JSX.Element) {
   const view = render(() => <Pack />)
@@ -101,7 +114,7 @@ describe.each(PACKS)("%s", (name, Pack, nav) => {
     }
   })
 
-  it("carries the Vue file's headings and prose word for word", () => {
+  it("carries the Vue file's headings and prose word for word, but for Vue's own", () => {
     const { container } = render(() => <Pack />)
     const theirs = [...template.matchAll(/<section id="([^"]+)"[^>]*>([\s\S]*?)\n {2}<\/section>/g)]
     expect(theirs.map((m) => m[1])).toEqual(nav.map((n) => n.id))
@@ -110,21 +123,22 @@ describe.each(PACKS)("%s", (name, Pack, nav) => {
       expect(s.querySelector("h2")?.textContent).toBe(prose(body.match(/<h2[^>]*>([\s\S]*?)<\/h2>/)![1]))
       const ledes = [...body.matchAll(/<p class="mt-[26] text-\[13px\][^"]*">([\s\S]*?)<\/p>/g)].map((m) => prose(m[1]))
       expect(ledes.length).toBeGreaterThan(0)
-      expect([...s.querySelectorAll(":scope > p")].map((p) => words(p.textContent))).toEqual(ledes)
+      expect([...s.querySelectorAll(":scope > p")].map((p) => words(p.textContent))).toEqual(ledes.map(solidWords))
       expect([...s.querySelectorAll(":scope > h3")].map((h) => h.textContent)).toEqual(
         [...body.matchAll(/\n {4}<h3[^>]*>([^<]*)<\/h3>/g)].map((m) => m[1]),
       )
     }
   })
 
-  it("carries the authored snippets and the API tables character for character", () => {
+  it("carries the authored snippets character for character, and the API tables' shape", () => {
     // every template literal the Vue file's script declares, as written
     const literals = [...vue.matchAll(/^const (\w+) = `(?:\\[\s\S]|[^`\\])*`$/gm)]
     expect(literals.some((m) => m[1].startsWith("SNIPPET_"))).toBe(true)
     // (`<\/script>` there keeps Vue's parser off the tag: the same characters as `</script>` here)
     for (const [text] of literals) expect(solid).toContain(text.replace(/(?<!\\)<\\\/script>/g, "</script>"))
+    // the tables by their keys and row counts: their words are the Solid kit's (`docs-api.spec.ts`)
     const api = vue.match(/^const API: Record<string, PropRow\[\]> = \{\n[\s\S]*?\n\}$/m)![0]
-    expect(solid).toContain(api)
+    expect(sansRows(solid, "tsx")).toContain(sansRows(api, "ts"))
     // each card is handed one of them
     const handed = (source: string, attr: string) =>
       [...source.matchAll(new RegExp(`<DemoCard ${attr}=\\{?"?(SNIPPET_\\w+)`, "g"))].map((m) => m[1])

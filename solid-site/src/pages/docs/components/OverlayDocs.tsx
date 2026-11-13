@@ -159,12 +159,16 @@ const API: Record<string, PropRow[]> = {
   ],
   previewCard: [{ prop: "delay", type: "number", default: "400" }],
   command: [
-    { prop: "open", type: "boolean (@close asks to leave)", default: "required" },
+    { prop: "open", type: "boolean (onClose asks to leave)", default: "required" },
     { prop: "items", type: "{ value, label, group?, kbd? }[]", default: "required" },
     { prop: "placeholder", type: "string", default: '"Type a command…"' },
     { prop: "empty", type: "string (no-match line)", default: '"No results."' },
-    { prop: "#empty slot", type: "scoped: { query }, drawn in place of the no-match line", default: "the empty line" },
-    { prop: "@select", type: "(value), fired before close", default: "" },
+    {
+      prop: "empty",
+      type: "({ query }) => JSX.Element, drawn in place of the no-match line",
+      default: "the empty line",
+    },
+    { prop: "onSelect", type: "(value), fired before close", default: "" },
   ],
 }
 
@@ -194,8 +198,8 @@ export default function OverlayDocs() {
       <section id="popover" class="mt-16 scroll-mt-24">
         <h2 class="text-lg tracking-tight">Popover</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          An anchored panel below its trigger. Bring your own trigger and content. Escape or an outside press emits
-          close.
+          An anchored panel below its trigger. Bring your own trigger and content. Escape or an outside press calls
+          onClose.
         </p>
         <DemoCard code={SNIPPET_POPOVER}>
           <div class="flex justify-center">
@@ -234,7 +238,7 @@ export default function OverlayDocs() {
       <section id="context-menu" class="mt-16 scroll-mt-24">
         <h2 class="text-lg tracking-tight">Context menu</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          A right-click menu teleported to the pointer. It shares Menu's items and keyboard behavior, and Escape or any
+          A right-click menu portalled to the pointer. It shares Menu's items and keyboard behavior, and Escape or any
           outside press dismisses it.
         </p>
         <DemoCard code={SNIPPET_CONTEXT}>

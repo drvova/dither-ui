@@ -109,86 +109,86 @@ const SNIPPET_SIGNATURE_PAD = `<DitherSignaturePad v-model="sig" @change="save" 
 
 const API: Record<string, PropRow[]> = {
   passwordInput: [
-    { prop: "modelValue", type: "string (v-model)", default: '""' },
+    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
     { prop: "invalid", type: "boolean", default: "false" },
   ],
   searchInput: [
-    { prop: "modelValue", type: "string (v-model)", default: '""' },
-    { prop: "@clear", type: "() on clear/Escape", default: "" },
+    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
+    { prop: "onClear", type: "() on clear/Escape", default: "" },
   ],
   emailInput: [
-    { prop: "modelValue", type: "string (v-model)", default: '""' },
+    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
     { prop: "autocomplete", type: "string", default: '"email"' },
   ],
   phoneInput: [
-    { prop: "modelValue", type: "string (v-model, formatted)", default: '""' },
+    { prop: "modelValue", type: "string (with onUpdateModelValue, formatted)", default: '""' },
     { prop: "autocomplete", type: "string", default: '"tel"' },
   ],
   currencyInput: [
-    { prop: "modelValue", type: "string (v-model, digits[.digits])", default: '""' },
+    { prop: "modelValue", type: "string (with onUpdateModelValue, digits[.digits])", default: '""' },
     { prop: "prefix", type: "string", default: '"$"' },
     { prop: "locale", type: "string", default: '"en-US"' },
   ],
   scrubInput: [
-    { prop: "modelValue", type: "number (v-model)", default: "0" },
+    { prop: "modelValue", type: "number (with onUpdateModelValue)", default: "0" },
     { prop: "min / max / step", type: "number", default: "0 / 100 / 1" },
   ],
   hotkeyInput: [
-    { prop: "modelValue", type: "string (v-model)", default: '""' },
+    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
     { prop: "placeholder", type: "string", default: '"Press a shortcut…"' },
   ],
   codeInput: [
-    { prop: "modelValue", type: "string (v-model)", default: '""' },
+    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
     { prop: "rows", type: "number", default: "6" },
-    { prop: "@submit", type: "Ctrl/Cmd + Enter", default: "" },
+    { prop: "onSubmit", type: "Ctrl/Cmd + Enter", default: "" },
   ],
   inputGroup: [],
   inlineEdit: [
-    { prop: "modelValue", type: "string (v-model)", default: '""' },
-    { prop: "@save / @cancel", type: "(value) / ()", default: "" },
+    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
+    { prop: "onSave / onCancel", type: "(value) / ()", default: "" },
   ],
   tagInput: [
-    { prop: "modelValue", type: "string[] (v-model)", default: "[]" },
+    { prop: "modelValue", type: "string[] (with onUpdateModelValue)", default: "[]" },
     { prop: "max", type: "number", default: "Infinity" },
   ],
   choiceChips: [
     { prop: "label", type: "string (names the group, shown over the chips)", default: '""' },
     { prop: "options", type: "string[]", default: "[]" },
-    { prop: "modelValue", type: "string | string[] (v-model; `value` still read)", default: '"" / []' },
+    { prop: "modelValue", type: "string | string[] (with onUpdateModelValue; `value` still read)", default: '"" / []' },
     { prop: "multiple", type: "boolean (checkbox mode)", default: "false" },
   ],
   checkboxCard: [
-    { prop: "modelValue", type: "boolean (v-model)", default: "false" },
+    { prop: "modelValue", type: "boolean (with onUpdateModelValue)", default: "false" },
     { prop: "label / description", type: "string", default: '""' },
   ],
   keyValueInput: [
-    { prop: "modelValue", type: "{ key, value }[] (v-model)", default: "[]" },
+    { prop: "modelValue", type: "{ key, value }[] (with onUpdateModelValue)", default: "[]" },
     { prop: "disabled", type: "boolean", default: "false" },
   ],
   mentionInput: [
-    { prop: "modelValue", type: "string (v-model)", default: '""' },
+    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
     { prop: "options", type: "string[]", default: "[]" },
-    { prop: "@mention", type: "(handle) on insert", default: "" },
+    { prop: "onMention", type: "(handle) on insert", default: "" },
   ],
   fileInput: [
-    { prop: "modelValue", type: "File[] (v-model)", default: "[]" },
+    { prop: "modelValue", type: "File[] (with onUpdateModelValue)", default: "[]" },
     { prop: "multiple", type: "boolean", default: "false" },
     { prop: "accept", type: "string (input accept)", default: "" },
-    { prop: "@change", type: "(File[]) after pick/remove", default: "" },
+    { prop: "onChange", type: "(File[]) after pick/remove", default: "" },
   ],
   listBox: [
     { prop: "options", type: "string[]", default: "[]" },
-    { prop: "value", type: "string (v-model)", default: '""' },
-    { prop: "@select", type: "(value) on commit", default: "" },
+    { prop: "value", type: "string (with onUpdateModelValue)", default: '""' },
+    { prop: "onSelect", type: "(value) on commit", default: "" },
   ],
   multiSelect: [
     { prop: "options", type: "string[]", default: "[]" },
-    { prop: "value", type: "string[] (v-model)", default: "[]" },
-    { prop: "@search", type: "(query) as you type", default: "" },
+    { prop: "value", type: "string[] (with onUpdateModelValue)", default: "[]" },
+    { prop: "onSearch", type: "(query) as you type", default: "" },
   ],
   cascadeSelect: [
     { prop: "tree", type: "{ value, children? }[]", default: "[]" },
-    { prop: "value", type: "string[] path (v-model)", default: "[]" },
+    { prop: "value", type: "string[] path (with onUpdateModelValue)", default: "[]" },
     { prop: "placeholders", type: "string[] per level", default: "Level n" },
   ],
   transferList: [
@@ -211,16 +211,16 @@ const API: Record<string, PropRow[]> = {
     { prop: "disabled", type: "boolean", default: "false" },
   ],
   calendar: [
-    { prop: "modelValue", type: "string (ISO date, v-model)", default: '""' },
+    { prop: "modelValue", type: "string (ISO date, with onUpdateModelValue)", default: '""' },
     { prop: "min / max", type: "string (ISO)", default: "" },
   ],
   datePicker: [
-    { prop: "modelValue", type: "string (ISO, v-model)", default: '""' },
+    { prop: "modelValue", type: "string (ISO, with onUpdateModelValue)", default: '""' },
     { prop: "min / max", type: "string (ISO)", default: "" },
-    { prop: "@select", type: "(ISO) when picked", default: "" },
+    { prop: "onSelect", type: "(ISO) when picked", default: "" },
   ],
   monthPicker: [
-    { prop: "modelValue", type: "string (YYYY-MM, v-model)", default: '""' },
+    { prop: "modelValue", type: "string (YYYY-MM, with onUpdateModelValue)", default: '""' },
     { prop: "disabled", type: "boolean", default: "false" },
   ],
   colorSwatch: [
@@ -230,19 +230,19 @@ const API: Record<string, PropRow[]> = {
     { prop: "size", type: "number (px)", default: "24" },
   ],
   colorPicker: [
-    { prop: "modelValue", type: "string (hex, v-model)", default: '"#5227FF"' },
+    { prop: "modelValue", type: "string (hex, with onUpdateModelValue)", default: '"#5227FF"' },
     { prop: "disabled", type: "boolean", default: "false" },
   ],
   knob: [
-    { prop: "modelValue", type: "number (v-model)", default: "50" },
+    { prop: "modelValue", type: "number (with onUpdateModelValue)", default: "50" },
     { prop: "min / max / step", type: "number", default: "0 / 100 / 1" },
     { prop: "size", type: "number (px)", default: "72" },
     { prop: "label", type: "string (its accessible name)", default: '"Knob"' },
   ],
   signaturePad: [
-    { prop: "modelValue", type: "string (dataURL, v-model)", default: '""' },
+    { prop: "modelValue", type: "string (dataURL, with onUpdateModelValue)", default: '""' },
     { prop: "width / height", type: "number (canvas)", default: "420 / 160" },
-    { prop: "@change", type: "(dataURL) per stroke", default: "" },
+    { prop: "onChange", type: "(dataURL) per stroke", default: "" },
   ],
 }
 
@@ -380,7 +380,7 @@ export default function FormsDocs() {
       <section class="mt-16 scroll-mt-24" id="input-group">
         <h2 class="text-lg tracking-tight">InputGroup</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Addon slots around a control in one bordered group: the group owns the border and the focus-within ring, the
+          Addon props around a control in one bordered group: the group owns the border and the focus-within ring, the
           inner control drops its own chrome (the code tab shows the exact class set).
         </p>
         <DemoCard code={SNIPPET_INPUT_GROUP}>
@@ -471,8 +471,8 @@ export default function FormsDocs() {
       <section class="mt-16 scroll-mt-24" id="key-value-input">
         <h2 class="text-lg tracking-tight">KeyValueInput</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Repeatable key/value rows: headers, metadata, query params. Every edit emits the whole array (the parent owns
-          the truth), rows are added and removed from the bottom.
+          Repeatable key/value rows: headers, metadata, query params. Every edit hands back the whole array (the parent
+          owns the truth), rows are added and removed from the bottom.
         </p>
         <DemoCard code={SNIPPET_KEY_VALUE_INPUT}>
           <div class="mx-auto w-full max-w-md">

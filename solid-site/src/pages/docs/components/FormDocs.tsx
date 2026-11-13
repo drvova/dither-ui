@@ -80,7 +80,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "min / max / step", type: "number", default: "0 / 100 / 1" },
     { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
     { prop: "ticks", type: "boolean (tick columns at steps if ≤25, else tenths)", default: "false" },
-    { prop: "show-value", type: "boolean (bubble while dragging or focused)", default: "false" },
+    { prop: "showValue", type: "boolean (bubble while dragging or focused)", default: "false" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
     { prop: "disabled", type: "boolean", default: "false" },
   ],
@@ -130,7 +130,7 @@ export default function FormDocs() {
         <h2 class="text-lg tracking-tight">Checkbox</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A pixel-border box that fills with the Bayer texture and draws a chunky near-white checkmark when checked.
-          Label goes in the default slot.
+          Label goes in as children.
         </p>
         <DemoCard code={SNIPPET_CHECKBOX}>
           <div class="mx-auto grid max-w-sm gap-3">

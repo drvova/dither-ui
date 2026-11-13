@@ -254,23 +254,23 @@ const API: Record<string, PropRow[]> = {
     { prop: "side", type: '"right" | "left" | "bottom"', default: '"right"' },
     { prop: "title", type: "string", default: "undefined" },
     { prop: "swipe", type: "boolean: drag to dismiss, momentum decides", default: "true" },
-    { prop: "snap-points", type: "number[]: ≤1 vh fraction, >1 px (bottom)", default: "undefined" },
-    { prop: "snap-point", type: "number (v-model:snap-point)", default: "first snap" },
+    { prop: "snapPoints", type: "number[]: ≤1 vh fraction, >1 px (bottom)", default: "undefined" },
+    { prop: "snapPoint", type: "number (with onUpdateSnapPoint)", default: "first snap" },
     { prop: "modal", type: "boolean (false: no backdrop, page stays live)", default: "true" },
     { prop: "dismissible", type: "boolean (false: backdrop click ignored)", default: "true" },
   ],
   sidebar: [
-    { prop: "modelValue (Sidebar)", type: "boolean: collapsed (v-model)", default: "false" },
+    { prop: "modelValue (Sidebar)", type: "boolean: collapsed (with onUpdateModelValue)", default: "false" },
     { prop: "variant (Sidebar)", type: '"default" | "floating" | "inset" | "washed"', default: '"default"' },
     { prop: "collapse (Sidebar)", type: '"rail" | "hide" | "none"', default: '"rail"' },
     { prop: "side (Sidebar)", type: '"left" | "right"', default: '"left"' },
     { prop: "density (Sidebar)", type: '"default" | "compact"', default: '"default"' },
     { prop: "toggle (Sidebar)", type: "boolean (false: permanent rail)", default: "true" },
-    { prop: "wash-color (Sidebar)", type: 'PixelColor (for variant="washed")', default: '"blue"' },
+    { prop: "washColor (Sidebar)", type: 'PixelColor (for variant="washed")', default: '"blue"' },
     { prop: "label (Group)", type: "string: folds to a hairline on the rail", default: "undefined" },
     { prop: "label / active / color (Item)", type: "string / boolean / PixelColor", default: 'none / false / "blue"' },
     { prop: "badge (Item)", type: "string | number: dot on the rail", default: "undefined" },
-    { prop: "modelValue / label (Sub)", type: "boolean (v-model) / string", default: "false / none" },
+    { prop: "modelValue / label (Sub)", type: "boolean (with onUpdateModelValue) / string", default: "false / none" },
   ],
   toast: [
     { prop: "message", type: "string", default: "" },
@@ -725,7 +725,7 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
               </DitherSidebar>
               <div class="grid min-w-0 flex-1 place-items-center text-[11px] text-muted-foreground">{modeActive()}</div>
             </div>
-            <div class="mt-2 text-center text-[10px] text-muted-foreground">permanent rail (:toggle="false")</div>
+            <div class="mt-2 text-center text-[10px] text-muted-foreground">permanent rail (toggle={"{false}"})</div>
           </div>
         </div>
         <PropsTable rows={API.sidebar} />
@@ -734,7 +734,7 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
       <section id="toast" class="mt-16 scroll-mt-24">
         <h2 class="text-lg tracking-tight">Toast</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          A module-level toast() call feeds a teleported bottom-right stack; each toast carries a 3px dithered rail in
+          A module-level toast() call feeds a portalled bottom-right stack; each toast carries a 3px dithered rail in
           its color and dismisses itself after its duration. API table below documents the toast() function.
         </p>
         <DemoCard code={SNIPPET_TOAST}>

@@ -367,19 +367,27 @@ describe("the reader's framework and styling system", () => {
     expect(docsStyling()).toBe("css")
   })
 
-  it("writes a prop table's model the way the framework binds it", () => {
+  it("writes a prop table as authored for Solid, and in Svelte's words for its port", () => {
     const rows = [
-      { prop: "modelValue", type: "boolean (v-model)", default: "false" },
-      { prop: "snap-point", type: "number (v-model:snap-point)", default: "first snap" },
+      { prop: "modelValue", type: "boolean (with onUpdateModelValue)", default: "false" },
+      { prop: "snapPoint", type: "number (with onUpdateSnapPoint)", default: "first snap" },
+      { prop: "onSelect / onHoverChange", type: "(value), after onClose", default: "" },
+      { prop: "preview", type: "({ item }) => JSX.Element (custom preview content)", default: "label + hint" },
+      { prop: "compact / children", type: "JSX.Element (children: the detail panel)", default: "" },
     ]
     const view = render(() => <PropsTable rows={rows} />)
-    expect(view.container.querySelector("td")!.textContent).toBe("modelValue")
-    expect(view.container.querySelectorAll("td")[1].textContent).toBe("boolean (with onUpdateModelValue)")
-    expect(view.container.querySelectorAll("td")[2].textContent).toBe("false")
-    expect(view.container.querySelectorAll("td")[4].textContent).toBe("number (with onUpdateSnapPoint)")
+    const cells = () => [...view.container.querySelectorAll("td")].map((td) => td.textContent)
+    // a Solid reader gets the rows as written
+    expect(cells()).toEqual(rows.flatMap((r) => [r.prop, r.type, r.default || "none"]))
     setDocsFramework("svelte")
-    expect(view.container.querySelector("td")!.textContent).toBe("value")
-    expect(view.container.querySelectorAll("td")[1].textContent).toBe("boolean (bind:value)")
+    expect(cells()).toEqual([
+      ...["value", "boolean (bind:value)", "false"],
+      ...["snapPoint", "number (bind:snapPoint)", "first snap"],
+      // a one-word event is lowercase in the port, a two-word one keeps its capitals
+      ...["onselect / onHoverChange", "(value), after onclose", "none"],
+      ...["preview", "Snippet<[{ item }]> (custom preview content)", "label + hint"],
+      ...["compact / children", "Snippet (children: the detail panel)", "none"],
+    ])
     expect(view.container.querySelector("dt")!.textContent).toBe("value")
     cleanup()
     const none = render(() => <PropsTable rows={[{ prop: "seed", type: "number", default: "" }]} />)

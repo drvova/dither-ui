@@ -264,8 +264,8 @@ export default function FieldDocs() {
         <h2 class="text-lg tracking-tight">Form</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A deliberately tiny wrapper: <code class="text-foreground/80">novalidate</code> suppresses the browser's
-          validation bubbles and submit is prevented and re-emitted as a clean{" "}
-          <code class="text-foreground/80">submit</code> event.
+          validation bubbles and submit is prevented and handed on as a clean{" "}
+          <code class="text-foreground/80">onSubmit</code> call.
         </p>
         <DemoCard code={SNIPPET_FORM}>
           <div class="mx-auto max-w-sm">

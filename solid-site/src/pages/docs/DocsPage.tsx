@@ -226,126 +226,126 @@ const API: Record<string, PropRow[]> = {
   cartesian: [
     { prop: "data", type: "Row[]", default: "required" },
     { prop: "config", type: "ChartConfig", default: "required" },
-    { prop: "stack-type", type: '"default" | "stacked" | "percent"', default: '"default"' },
+    { prop: "stackType", type: '"default" | "stacked" | "percent"', default: '"default"' },
     { prop: "margins", type: "Partial<Margins>", default: "{}" },
     { prop: "class", type: "string", default: "undefined" },
     { prop: "interactive", type: "boolean", default: "true" },
     { prop: "animate", type: "boolean", default: "true" },
     { prop: "seed", type: "number", default: "undefined" },
     { prop: "effect", type: "number", default: "seed / sparkle" },
-    { prop: "animation-duration", type: "number (ms)", default: "seed / 900" },
-    { prop: "animation-delay", type: "number (ms)", default: "seed / 0" },
+    { prop: "animationDuration", type: "number (ms)", default: "seed / 900" },
+    { prop: "animationDelay", type: "number (ms)", default: "seed / 0" },
     { prop: "easing", type: "name | bezier tuple | number", default: "seed / chart default" },
     { prop: "sparkles", type: "boolean", default: "true" },
-    { prop: "hover-lift", type: "boolean", default: "true" },
+    { prop: "hoverLift", type: "boolean", default: "true" },
     { prop: "stagger", type: "number", default: "seed / 0.55" },
     { prop: "cell", type: "number (px)", default: "2" },
-    { prop: "sparkle-density", type: "number", default: "seed / 1" },
-    { prop: "sparkle-speed", type: "number", default: "seed / 1" },
-    { prop: "bar-gap", type: "number", default: "seed / 0.28" },
-    { prop: "bar-edge", type: "number", default: "seed / 0.18" },
-    { prop: "glow-size", type: "number", default: "seed / 0.16" },
-    { prop: "hover-strength", type: "number", default: "seed / 1" },
-    { prop: "dim-opacity", type: "number", default: "seed / 0.3" },
+    { prop: "sparkleDensity", type: "number", default: "seed / 1" },
+    { prop: "sparkleSpeed", type: "number", default: "seed / 1" },
+    { prop: "barGap", type: "number", default: "seed / 0.28" },
+    { prop: "barEdge", type: "number", default: "seed / 0.18" },
+    { prop: "glowSize", type: "number", default: "seed / 0.16" },
+    { prop: "hoverStrength", type: "number", default: "seed / 1" },
+    { prop: "dimOpacity", type: "number", default: "seed / 0.3" },
     { prop: "crosshair", type: "boolean", default: "true" },
-    { prop: "replay-token", type: "number", default: "0" },
-    { prop: "marker-index", type: "number | null", default: "null" },
+    { prop: "replayToken", type: "number", default: "0" },
+    { prop: "markerIndex", type: "number | null", default: "null" },
     { prop: "hovered", type: "boolean", default: "false" },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
-    { prop: "bloom-on-hover", type: "boolean", default: "false" },
+    { prop: "bloomOnHover", type: "boolean", default: "false" },
     {
       prop: "precompiled",
       type: "string | { src: string; width?: number; height?: number }: a packaged plot URL",
       default: "undefined",
     },
-    { prop: "default-selected-data-key", type: "string | null", default: "null" },
-    { prop: "on-hover-change", type: "(index: number | null) => void", default: "undefined" },
-    { prop: "on-selection-change", type: "(key: string | null) => void", default: "undefined" },
+    { prop: "defaultSelectedDataKey", type: "string | null", default: "null" },
+    { prop: "onHoverChange", type: "(index: number | null) => void", default: "undefined" },
+    { prop: "onSelectionChange", type: "(key: string | null) => void", default: "undefined" },
     { prop: "variant (series)", type: "name | TextureConfig | number (seed)", default: '"gradient"' },
   ],
   pie: [
     { prop: "data", type: "Row[]", default: "required" },
     { prop: "config", type: "ChartConfig", default: "required" },
-    { prop: "data-key", type: "string", default: '""' },
-    { prop: "name-key", type: "string", default: "required" },
-    { prop: "inner-radius", type: "number 0…0.85", default: "seed / 0" },
+    { prop: "dataKey", type: "string", default: '""' },
+    { prop: "nameKey", type: "string", default: "required" },
+    { prop: "innerRadius", type: "number 0…0.85", default: "seed / 0" },
     { prop: "margins", type: "Partial<Margins>", default: "{}" },
     { prop: "class", type: "string", default: "undefined" },
     { prop: "animate", type: "boolean", default: "true" },
     { prop: "seed", type: "number", default: "undefined" },
-    { prop: "animation-duration", type: "number (ms)", default: "seed / 900" },
-    { prop: "animation-delay", type: "number (ms)", default: "seed / 0" },
+    { prop: "animationDuration", type: "number (ms)", default: "seed / 900" },
+    { prop: "animationDelay", type: "number (ms)", default: "seed / 0" },
     { prop: "easing", type: "name | bezier tuple | number", default: "seed / ease-in-out" },
-    { prop: "hover-lift", type: "boolean", default: "true" },
+    { prop: "hoverLift", type: "boolean", default: "true" },
     { prop: "cell", type: "number (px)", default: "2" },
-    { prop: "pop-out", type: "number", default: "seed / 6" },
-    { prop: "rim-width", type: "number", default: "seed / 1.4" },
+    { prop: "popOut", type: "number", default: "seed / 6" },
+    { prop: "rimWidth", type: "number", default: "seed / 1.4" },
     { prop: "falloff", type: "number", default: "seed / 0.45" },
-    { prop: "hover-strength", type: "number", default: "seed / 1" },
-    { prop: "dim-opacity", type: "number", default: "seed / 0.3" },
-    { prop: "start-angle", type: "number", default: "seed / 0" },
-    { prop: "replay-token", type: "number", default: "0" },
+    { prop: "hoverStrength", type: "number", default: "seed / 1" },
+    { prop: "dimOpacity", type: "number", default: "seed / 0.3" },
+    { prop: "startAngle", type: "number", default: "seed / 0" },
+    { prop: "replayToken", type: "number", default: "0" },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
-    { prop: "bloom-on-hover", type: "boolean", default: "false" },
+    { prop: "bloomOnHover", type: "boolean", default: "false" },
     {
       prop: "precompiled",
       type: "string | { src: string; width?: number; height?: number }: a packaged plot URL",
       default: "undefined",
     },
-    { prop: "default-selected-data-key", type: "string | null", default: "null" },
-    { prop: "on-selection-change", type: "(key: string | null) => void", default: "undefined" },
+    { prop: "defaultSelectedDataKey", type: "string | null", default: "null" },
+    { prop: "onSelectionChange", type: "(key: string | null) => void", default: "undefined" },
   ],
   radar: [
     { prop: "data", type: "Row[]", default: "required" },
     { prop: "config", type: "ChartConfig", default: "required" },
-    { prop: "name-key", type: "string", default: "required" },
+    { prop: "nameKey", type: "string", default: "required" },
     { prop: "rings", type: "number", default: "seed / 4" },
     { prop: "margins", type: "Partial<Margins>", default: "{}" },
     { prop: "class", type: "string", default: "undefined" },
     { prop: "animate", type: "boolean", default: "true" },
     { prop: "seed", type: "number", default: "undefined" },
-    { prop: "animation-duration", type: "number (ms)", default: "seed / 900" },
-    { prop: "animation-delay", type: "number (ms)", default: "seed / 0" },
+    { prop: "animationDuration", type: "number (ms)", default: "seed / 900" },
+    { prop: "animationDelay", type: "number (ms)", default: "seed / 0" },
     { prop: "easing", type: "name | bezier tuple | number", default: "seed / ease-in-out" },
-    { prop: "hover-lift", type: "boolean", default: "true" },
+    { prop: "hoverLift", type: "boolean", default: "true" },
     { prop: "cell", type: "number (px)", default: "2" },
     { prop: "falloff", type: "number", default: "seed / 0.45" },
-    { prop: "hover-strength", type: "number", default: "seed / 1" },
-    { prop: "dim-opacity", type: "number", default: "seed / 0.3" },
-    { prop: "start-angle", type: "number", default: "seed / 0" },
-    { prop: "replay-token", type: "number", default: "0" },
+    { prop: "hoverStrength", type: "number", default: "seed / 1" },
+    { prop: "dimOpacity", type: "number", default: "seed / 0.3" },
+    { prop: "startAngle", type: "number", default: "seed / 0" },
+    { prop: "replayToken", type: "number", default: "0" },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
-    { prop: "bloom-on-hover", type: "boolean", default: "false" },
+    { prop: "bloomOnHover", type: "boolean", default: "false" },
     {
       prop: "precompiled",
       type: "string | { src: string; width?: number; height?: number }: a packaged plot URL",
       default: "undefined",
     },
-    { prop: "default-selected-data-key", type: "string | null", default: "null" },
-    { prop: "on-selection-change", type: "(key: string | null) => void", default: "undefined" },
+    { prop: "defaultSelectedDataKey", type: "string | null", default: "null" },
+    { prop: "onSelectionChange", type: "(key: string | null) => void", default: "undefined" },
   ],
   sparkline: [
     { prop: "data", type: "number[]", default: "" },
     { prop: "color", type: "DitherColor", default: "" },
     { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
-    { prop: "marker-index", type: "number | null", default: "null" },
+    { prop: "markerIndex", type: "number | null", default: "null" },
     {
       prop: "interactive",
       type: "boolean (scrub: the crosshair follows the pointer; a slider for the keyboard, arrows, Home, End, Escape)",
       default: "false",
     },
     { prop: "label", type: "string (the slider's name, when interactive)", default: '"Series"' },
-    { prop: "hover-lift", type: "boolean", default: "true" },
+    { prop: "hoverLift", type: "boolean", default: "true" },
     { prop: "sparkles", type: "boolean (the idle drift along the line)", default: "true" },
-    { prop: "@hover-change", type: "(index: number | null) => void", default: "" },
+    { prop: "onHoverChange", type: "(index: number | null) => void", default: "" },
     { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
     { prop: "animate", type: "boolean", default: "false" },
   ],
   motion: [
     { prop: "animate", type: "boolean", default: "true" },
-    { prop: "animation-duration", type: "number (ms)", default: "900" },
-    { prop: "animation-delay", type: "number (ms)", default: "0" },
-    { prop: "replay-token", type: "number (bump it to re-run)", default: "0" },
+    { prop: "animationDuration", type: "number (ms)", default: "900" },
+    { prop: "animationDelay", type: "number (ms)", default: "0" },
+    { prop: "replayToken", type: "number (bump it to re-run)", default: "0" },
     { prop: "effect", type: "number (its own edge-motion seed)", default: "master seed / gentle" },
   ],
   button: [
@@ -357,9 +357,9 @@ const API: Record<string, PropRow[]> = {
     { prop: "type", type: '"button" | "submit" | "reset"', default: '"button"' },
     { prop: "loading / disabled", type: "boolean", default: "false" },
     { prop: "class", type: "string", default: "undefined" },
-    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "renderMode", type: '"live" | "static"', default: '"live"' },
     { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
-    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 live, 320 / 200 static" },
+    { prop: "maxCols / maxRows", type: "number", default: "960 / 600 live, 320 / 200 static" },
   ],
   avatar: [
     { prop: "name", type: "string", default: "" },
@@ -378,21 +378,21 @@ const API: Record<string, PropRow[]> = {
     { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
     { prop: "seed", type: "number", default: "undefined" },
     { prop: "class", type: "string", default: "undefined" },
-    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "renderMode", type: '"live" | "static"', default: '"live"' },
     { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
-    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 live, 320 / 200 static" },
+    { prop: "maxCols / maxRows", type: "number", default: "960 / 600 live, 320 / 200 static" },
   ],
   image: [
     { prop: "src", type: "string", default: "required" },
     { prop: "cell", type: "number (px)", default: "seed / 3" },
-    { prop: "focus-y", type: "number 0…1", default: "seed / 0.5" },
+    { prop: "focusY", type: "number 0…1", default: "seed / 0.5" },
     { prop: "fade", type: "number (px)", default: "seed / 0" },
     { prop: "seed", type: "number", default: "undefined" },
     { prop: "alt", type: "string", default: '""' },
     { prop: "class", type: "string", default: "undefined" },
-    { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+    { prop: "renderMode", type: '"live" | "static"', default: '"live"' },
     { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
-    { prop: "max-cols / max-rows", type: "number", default: "960 / 600 live, 320 / 200 static" },
+    { prop: "maxCols / maxRows", type: "number", default: "960 / 600 live, 320 / 200 static" },
   ],
   palette: [
     { prop: "cssColor(c)", type: "(DitherColor | number) → css string", default: "" },
@@ -1149,8 +1149,7 @@ export default function DocsPage(props: DocsPageProps) {
                 A chart is a root plus parts. The root measures, builds scales and provides context; children register
                 themselves: grid and axes as chrome, <code class="text-foreground/80">Area</code>/
                 <code class="text-foreground/80">Line</code>/<code class="text-foreground/80">Bar</code> as series,{" "}
-                <code class="text-foreground/80">Dot</code> nested inside a series. Order in the template is paint
-                order.
+                <code class="text-foreground/80">Dot</code> nested inside a series. Order in the markup is paint order.
               </p>
               <div class="mt-5">
                 <CodeBlock code={fw(SNIPPETS.composition)} />
@@ -1175,7 +1174,7 @@ export default function DocsPage(props: DocsPageProps) {
             <Own id="motion">
               <h2 class="text-lg tracking-tight">Motion</h2>
               <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                Entrances draw the dither field in; bump <code class="text-foreground/80">replay-token</code> to run one
+                Entrances draw the dither field in; bump <code class="text-foreground/80">replayToken</code> to run one
                 again. When the OS asks for reduced motion, entrances snap and sparkles hold still. No opt-in needed.
               </p>
               <DemoCard code={SNIPPETS.motion}>
@@ -1224,7 +1223,7 @@ export default function DocsPage(props: DocsPageProps) {
               <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
                 The live edge isn't a preset. It's a point in a continuous space of motion (drift, gravity, twinkle,
                 trail, flow) AND particle shape (a generated glyph: dot, plus, x, streak, asterisk). A dedicated{" "}
-                <code class="text-foreground/80">:effect</code> seed samples one of infinitely many; roll for a fresh
+                <code class="text-foreground/80">effect</code> seed samples one of infinitely many; roll for a fresh
                 one.
               </p>
               <div class="mt-4 rounded-lg border border-border/60 p-4">
@@ -1606,7 +1605,8 @@ export default function DocsPage(props: DocsPageProps) {
               <h3 class="mt-8 text-[12px] text-muted-foreground">Seed-generative</h3>
               <p class="mt-2 text-[12px] leading-relaxed text-muted-foreground">
                 A number is a seed: the same deterministic idea as the avatar, applied to texture.{" "}
-                <code class="text-foreground/80">:variant="1984"</code> renders the same fill on every chart, forever.
+                <code class="text-foreground/80">{"variant={1984}"}</code> renders the same fill on every chart,
+                forever.
               </p>
               <div class="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
                 <For each={SEEDS}>
@@ -1691,7 +1691,7 @@ export default function DocsPage(props: DocsPageProps) {
             <Own id="bar">
               <StudioHead title="Bar chart" type="bar" />
               <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-                Organic vs paid traffic, grouped. Set <code class="text-foreground/80">stack-type</code> to stacked or
+                Organic vs paid traffic, grouped. Set <code class="text-foreground/80">stackType</code> to stacked or
                 percent to pile the columns.
               </p>
               <DemoCard code={barCode()}>
@@ -1810,7 +1810,7 @@ export default function DocsPage(props: DocsPageProps) {
               <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
                 A plain numeric series with zero margins, built for stat cards, table cells and dashboard rows. Set{" "}
                 <code>interactive</code> and it scrubs: its own crosshair marks the point under the pointer and{" "}
-                <code>hover-change</code> reports it, here rolling each card's figure to that hour.
+                <code>onHoverChange</code> reports it, here rolling each card's figure to that hour.
               </p>
               <DemoCard code={SNIPPETS.sparkline}>
                 <div class="grid gap-4 sm:grid-cols-3">

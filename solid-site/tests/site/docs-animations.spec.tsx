@@ -11,6 +11,7 @@ import { ANIMATIONS_NAV } from "@/pages/docs/animations/animations-nav"
 import AnimationsDocs from "../../src/pages/docs/animations/AnimationsDocs"
 import TransitionSection from "../../src/pages/docs/animations/TransitionSection"
 import { world } from "../world"
+import { sansRows, stringsIn } from "./docs-api"
 
 const VUE = join(__dirname, "../../../src/pages/docs/animations")
 const SOLID = join(__dirname, "../../src/pages/docs/animations")
@@ -182,12 +183,16 @@ describe("the Animations pack", () => {
     expect(section("stage").querySelector(".tabular-nums")!.textContent).toBe("55%")
   })
 
-  it("keeps the authored tables and snippets the Vue pack's, character for character", () => {
+  it("keeps the authored snippets the Vue pack's, character for character, and its tables' shape", () => {
     const vue = read(VUE, "AnimationsDocs.vue")
     const solid = read(SOLID, "AnimationsDocs.tsx")
     const authored = vue.slice(vue.indexOf("const SHARED_CANVAS"), vue.indexOf("/* Skiper-adjacent widgets"))
     expect(authored.length).toBeGreaterThan(30000)
-    expect(solid).toContain(authored)
+    // every string as written, the snippets among them; the tables by their keys and row counts, their
+    // words being the Solid kit's (`docs-api.spec.ts`)
+    for (const snippet of stringsIn(authored, "ts")) expect(solid).toContain(snippet)
+    expect(stringsIn(authored, "ts").length).toBeGreaterThan(50)
+    expect(sansRows(solid, "tsx")).toContain(sansRows(authored, "ts"))
     // the one computed snippet: the same text over the same state
     const from = (text: string) =>
       text.slice(text.indexOf("`<DitherNotificationStack v-model"), text.indexOf("stagger -->`"))
@@ -198,7 +203,8 @@ describe("the Animations pack", () => {
     const between = (from: string, to: string) => page.slice(page.indexOf(from), page.indexOf(to))
     for (const block of [between("const SCENES", "\n\nconst scene = ref"), between("const KEY", "</script>")]) {
       expect(block.length).toBeGreaterThan(400)
-      expect(twin).toContain(block)
+      for (const snippet of stringsIn(block, "ts")) expect(twin).toContain(snippet)
+      expect(sansRows(twin, "tsx")).toContain(sansRows(block, "ts"))
     }
   })
 })

@@ -22,19 +22,23 @@ const TREND = [12, 14, 13, 17, 16, 19, 22, 21, 24, 27, 26, 31]
 const API: Record<string, PropRow[]> = {
   shell: [
     { prop: "frame", type: "boolean (embedded card chrome: border, rounding, clip)", default: "false" },
-    { prop: "slots", type: "topbar, aside, statusbar, default (content)", default: "" },
+    { prop: "topbar / aside / statusbar / children", type: "JSX.Element (children: content)", default: "" },
   ],
   rail: [
     { prop: "label", type: "string (aria-label for the nav landmark)", default: '"Rail"' },
     { prop: "side", type: '"left" | "right" (flips the border edge)', default: '"left"' },
-    { prop: "slots", type: "header, footer, default (items: labels fold automatically)", default: "" },
+    {
+      prop: "header / footer / children",
+      type: "JSX.Element (children: items, labels fold automatically)",
+      default: "",
+    },
   ],
   console: [
     { prop: "lines", type: "(string | { text, level?, at? })[] (level: info | success | warn | error)", default: "[]" },
     { prop: "title", type: "string (header caption)", default: '"console"' },
     { prop: "follow", type: "boolean (pin the view to the newest line)", default: "true" },
     { prop: "caret", type: "boolean (blinking block caret, still under reduced motion)", default: "true" },
-    { prop: "slots", type: "actions (right side of the header)", default: "" },
+    { prop: "actions", type: "JSX.Element (right side of the header)", default: "" },
   ],
   canvas: [
     { prop: "pattern", type: '"dots" | "grid" | "plain"', default: '"dots"' },
@@ -46,7 +50,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "gap", type: "string (any CSS length)", default: '"0.75rem"' },
   ],
   infinite: [
-    { prop: "zoom", type: "number (v-model:zoom)", default: "1" },
+    { prop: "zoom", type: "number (with onUpdateZoom)", default: "1" },
     { prop: "minZoom / maxZoom", type: "number (clamp range)", default: "0.25 / 3" },
     { prop: "pattern", type: '"dots" | "grid" | "plain"', default: '"dots"' },
     { prop: "cell", type: "number (pattern pitch at zoom 1, px)", default: "16" },
@@ -175,7 +179,7 @@ export default function LayoutDocs() {
       <section id="dither-shell" class="mt-16 scroll-mt-24">
         <h2 class="text-lg tracking-tight">Shell</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          The app frame: topbar over an aside + content pair, statusbar under, every region a slot. Below, a whole SaaS
+          The app frame: topbar over an aside + content pair, statusbar under, every region a prop. Below, a whole SaaS
           dashboard from the layout family: rail, canvas, grid, sparkline cards, a live console.
         </p>
         <DemoCard code={SNIPPET_SHELL}>
@@ -391,7 +395,7 @@ export default function LayoutDocs() {
         <h2 class="text-lg tracking-tight">Infinite canvas</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A pannable, zoomable work surface: drag to pan, wheel to zoom toward the cursor, and the dot field rides the
-          same transform so space feels real. The zoom is a v-model.
+          same transform so space feels real. The zoom is two-way: zoom with onUpdateZoom.
         </p>
         <DemoCard code={SNIPPET_INFINITE}>
           <div class="mx-auto max-w-lg">

@@ -19,6 +19,7 @@ import SelectionDocs from "../../src/pages/docs/components/SelectionDocs"
 import StructureDocs from "../../src/pages/docs/components/StructureDocs"
 import SurfaceDocs from "../../src/pages/docs/components/SurfaceDocs"
 import { world } from "../world"
+import { sansRows } from "./docs-api"
 
 const PACKS: { name: string; Pack: () => JSX.Element; nav: readonly { id: string; label: string }[] }[] = [
   { name: "NavigationDocs", Pack: NavigationDocs, nav: NAVIGATION_NAV },
@@ -93,13 +94,14 @@ describe("snippets", () => {
     )
   const api = (source: string) => /const API: Record<string, PropRow\[\]> = \{[\s\S]*?\n\}/.exec(source)![0]
 
-  it.each(PACKS)("$name carries its Vue twin's snippets and API rows verbatim", ({ name }) => {
+  it.each(PACKS)("$name carries its Vue twin's snippets verbatim and its tables' shape", ({ name }) => {
     const vue = readFileSync(join(SITE, "../src/pages/docs/components", `${name}.vue`), "utf8")
     const solid = readFileSync(join(SITE, "src/pages/docs/components", `${name}.tsx`), "utf8")
     const theirs = snippets(vue)
     expect(Object.keys(theirs).length).toBeGreaterThan(0)
     expect(snippets(solid)).toEqual(theirs)
-    expect(api(solid)).toBe(api(vue))
+    // the tables by their keys and row counts: their words are the Solid kit's (`docs-api.spec.ts`)
+    expect(sansRows(api(solid), "tsx")).toBe(sansRows(api(vue), "ts"))
   })
 })
 
@@ -238,7 +240,7 @@ describe("the demos' own state", () => {
     fireEvent.click([...demo.querySelectorAll("button")].find((b) => text(b).startsWith("Charts"))!)
     expect(text(demo.querySelector("div.grid.flex-1.place-items-center"))).toBe("Charts")
     expect([...sidebar.querySelectorAll("h3")].map(text)).toEqual(["Variants", "Modes"])
-    expect(text(sidebar)).toContain('permanent rail (:toggle="false")')
+    expect(text(sidebar)).toContain("permanent rail (toggle={false})")
 
     const drawer = section(root, "drawer")
     expect(text(drawer)).toContain("last action: none")

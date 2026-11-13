@@ -30,7 +30,7 @@ const API: PropRow[] = [
   { prop: "paused", type: "boolean", default: "false" },
   { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
   { prop: "dpr", type: "number", default: "devicePixelRatio" },
-  { prop: "render-mode", type: '"live" | "static"', default: '"live"' },
+  { prop: "renderMode", type: '"live" | "static"', default: '"live"' },
 ]
 
 export default function PosterSection() {

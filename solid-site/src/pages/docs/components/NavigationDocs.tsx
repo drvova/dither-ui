@@ -56,12 +56,12 @@ const API: Record<string, PropRow[]> = {
     { prop: "separator", type: "string", default: '"/"' },
   ],
   pagination: [
-    { prop: "page", type: "number (v-model)", default: "" },
+    { prop: "page", type: "number (with onUpdatePage)", default: "" },
     { prop: "total", type: "number (page count)", default: "" },
     { prop: "siblings", type: "number (pages either side)", default: "1" },
   ],
   rating: [
-    { prop: "modelValue", type: "number (v-model)", default: "0" },
+    { prop: "modelValue", type: "number (with onUpdateModelValue)", default: "0" },
     { prop: "max", type: "number", default: "5" },
     { prop: "color", type: "PixelColor", default: '"orange"' },
     { prop: "size", type: "number (px per star)", default: "22" },
@@ -114,7 +114,8 @@ export default function NavigationDocs() {
         <h2 class="text-lg tracking-tight">Pagination</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Page navigation that always shows the first, last and current page, collapsing the rest to ellipses. Two-way
-          bound with <code class="text-foreground/80">v-model:page</code>.
+          bound with <code class="text-foreground/80">page</code> and{" "}
+          <code class="text-foreground/80">onUpdatePage</code>.
         </p>
         <DemoCard code={SNIPPET_PAGINATION}>
           <div class="grid gap-4">

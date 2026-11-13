@@ -181,7 +181,11 @@ const API: Record<string, PropRow[]> = {
   pluralText: [
     { prop: "count", type: "number", default: "0" },
     { prop: "locale", type: "string (BCP 47)", default: '"en"' },
-    { prop: "slots", type: "named by category: #one, #few, #many… + default", default: "default" },
+    {
+      prop: "zero / one / two / few / many / other / children",
+      type: "({ count }) => JSX.Element, named by category: one, few, many… + children",
+      default: "children",
+    },
   ],
   emoji: [
     { prop: "char", type: "string (unicode)", default: '"✨"' },
@@ -295,7 +299,7 @@ export default function TypographyDocs() {
         <h2 class="text-lg tracking-tight">Blockquote</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Real <code class="text-foreground/80">&lt;blockquote&gt;</code> semantics with the editorial treatment:
-          hairline left rule, muted register. Citations ride in the slot.
+          hairline left rule, muted register. Citations ride in the children.
         </p>
         <DemoCard code={SNIPPET_BLOCKQUOTE}>
           <DitherBlockquote class="mx-auto max-w-md">
@@ -588,9 +592,9 @@ export default function TypographyDocs() {
       <section class="mt-16 scroll-mt-24" id="plural-text">
         <h2 class="text-lg tracking-tight">PluralText</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Intl.PluralRules as a slot switch: the plural category picks the slot, the default slot is the fallback, and
-          every slot receives <code class="text-foreground/80">count</code>. Richer plural languages just get more named
-          slots. No conditionals in the caller.
+          Intl.PluralRules as a prop switch: the plural category picks the prop, children is the fallback, and every one
+          receives <code class="text-foreground/80">count</code>. Richer plural languages just get more named props. No
+          conditionals in the caller.
         </p>
         <DemoCard code={SNIPPET_PLURAL_TEXT}>
           <div class="grid justify-center gap-1 text-[13px]">

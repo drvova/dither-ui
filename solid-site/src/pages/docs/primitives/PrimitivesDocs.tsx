@@ -186,21 +186,21 @@ const API: Record<string, PropRow[]> = {
   portal: [
     { prop: "to", type: "string (selector)", default: '"body"' },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "defer", type: "boolean (the target may come later in the template)", default: "false" },
+    { prop: "defer", type: "boolean (the target may come later in the markup)", default: "false" },
   ],
   overlay: [
     { prop: "dim", type: '"none" | "soft" | "medium" | "strong"', default: '"soft"' },
     { prop: "interactive", type: "boolean", default: "false" },
   ],
-  measure: [{ prop: "resize", type: "event: { width, height }", default: "on box change" }],
+  measure: [{ prop: "onResize", type: "({ width, height }) => void", default: "on box change" }],
   clipboard: [
     { prop: "value", type: "string", default: "required" },
     { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "copied", type: "event: value", default: "on success" },
+    { prop: "onCopied", type: "(value) => void", default: "on success" },
   ],
   clickOutside: [
     { prop: "enabled", type: "boolean", default: "true" },
-    { prop: "outside", type: "event: pointerdown outside", default: "" },
+    { prop: "onOutside", type: "(event) => void: pointerdown outside", default: "" },
   ],
   focusRing: [],
   focusScope: [
@@ -208,7 +208,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "trapped", type: "boolean", default: "true" },
     { prop: "restoreFocus", type: "boolean", default: "true" },
   ],
-  hoverArea: [{ prop: "scoped slot", type: "{ hovered, focused }", default: "" }],
+  hoverArea: [{ prop: "children", type: "({ hovered, focused }) => JSX.Element", default: "" }],
   pressable: [
     { prop: "variant", type: '"solid" | "outline" | "ghost" | "plain"', default: '"solid"' },
     { prop: "type", type: '"button" | "submit" | "reset"', default: '"button"' },
@@ -218,7 +218,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "rootMargin", type: "string", default: '"200px"' },
     { prop: "threshold", type: "number", default: "0" },
     { prop: "once", type: "boolean", default: "true" },
-    { prop: "scoped slot", type: "{ inView }", default: "" },
+    { prop: "children", type: "({ inView }) => JSX.Element", default: "" },
   ],
 }
 
@@ -239,7 +239,7 @@ export default function PrimitivesDocs() {
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           One element, one job: a typed container whose whole style arrives as{" "}
           <code class="text-foreground/80">class</code>. Swap the tag with <code class="text-foreground/80">as</code>{" "}
-          (landmarks for structure, spans for inline flow) and the slot never notices.
+          (landmarks for structure, spans for inline flow) and its children never notice.
         </p>
         <DemoCard code={SNIPPET_BOX}>
           <DitherBox class="rounded-lg border border-border/60 bg-card/40 p-5 text-center" as="section">
@@ -389,11 +389,11 @@ export default function PrimitivesDocs() {
       <section class="mt-16 scroll-mt-24" id="portal">
         <h2 class="text-lg tracking-tight">Portal</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Teleport by name: render a slot elsewhere in the DOM so popovers and toasts escape{" "}
+          Portal by name: render children elsewhere in the DOM so popovers and toasts escape{" "}
           <code class="text-foreground/80">overflow: hidden</code>. <code class="text-foreground/80">disabled</code>{" "}
           keeps it in place (the switch for tests and environments where the target does not exist);{" "}
           <code class="text-foreground/80">defer</code> waits for the rest of the render, so the target can come later
-          in the same template, as it does here.
+          in the same markup, as it does here.
         </p>
         <DemoCard code={SNIPPET_PORTAL}>
           {/* The chip is declared inside a clipped box and lands in the target
@@ -419,7 +419,7 @@ export default function PrimitivesDocs() {
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A full-cover layer in four dim weights. Decorative and click-transparent by default;{" "}
           <code class="text-foreground/80">interactive</code> makes it catch presses (dismissible scrims) and lifts the
-          aria-hidden so its slot stays reachable.
+          aria-hidden so its children stay reachable.
         </p>
         <DemoCard code={SNIPPET_OVERLAY}>
           <div class="grid h-40 place-items-center rounded-md border border-border/60 bg-card/40 text-center">
@@ -435,8 +435,8 @@ export default function PrimitivesDocs() {
       <section class="mt-16 scroll-mt-24" id="measure">
         <h2 class="text-lg tracking-tight">Measure</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Reports its own box: a plain block that emits <code class="text-foreground/80">resize</code> with width and
-          height on every change. ResizeObserver only: without it the slot still renders and simply stays silent.
+          Reports its own box: a plain block that calls <code class="text-foreground/80">onResize</code> with width and
+          height on every change. ResizeObserver only: without it the children still render and it simply stays silent.
         </p>
         <DemoCard code={SNIPPET_MEASURE}>
           <div class="grid justify-items-center gap-3">
@@ -452,8 +452,8 @@ export default function PrimitivesDocs() {
       <section class="mt-16 scroll-mt-24" id="clipboard">
         <h2 class="text-lg tracking-tight">Clipboard</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Clipboard behavior around any trigger: the scoped slot gets <code class="text-foreground/80">copied</code> and{" "}
-          <code class="text-foreground/80">copy</code>, and a polite live region announces the result. Your trigger
+          Clipboard behavior around any trigger: the function child gets <code class="text-foreground/80">copied</code>{" "}
+          and <code class="text-foreground/80">copy</code>, and a polite live region announces the result. Your trigger
           keeps its own semantics. This adds the behavior and the announcement.
         </p>
         <DemoCard code={SNIPPET_CLIPBOARD}>
@@ -571,8 +571,8 @@ export default function PrimitivesDocs() {
       <section class="mt-16 scroll-mt-24" id="hover-area">
         <h2 class="text-lg tracking-tight">HoverArea</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Hover state as scoped-slot data: no refs, no listener bookkeeping. Keyboard focus tracks alongside the pointer
-          so the reveal is the same for everyone.
+          Hover state as function-child data: no refs, no listener bookkeeping. Keyboard focus tracks alongside the
+          pointer so the reveal is the same for everyone.
         </p>
         <DemoCard code={SNIPPET_HOVER_AREA}>
           <DitherHoverArea class="mx-auto max-w-sm">
@@ -619,7 +619,7 @@ export default function PrimitivesDocs() {
       <section class="mt-16 scroll-mt-24" id="in-view">
         <h2 class="text-lg tracking-tight">InView</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          The taxonomy's IntersectionObserver primitive, named for what it does: visibility as scoped-slot state.{" "}
+          The taxonomy's IntersectionObserver primitive, named for what it does: visibility as function-child state.{" "}
           <code class="text-foreground/80">once</code> latches after the first enter (the lazy-reveal shape this whole
           page runs on). Degraded engines see content, never an empty box.
         </p>

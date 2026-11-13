@@ -73,7 +73,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "rounds", type: "{ a, b, winner? }[][]: columns left to right", default: "required" },
     { prop: "color", type: "PixelColor: winner accent", default: '"green"' },
     { prop: "interactive", type: "boolean: click a side to pick", default: "false" },
-    { prop: "@pick", type: "(round, match, side): consumer advances the data", default: "" },
+    { prop: "onPick", type: "(round, match, side): consumer advances the data", default: "" },
   ],
   schedule: [
     { prop: "events", type: "{ start, end, label, color? }[]: fractional hours", default: "required" },

@@ -228,7 +228,7 @@ export default function StructureDocs() {
       <section id="dialog" class="mt-16 scroll-mt-24">
         <h2 class="text-lg tracking-tight">Dialog</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          A teleported modal with labelled title and description, trapped focus, Escape/backdrop dismissal, focus
+          A portalled modal with labelled title and description, trapped focus, Escape/backdrop dismissal, focus
           restoration, and an optional action footer.
         </p>
         <DemoCard code={SNIPPET_DIALOG}>

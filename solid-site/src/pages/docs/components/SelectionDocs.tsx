@@ -228,7 +228,7 @@ const API: Record<string, PropRow[]> = {
   ],
   wheelPicker: [
     { prop: "options", type: "(string | { value, label })[]", default: "" },
-    { prop: "modelValue", type: "string (v-model)", default: "" },
+    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: "" },
     { prop: "rows", type: "number: visible rows (odd)", default: "5" },
     { prop: "label", type: "string: accessible name", default: '"Wheel picker"' },
     { prop: "color", type: "PixelColor: selected notch tint", default: '"blue"' },
@@ -415,7 +415,7 @@ export default function SelectionDocs() {
         <h2 class="text-lg tracking-tight">Toggle</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A pressed-state button: off is a quiet border, on fills behind the label with the badge's dithered gradient.
-          Label goes in the default slot.
+          Label goes in as children.
         </p>
         <DemoCard code={SNIPPET_TOGGLE}>
           <div class="mx-auto max-w-sm text-center">

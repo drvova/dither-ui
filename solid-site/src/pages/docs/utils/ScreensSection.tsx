@@ -42,7 +42,7 @@ const m = screenMatrix("dot", seed) // 4x4 thresholds: m[y & 3][x & 3]`
 
 const API: PropRow[] = [
   { prop: "screen", type: "'bayer' | 'line' | 'diagonal' | 'dot' | 'cross'", default: "'diagonal'" },
-  { prop: "default slot", type: "content (every surface inside prints through the screen)", default: "" },
+  { prop: "children", type: "content (every surface inside prints through the screen)", default: "" },
 ]
 
 export default function ScreensSection() {
