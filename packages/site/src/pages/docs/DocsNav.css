@@ -1,0 +1,141 @@
+/* The rail counts in figures alone; the sheet says what they count. */
+.docs-nav:not([data-place="sheet"]) .nav-unit {
+  display: none;
+}
+
+/* The sheet: the families as the menu's bands, and it reads like the menu.
+   Folded, the bands share the screen, each family's name at its foot
+   (20px, its glyph beside it as GitHub carries its mark) over a line of
+   what it holds; the whole band opens it. Open, its sections follow at the
+   names' edge, the one in view printed in reverse. The ground's colour
+   writes on every band (AA down to the floor). */
+.docs-nav[data-place="sheet"] {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 100%;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] > .nav-grp {
+  position: relative;
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  min-height: 72px;
+}
+
+/* The seam rides over the band above it, headings included (they stick). */
+.docs-nav[data-place="sheet"] .menu-seam {
+  z-index: 11;
+}
+
+.docs-nav[data-place="sheet"] .nav-head {
+  display: grid;
+  flex: 1 0 auto;
+  grid-template-areas: "name chev" "count chev";
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: end;
+  gap: 4px 12px;
+  min-height: 0;
+  padding: 12px var(--sheet-end) 16px var(--sheet-start);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] .nav-name {
+  grid-area: name;
+  gap: 12px;
+}
+
+.docs-nav[data-place="sheet"] .nav-name svg {
+  width: 18px;
+  height: 18px;
+}
+
+.docs-nav[data-place="sheet"] .nav-count {
+  grid-area: count;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] .nav-chev {
+  grid-area: chev;
+  align-self: center;
+  width: 16px;
+  height: 16px;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] ul {
+  border: 0;
+}
+
+/* The sections' words start on the families' (the header's line); their
+   pill reaches 12px past it either side. */
+.docs-nav[data-place="sheet"] > .nav-grp > ul {
+  margin: 0;
+  padding: 0 calc(var(--sheet-end) - 12px) 16px calc(var(--sheet-start) - 12px);
+}
+
+.docs-nav[data-place="sheet"] :is(a, ul button) {
+  margin: 0;
+  padding-inline: 12px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--background);
+}
+
+.docs-nav[data-place="sheet"] ul ul button {
+  padding-left: 28px;
+}
+
+.docs-nav[data-place="sheet"] a[aria-current] {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* A hand on a band or a section: its words lean in and spring back, as
+   the menu's do; a hover only where a pointer hovers (a tap's sticks). */
+@media (prefers-reduced-motion: no-preference) {
+  .docs-nav[data-place="sheet"] :is(.nav-name, .nav-count, a, ul button) {
+    transition: translate 350ms var(--ease-settle);
+  }
+
+  .docs-nav[data-place="sheet"] .nav-head:focus-visible :is(.nav-name, .nav-count),
+  .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):focus-visible {
+    translate: 8px 0;
+  }
+
+  .docs-nav[data-place="sheet"] .nav-head:active :is(.nav-name, .nav-count),
+  .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):active {
+    translate: 12px 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .docs-nav[data-place="sheet"] .nav-head:hover :is(.nav-name, .nav-count),
+  .docs-nav[data-place="sheet"] :is(a:not([aria-current]), ul button):hover {
+    translate: 8px 0;
+  }
+}
+
+/* On a band of the ink the ring ink alone would vanish: the ground runs
+   inside it, so one of the two always shows. */
+.docs-nav[data-place="sheet"] :is(a, button):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 4px var(--background);
+}
+
+@media (forced-colors: active) {
+  .docs-nav .menu-seam {
+    display: none;
+  }
+}

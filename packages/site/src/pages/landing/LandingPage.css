@@ -1,0 +1,506 @@
+/* The pointer's print, on the page's ground under every section: fixed to
+   the viewport, painted only while something cools (the kit's heat trail,
+   `pinned`). The landing is its own stacking context, so it lies over the
+   ground and under everything else. */
+.landing-page-scope .page-trail {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
+/* One wide page width for the hero, the sections and the footer, one
+   rhythm between sections. The page is the theme's own
+   background. */
+.landing-page-scope.landing {
+  --page: 80rem;
+  --rhythm: 40px;
+  /* The header's height, read by whatever must sit clear of it. */
+  --head: 64px;
+}
+
+/* The sections, on the page width with the rhythm between them. */
+.landing-page-scope .page {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--rhythm) * 3.5);
+  width: min(100%, var(--page));
+  margin-inline: auto;
+  padding: calc(var(--rhythm) * 2) 24px 0;
+}
+
+.landing-page-scope .sec {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* What's inside: three cards, the raised ground like the bento's, each a
+   tone strip over its title, two lines and its link. */
+.landing-page-scope .inside {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-page-scope .inside > li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  overflow: hidden;
+  padding: 0 24px 24px;
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+/* The strip: flush to the card's top and sides. */
+.landing-page-scope .inside-art {
+  position: relative;
+  align-self: stretch;
+  height: 120px;
+  margin: 0 -24px 8px;
+}
+
+.landing-page-scope .inside-art > :first-child {
+  position: absolute;
+  inset: 0;
+}
+
+/* The character: on the strip's foot, half over the card, like a mascot
+   stepping out of its picture, on a plate of the card's ground so its own
+   ink never melts into the strip's. */
+.landing-page-scope .inside-who {
+  position: absolute;
+  top: calc(120px - 42px);
+  right: 18px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+/* The name, chunky in the pixel face. */
+.landing-page-scope .inside-h {
+  display: flex;
+  margin: 4px 0 0;
+  color: var(--ink);
+}
+
+.landing-page-scope .inside-p {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+/* The families: five columns, each its size as a big figure over its
+   name (the docs link), a line. */
+.landing-page-scope .families {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.landing-page-scope .families-h {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.landing-page-scope .families-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-page-scope .families-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.landing-page-scope .family-t {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--ink);
+  transition: color 150ms var(--ease-settle);
+}
+
+.landing-page-scope .family-t:hover {
+  color: var(--signal);
+}
+
+.landing-page-scope .family-n {
+  font-size: 2.4rem;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The figure's unit beside it: these count docs sections, not the kit's
+   components (the bento's figure). */
+.landing-page-scope .family-u {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+.landing-page-scope .family-l {
+  font-size: 13px;
+}
+
+.landing-page-scope .family-p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+/* The close: a full-width band, its foot padded by the heat's reach
+   (`--reach`, `CLOSE.reach`) plus air so no ink lands under a word; the
+   heat its ground, open at the top where the page runs into it. */
+.landing-page-scope .close {
+  position: relative;
+  isolation: isolate;
+  padding: calc(var(--rhythm) * 4) 24px calc(var(--reach) + var(--rhythm) * 1.5);
+}
+
+/* The one joint: the footer's ground rises into the heat's flat foot as a
+   tab on the page's axis, its shoulders rounded and its base flowing into
+   the ground through two concave fillets. */
+.landing-page-scope .close-tab {
+  --r: 16px;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: clamp(120px, 28vw, 224px);
+  height: 40px;
+  translate: -50% 0;
+  border-radius: var(--r) var(--r) 0 0;
+  background: var(--background);
+}
+
+.landing-page-scope .close-tab::before,
+.landing-page-scope .close-tab::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: var(--r);
+  height: var(--r);
+}
+
+.landing-page-scope .close-tab::before {
+  right: 100%;
+  background: radial-gradient(circle at 0 0, transparent var(--r), var(--background) calc(var(--r) + 0.5px));
+}
+
+.landing-page-scope .close-tab::after {
+  left: 100%;
+  background: radial-gradient(circle at 100% 0, transparent var(--r), var(--background) calc(var(--r) + 0.5px));
+}
+
+.landing-page-scope .install {
+  width: min(100%, 64rem);
+  margin-inline: auto;
+}
+
+.landing-page-scope .install-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.landing-page-scope .install-head .section-title {
+  max-width: none;
+}
+
+.landing-page-scope .install-head .sec-lede {
+  max-width: 34rem;
+}
+
+.landing-page-scope .prompt-key {
+  height: 36px;
+  padding-inline: 16px;
+}
+
+/* The spec sheet closing the install: label and value rows on the raised
+   ground, two columns of rows from 640px, no rules between them. (Not
+   `.spec`: that is the site voice's uppercase label, banned here.) */
+.landing-page-scope .sheet {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 40px;
+  width: min(100%, 52rem);
+  margin: 8px auto 0;
+  padding: 18px 24px;
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.landing-page-scope .sheet-row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 12px;
+  padding-block: 7px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.landing-page-scope .sheet-row dt {
+  color: var(--ink-3);
+}
+
+.landing-page-scope .sheet-row dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.landing-page-scope.landing code {
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* The footer: the brand (the lockup, a line, GitHub) beside three
+   link columns, the copyright line, the line-screen wordmark under all.
+   Three columns under the brand under 900px, two under 640px. */
+.landing-page-scope .foot {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* The art under the whole footer: the shader fills it, behind everything
+   in it, the wordmark included. A container, so the road tells the narrow
+   layout by the same width the shader does. */
+.landing-page-scope .foot-art {
+  position: relative;
+  container-type: inline-size;
+}
+
+.landing-page-scope .foot-ground {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+/* The road: the footer's width, its height a share of it (`ROAD.aspect`),
+   from the copyright line to the page's foot; the diamond standing where
+   the shader runs the trails through, the wordmark printed over its foot
+   with the trails sweeping behind it. */
+.landing-page-scope .foot-road {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / var(--road);
+  margin-top: 24px;
+}
+
+/* `ROAD.narrow`, held to it by tests/landing-facts.spec.ts. */
+@container (width < 640px) {
+  .landing-page-scope .foot-road {
+    aspect-ratio: 1 / var(--road-narrow);
+  }
+}
+
+.landing-page-scope .road-mark {
+  position: absolute;
+  width: clamp(42px, 6cqi, 92px);
+  height: auto;
+  translate: -50% 50%;
+  color: var(--ink);
+}
+
+/* The mascot's car runs along the wordmark's top, its wheels on the
+   letters' ink (`WORDMARK.TOP` of the word's own box). */
+.landing-page-scope .mark-box {
+  position: relative;
+}
+.landing-page-scope .road-car {
+  position: absolute;
+  left: 0;
+  color: var(--ink);
+}
+.landing-page-scope .road-car-art {
+  display: block;
+  height: clamp(48px, 6.4cqi, 104px);
+  width: auto;
+}
+
+/* Positioned: the brand's field is the page's column. */
+.landing-page-scope .foot-in {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  width: 100%;
+  max-width: var(--page);
+  margin-inline: auto;
+  /* Clear of the floating header where the page comes to rest, the
+     footer's top row at the viewport's top. */
+  padding: calc(var(--head) + 40px) 1.5rem 24px;
+}
+
+.landing-page-scope .foot-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.landing-page-scope .foot-name {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  color: var(--ink);
+}
+
+.landing-page-scope .foot-lockup {
+  position: relative;
+}
+
+/* The footer's words lie on the page's own ground, so the art's grain
+   passes behind them whole and no speck lands on a letter (as the
+   wordmark lies on its word). Unseen: the ground is the page's. */
+.landing-page-scope .foot-line,
+.landing-page-scope .foot-gh,
+.landing-page-scope .foot-h,
+.landing-page-scope .foot-col a,
+.landing-page-scope .foot-copy > span {
+  background: var(--background);
+}
+
+.landing-page-scope .foot-line {
+  max-width: 22rem;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+.landing-page-scope .foot-gh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  font-size: 12px;
+  color: var(--ink-3);
+  transition: color 150ms var(--ease-settle);
+}
+
+.landing-page-scope .foot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.landing-page-scope .foot-h {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.landing-page-scope .foot-col a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 28px;
+  padding-top: 6px;
+  color: var(--ink-3);
+  transition: color 150ms var(--ease-settle);
+}
+
+.landing-page-scope .foot-col a:hover,
+.landing-page-scope .foot-gh:hover {
+  color: var(--ink);
+}
+
+.landing-page-scope .foot-copy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  width: 100%;
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+/* The wordmark: the page's full width, on its edges, at the road's foot. */
+.landing-page-scope .foot-mark {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  max-width: var(--page);
+  margin-inline: auto;
+  padding: 0 1.5rem 40px;
+}
+
+@media (max-width: 1023px) {
+  .landing-page-scope .families-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 24px;
+  }
+}
+
+@media (max-width: 899px) {
+  .landing-page-scope .inside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .landing-page-scope .foot-in {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .landing-page-scope .foot-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 639px) {
+  .landing-page-scope .page {
+    gap: calc(var(--rhythm) * 2.5);
+    padding-inline: 16px;
+  }
+  .landing-page-scope .families-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* A lone last family takes the whole row: no dead cell beside it. */
+  .landing-page-scope .families-list li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+  .landing-page-scope .inside-art {
+    height: 72px;
+  }
+  .landing-page-scope .inside-who {
+    top: calc(72px - 42px);
+  }
+  .landing-page-scope .foot-in {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-inline: 16px;
+  }
+  .landing-page-scope .sheet {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px 16px;
+  }
+  .landing-page-scope .foot-copy {
+    padding-inline: 16px;
+  }
+  .landing-page-scope .foot-mark {
+    padding-inline: 16px;
+  }
+}

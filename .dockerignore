@@ -1,4 +1,7 @@
 node_modules
+packages/*/node_modules
+packages/site/.output
+packages/site/.nitro
 dist
 .git
 .github

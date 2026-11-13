@@ -1,0 +1,78 @@
+.row-menu-scope {
+  &.row-menu {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    translate: 0 -50%;
+  }
+  /* The translate makes the key a stacking context: raised while its menu is
+     open so the rows below never paint over the menu. */
+  &.row-menu.is-open {
+    z-index: 50;
+  }
+  /* The key shows under a pointer or a key, and while its menu is open. */
+  .more {
+    display: grid;
+    width: 1.5rem;
+    height: 1.5rem;
+    place-items: center;
+    border-radius: 6px;
+    color: var(--color-muted-foreground);
+    background: var(--color-card);
+    opacity: 0;
+    transition: opacity 150ms var(--ease-settle);
+  }
+  .has-menu:hover & .more,
+  .more:focus-visible,
+  &.is-open .more {
+    opacity: 1;
+  }
+  .more:hover,
+  &.is-open .more {
+    color: var(--color-foreground);
+  }
+  .more:focus-visible,
+  .item:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: -2px;
+  }
+  .menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    display: grid;
+    min-width: 10rem;
+    padding: 4px;
+    border-radius: 12px;
+    background: var(--color-card);
+    box-shadow: 0 12px 40px -12px rgb(0 0 0 / 0.7);
+  }
+  .item {
+    min-height: 1.75rem;
+    border-radius: 7px;
+    padding-inline: 8px;
+    text-align: left;
+    font-size: 12px;
+    color: var(--color-foreground);
+  }
+  .item:hover:not(:disabled) {
+    background: var(--color-background);
+  }
+  .item:disabled {
+    opacity: 0.45;
+  }
+  .item.is-danger {
+    color: var(--color-destructive);
+  }
+  /* No hover on a touch screen: the key stays in sight. */
+  @media (hover: none) {
+    .more {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .more {
+      transition: none;
+    }
+  }
+}

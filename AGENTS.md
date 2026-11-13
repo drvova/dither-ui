@@ -76,47 +76,101 @@ Default section order:
 
 ## Project Facts
 
-- dither-ui: a dithered UI toolkit for Vue (dither-ui.com). Two halves:
-  `dither-kit/` (the portable component library) and `src/` (site + studio).
-- Stack: Vue 3, TypeScript strict, Tailwind v4, d3-scale/d3-shape, on the
-  Rstack toolchain. No vue-router; Rstest covers models/components; no
+- dither-ui: a dithered UI toolkit for SolidJS (dither-ui.com). One npm
+  workspace (the root `package.json`, `workspaces: packages/*`, one
+  install, one lockfile) of packages, each with its own manifest, `src/`,
+  `tests/` where it has specs, an `AGENTS.md` that owns it and one public
+  entry: `packages/dither-kit/` (the kit a reader copies: `src/engine/`,
+  `src/solid/`, `src/tailwind/`), `packages/dither-kit-stylex/` (the same
+  components in StyleX, generated), `packages/restyle/` (what writes code
+  for a reader in their styling system: the rewriter, the utility map, the
+  StyleX generator), `packages/site/` (the SolidStart app: landing, docs,
+  Studio, player; its Vite plugins and post-build in `build/`, its static
+  files in `public/`), `packages/tasks/` (the repository's tasks: the kit
+  stylesheet, the share cards, the frame renderer, the agent demo
+  recorder), `packages/bridge/` and `packages/discord/`.
+- Dependencies point one way: `dither-kit` depends on no package here;
+  `restyle` and `tasks` on `dither-kit`; `dither-kit-stylex` on
+  `dither-kit` (and on `restyle` for the spec that generates it, never in
+  its source); `site` on those four and on `bridge`; `bridge` and
+  `discord` on nothing here. A package imports another by its name, only
+  what that package's `exports` declare, and only when its own manifest
+  declares the dependency; no relative path leaves a package.
+  `tests/workspace.spec.ts` reads every import of every package and fails
+  on one that breaks this: a module that needs something above it is in
+  the wrong package.
+- A kit file is named as the kit exports it: `dither-kit/engine/<file>`,
+  `dither-kit/solid/<file>` and `dither-kit/tailwind/<file>` are the files
+  of `packages/dither-kit/src/`, extension included; `dither-kit` alone is
+  the Solid layer's index and `dither-kit/engine` the engine's public API
+  (`engine/api.ts`), which is what a framework-free module imports values
+  from.
+- Stack: SolidJS and SolidStart 2 (on Vite, Nitro's `static` preset, every
+  page prerendered), TypeScript strict, Tailwind v4, d3-scale/d3-shape. No
   emojis in code.
-- Toolchain: ONE CLI (`rs`, the `rstack` package) and ONE config,
-  `rstack.config.ts`: `define.app` is Rsbuild (Rspack) — `rs dev`,
-  `rs build`, `rs preview`; `define.test` is Rstest (`rs test`, inheriting
-  the app's plugins and aliases); `define.lint` is Rslint (`rs lint`) for
-  TS/JS; `define.fmt` is the formatter (`rs fmt`). Rslint has no Vue SFC
-  parser, so `.vue` files stay on ESLint + eslint-plugin-vue
-  (`eslint.config.js`, run by `npm run lint` after `rs lint`); type
-  checking stays on `vue-tsc`. The config file loads under Node's own
-  TypeScript, so a module it imports at runtime (`utility-map.ts`,
-  `crawler-files.ts` and its graph: `groups.ts`, `seo.ts`, the `*-nav.ts`
-  packs) writes relative imports WITH `.ts`. The web build also serves both
-  kits' own source at `kit/src/<vue|svelte>/` with a `files.json` listing
-  (`kitSources`) — what the docs' source panel shows, runs and zips.
-  `benchmarks/` (the kit's raster benchmark) is an entry for `rs dev`
-  only: `/benchmarks/` there, never in a build.
-  `svelte-site/` runs the same CLI with its own `rstack.config.ts`.
-- Aliases: `@` → `src/`; `@dither-kit` → the kit's Tailwind layer
-  (`dither-kit/tailwind/index.ts`), `@dither-kit/<layer>/<file>` → a file
-  of a layer (`engine/`, `tailwind/`, `stylex/`) (rstack.config.ts +
-  tsconfig paths — change both together).
+- Toolchain: one Node (24, which SolidStart needs), two CLIs, the root's
+  scripts the one place to run them. The Rstack CLI (`rs`, the `rstack`
+  package, one config `rstack.config.ts`) runs what is not the site's
+  build: `define.test` is Rstest (`rs test`: every package's
+  framework-free specs, `packages/*/tests/*.spec.ts`, and the workspace's
+  own in `tests/`), `define.lint` is Rslint (`rs lint`, the whole
+  repository's TS/JS, the site's and the kit's `.tsx` included),
+  `define.fmt` the formatter (`rs fmt`). Vitest runs the specs that render
+  a component, in their package (`packages/dither-kit/tests/solid/`,
+  `packages/site/tests/site/`), and Vite builds the site (`dev`, `build`,
+  `preview` in `packages/site/`). Root scripts: `npm run dev`, `build`,
+  `preview` (the site's), `typecheck` (`tsc`), `test` (`rs test`, then
+  every package's own `npm test`), `lint`, `format`, `check`. One type
+  program: the root `tsconfig.json` includes every package's source,
+  specs, build files and benches, the root's config and specs included.
+  Config files load under Node's own TypeScript, so a module one imports
+  at run time (`restyle/utility-map`, `crawler-files.ts` and its graph:
+  `groups.ts`, `seo.ts`, the `*-nav.ts` packs) writes relative imports
+  WITH `.ts`. `packages/dither-kit/benches/` holds the kit's
+  benchmarks, run by hand, never part of a build
+  (`packages/dither-kit/AGENTS.md`).
+- The site's build (`npm run build`): `vite build` prerenders every page
+  into `packages/site/.output/public` (the landing, `/docs` and one page a
+  docs section, the Studio, the player, and the missing page kept as
+  `404.html`; links crawled, a link to nothing fails it), with the files
+  the plugins in `packages/site/build/` emit beside them: `site-files.ts`
+  (the crawler files, the cards' manifest and embeds, the install surface,
+  the mascot's capture, the bridge), `kit-sources.ts` (the kit's own
+  source at `kit/src/solid/` with a `files.json` listing: what the docs'
+  source panel shows, runs and zips), `standalone.ts` (`sw.js` and the
+  single-file player `play/player.js` + `player.css`), `utilities.ts` (the
+  styling rewriter's utility map) and `run-compiler.ts` (what the docs'
+  Run needs to load Solid's compiler in a browser). Then
+  `build/postbuild.mjs`, which needs a Chromium (`CHROME_PATH` or a
+  standard install) and fails loudly without one: the kit stylesheet, the
+  share card renderer and every card, each section's embed with its own
+  lede, and the agent registry read off the mounted Studio. Details in
+  `packages/site/AGENTS.md`.
+- Aliases: one, the site's own source: `@/` → `packages/site/src/`
+  (`packages/site/build/aliases.ts` for the build and the component specs,
+  the root `tsconfig.json` `paths` for the type checker, `rstack.config.ts`
+  for the framework-free specs: change them together). Every other import
+  between packages is a package name. `@dither-kit` is what a reader
+  aliases to their copy of the kit and what every snippet the site writes
+  for a reader imports from; no code here imports it.
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links; any other address shows the
   missing page (noindex, the landing's print). GitHub Pages deploys through
-  `.github/workflows/pages.yml`: `rs build` (the site and the player
-  bundle), the kit stylesheet, `404.html` copied from the bare shell, then
-  the prerender (snapshots, agent registry, share cards, section
-  pages), so the live site paints from bytes and every sitemap URL is a
-  real page. Default deploy base is `/` because `public/CNAME` sets
-  `dither-ui.com`. Set repo variable `BASE_PATH=/dither-ui/` only when
-  removing the custom domain and using the GitHub Pages project URL; that
-  deploy skips the prerender (its server serves `dist` at `/`) and ships
-  the shell.
-- Assets: `public/faces.webp` is the measured portrait/emote band (rows
+  `.github/workflows/pages.yml`: the type check, then the site's build,
+  and `packages/site/.output/public` uploaded as it is (with a `.nojekyll`,
+  or Pages drops the build's `_build/` folder), so the live site paints
+  from bytes and every sitemap URL is a real page. Default deploy base is
+  `/` because `packages/site/public/CNAME` sets `dither-ui.com`. Set repo
+  variable
+  `BASE_PATH=/dither-ui/` only when removing the custom domain and using
+  the GitHub Pages project URL; the same build runs under it.
+- Assets: `packages/site/public/faces.webp` is the measured portrait/emote band
+  (rows
   766..900 of the source sheet, transparency baked in; the Studio's image
-  widget defaults to it); `public/sprites.webp` is the broader character
-  sheet. `public/emotes/` holds alpha-keyed per-sprite crops of that band,
+  widget defaults to it); `packages/site/public/sprites.webp` is the broader
+  character
+  sheet. `packages/site/public/emotes/` holds alpha-keyed per-sprite crops of
+  that band,
   measured in the browser, never eyeballed: the faces at y 0, 126 tall,
   x/width 29/97, 147/97, 262/95, 378/98, 497/96, 832/94; their emotes
   x,y,w,h 1503,25,51,49; 1273,27,42,38; 1270,92,36,41; 1529,98,25,27;
@@ -158,57 +212,72 @@ Default section order:
   and the line-screen wordmark printed over the road's foot. It keeps the
   user's slop bans as lifted for it (User Preferences). No film
   player or animation runtime ships with the page. The trailer
-  (`public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind the
+  (`packages/site/public/trailer/`: H.264 MP4, VP9 WebM, a poster) plays behind
+  the
   hero's "Watch the film" key and is fetched only when its dialog opens.
-  Details in `src/pages/AGENTS.md`.
+  Details in `packages/site/src/pages/AGENTS.md`.
 - Page transitions: moving between the site's pages is a cross-document
   view transition the arriving page dithers through the kit's transition
   engine (`dither-kit/engine/transition.ts`, a band of the signal ink on
-  the wipe's front); an inline head script from `src/app/page-reveal.ts`
-  (added by `rstack.config.ts`) catches it before the app runs. The theme
-  turns through the same engine as an iris. Details in `src/AGENTS.md`.
-- Crawler surface: `src/pages/docs/crawler-files.ts` generates `dist/sitemap.xml`,
-  `dist/robots.txt`, and `dist/llms.txt` at build (the `crawlFiles` plugin
-  in `rstack.config.ts`, emitted as web-build assets —
-  no hand-maintained copies in `public/`). It derives every URL from
-  `SITE_URL` + `GROUPS` (a dead section id fails the build), declares an
-  explicit allow-all AI-crawler posture, and ships a curated llmstxt.org
-  index. Guarded by `tests/crawler-files.spec.ts`.
-- SEO engine (in `scripts/prerender.mjs`, after the three routes): draws a
-  1200x630 SHARE CARD per page the site shares (`home`, `docs`, `studio`
-  and every docs section) as `dist/og/<id>.png` (its still: the og/X image
-  every link preview shows) and `dist/og/<id>.gif` (the same card looping,
-  5.76s: the kit's diamond swells over its print and back), with four pages of the card renderer, a page of the build (the
-  `og/index` entry: `og/index.html` + `src/pages/docs/og-page.ts`,
-  `window.og.files(id)`): set as the landing's hero (the brand, the
-  title in chrome, its line, a satin key and the address) beside a print
-  of the kit's own poster on its dithered floor (`og-art.ts` runs
-  the kit's poster engine; home prints the hero's composition; the card's
-  design in `og-card.ts`), the encoder `src/shared/lib/gif.ts`), and
-  writes a per-section static page `dist/docs/<id>/index.html` (its head is
-  the manifest's `head`: title/description/canonical/og/twitter, the card's
-  tags, BreadcrumbList — meta derived ONLY from `seo.ts`'s
-  `docsMeta`/`docsBreadcrumb`; body: the docs shell with only that section
-  in the flow, ~160 kB, never a copy of the whole docs). A static host
-  serves it at `/docs/<id>/`, which the docs deep link accepts. Where an
-  app plays images, the card plays: every page's head (the route entries
-  by hand, the sections from the manifest) links Discord's component embed
-  `dist/embed/<id>.json` (title, a line, the playing GIF, link buttons;
-  Discord shows it in place of the og preview, the og tags its fallback; a
-  section's line is its own lede from the snapshot) and an oEmbed photo
-  `dist/oembed/<id>.json` of the GIF (Slack reads oEmbed first), both
-  emitted by the crawler plugin. The og:image stays the PNG: WhatsApp and
+  the wipe's front); an inline head script from
+  `packages/site/src/app/page-reveal.ts`
+  (set in every site page's head by the shell,
+  `packages/site/src/entry-server.tsx`) catches it before the app runs. The
+  theme
+  turns through the same engine as an iris. Details in
+  `packages/site/src/AGENTS.md`.
+- Crawler surface: `packages/site/src/pages/docs/crawler-files.ts` generates
+  `sitemap.xml`, `robots.txt` and `llms.txt` at build (the `siteFiles`
+  plugin, `packages/site/build/site-files.ts`, emitted with the browser's assets
+  and
+  served in dev; no hand-maintained copies in `public/`). It derives every
+  URL from `SITE_URL` + `GROUPS` (a dead section id fails the build),
+  declares an explicit allow-all AI-crawler posture, and ships a curated
+  llmstxt.org index. Guarded by `packages/site/tests/crawler-files.spec.ts`.
+- SEO engine: the post-build (`packages/site/build/postbuild.mjs`, its
+  drawing code `packages/tasks/src/cards.ts`) draws a 1200x630 SHARE CARD per
+  page
+  the site shares (`home`, `docs`, `studio` and every docs section) as
+  `og/<id>.png` (its still: the og/X image every link preview shows) and
+  `og/<id>.gif` (the same card looping, 5.76s: the kit's diamond swells
+  over its print and back), on a few pages of the card renderer at once,
+  itself a page of the build (`og/index.html`, built by
+  `packages/site/build/og-page.ts` from `og-shell.html` and
+  `packages/site/src/pages/docs/og-page.ts`, `window.og.files(id)`): set as the
+  landing's hero (the brand, the title in chrome, its line, a satin key
+  and the address) beside a print of the kit's own poster on its dithered
+  floor (`og-art.ts` runs the kit's poster engine; home prints the hero's
+  composition; the card's design in `og-card.ts`, the encoder
+  `packages/site/src/shared/lib/gif.ts`). Each docs section is a prerendered
+  page of its
+  own, `docs/<id>/index.html` (the route
+  `packages/site/src/routes/docs/[section].tsx`;
+  its head from the one head table, `packages/site/src/pages/docs/heads.ts`:
+  title/description/canonical/og/twitter, the card's tags, BreadcrumbList,
+  the meta derived ONLY from `seo.ts`'s `docsMeta`/`docsBreadcrumb`; body:
+  the docs shell with only that section in the flow, never a copy of the
+  whole docs). A static host serves it at `/docs/<id>/`, which the docs
+  deep link accepts. Where an app plays images, the card plays: every
+  page's head links Discord's component embed `embed/<id>.json` (title, a
+  line, the playing GIF, link buttons; Discord shows it in place of the og
+  preview, the og tags its fallback; a section's line is its own lede,
+  read off its built page by the post-build) and an oEmbed photo
+  `oembed/<id>.json` of the GIF (Slack reads oEmbed first), both emitted
+  by the `siteFiles` plugin. The og:image stays the PNG: WhatsApp and
   Telegram do not take a GIF. robots disallows only the renderer
   (`/og/$`, `/og/index.html`, `/og/sections.json`): X's bot obeys it and
   fetches the cards.
-- Agent surface: the Studio is agent-addressable (see `src/AGENTS.md`,
-  `features/agent`): `public/agent/SKILL.md` teaches any harness (Claude
+- Agent surface: the Studio is agent-addressable (see
+  `packages/site/src/AGENTS.md`,
+  `features/agent`): `packages/site/public/agent/SKILL.md` teaches any harness
+  (Claude
   Code, Codex, pi, omp, sitegeist-bridged browsers) to compose Studio
-  documents; the build writes `dist/agent/registry.json` from the mounted
+  documents; the post-build writes `agent/registry.json` from the mounted
   studio; a live tab answers `dither-studio:command` DOM events and exposes
   `window.ditherStudio`. The in-app Agent panel is a CONTROL PLANE for the
   harness the user already has, nothing more: the local bridge
-  (`bridge/dither-bridge.mjs`, see `bridge/AGENTS.md`; the build serves
+  (`packages/bridge/src/dither-bridge.mjs`, see `packages/bridge/AGENTS.md`; the
+  build serves
   the same file at `bridge/dither-bridge.mjs`, which the panel's setup
   line fetches when no bridge answers) knows the common ACP
   harnesses (Claude Code, Codex, Gemini CLI, Qwen Code, oh-my-pi, Goose,
@@ -225,7 +294,7 @@ Default section order:
   No key, model setting or login is ever collected in-app: the panel
   shows who answers and the model the harness reports, and switching
   model asks the harness among its own.
-  `npm run demo:agent` (`scripts/agent-demo.mjs`) records the panel
+  `npm run demo:agent` (`packages/tasks/src/agent-demo.mjs`) records the panel
   driving the user's own harness (Claude Code by default) into a video,
   run where that harness is signed in; never with borrowed credentials.
 - Video: every Studio frame exports as a HyperFrames composition
@@ -233,10 +302,10 @@ Default section order:
   `video.export` command / `export_video` tool) — one self-contained HTML
   file that `npx hyperframes render` turns into a deterministic MP4. The
   kit's clock (`dither-kit/engine/clock.ts`) makes every animation seekable; the
-  player page `/play/` (`src/pages/play`) renders one frame and is also
-  built as a single file (the `player` environment of `rstack.config.ts` →
-  `dist/play/player.js`)
-  that the export inlines. A reel (the `reel` widget kind, `reel.add` /
+  player page `/play/` (`packages/site/src/pages/play`) renders one frame and
+  is also built as a single file (`play/player.js` and `player.css`, by
+  `packages/site/build/standalone.ts`) that the export inlines. A reel (the
+  `reel` widget kind, `reel.add` /
   `add_reel`, the `reel` selection action) plays other frames in order with
   ordered-dither transitions (`dither-kit/engine/wipe.ts` masks, `DitherReveal`)
   and exports as one MP4 as long as its cut. A reel whose clips carry
@@ -245,31 +314,39 @@ Default section order:
   the kit synthesizes from the cut (`dither-kit/engine/score.ts`: a chord per
   clip, the Bayer motif, a riser and an impact on every cut) that the
   export carries as the composition's audio track. Details in
-  `src/AGENTS.md` and `dither-kit/AGENTS.md`.
-- Styling systems: the kit is one kit in styling layers: `dither-kit/engine/`
-  (styling-free logic), `dither-kit/tailwind/` (the components, authored
-  with Tailwind) and `dither-kit/stylex/` (the same components in StyleX,
-  GENERATED from the Tailwind layer by `src/shared/lib/stylex-layer.ts`;
-  after editing a Tailwind file, `npx rs test -u tests/stylex-layer.spec.ts`
-  rewrites its StyleX twin, and the spec fails on any drift). The tokens
-  live in `dither-kit/engine/theme.css` (plain custom properties the app's
-  `src/app/styles.css` imports under Tailwind);
-  `npm run build:css` (in `npm run build` and the Pages deploy) compiles
-  `dither-kit/tailwind/kit.css` — tokens, the `.dither-kit`-scoped base, every
-  utility the kit uses — into `dist/kit/dither-kit.css`, so apps on
-  UnoCSS, vanilla CSS or CSS-in-JS run the Tailwind layer without Tailwind;
-  StyleX apps alias `@dither-kit` to the StyleX layer;
-  `dither-kit/engine/theme.ts` themes from JS. Details in `dither-kit/AGENTS.md`.
-  What the site writes for a reader comes in their system too:
-  `src/shared/lib/restyle.ts` rewrites a Tailwind-classed snippet into a
-  scoped stylesheet, CSS Modules or StyleX from the declarations Tailwind's
-  compiler gives each class (`virtual-dither-utilities`, compiled at build
-  from the docs + entities vocabulary by `src/shared/lib/utility-map.ts`);
-  the docs' styling switch, the Studio's export dialog and
-  `code.get { styling }` all go through it, and the docs' Run plays the
-  result in the page, StyleX included (on the kit's StyleX layer, which
-  the source panel and the Quick start also show then; see
-  `src/AGENTS.md`).
+  `packages/site/src/AGENTS.md` and `packages/dither-kit/AGENTS.md`.
+- Styling systems: the kit is one kit in layers: `dither-kit/engine/`
+  (framework-free, styling-free logic), `dither-kit/solid/` (the components,
+  authored in SolidJS with Tailwind), `dither-kit/tailwind/` (the Tailwind
+  layer's framework-free modules, `lib.ts` and `control.ts`, and the
+  standalone stylesheet's entry `kit.css`), and beside it the
+  `dither-kit-stylex` package (`packages/dither-kit-stylex/src/`: the same
+  components in StyleX, GENERATED from the Solid layer by
+  `restyle/stylex-layer`, `packages/restyle/src/stylex-layer-solid.ts`;
+  after editing a Solid kit file, `npx rs test -u
+  packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts` rewrites its
+  StyleX twin, and the spec fails on any drift). The tokens live in
+  `dither-kit/engine/theme.css` (plain custom properties the site's
+  `packages/site/src/app/styles.css` imports under Tailwind); the post-build
+  (and `npm run build:css`, `packages/tasks/src/kit-css.mjs`, alone)
+  compiles `dither-kit/tailwind/kit.css` (tokens, the `.dither-kit`-scoped
+  base, every utility the kit uses) into `kit/dither-kit.css` in the build,
+  so apps on UnoCSS, vanilla CSS or CSS-in-JS run the Solid layer without
+  Tailwind; StyleX apps copy the StyleX package beside the kit and alias
+  `@dither-kit` to it; `dither-kit/engine/theme.ts` themes from JS. Details
+  in `packages/dither-kit/AGENTS.md` and
+  `packages/dither-kit-stylex/AGENTS.md`. What the site writes for a reader
+  is Solid (the docs' tables, prose and snippets, the Studio's code export
+  and `code.get`) and comes in their styling system too: the `restyle`
+  package (`packages/restyle/src/index.ts`) rewrites a Tailwind-classed
+  snippet into a stylesheet the file imports, CSS Modules or StyleX from the
+  declarations Tailwind's compiler gives each class
+  (`virtual-dither-utilities`, compiled at build by `restyle/utility-map`
+  from the vocabulary the site names in
+  `packages/site/build/utility-sources.ts`: the docs and the entities); the
+  docs' styling switch, the Studio's export dialog and `code.get { styling
+  }` all go through it, and the docs' Run plays a Solid example in the page
+  (see `packages/site/src/widgets/source/AGENTS.md`).
 - Print screens: every kit surface thresholds its density through a 4x4
   matrix, the Bayer one unless a `DitherScreen` around it picks a
   printer's screen (`line`, `diagonal`, `dot`, `cross`; `SCREENS` in
@@ -278,7 +355,7 @@ Default section order:
   `matrixOf`), seeded as ever; a fill that carries a label keeps Bayer.
   `DitherPoster` prints the palette as tone through them: tiles that
   dissolve into each other and the kit's diamond as their negative. Docs: Utils (`print-screens`), Backgrounds (`poster`). Details in
-  `dither-kit/AGENTS.md`.
+  `packages/dither-kit/AGENTS.md`.
 - Browsers and drivers: the kit is web platform only — Chromium (Chrome,
   Edge, Brave), WebKit (Safari) and Gecko (Firefox) at Tailwind v4's floor
   (Chrome 111, Safari 16.4, Firefox 128); every newer API is feature-detected
@@ -289,13 +366,15 @@ Default section order:
   target for the whole site, iPhone and iPad: fingers drag every control
   (`touch-action` set, `pointercancel` handled), the Studio canvas pans
   under a finger and pinches under two, and every right-click menu opens on
-  a long press (`src/shared/lib/long-press.ts`); fields read at 16px there
+  a long press (`packages/site/src/shared/lib/long-press.ts`); fields read at
+  16px there
   so focusing one never zooms the page (pinch zoom stays the reader's);
   full-height layouts are `dvh`; audio opens in the tap that asks for it;
   `theme-color` is each page's ground, in the theme the reader picked
   (`useTheme` tints it as the theme turns). The Studio's editor needs a 1024px
   width (iPad landscape); narrower screens get its notice. Details in
-  `src/AGENTS.md` and `dither-kit/AGENTS.md`. Automation is plain DOM: the player answers the `hf-seek`
+  `packages/site/src/AGENTS.md` and `packages/dither-kit/AGENTS.md`. Automation
+  is plain DOM: the player answers the `hf-seek`
   event and `window.ditherClock`, the Studio `window.ditherStudio` (with
   `.clock`), the `dither-studio:command` event and `clock.seek`, so CDP,
   WebDriver and Playwright drive it in any engine; `npm run frames` renders
@@ -336,58 +415,65 @@ Default section order:
   (SwiftShader), so GPU and shader frames export to MP4 too.
 - Mascot: the brand's diamond come alive, our own (the user's call:
   never another product's character or a cartoon's), one cell table in
-  `src/shared/ui/mascot.ts` drawn wherever it stands: by the wordmark in
+  `packages/site/src/shared/ui/mascot.ts` drawn wherever it stands: by the
+  wordmark in
   the site header, the Studio's empty states and the bridge card, and
   its tour of the Studio, where its antennae fold into a rotor and it
   flies from part to part explaining each, and its car on the footer's
-  road (our own wedge speedster, never a real maker's car). Details in `src/AGENTS.md`
-  and `src/pages/AGENTS.md`.
+  road (our own wedge speedster, never a real maker's car). Details in
+  `packages/site/src/AGENTS.md`
+  and `packages/site/src/pages/AGENTS.md`.
 - PWA: the Studio installs as an app and opens offline; the landing and
   the docs stay pages of the web (the user's call). The build draws the
-  app's manifest (`dist/studio/app.webmanifest`, every URL relative so
-  any base installs) and every icon (the site's `favicon.svg`/`.png` and
+  app's manifest (`studio/app.webmanifest`, every URL relative so any base
+  installs) and every icon (the site's `favicon.svg`/`.png` and
   `apple-touch-icon.png`, the app's `icons/` plain and maskable) from the
-  brand mark's cells (`src/app/install-files.ts`, the `installFiles`
-  plugin; none kept in `public/`), and injects each route's head from one
-  table: the icons everywhere, the manifest and iOS's app tags on the
-  Studio only. A service worker (`src/app/sw.ts`, built alone to
-  `dist/sw.js` by the `sw` environment; its rules in `src/app/offline.ts`,
-  the app's path one constant there) is registered by the Studio only,
-  scoped to it: it keeps the Studio's page and its assets at install,
-  serves pages network first (offline: the page as last seen, else the
-  Studio's), hashed assets from the cache, and leaves the film, the cards
-  and the player to the network. Details in `src/AGENTS.md`; guarded by
-  `tests/install.spec.ts`.
-- Discord integration: `discord/service.mjs` (Components V2) — the
+  brand mark's cells (`packages/site/src/app/install-files.ts`, emitted by the
+  `siteFiles` plugin; none kept in `public/`), and each page's head reads
+  that module's tables: the icons on every site page (`ICON_HEAD`, the
+  shell), the manifest and iOS's app tags on the Studio only (`APP_HEAD`,
+  its route). A service worker (`packages/site/src/app/sw.ts`, built alone to
+  `sw.js` by
+  `packages/site/build/standalone.ts`; its rules in
+  `packages/site/src/app/offline.ts`, the app's
+  path one constant there) is registered by the Studio only, scoped to it:
+  it keeps the Studio's page and its assets at install, serves pages
+  network first (offline: the page as last seen, else the Studio's),
+  hashed assets from the cache, and leaves the film, the cards and the
+  player to the network. Details in `packages/site/src/AGENTS.md`; guarded by
+  `packages/site/tests/install.spec.ts` and
+  `packages/site/tests/site/worker-player.spec.tsx`.
+- Discord integration: `packages/discord/src/service.mjs` (Components V2) — the
   `/interactions` webhook (Ed25519; the dashboard key is a RAW 32-byte
   point — wrap it in the SPKI prefix; verify with `verify(null, …)`, node
   rejects a named digest for ed25519) answers `/component <section>` with a
   Container embed (text + the section's share card, playing, +
   Re-roll/Night-Day/Open-docs buttons) and updates the message in place on
   button clicks. Stateless (`dith:<id>:<seed>:<inv>` custom ids); re-rolled
-  cards are drawn on demand as GIFs by `window.og.files` over
-  `dist/og/index.html` in playwright (see `discord/README.md`). A plain link
+  cards are drawn on demand as GIFs by `window.og.files` over the
+  built site's `og/index.html` in playwright (see `packages/discord/README.md`).
+  A plain link
   to the site needs no bot: its component embed does that.
 
 ## Workflow Rules
 
-- Verification gate before any commit: `npm run lint` (`rs lint` + ESLint
-  on `.vue`), `npx rs fmt --check`, `npm run test` (`rs test`),
-  `npx vue-tsc --noEmit` and `npx rs build` green — the full package.json
-  verify set (CI runs it; a remembered subset ships red), plus
-  `npm run check` in `dither-kit-svelte/` when the kit is touched;
-  visual/stateful changes also checked in a live browser (`rs dev` or
-  `rs preview` + screenshots). Format what you touch with `rs fmt <paths>`.
-- `npm run build` type-checks, runs `rs build` (two Rsbuild environments in
-  one run: `web`, the four route pages; `player`, the single-file player
-  bundle in `dist/play/`), compiles the kit stylesheet, and
-  ends with a headless-chromium prerender of `/`, `/docs`,
-  and `/studio` (`scripts/prerender.mjs`, devDependency playwright-core) so
-  non-JS crawlers read the real page DOM from bytes. It requires a chromium
-  binary (`CHROME_PATH` or standard install paths — preinstalled on GitHub
-  Actions ubuntu runners); the script fails loudly rather than skipping. Do
-  not
-  hand-edit `dist/*/index.html` output — regenerate via the build.
+- Verification gate before any commit, the full set CI runs (a remembered
+  subset ships red), all at the root on Node 24 after one `npm ci`:
+  `npm run lint`, `npx rs fmt --check`, `npm run typecheck`, `npm test`
+  (`rs test`, then the kit's and the site's component specs),
+  `npm run build` (which needs Chromium) and `npm test -w site` again over
+  the built site. Visual/stateful changes are also checked in a live
+  browser (`npm run dev` or `npm run preview` + screenshots). Format what
+  you touch with `rs fmt <paths>`.
+- CI (`.github/workflows/ci.yml`) is two jobs on one install: `check`
+  (lint, format, the types of the whole repository, the framework-free
+  specs and the kit's component specs) and `site` (the site's component
+  specs, the static build, the specs again over the built site).
+- The site's build prerenders every page so non-JS crawlers read the real
+  page DOM from bytes, and its post-build draws in headless Chromium
+  (`CHROME_PATH` or standard install paths, preinstalled on GitHub Actions
+  ubuntu runners); the script fails loudly rather than skipping. Do not
+  hand-edit `packages/site/.output/` — regenerate via the build.
 - Multiple agents may work this tree concurrently. Stage and commit only the
   files you changed; never revert another agent's uncommitted work — if it
   blocks the build, save a patch first and coordinate.
@@ -418,9 +504,10 @@ Default section order:
   capitals for labels; our art is the kit's Bayer tone); it keeps the chrome
   display type and the chrome primary key in their dark finish, and
   sheds what the slop bans below still name. Its materials are the
-  site voice's (`src/app/styles.css`, both
-  themes; see `src/AGENTS.md`), the pages' uses in
-  `src/pages/AGENTS.md`. The user's reference is their "Y2K / Biomorphic
+  site voice's (`packages/site/src/app/styles.css`, both
+  themes; see `packages/site/src/AGENTS.md`), the pages' uses in
+  `packages/site/src/pages/AGENTS.md`. The user's reference is their "Y2K /
+  Biomorphic
   Retrofuturism" design system (V5, a private kit, not in the repo); its
   rules for this site: the palette obsidian `#101214`, graphite
   `#25292D`, titanium `#A6ABB1`, chrome `#D4DCE1`, bone `#E4E1D8` with ONE
@@ -442,7 +529,8 @@ Default section order:
   edge and end on the key word's), and nothing a finger touched is left
   out of line (a hover moves only where a pointer hovers). Display type wears
   its suggested extended face, Michroma (SIL OFL, self-hosted in
-  `src/shared/fonts/`): the landing's statement and section titles, the
+  `packages/site/src/shared/fonts/`): the landing's statement and section
+  titles, the
   docs' page title and section titles (plain ink; chrome only on the hero statement). Its squared heading sans is not used; headings, body,
   labels, figures and code stay mono, the user's identity, save one
   lift (the user's call after the composer board): the Studio agent
@@ -459,7 +547,8 @@ Default section order:
   (ours: the ember), the rest neutrals; motion like a mechanism (decisive
   travel, soft settle, no perpetual loops or scanning lines: the
   landing's art moves on cue, as it comes into view, then under the
-  reader's hand, `src/pages/landing/drive.ts`); never cyberpunk neon, a
+  reader's hand, `packages/site/src/pages/landing/drive.ts`); never cyberpunk
+  neon, a
   HUD dashboard or a retro filter. Where it differed from earlier calls,
   the user chose the brief, carefully: chrome only on the hero statement
   and the primary key (section titles and the docs' title in plain ink),
@@ -507,12 +596,13 @@ Default section order:
   No space on a page is left empty. Icons do the
   work of labels where they can, with attention to detail: kit glyphs
   (`DitherIcon`) for ideas, and the REAL marks of the tools themselves
-  (npm, pnpm, Bun, Node, Vue, Svelte, Tailwind, StyleX, CSS Modules, CSS,
+  (npm, pnpm, Bun, Node, Solid, Tailwind, StyleX, CSS Modules, CSS,
   GitHub, each coding agent) from
-  `src/shared/ui/marks.ts`, one-colour beside their names, never
+  `packages/site/src/shared/ui/marks.ts`, one-colour beside their names, never
   restyled. Under its own hero the landing keeps the page layout the
   user picked from a reference (sections in the order and anatomy
-  `src/pages/AGENTS.md` sets), never a reference's hero, and the dither
+  `packages/site/src/pages/AGENTS.md` sets), never a reference's hero, and the
+  dither
   winners on Awwwards lend the SCALE (full-bleed art, display-size type);
   the page is filled with the kit itself and our own copy, never a
   reference site's assets, marks, names or words. Reference sites stay
@@ -521,15 +611,17 @@ Default section order:
   itself instead. The user
   lifted chrome and gloss, cut corners, and caps and slants for spec
   labels for the new look; still rejected: red, the
-  nodecode grid (details in `src/pages/AGENTS.md`).
+  nodecode grid (details in `packages/site/src/pages/AGENTS.md`).
 - Docs follow shadcn-style anatomy (sidebar rail, Preview/Code tabs, API
   tables, variant galleries) while keeping the dither skin; every preview
   carries Kobra's workbench and more (Inspect: the inspect and annotate
   tool tray, captures, comments copied for an agent — see
-  `src/widgets/workbench/AGENTS.md`) and its Code tab is Kobra's source
+  `packages/site/src/widgets/workbench/AGENTS.md`) and its Code tab is Kobra's
+  source
   panel (the example, the kit files behind it, the tokens and a
   `prompt.md` as tabs; edit, Run in the page, download as a zip — see
-  `src/widgets/source/AGENTS.md`); Kobra's interface sounds play on the
+  `packages/site/src/widgets/source/AGENTS.md`); Kobra's interface sounds play
+  on the
   docs, switched off from the header. Docs previews are real product
   surfaces: build real, working tools on them, never mock-ups.
 - The Studio is laid out as an app window, chat first (the user's call,
@@ -539,11 +631,12 @@ Default section order:
   layers docked right; a chat with no bridge shows the one line that
   starts it and finds the bridge once it runs. Only the layout and the
   behaviour were taken: the Studio keeps the look's materials and its
-  mono type (details in `src/pages/AGENTS.md`).
+  mono type (details in `packages/site/src/pages/AGENTS.md`).
 - The Studio is a PWA (the user's call; the landing and the docs need not
   be): installable on every platform it targets, iOS included, and usable
   offline; a change to the Studio's page, its assets or a large media
-  path keeps the worker's rules (`src/app/offline.ts`) and the install
+  path keeps the worker's rules (`packages/site/src/app/offline.ts`) and the
+  install
   surface in step.
 - Prefer editing existing code over adding new files; avoid over-abstraction and
   new dependencies. Net-negative LOC is prized when behavior remains complete.
@@ -551,28 +644,40 @@ Default section order:
   and reduced-transparency support are expected in every change, and the
   user's design system asks it too: text at AA (4.5:1) on the rendered
   page, gradients and materials included, and 24px targets (WCAG 2.5.8).
-  One focus colour everywhere (the kit, its Svelte port, the site): a
+  One focus colour everywhere (the kit, the site): a
   control that draws its own indicator draws it in the theme's ring ink
   (`ring-ring`, a field's `border-ring`), never a tinted accent or a faded
-  foreground, which vanish on some ground; `tests/focus-ring.spec.ts`
-  scans all three, utilities and stylesheet `:focus` rules alike.
-- Studio serves Vue developers and visual designers equally. Use the durable
+  foreground, which vanish on some ground;
+  `packages/site/tests/focus-ring.spec.ts`
+  scans both, utilities and stylesheet `:focus` rules alike.
+- Studio serves Solid developers and visual designers equally. Use the durable
   audience, interaction, and aesthetic contract in `.impeccable.md` for UI work.
 
 ## Child DOX Index
 
-- `bridge/AGENTS.md` — the local ACP bridge: zero-dep relay between a
+- `packages/dither-kit/AGENTS.md` — the toolkit: dither engine, palette,
+  component contracts, portability rules, the Solid layer, the Tailwind
+  layer
+- `packages/dither-kit-stylex/AGENTS.md` — the kit's StyleX twin: generated
+  source, the spec that writes it, what is written by hand
+- `packages/restyle/AGENTS.md` — the styling rewriter, the utility map it
+  reads and the StyleX generator
+- `packages/site/AGENTS.md` — the site's SolidStart package: routes, the
+  shell, the alias, the build's plugins and post-build, Solid conventions,
+  the component and framework-free specs
+  - `packages/site/src/AGENTS.md` — the app's contracts for its source
+    (framework-free modules and components at the same FSD paths): FSD
+    layers, routing, editor/history/persistence contracts, a11y floor
+    - `packages/site/src/pages/AGENTS.md` — landing/docs/studio page
+      conventions
+    - `packages/site/src/widgets/workbench/AGENTS.md` — the docs previews'
+      workbench
+    - `packages/site/src/widgets/source/AGENTS.md` — the docs previews'
+      source files and Run
+- `packages/tasks/AGENTS.md` — the repository's tasks: the kit stylesheet,
+  the share cards' drawing code, the frame renderer, the agent demo
+  recorder
+- `packages/bridge/AGENTS.md` — the local ACP bridge: zero-dep relay between a
   Studio tab and the user's own coding agent, Studio tools as an MCP server
-- `dither-kit/AGENTS.md` — the toolkit: dither engine, palette, component
-  contracts, portability rules
-- `dither-kit-svelte/AGENTS.md` — the Svelte 5 port of the toolkit: runes-only
-  components, `ditherBackground` action runtime, verbatim engine copies,
-  organized into engine/runtime/family subfolders
-- `svelte-site/AGENTS.md` — the Svelte showcase app: landing page mirroring the
-  Vue `src/` landing, built on `dither-kit-svelte`
-- `src/AGENTS.md` — the app: FSD layers, routing, editor/history/persistence
-  contracts, a11y floor
-  - `src/pages/AGENTS.md` — landing/docs/studio page conventions
-  - `src/widgets/workbench/AGENTS.md` — the docs previews' workbench
-  - `src/widgets/source/AGENTS.md` — the docs previews' source files and
-    Run
+- `packages/discord/AGENTS.md` — the Discord interactions service: a
+  section's share card as a component embed

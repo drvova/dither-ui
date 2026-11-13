@@ -1,0 +1,15 @@
+/* The trail answers the whole button: a descendant of its hover or focus,
+   which no single element's styles can say. */
+@media (hover: hover) {
+  .dk-arrow:hover .dk-arrow-trail {
+    width: 2.25rem;
+    opacity: 1;
+  }
+  .dk-arrow:hover .dk-arrow-head {
+    translate: 0.125rem 0;
+  }
+}
+.dk-arrow:focus-visible .dk-arrow-trail {
+  width: 2.25rem;
+  opacity: 1;
+}

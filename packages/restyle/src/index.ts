@@ -1,0 +1,654 @@
+// The rewriter: Solid code in the reader's styling system (no framework is
+// loaded here; the reader's own choice of system lives in the site). Snippets
+// and Studio exports reach it as Solid with Tailwind classes; `restyle`
+// rewrites one so the same look is written in vanilla CSS (a stylesheet the
+// file imports), CSS Modules or StyleX, from the declarations Tailwind's compiler gives each class
+// (`virtual-dither-utilities`, built by `utility-map.ts`). Classes the map
+// does not know stay classes — the kit's own stylesheet covers them.
+import UTILITIES from "virtual-dither-utilities"
+
+export type UtilityRule = { chain: string[]; decl: [string, string][] }
+export type UtilityMap = {
+  order: Record<string, number>
+  rules: Record<string, UtilityRule[]>
+  props: Record<string, string>
+}
+
+export const STYLINGS = ["tailwind", "css", "modules", "stylex"] as const
+export type Styling = (typeof STYLINGS)[number]
+export const STYLING_LABELS: Record<Styling, string> = {
+  tailwind: "Tailwind",
+  css: "CSS",
+  modules: "Modules",
+  stylex: "StyleX",
+}
+export const isStyling = (v: unknown): v is Styling => STYLINGS.includes(v as Styling)
+
+/* ------------------------------ compiling classes ------------------------- */
+
+export type Compiled = {
+  /** Declarations per variant chain (`[]` is the element itself), in cascade order. */
+  chains: { chain: string[]; decl: [string, string][] }[]
+  /** Classes the map does not know, or the target cannot express — kept as classes. */
+  rest: string[]
+}
+
+/** `&:hover`, `&::before`, `&:not(:last-child)`: a selector StyleX can say. */
+const SIMPLE_SELECTOR = /^&(::?[\w-]+(\([^()]*\))?)+$/
+const TW_VAR = "var(--tw-"
+/** Tailwind's guard around a `color-mix()` value: every browser the kit
+ * supports passes it, so the value joins its rule and the fallback before
+ * it is overridden. */
+const COLOR_MIX = "@supports (color: color-mix(in lab, red, red))"
+
+/** `var(--tw-x, fallback)` → the value the chain gives `--tw-x`, the
+ * registered initial, or the fallback; Tailwind's internals never reach the
+ * output. */
+function resolveVars(value: string, lookup: (name: string) => string | undefined): string {
+  // Each pass replaces the first reference; a ring with an offset nests a dozen.
+  for (let from = 0, pass = 0; pass < 256; pass++) {
+    const at = value.indexOf(TW_VAR, from)
+    if (at < 0) return value
+    let depth = 0
+    let comma = -1
+    let end = -1
+    for (let i = at + 3; i < value.length; i++) {
+      const c = value[i]
+      if (c === "(") depth++
+      else if (c === ")") {
+        if (--depth === 0) {
+          end = i
+          break
+        }
+      } else if (c === "," && depth === 1 && comma < 0) comma = i
+    }
+    if (end < 0) return value
+    const name = value.slice(at + 4, comma < 0 ? end : comma).trim()
+    const fallback = comma < 0 ? undefined : value.slice(comma + 1, end).trim()
+    const found = lookup(name) ?? fallback
+    // An input nothing sets stays, and the search moves past it.
+    if (found === undefined) from = end + 1
+    else value = value.slice(0, at) + found + value.slice(end + 1)
+  }
+  return value
+}
+
+const NUMBER = /^-?\d*\.?\d+$/
+
+/** `calc(0.25rem * 4)` → `1rem`, `calc(10 * -1)` → `-10`, no-op shadows gone. */
+function simplify(prop: string, value: string): string {
+  value = value.replace(
+    /calc\((-?\d*\.?\d+)([a-z%]*) \* (-?\d*\.?\d+)\)/g,
+    (all, a: string, unit: string, b: string) => {
+      if (!NUMBER.test(a) || !NUMBER.test(b)) return all
+      const n = Math.round(Number(a) * Number(b) * 1e6) / 1e6
+      return `${n}${unit}`
+    },
+  )
+  // Tailwind's gradient inputs are not properties an app transitions.
+  if (prop === "transition-property")
+    value = value
+      .split(/,\s*/)
+      .filter((p) => !p.startsWith("--tw-"))
+      .join(", ")
+  if (prop === "box-shadow" || prop === "text-shadow") {
+    const parts = value.split(/,\s*(?![^(]*\))/).filter((p) => p.trim() !== "0 0 #0000")
+    value = parts.length ? parts.join(", ") : "none"
+  }
+  return value
+}
+
+/** The declarations a class string stands for, in Tailwind's cascade order.
+ * `strict` (StyleX) sends classes whose rules need a selector StyleX cannot
+ * express, a custom property or `!important` to `rest` instead. `map` is the
+ * vocabulary (the docs' by default; the kit layer generator passes the kit's). */
+export function compileUtilities(tokens: string[], strict = false, map: UtilityMap = UTILITIES): Compiled {
+  const seen = new Set<string>()
+  const known: string[] = []
+  const rest: string[] = []
+  for (const t of tokens) {
+    if (!t || seen.has(t)) continue
+    seen.add(t)
+    const rules = map.rules[t]
+    const expressible =
+      !!rules &&
+      (!strict ||
+        rules.every(
+          (r) =>
+            r.chain.every((item) => item.startsWith("@") || SIMPLE_SELECTOR.test(item)) &&
+            r.decl.every(([k, v]) => (!k.startsWith("--") || k.startsWith("--tw-")) && !v.includes("!important")),
+        ))
+    ;(expressible ? known : rest).push(t)
+  }
+  known.sort((a, b) => map.order[a] - map.order[b])
+  const chains = new Map<string, { chain: string[]; decl: Map<string, string> }>()
+  for (const t of known)
+    for (const rule of map.rules[t]) {
+      const chain = rule.chain.filter((c) => c !== COLOR_MIX)
+      const key = chain.join("\u0000")
+      let entry = chains.get(key)
+      if (!entry) chains.set(key, (entry = { chain, decl: new Map() }))
+      for (const [k, v] of rule.decl) entry.decl.set(k, v)
+    }
+  const base = chains.get("")?.decl ?? new Map<string, string>()
+  const out: Compiled["chains"] = []
+  for (const { chain, decl } of chains.values()) {
+    // A variant that only retunes a `--tw-*` input (hover:shadow-color) must
+    // carry the element's declaration that reads it.
+    if (chain.length)
+      for (const [k, v] of base)
+        if (!decl.has(k) && [...decl.keys()].some((name) => name.startsWith("--tw-") && v.includes(`var(${name}`)))
+          decl.set(k, v)
+    const lookup = (name: string) => decl.get(name) ?? (chain.length ? base.get(name) : undefined) ?? map.props[name]
+    const resolved: [string, string][] = []
+    for (const [k, v] of decl) if (!k.startsWith("--tw-")) resolved.push([k, simplify(k, resolveVars(v, lookup))])
+    if (resolved.length) out.push({ chain, decl: resolved })
+  }
+  return { chains: [...out.filter((c) => !c.chain.length), ...out.filter((c) => c.chain.length)], rest }
+}
+
+/* ------------------------------ the rewrite ------------------------------- */
+
+export type Named = { name: string; compiled: Compiled }
+
+export const camel = (s: string) => s.replace(/[^A-Za-z0-9]+(.)?/g, (_, c?: string) => (c ? c.toUpperCase() : ""))
+const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)
+
+const HINTS: [RegExp, string][] = [
+  [/^flex-col$/, "stack"],
+  [/^(inline-)?flex$/, "row"],
+  [/^(inline-)?grid$/, "grid"],
+  [/^(absolute|fixed|inset-0)$/, "layer"],
+  [/^relative$/, "frame"],
+]
+
+export function baseName(tag: string, tokens: string[]): string {
+  if (/^[A-Z]/.test(tag)) return lowerFirst(tag.replace(/^Dither/, "")) || "item"
+  if (tag === "div" || tag === "span") {
+    for (const [re, name] of HINTS) if (tokens.some((t) => re.test(t))) return name
+    return tag === "div" ? "box" : "text"
+  }
+  return camel(tag)
+}
+
+export class Names {
+  private styles: Named[] = []
+  private byKey = new Map<string, string>()
+  private used = new Set<string>()
+  get all(): Named[] {
+    return this.styles
+  }
+  /** One name per distinct declaration set; collisions count up. */
+  claim(wanted: string, compiled: Compiled): string {
+    const key = JSON.stringify(compiled.chains)
+    const had = this.byKey.get(key)
+    if (had) return had
+    let name = wanted
+    for (let n = 2; this.used.has(name); n++) name = `${wanted}${n}`
+    this.used.add(name)
+    this.byKey.set(key, name)
+    this.styles.push({ name, compiled })
+    return name
+  }
+}
+
+const STRING_RE = /'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g
+
+type Attr = { start: number; end: number; value: string; braces: boolean }
+
+const parseInline = (style: string): [string, string][] =>
+  style
+    .split(";")
+    .map((d) => d.trim())
+    .filter(Boolean)
+    .map((d) => {
+      const k = d.indexOf(":")
+      return [d.slice(0, k).trim(), d.slice(k + 1).trim()] as [string, string]
+    })
+    .filter(([k, v]) => k && v)
+
+type Target = Exclude<Styling, "tailwind">
+
+/** Where a class binding's class strings are: the string literals in class
+ * position (the bare expression, array items, object keys, a ternary's arms,
+ * the right of `&&`), as offsets. A literal in a condition (`tab === 'grid'`)
+ * is a value, never a class. */
+function classPositions(expr: string, base = 0, out = new Set<number>()): Set<number> {
+  const lead = expr.length - expr.trimStart().length
+  const e = expr.trim()
+  const at = base + lead
+  if (/^(['"])(?:(?!\1)[^\\]|\\.)*\1$/.test(e)) out.add(at)
+  else if (/^\[[\s\S]*\]$/.test(e))
+    for (const [s, part] of partsOf(e.slice(1, -1))) classPositions(part, at + 1 + s, out)
+  else if (/^\{[\s\S]*\}$/.test(e))
+    for (const [s, pair] of partsOf(e.slice(1, -1))) {
+      const key = pair.trimStart()
+      if (/^['"]/.test(key)) out.add(at + 1 + s + pair.length - key.length)
+    }
+  else {
+    const t = topLevel(e)
+    if (t.question > 0 && t.colon > t.question) {
+      classPositions(e.slice(t.question + 1, t.colon), at + t.question + 1, out)
+      classPositions(e.slice(t.colon + 1), at + t.colon + 1, out)
+    } else if (t.and > 0) classPositions(e.slice(t.and + 2), at + t.and + 2, out)
+  }
+  return out
+}
+
+/** A comma list's top-level parts with their offsets. */
+function partsOf(list: string): [number, string][] {
+  const parts: [number, string][] = []
+  let depth = 0
+  let quote: string | null = null
+  let from = 0
+  for (let i = 0; i <= list.length; i++) {
+    const c = list[i]
+    if (quote) {
+      if (c === "\\") i++
+      else if (c === quote) quote = null
+      continue
+    }
+    if (c === "'" || c === '"' || c === "`") quote = c
+    else if (c && "([{".includes(c)) depth++
+    else if (c && ")]}".includes(c)) depth--
+    if (i === list.length || (c === "," && depth === 0)) {
+      if (list.slice(from, i).trim()) parts.push([from, list.slice(from, i)])
+      from = i + 1
+    }
+  }
+  return parts
+}
+
+/** The expression of a dynamic class binding with its class strings named:
+ * each one with known utilities becomes a style, referenced the way the
+ * target spells it. `lossy` says a literal also held classes the target
+ * could not take. */
+function nameLiterals(expr: string, names: Names, target: Target): { expr: string; found: boolean; lossy: boolean } {
+  let found = false
+  let lossy = false
+  const classes = classPositions(expr)
+  const out = expr.replace(STRING_RE, (all, single: string | undefined, double: string | undefined, at: number) => {
+    if (!classes.has(at)) return all
+    const text = single ?? double ?? ""
+    const tokens = text.split(/\s+/).filter(Boolean)
+    const compiled = compileUtilities(tokens, target === "stylex")
+    if (!compiled.chains.length) return all
+    found = true
+    const first = tokens.find((t) => !compiled.rest.includes(t)) ?? "style"
+    const name = names.claim(camel(first), compiled)
+    const kept = compiled.rest.join(" ")
+    if (kept) lossy = true
+    if (target === "stylex") return `styles.${name}`
+    if (target === "modules") return kept ? `styles.${name} + ' ${kept}'` : `styles.${name}`
+    return `'${name}${kept ? " " + kept : ""}'`
+  })
+  return { expr: out, found, lossy }
+}
+
+/** StyleX takes styles, not class strings: the common binding shapes become
+ * `stylex.props` arguments; anything else keeps its class binding. A ternary
+ * or `&&` takes any condition (comparisons with strings, calls, `||`): only
+ * its branches must be named styles, and an empty string is no style. */
+function stylexArgs(expr: string): string[] | null {
+  const e = expr.trim()
+  if (/^\[[\s\S]*\]$/.test(e)) {
+    const items = splitTop(e.slice(1, -1)).map(stylexArgs)
+    return items.every(Boolean) ? items.flatMap((a) => a!) : null
+  }
+  if (/^\{[\s\S]*\}$/.test(e))
+    return splitTop(e.slice(1, -1)).map((pair) => {
+      const k = pair.indexOf(":")
+      return `${pair.slice(k + 1).trim()} && ${pair.slice(0, k).trim()}`
+    })
+  if (/^styles\.\w+$/.test(e)) return [e]
+  const arm = (x: string) => (/^styles\.\w+$/.test(x) ? x : /^(''|"")$/.test(x) ? "null" : null)
+  const at = topLevel(e)
+  if (at.question > 0 && at.colon > at.question) {
+    const yes = arm(e.slice(at.question + 1, at.colon).trim())
+    const no = arm(e.slice(at.colon + 1).trim())
+    return yes && no ? [`${e.slice(0, at.question).trim()} ? ${yes} : ${no}`] : null
+  }
+  if (at.and > 0) {
+    const yes = arm(e.slice(at.and + 2).trim())
+    return yes && yes !== "null" ? [`${e.slice(0, at.and).trim()} && ${yes}`] : null
+  }
+  return null
+}
+
+/** Where an expression's top-level ternary `?` and `:` and its last
+ * top-level `&&` are (-1 when absent): outside strings and brackets, `?.`
+ * and `??` not counted. */
+function topLevel(e: string): { question: number; colon: number; and: number } {
+  const at = { question: -1, colon: -1, and: -1 }
+  let depth = 0
+  let quote: string | null = null
+  for (let i = 0; i < e.length; i++) {
+    const c = e[i]
+    if (quote) {
+      if (c === "\\") i++
+      else if (c === quote) quote = null
+      continue
+    }
+    if (c === "'" || c === '"' || c === "`") quote = c
+    else if ("([{".includes(c)) depth++
+    else if (")]}".includes(c)) depth--
+    else if (depth) continue
+    else if (c === "?" && e[i + 1] !== "." && e[i + 1] !== "?" && e[i - 1] !== "?") {
+      if (at.question < 0) at.question = i
+    } else if (c === ":" && at.question >= 0 && at.colon < 0) at.colon = i
+    else if (c === "&" && e[i + 1] === "&") at.and = i++
+  }
+  return at
+}
+
+function splitTop(list: string): string[] {
+  const parts: string[] = []
+  let depth = 0
+  let quote: string | null = null
+  let buf = ""
+  for (const c of list) {
+    if (quote) {
+      buf += c
+      if (c === quote) quote = null
+      continue
+    }
+    if (c === "'" || c === '"') quote = c
+    else if ("([{".includes(c)) depth++
+    else if (")]}".includes(c)) depth--
+    if (c === "," && depth === 0) {
+      parts.push(buf.trim())
+      buf = ""
+      continue
+    }
+    buf += c
+  }
+  if (buf.trim()) parts.push(buf.trim())
+  return parts
+}
+
+/* ------------------------------ emitters ---------------------------------- */
+
+function cssText(styles: Named[]): string {
+  const blocks: string[] = []
+  for (const { name, compiled } of styles)
+    for (const { chain, decl } of compiled.chains) {
+      let selector = `.${name}`
+      const ats: string[] = []
+      for (const item of chain) item.startsWith("@") ? ats.push(item) : (selector = item.replace(/&/g, selector))
+      const inner = decl.map(([k, v]) => `${k}: ${v};`)
+      let text = [`${selector} {`, ...inner.map((l) => `  ${l}`), "}"].join("\n")
+      for (const at of ats.reverse()) text = [`${at} {`, ...text.split("\n").map((l) => `  ${l}`), "}"].join("\n")
+      blocks.push(text)
+    }
+  return blocks.join("\n")
+}
+
+type Cond = string | null | Map<string, Cond>
+
+/** `background-color` → `backgroundColor`; a vendor prefix is capitalized
+ * the way StyleX spells it (`-webkit-line-clamp` → `WebkitLineClamp`). */
+const cssProp = (prop: string) => prop.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())
+
+function stylexObject(compiled: Compiled): Map<string, Cond> {
+  const root = new Map<string, Cond>()
+  for (const { chain, decl } of compiled.chains) {
+    // StyleX nests conditions per property: pseudo-classes first, then
+    // at-rules. A pseudo-element is a key of its own at the top, holding the
+    // properties it styles (`&:hover::before` → `"::before"`, then `:hover`).
+    const selector = chain
+      .filter((c) => !c.startsWith("@"))
+      .join("")
+      .replace(/&/g, "")
+    const element = selector.match(/::[\w-]+$/)?.[0]
+    const classes = (element ? selector.slice(0, -element.length) : selector).match(/:[\w-]+(\([^()]*\))?/g) ?? []
+    const keys = [...classes, ...chain.filter((c) => c.startsWith("@"))]
+    let tree = root
+    if (element) {
+      const had = root.get(element)
+      if (!(had instanceof Map)) root.set(element, (tree = new Map()))
+      else tree = had
+    }
+    for (const [prop, value] of decl) {
+      const name = cssProp(prop)
+      if (!keys.length) {
+        const had = tree.get(name)
+        if (had instanceof Map) had.set("default", value)
+        else tree.set(name, value)
+        continue
+      }
+      const top = tree.get(name)
+      let node: Map<string, Cond>
+      if (top instanceof Map) node = top
+      else {
+        node = new Map<string, Cond>([["default", typeof top === "string" ? top : null]])
+        tree.set(name, node)
+      }
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i]
+        const had = node.get(k)
+        if (i === keys.length - 1) {
+          had instanceof Map ? had.set("default", value) : node.set(k, value)
+          break
+        }
+        if (had instanceof Map) node = had
+        else {
+          const next = new Map<string, Cond>([["default", typeof had === "string" ? had : null]])
+          node.set(k, next)
+          node = next
+        }
+      }
+    }
+  }
+  return root
+}
+
+const key = (k: string) => (/^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k))
+const WIDTH = 100
+
+function printCond(value: Cond, indent: string): string {
+  if (value === null) return "null"
+  if (typeof value === "string") return JSON.stringify(value)
+  const entries = [...value].map(([k, v]) => `${key(k)}: ${printCond(v, indent + "  ")}`)
+  const flat = `{ ${entries.join(", ")} }`
+  if (!flat.includes("\n") && indent.length + flat.length <= WIDTH) return flat
+  return `{\n${entries.map((e) => `${indent}  ${e},`).join("\n")}\n${indent}}`
+}
+
+export function stylexText(styles: Named[]): string {
+  const entries = styles.map(({ name, compiled }) => `  ${key(name)}: ${printCond(stylexObject(compiled), "  ")},`)
+  return `const styles = stylex.create({\n${entries.join("\n")}\n})`
+}
+
+/* ------------------------------ placement --------------------------------- */
+
+const STYLEX_IMPORT = `import * as stylex from "@stylexjs/stylex"`
+
+/* ------------------------------ Solid ------------------------------------- */
+
+// A Solid file is JSX in a module: its classes are `class="…"`,
+// `class={expression}` or one template literal of fixed classes and an
+// expression, a style a `<style>` block cannot hold. So the rules go to a
+// stylesheet the file imports (plain, or a CSS Module read as `styles.x`),
+// or to StyleX: `{...stylex.props(…)}` on an element, the class it gives on
+// a component (which merges `class` with its own).
+
+/** A stylesheet a restyled Solid file imports, beside it. */
+export type Sheet = { file: string; text: string }
+
+/** End (exclusive) of the string or template literal opened at `from`. */
+function literalEnd(code: string, from: number): number {
+  const quote = code[from]
+  for (let i = from + 1; i < code.length; i++) {
+    if (code[i] === "\\") i++
+    else if (quote === "`" && code[i] === "$" && code[i + 1] === "{") i = braceEnd(code, i + 1) - 1
+    else if (code[i] === quote) return i + 1
+  }
+  return code.length
+}
+
+/** End (exclusive) of the `{…}` opened at `from`. */
+function braceEnd(code: string, from: number): number {
+  let depth = 0
+  for (let i = from; i < code.length; i++) {
+    const c = code[i]
+    if (c === "'" || c === '"' || c === "`") i = literalEnd(code, i) - 1
+    else if (c === "{") depth++
+    else if (c === "}" && --depth === 0) return i + 1
+  }
+  return code.length
+}
+
+/** Where the JSX tag opened at `from` (its `<`) ends: the index of its `>`,
+ * or -1 when what follows is not a tag (a comparison, a type argument). */
+function jsxTagEnd(code: string, from: number): number {
+  for (let i = from + 1; i < code.length; i++) {
+    const c = code[i]
+    if (c === '"' || c === "'") i = literalEnd(code, i) - 1
+    else if (c === "{") i = braceEnd(code, i) - 1
+    else if (c === "/" && code[i + 1] === "*") i = code.indexOf("*/", i) < 0 ? code.length : code.indexOf("*/", i) + 1
+    else if (c === ">") return i
+    else if (c === "<" || c === ";") return -1
+  }
+  return -1
+}
+
+/** `name="…"` or `name={…}` among a JSX tag's attributes. */
+function jsxAttr(attrs: string, name: string): Attr | null {
+  for (let i = 0; i < attrs.length; i++) {
+    const c = attrs[i]
+    if (c === '"' || c === "'") i = literalEnd(attrs, i) - 1
+    else if (c === "{") i = braceEnd(attrs, i) - 1
+    else if (attrs.startsWith(`${name}=`, i) && (i === 0 || /\s/.test(attrs[i - 1]))) {
+      const at = i + name.length + 1
+      const braces = attrs[at] === "{"
+      const end = braces ? braceEnd(attrs, at) : literalEnd(attrs, at)
+      return { start: i, end, value: attrs.slice(at + 1, end - 1), braces }
+    }
+  }
+  return null
+}
+
+/** One `class` from its pieces: class names as text, an expression as `${…}`. */
+function jsxClass(pieces: string[]): string {
+  if (pieces.every((p) => !p.startsWith("${"))) return `class="${pieces.join(" ")}"`
+  if (pieces.length === 1) return `class={${pieces[0].slice(2, -1)}}`
+  return `class={\`${pieces.join(" ")}\`}`
+}
+
+function rewriteSolidTag(tag: string, attrs: string, names: Names, target: Target): string {
+  const stylex = target === "stylex"
+  const classAttr = jsxAttr(attrs, "class")
+  const style = jsxAttr(attrs, "style")
+  const inline = style && !style.braces ? style : null
+  if (!classAttr && !inline) return attrs
+  let fixed = ""
+  let dynamic: string | null = null
+  if (classAttr?.braces) {
+    const value = classAttr.value.trim()
+    if (value.startsWith("`")) {
+      // `fixed ${expression}`: the one shape of a template literal read here
+      const hole = value.indexOf("${")
+      if (hole < 0 || braceEnd(value, hole + 1) !== value.length - 1) return attrs
+      fixed = value.slice(1, hole)
+      dynamic = value.slice(hole + 2, -2)
+    } else dynamic = value
+  } else if (classAttr) fixed = classAttr.value
+
+  const tokens = fixed.split(/\s+/).filter(Boolean)
+  const compiled = compileUtilities(tokens, stylex)
+  if (inline) {
+    const base = compiled.chains.find((c) => !c.chain.length)
+    base
+      ? base.decl.push(...parseInline(inline.value))
+      : compiled.chains.unshift({ chain: [], decl: parseInline(inline.value) })
+  }
+  const own = compiled.chains.length ? names.claim(baseName(tag, tokens), compiled) : null
+  const kept = compiled.rest
+  let changed = !!own
+  let part: string
+  if (stylex) {
+    const args = own ? [`styles.${own}`] : []
+    let left: string | null = dynamic
+    if (dynamic) {
+      const shape = stylexArgs(dynamic.replace(STRING_RE, "styles._"))
+      const bound = shape ? nameLiterals(dynamic, names, target) : null
+      const named = bound?.found && !bound.lossy ? stylexArgs(bound.expr) : null
+      if (named) {
+        args.push(...named)
+        left = null
+        changed = true
+      }
+    }
+    if (!args.length) return attrs
+    // An element takes the props whole; a component, or an element that
+    // keeps classes of its own, takes the class they give.
+    const props = `stylex.props(${args.join(", ")})`
+    part =
+      /^[A-Z]/.test(tag) || kept.length || left
+        ? jsxClass([`\${${props}.className}`, ...kept, ...(left ? [`\${${left}}`] : [])])
+        : `{...${props}}`
+  } else {
+    const bound = dynamic ? nameLiterals(dynamic, names, target) : null
+    if (bound?.found) changed = true
+    const mine = own ? [target === "modules" ? `\${styles.${own}}` : own] : []
+    part = jsxClass([...mine, ...kept, ...(bound ? [`\${${bound.expr}}`] : [])])
+  }
+  if (!changed) return attrs
+
+  const removed = [classAttr, inline].filter((a): a is Attr => !!a)
+  let out = attrs
+  for (const a of [...removed].sort((a, b) => b.start - a.start))
+    out = out.slice(0, a.start).replace(/\s+$/, "") + out.slice(a.end)
+  const prefix = attrs.slice(0, Math.min(...removed.map((a) => a.start))).replace(/\s+$/, "")
+  const remainder = out.slice(prefix.length)
+  return `${prefix} ${part}${remainder.trim() ? remainder : ""}`
+}
+
+/** `lines` after a module's imports (or before code that has none), and
+ * `after` under them. */
+function withImports(code: string, lines: string[], after = ""): string {
+  const imports = /^(?:import\b[\s\S]*?["'][^"'\n]+["'];?[ \t]*\n)+/.exec(code)
+  const head = `${imports?.[0] ?? ""}${lines.join("\n")}\n`
+  const rest = code.slice(imports?.[0].length ?? 0).replace(/^\n+/, "")
+  return `${head}\n${after ? `${after}\n\n` : ""}${rest}`
+}
+
+/** A Solid file (or fragment) written in `system`, and the stylesheet it
+ * then imports: `<name>.css`, or `<name>.module.css` read as `styles`.
+ * StyleX keeps its styles in the file. */
+export function restyleSolid(code: string, system: Styling, name = "styles"): { code: string; sheet: Sheet | null } {
+  if (system === "tailwind") return { code, sheet: null }
+  const names = new Names()
+  // Each tag's attributes rewritten where they stand. Names are claimed in
+  // the order the file reads; the text is then rewritten from its end, so a
+  // tag inside another's attribute (a slot's prop) is done before the tag
+  // around it is read.
+  const tags = [...code.matchAll(/<([A-Za-z][\w.]*)(?=[\s/>])/g)]
+  const rewriteAt = (text: string, m: RegExpMatchArray): string => {
+    const end = jsxTagEnd(text, m.index!)
+    if (end < 0) return text
+    const selfClose = text[end - 1] === "/"
+    const start = m.index! + m[0].length
+    const attrs = text.slice(start, selfClose ? end - 1 : end)
+    if (!/\b(class|style)=/.test(attrs)) return text
+    const next = rewriteSolidTag(m[1], attrs, names, system)
+    return next === attrs ? text : `${text.slice(0, start)}${next}${selfClose ? " /" : ""}${text.slice(end)}`
+  }
+  for (const m of tags) rewriteAt(code, m)
+  if (!names.all.length) return { code, sheet: null }
+  let out = code
+  for (const m of [...tags].reverse()) out = rewriteAt(out, m)
+  if (system === "stylex") return { code: withImports(out, [STYLEX_IMPORT], stylexText(names.all)), sheet: null }
+  const file = system === "modules" ? `${name}.module.css` : `${name}.css`
+  const line = system === "modules" ? `import styles from "./${file}"` : `import "./${file}"`
+  return { code: withImports(out, [line]), sheet: { file, text: cssText(names.all) } }
+}
+
+/** A Solid file (or fragment) in `system` as one text: its stylesheet, when
+ * it has one, follows the code under the sheet's file name. */
+export function restyle(code: string, system: Styling): string {
+  const solid = restyleSolid(code, system)
+  return solid.sheet
+    ? `${solid.code.replace(/\s+$/, "")}\n\n/* ${solid.sheet.file} */\n${solid.sheet.text}`
+    : solid.code
+}

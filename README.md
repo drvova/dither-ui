@@ -1,87 +1,93 @@
 # dither-ui
 
 <p align="center">
-  <img src="public/emotes/emote-heart.webp" alt="" width="42" height="38">
-  <img src="public/emotes/emote-sparkles.webp" alt="" width="36" height="41">
-  <img src="public/emotes/emote-note.webp" alt="" width="25" height="27">
-  <img src="public/emotes/emote-bang.webp" alt="" width="20" height="47">
-  <img src="public/emotes/emote-star.webp" alt="" width="40" height="40">
-  <img src="public/emotes/emote-dots.webp" alt="" width="51" height="49">
+  <img src="packages/site/public/emotes/emote-heart.webp" alt="" width="42" height="38">
+  <img src="packages/site/public/emotes/emote-sparkles.webp" alt="" width="36" height="41">
+  <img src="packages/site/public/emotes/emote-note.webp" alt="" width="25" height="27">
+  <img src="packages/site/public/emotes/emote-bang.webp" alt="" width="20" height="47">
+  <img src="packages/site/public/emotes/emote-star.webp" alt="" width="40" height="40">
+  <img src="packages/site/public/emotes/emote-dots.webp" alt="" width="51" height="49">
 </p>
 
-![dither-ui: a dithered UI toolkit for Vue, the statement beside a live print the kit makes](.github/readme/banner.webp)
+![dither-ui: a dithered UI toolkit for Solid, the statement beside a live print the kit makes](.github/readme/banner.webp)
 
 <p align="center">
-  <img src="public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">
-  <img src="public/emotes/face-smile.webp" alt="Smiling dither face" width="97" height="126">
-  <img src="public/emotes/face-blush.webp" alt="Blushing dither face" width="95" height="126">
-  <img src="public/emotes/face-wink.webp" alt="Winking dither face" width="98" height="126">
-  <img src="public/emotes/face-surprised.webp" alt="Surprised dither face" width="96" height="126">
-  <img src="public/emotes/face-excited.webp" alt="Excited dither face" width="94" height="126">
+  <img src="packages/site/public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">
+  <img src="packages/site/public/emotes/face-smile.webp" alt="Smiling dither face" width="97" height="126">
+  <img src="packages/site/public/emotes/face-blush.webp" alt="Blushing dither face" width="95" height="126">
+  <img src="packages/site/public/emotes/face-wink.webp" alt="Winking dither face" width="98" height="126">
+  <img src="packages/site/public/emotes/face-surprised.webp" alt="Surprised dither face" width="96" height="126">
+  <img src="packages/site/public/emotes/face-excited.webp" alt="Excited dither face" width="94" height="126">
 </p>
 
-A dithered UI toolkit for Vue. 270 components draw themselves pixel by pixel
+A dithered UI toolkit for Solid. 270 components draw themselves pixel by pixel
 from one seeded palette: charts, controls, forms, overlays, backgrounds, text
 effects, 3D models and GLSL shaders, all through the same ordered-dither
-(Bayer) engine. It has a Svelte 5 port, a live docs section for every
-component, and a Studio your coding agent can drive.
+(Bayer) engine. It has a live docs section for every component, and a Studio
+your coding agent can drive.
 
 Live at **[dither-ui.com](https://dither-ui.com)**, with the [docs](https://dither-ui.com/docs) and the [Studio](https://dither-ui.com/studio).
 
 ![The dither-ui landing: a bento of live kit components under "Every component, live."](.github/readme/landing.webp)
 
-The kit is copy-in, shadcn-style: it lives in `dither-kit/` with no imports from
-the app, so you copy the folder into your project and own every line. It is one
-kit in layers: `engine/` holds the styling-free logic (rasters, painters,
-contexts, the clock, the tokens), `tailwind/` the components styled with
-Tailwind classes and `stylex/` the same components in StyleX, generated from
-the Tailwind ones so the two never drift. `@dither-kit` points at the layer
-your app styles with. Beside
-Vue it needs four packages: `d3-scale`, `d3-shape`, `clsx` and
-`tailwind-merge`. Tailwind is optional. `npm run build:css` compiles the kit's
-own stylesheet (`dist/kit/dither-kit.css`: tokens, a scoped base and every
-class the components use) for apps on StyleX, UnoCSS, plain CSS or CSS-in-JS.
+The kit is copy-in, shadcn-style: it lives in `packages/dither-kit/src/` with
+no imports from the app, so you copy the folder into your project and own every
+line. It is one kit in layers: `engine/` holds the styling-free logic (rasters,
+painters, contexts, the clock, the tokens), `solid/` the SolidJS components
+styled with Tailwind classes and `tailwind/` what that layer shares (the class
+helpers and the kit's stylesheet entry). The same components in StyleX are a
+folder beside it, `packages/dither-kit-stylex/src/`, generated from the
+Tailwind ones so the two never drift. `@dither-kit` points at the layer your
+app styles with. Beside Solid it needs four packages: `d3-scale`, `d3-shape`,
+`clsx` and `tailwind-merge`. Tailwind is optional. `npm run build:css` compiles
+the kit's own stylesheet (`packages/site/.output/public/kit/dither-kit.css`:
+tokens, a scoped base and every class the components use) for apps on StyleX,
+UnoCSS, plain CSS or CSS-in-JS.
 
 ## Quick start
 
 ```bash
-npm install
-npm run dev      # rs dev: http://localhost:5173 (/, /docs, /studio)
-npm run test     # rs test (Rstest)
-npm run lint     # rs lint (Rslint) + ESLint for .vue files
-npm run format   # rs fmt
-npm run build    # type-check, rs build, the kit stylesheet, then the prerender
+npm install        # one install for every package of the workspace (Node 24)
+npm run dev        # the site: http://localhost:3000 (/, /docs, /studio)
+npm run build      # the static site, into packages/site/.output/public
+npm run preview    # serves that build
+npm run typecheck  # tsc over every package
+npm run test       # rs test (Rstest), then each package's component specs (Vitest)
+npm run lint       # rs lint (Rslint)
+npm run format     # rs fmt
 ```
 
-The prerender at the end of `npm run build` drives headless Chromium; point
-`CHROME_PATH` at a Chromium binary if it is not in a standard place. CI and the
-GitHub Pages deploy run on Node 22.
+Everything runs from the root, on Node 24 (SolidStart needs it). `npm run build`
+prerenders every page, then draws the share cards and reads the agent registry
+in headless Chromium; point `CHROME_PATH` at a Chromium binary if it is not in
+a standard place. The GitHub Pages deploy runs on Node 24.
 
 ## Use the kit in your app
 
 ```bash
 # 1. copy the kit folder straight from the repo
-npx degit drvova/dither-ui/dither-kit src/dither-kit
+npx degit drvova/dither-ui/packages/dither-kit/src src/dither-kit
 
-# 2. install the four packages it needs beside Vue
+# 2. install the four packages it needs beside Solid
 npm i d3-scale d3-shape clsx tailwind-merge
 
 # 3. alias @dither-kit (bundler resolve.alias and tsconfig paths)
-#    "@dither-kit" -> "./src/dither-kit/tailwind"
+#    "@dither-kit" -> "./src/dither-kit/solid"
 ```
 
-On StyleX, alias `"@dither-kit"` to `./src/dither-kit/stylex` instead, install
-`@stylexjs/stylex` (with your bundler's StyleX plugin) in place of `clsx` and
-`tailwind-merge`, and load `engine/theme.css` and `engine/base.css`. Every
+On StyleX, copy the StyleX folder beside the kit
+(`npx degit drvova/dither-ui/packages/dither-kit-stylex/src src/dither-kit-stylex`),
+alias `"@dither-kit"` to `./src/dither-kit-stylex` and `"dither-kit"` to
+`./src/dither-kit` (the StyleX files read the engine from the kit by that
+name), install `@stylexjs/stylex` (with your bundler's StyleX plugin) in place
+of `clsx` and `tailwind-merge`, and load `engine/theme.css` and
+`engine/base.css`. Every
 component that takes `class` also takes `xstyle`: your StyleX styles, merged
 after its own.
 
-Svelte 5 apps copy `drvova/dither-ui/dither-kit-svelte` instead and import from
-`@dither-kit-svelte`. Charts use a children-as-config API: compose parts inside
-a root.
+Charts use a children-as-config API: compose parts inside a root.
 
-```vue
-<script setup lang="ts">
+```tsx
 import {
   AreaChart, Area, Grid, XAxis, YAxis, Legend, Tooltip,
   type ChartConfig,
@@ -95,19 +101,20 @@ const config: ChartConfig = {
   desktop: { label: "Desktop", color: "blue" },
   mobile: { label: "Mobile", color: "purple" },
 }
-</script>
 
-<template>
-  <AreaChart class="h-80" :data="data" :config="config" bloom="low">
-    <Grid />
-    <XAxis dataKey="month" />
-    <YAxis />
-    <Area dataKey="desktop" is-clickable />
-    <Area dataKey="mobile" variant="hatched" is-clickable />
-    <Legend is-clickable />
-    <Tooltip labelKey="month" />
-  </AreaChart>
-</template>
+export default function Traffic() {
+  return (
+    <AreaChart class="h-80" data={data} config={config} bloom="low">
+      <Grid />
+      <XAxis dataKey="month" />
+      <YAxis />
+      <Area dataKey="desktop" isClickable />
+      <Area dataKey="mobile" variant="hatched" isClickable />
+      <Legend isClickable />
+      <Tooltip labelKey="month" />
+    </AreaChart>
+  )
+}
 ```
 
 Give every root a height: the canvas measures its box. Theme the kit by
@@ -147,7 +154,7 @@ tags or borders:
 ### Docs
 
 Every component has a section at `/docs/<id>`: a live preview, its props table,
-pickers for its variants and the code. The code comes in Vue or Svelte, written
+pickers for its variants and the code. The code is Solid, written
 with Tailwind classes, plain CSS, CSS Modules or StyleX. Every preview is also a
 working tool.
 
@@ -182,7 +189,7 @@ A canvas-first editor for every component in the kit:
 - **Evolve:** seeded variations of whatever you have selected.
 - **Reels:** a sequence of frames with ordered-dither transitions between them.
 - **Export:**
-  - code as a Vue SFC, in your styling system;
+  - code as a Solid component, in your styling system;
   - PNG;
   - MP4, through a HyperFrames composition that renders the same video every time.
 - **Projects:** autosave, `.json` files, undo and redo.
@@ -191,7 +198,7 @@ A canvas-first editor for every component in the kit:
 
 The Studio is addressable by the coding agent you already use:
 
-- `public/agent/SKILL.md` teaches any harness the document shape and the
+- `packages/site/public/agent/SKILL.md` teaches any harness the document shape and the
   commands.
 - The build writes every component's props to `/agent/registry.json`.
 - A live tab answers `dither-studio:command` DOM events and exposes
@@ -200,7 +207,7 @@ The Studio is addressable by the coding agent you already use:
 To drive it from the Studio's Agent panel, run the local bridge:
 
 ```bash
-npx degit drvova/dither-ui/bridge bridge && node bridge/dither-bridge.mjs
+npx degit drvova/dither-ui/packages/bridge/src bridge && node bridge/dither-bridge.mjs
 ```
 
 The bridge finds the harnesses on your PATH and starts the one you pick as your
@@ -216,7 +223,7 @@ own signed-in process. It works with:
 - Auggie
 - any other command that speaks the Agent Client Protocol
 
-No key is ever asked for in the app. See [bridge/README.md](bridge/README.md).
+No key is ever asked for in the app. See [packages/bridge/README.md](packages/bridge/README.md).
 
 ## Performance
 
@@ -224,7 +231,7 @@ No key is ever asked for in the app. See [bridge/README.md](bridge/README.md).
 
 For deterministic server-rendered surfaces, compile the dither backing store on
 the server and send its encoded image URL to the kit. The compiler has no DOM,
-canvas, or Vue dependency and returns RGBA pixels, so use the image encoder your
+canvas, or framework dependency and returns RGBA pixels, so use the image encoder your
 server already uses:
 
 ```ts
@@ -245,8 +252,8 @@ plot canvas, so axes, legends, tooltips, and interactions can remain composed
 around it. The asset must match the chart's plot dimensions and should be
 invalidated when data, colors, dimensions, or dither props change:
 
-```vue
-<AreaChart :data="data" :config="config" :precompiled="{ src: chartPngUrl }" :animate="false">
+```tsx
+<AreaChart data={data} config={config} precompiled={{ src: chartPngUrl }} animate={false}>
   <Grid /><XAxis dataKey="month" /><YAxis />
   <Area dataKey="desktop" />
 </AreaChart>
@@ -261,8 +268,8 @@ and auto-uses lower backing-resolution caps (`320×200` vs `960×600`) since the
 visual difference at low opacity is imperceptible. Override per-instance with
 `maxCols`/`maxRows` props:
 
-```vue
-<DitherGradient from="blue" :opacity="0.14" render-mode="static" :max-cols="480" :max-rows="300" />
+```tsx
+<DitherGradient from="blue" opacity={0.14} renderMode="static" maxCols={480} maxRows={300} />
 ```
 
 Without a packaged asset, the kit also batches gradient/button/spinner pixels
@@ -286,82 +293,99 @@ The kit applies several main-thread optimizations that benefit every consumer:
 - **`requestAnimationFrame` layout deferral.** Standalone components defer
   their initial `getBoundingClientRect()` read to a `requestAnimationFrame`
   callback, batching layout reads into one frame after layout completes
-  instead of forcing a synchronous reflow per component inside Vue's
-  `flushJobs`.
+  instead of forcing a synchronous reflow per component as it mounts.
 - **`RasterBuffer` for toggle canvases.** `paintToggleCanvas` (shared by
   DitherToggle and DitherToggleGroup) uses `createRasterBuffer` +
   `putRasterBuffer` instead of per-pixel `fillRect`.
 - **`IntersectionObserver` visibility gating.** Chart paint loops remain
-  paused until the IO reports the canvas visible. The IO callback sets
-  `visible.value` before calling `onWake` so `schedule()` sees the correct
+  paused until the IO reports the canvas visible. The IO callback marks the
+  canvas visible before calling `onWake` so `schedule()` sees the correct
   state and requests a RAF immediately.
 
-Kit-level benchmarks (Chrome DevTools, real DOM, 3 warmups + 5 batches × 3 runs):
+Kit-level benchmarks on the Solid components, in a real DOM
+(`npm run bench:browser -w dither-kit`, Solid's production build, 3 warmups +
+5 batches × 3 runs, the mean, as the median of five such passes). Measured
+2026-11-13 on a cloud container (4 cores of an Intel Xeon at 2.30 GHz, 16 GB),
+headless Chromium 141 rendering in software (SwiftShader, no GPU):
 
 | Operation | Compute | Full (RAF incl.) | Notes |
 | --- | ---: | ---: | --- |
-| DitherGradient live mount | 0.45 ms | 16.6 ms | 960×120, cell=3 |
-| DitherGradient static mount | 0.42 ms | 16.4 ms | 320×200 cap, cell=4, idle-deferred |
-| DitherGradient live re-render | 0.75 ms | 16.7 ms | direction up→down |
-| DitherButton live mount | 0.51 ms | 16.4 ms | 240×56, cell=2 |
-| DitherButton static mount | 0.48 ms | 16.5 ms | 320×200 cap, idle-deferred |
-| DitherSpinner live mount | 0.59 ms | 16.4 ms | 32px, RAF loop |
-| Raw raster gradient | 5.21 ms | 4.9 ms | 480×300, no Vue |
+| DitherGradient live mount | 0.10 ms | 16.6 ms | 960×120, cell=3 |
+| DitherGradient static mount | 0.10 ms | 16.6 ms | 320×200 cap, cell=4, idle-deferred |
+| DitherGradient live re-render | 0.34 ms | 16.7 ms | direction up to down |
+| DitherButton live mount | 0.17 ms | 33.3 ms | gradient variant, cell=2 |
+| DitherButton static mount | 0.14 ms | 16.6 ms | 320×200 cap, idle-deferred |
+| DitherSpinner live mount | 0.26 ms | 16.6 ms | 32px, RAF loop |
+| Raw raster gradient | 2.25 ms | 2.2 ms | 480×300, no framework |
 
-**Compute time** is mount→nextTick (Vue patch + onMounted setup — the kit's
-actual work). **Full time** adds the `requestAnimationFrame` frame wait
-(~16.67 ms at 60 fps) before the canvas has visible pixels. The raw raster
-benchmark has no Vue overhead and no RAF wait, so its full time equals
-compute time. Static mode is comparable to live mode in compute time because
-both use the same inlined pixel writes; the difference is that static mode
-auto-caps at 320×200 (4× fewer pixels) and defers paint via
-`requestIdleCallback`.
+**Compute time** is mount to the next microtask (Solid's render and the
+component's `onMount`: the kit's actual work). **Full time** adds the wait for
+a `requestAnimationFrame` frame (~16.67 ms at 60 fps) before the canvas has
+visible pixels; a live button measures its box in one frame and paints in the
+next, so its first pixels take two. The raw raster benchmark has no framework
+overhead and no RAF wait, so its full time equals compute time. Static mode
+is comparable to live mode in compute time because both use the same inlined
+pixel writes; the difference is that static mode auto-caps at 320×200 (4×
+fewer pixels) and defers paint via `requestIdleCallback`.
 
-These are per-component measurements on one desktop, not device-independent
-latency promises. Re-run on target devices before choosing `cell`, animation,
-bloom, or precompilation policy.
+These are per-component measurements on one machine without a GPU, not
+device-independent latency promises. Re-run on target devices before choosing
+`cell`, animation, bloom, or precompilation policy.
 
 ### Benchmark
 
-Open `http://localhost:5173/benchmarks/` after `npm run dev` (a dev-only page; it is not built or deployed). The browser
-benchmark performs 3 warmups, then 6 measured batches × 2 repetitions.
-Gradient samples run at 960×600 CSS px with 2 px cells and compare the legacy
-per-cell `fillRect` painter with RGBA generation plus one `putImageData` upload.
-Button samples run at 240×56 CSS px and compare fresh RGBA allocation against a
-reused target buffer. The table reports mean, median, p95, canvas calls, and
-RGBA allocation count.
+The kit carries two benchmarks, both run by hand and neither part of a build.
+The figures below were measured 2026-11-13 on the same cloud container (4
+cores of an Intel Xeon at 2.30 GHz), Node 24.22.3.
 
-A local Chrome run of the expanded benchmark produced:
+`npm run bench -w dither-kit` times the engine's hot paths in Node, 3 warmups
+then 20 batches a path. The median batch, as the median of seven runs:
+
+| Hot path | Median |
+| --- | ---: |
+| `renderDitherGradient`, 960×600 at 2 px cells (144,000 pixels) | 1.80 ms |
+| `renderDitherGradient`, capped at 320×200 (64,000 pixels) | 0.83 ms |
+| `renderDitherButton`, 240×56 at 2 px cells, fresh buffer | 0.061 ms |
+| `renderDitherButton`, the same into a reused buffer | 0.056 ms |
+| `paintColumn` × 520 columns, a 520×200 chart frame | 1.24 ms |
+| `setOrBlendRasterPixel` × 64,000 (`blendRasterPixel`: 0.91 ms) | 0.86 ms |
+
+`npm run bench:browser -w dither-kit` runs the painters in headless Chromium
+141 (software rendering, SwiftShader): 3 warmups, then 6 measured batches × 2
+repetitions. Gradient samples run at 960×600 CSS px with 2 px cells and
+compare the legacy per-cell `fillRect` painter with RGBA generation plus one
+`putImageData` upload. Button samples run at 240×56 CSS px and compare fresh
+RGBA allocation against a reused target buffer. The table reports mean,
+median, p95, canvas calls, and RGBA allocation count, each timing the median
+of five independent runs (a fresh page each):
 
 | Painter | Mean | Median | p95 | Canvas calls | RGBA allocations |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Gradient legacy fillRect | 109.11 ms | 107.70 ms | 174.40 ms | 144,000 | 0 |
-| Gradient RGBA + putImageData | 4.70 ms | 4.10 ms | 10.00 ms | 1 | 13 |
-| Button fresh RGBA buffer | 0.28 ms | 0.30 ms | 0.40 ms | 1 | 24 |
-| Button reused RGBA buffer | 0.45 ms | 0.20 ms | 2.90 ms | 1 | 2 |
+| Gradient legacy fillRect | 60.03 ms | 58.26 ms | 71.12 ms | 144,000 | 0 |
+| Gradient RGBA + putImageData | 2.21 ms | 2.21 ms | 2.89 ms | 1 | 13 |
+| Button fresh RGBA buffer | 0.13 ms | 0.12 ms | 0.17 ms | 1 | 24 |
+| Button reused RGBA buffer | 0.07 ms | 0.07 ms | 0.11 ms | 1 | 2 |
 
-The gradient rows in that run show a **23.2× speedup** and **95.7% lower
-measured paint latency**. The button rows are intentionally small in wall-clock
-terms; their useful signal is allocation behavior, where reuse keeps the repeated
-RGBA buffer allocation count bounded at two reusable objects.
+The gradient rows show a **27.1× speedup** and **96.3% lower measured paint
+latency**. The button rows are intentionally small in wall-clock terms; their
+useful signal is allocation behavior, where reuse keeps the repeated RGBA
+buffer allocation count bounded at two reusable objects.
 
-Earlier five independent local Chrome runs without CPU throttling produced:
+The five runs behind those medians:
 
 | Run | Legacy mean | Legacy median | Legacy p95 | Raster mean | Raster median | Raster p95 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 | 110.80 ms | 109.70 ms | 173.20 ms | 6.44 ms | 4.00 ms | 36.10 ms |
-| 2 | 111.76 ms | 114.40 ms | 180.00 ms | 4.01 ms | 4.30 ms | 5.10 ms |
-| 3 | 108.18 ms | 110.00 ms | 151.00 ms | 4.07 ms | 4.50 ms | 4.80 ms |
-| 4 | 122.25 ms | 121.80 ms | 179.60 ms | 5.62 ms | 4.60 ms | 20.10 ms |
-| 5 | 118.31 ms | 129.30 ms | 156.60 ms | 3.94 ms | 3.90 ms | 4.60 ms |
-| Average mean | 114.26 ms | — | — | 4.82 ms | — | — |
+| 1 | 66.45 ms | 66.80 ms | 79.11 ms | 2.57 ms | 2.31 ms | 3.58 ms |
+| 2 | 66.20 ms | 60.40 ms | 92.17 ms | 2.49 ms | 2.43 ms | 3.71 ms |
+| 3 | 58.33 ms | 56.61 ms | 68.05 ms | 2.21 ms | 2.21 ms | 2.58 ms |
+| 4 | 60.03 ms | 58.26 ms | 70.00 ms | 1.93 ms | 1.75 ms | 2.89 ms |
+| 5 | 58.74 ms | 56.51 ms | 71.12 ms | 1.89 ms | 1.76 ms | 2.88 ms |
 
-The earlier average means show a **23.7× speedup** and **95.8% lower measured
-paint latency**. Each legacy gradient sample made 144,000 `fillRect` calls; each
-raster gradient sample made one `putImageData` upload. These are directional
-measurements on one desktop, not a device-independent latency promise. Re-run
-the page on target low-power devices before choosing `cell`, animation, bloom,
-or precompilation policy.
+Each legacy gradient sample made 144,000 `fillRect` calls; each raster
+gradient sample made one `putImageData` upload. These are directional
+measurements on one machine, in software, not a device-independent latency
+promise. Measure on target low-power devices before choosing `cell`,
+animation, bloom, or precompilation policy.
 
 ## Components
 
@@ -392,32 +416,34 @@ Fill `variant`: `gradient`, `dotted`, `hatched`, `solid`. Palette colours:
 ## Repository
 
 ```
-dither-kit/          the Vue kit (@dither-kit): copy-in, MIT, no imports from the app
-  engine/     styling-free logic: rasters, painters, contexts, clock, tokens
-  tailwind/   the components, styled with Tailwind (what @dither-kit points at)
-  stylex/     the same components in StyleX, generated from tailwind/
-dither-kit-svelte/   the Svelte 5 port (runes)
-svelte-site/         a Svelte showcase built on the port
-bridge/              the local bridge between the Studio and your coding agent
-discord/             the /component slash command for Discord
-benchmarks/          the raster benchmark page (rs dev only)
-scripts/             prerender, kit stylesheet, frame renderer
-src/
-  app/        entry, the site's styles, the path and legacy-hash router
-  pages/      landing, docs, studio, play (the video player page)
-  widgets/    the docs workbench and source panel; the Studio's toolbar,
-              layer tree, inspector, canvas, renderers, data editor, agent panel
-  features/   history, keyboard, persistence, code, image and video export,
-              reels, pan and zoom, artboard transforms, the agent protocol
-  entities/   editor, chart, widget, artboard
-  shared/     ui, config, lib
-tests/        Rstest specs
+package.json            the workspace: one install, one lockfile, every script
+packages/
+  dither-kit/           the Solid kit (@dither-kit): copy-in, MIT, no imports from the app
+    src/engine/         styling-free logic: rasters, painters, contexts, clock, tokens
+    src/solid/          the components, styled with Tailwind (what @dither-kit points at)
+    src/tailwind/       the class helpers, the kit's stylesheet entry
+    tests/  benches/    the engine's and the components' specs; hot paths timed in Node and Chromium
+  dither-kit-stylex/    the same components in StyleX, generated from the kit's solid/
+  restyle/              writes Tailwind-classed code in your styling system; the StyleX generator
+  site/                 the site on SolidStart
+    src/                routes and the app, by slice: app, pages, widgets, features, entities, shared
+    build/              the Vite plugins and the post-build
+    public/             static files
+    tests/              framework-free specs, and component specs in site/
+  tasks/                share cards, kit stylesheet, frame renderer, the agent demo
+  bridge/               the local bridge between the Studio and your coding agent
+  discord/              the /component slash command for Discord
+tests/                  the workspace's own specs: package boundaries, the design doc
 ```
 
-The app follows Feature-Sliced Design: imports only point down (app, pages,
-widgets, features, entities, shared), and everything reaches the kit through
-`@dither-kit`. The whole toolchain is the Rstack CLI (`rs`) with one config,
-`rstack.config.ts`: Rsbuild for dev and build, Rstest, Rslint and the
+The repository is one npm workspace. Each package has its own manifest, source
+and tests, and dependencies point one way: the kit depends on nothing here, the
+site on everything it shows. A package imports another by name, never by a path
+out of its folder; `tests/workspace.spec.ts` fails the build on an import that
+goes the wrong way. The site follows Feature-Sliced Design: imports only point
+down (app, pages, widgets, features, entities, shared). It is SolidStart on
+Vite, prerendered to static files (`vite`, `vitest`); the root runs the Rstack
+CLI (`rs`) with one config, `rstack.config.ts`: Rstest, Rslint and the
 formatter. Routes are `/`, `/docs/<section>` and `/studio`; old hash links
 still resolve. GitHub Pages deploys through `.github/workflows/pages.yml` to
 `dither-ui.com`.
@@ -428,14 +454,14 @@ changing something.
 
 ## Port notes
 
-The charts began as a Vue port of [Dither Kit](https://tripwire.sh/dither-kit),
-inspired by [Evil Charts](https://evilcharts.com):
+The charts began as a port of [Dither Kit](https://tripwire.sh/dither-kit),
+inspired by [Evil Charts](https://evilcharts.com), first to Vue and from
+there to Solid:
 
-- React context became Vue `provide`/`inject` with a reactive getter-facade controller.
-- `useMemo`/`useCallback` ceremony became `computed`/`ref`.
-- The `chartLayer` children routing became render-function vnode inspection.
+- React context became a Solid context holding one controller with reactive getters.
+- `useMemo`/`useCallback` ceremony became `createMemo` and signals.
 - The framework-agnostic `requestAnimationFrame` canvas painters ported almost verbatim.
-- The tooltip's `motion` spring became Vue `<Transition>` and a CSS glide.
+- The tooltip's `motion` spring became a CSS glide.
 - The shadcn-style tokens (`--foreground`, `--card`, …) live in `dither-kit/engine/theme.css`.
 
 ## Creator
@@ -452,9 +478,8 @@ Dithering approach and the original **Dither Kit** charts by
 [tripwire.sh/dither-kit](https://www.tripwire.sh/dither-kit).
 
 The site names the tools it works with by their own marks: npm, pnpm, Bun,
-Node.js, Vue, Svelte, Tailwind CSS, CSS Modules, CSS, GitHub, Qwen and OpenCode
-from [Simple Icons](https://simpleicons.org) (CC0; the Vue logo is by the Vue
-team, [CC BY-NC-SA 4.0](https://github.com/vuejs/art)); Claude Code, Codex,
+Node.js, Solid, Tailwind CSS, CSS Modules, CSS, GitHub, Qwen and OpenCode
+from [Simple Icons](https://simpleicons.org) (CC0); Claude Code, Codex,
 Gemini CLI and Goose from [LobeHub icons](https://github.com/lobehub/lobe-icons)
 (MIT); oh-my-pi, Auggie and StyleX from their own sites. Each mark is its owner's trademark,
 shown only to name the tool, and none ships in `dither-kit/`.

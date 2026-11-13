@@ -1,0 +1,15 @@
+/* A toast rises in as it joins the list. */
+.dk-toast {
+  animation: dk-toast-enter 160ms ease;
+}
+@keyframes dk-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dk-toast {
+    animation: none;
+  }
+}

@@ -1,0 +1,14 @@
+.dk-alert-dialog.dk-fade-enter-active,
+.dk-alert-dialog.dk-fade-leave-active {
+  transition: opacity 160ms ease;
+}
+.dk-alert-dialog.dk-fade-enter-from,
+.dk-alert-dialog.dk-fade-leave-to {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dk-alert-dialog.dk-fade-enter-active,
+  .dk-alert-dialog.dk-fade-leave-active {
+    transition: none;
+  }
+}

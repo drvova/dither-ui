@@ -1,0 +1,11 @@
+.artboard-scope {
+  /* Handed to the agent: a dashed ring in the signal ink, outside the canvas
+     selection's blue (which stays the canvas's own). */
+  .picked {
+    pointer-events: none;
+    position: absolute;
+    inset: -6px;
+    border-radius: 12px;
+    border: 2px dashed var(--swatch-orange);
+  }
+}

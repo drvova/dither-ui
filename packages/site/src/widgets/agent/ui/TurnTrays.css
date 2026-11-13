@@ -1,0 +1,164 @@
+/* A part of the stack: rows straight on the composer's surface, a hairline
+   between parts (none over the card, whose edge is its own), every glyph
+   and key on the composer's `--inset` line (rows pad 4px of it). */
+.turn-trays-scope.part {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+  padding: 3px calc(var(--inset, 10px) - 4px) 4px;
+  font-size: 11px;
+}
+.part + .turn-trays-scope.part {
+  box-shadow: inset 0 1px 0 var(--color-border);
+}
+.turn-trays-scope .head,
+.turn-trays-scope .toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 1.5rem;
+  min-width: 0;
+  margin: 0;
+  border-radius: 6px;
+  padding-inline: 4px;
+  text-align: left;
+  color: var(--color-foreground);
+}
+.turn-trays-scope .row.dim {
+  margin: 0;
+  color: var(--color-muted-foreground);
+}
+.turn-trays-scope .head .dim {
+  margin-left: auto;
+}
+.turn-trays-scope .head.is-split {
+  padding: 0 4px 0 0;
+  gap: 4px;
+}
+.turn-trays-scope .toggle,
+.turn-trays-scope .grow {
+  flex: 1;
+}
+.turn-trays-scope .grow {
+  margin: 0;
+  padding-left: 4px;
+}
+.turn-trays-scope .rows {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-height: 8.5rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.turn-trays-scope .row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 1.5rem;
+  padding-inline: 4px;
+  color: var(--color-foreground);
+}
+.turn-trays-scope .row.is-key {
+  border-radius: 6px;
+  text-align: left;
+  color: var(--color-muted-foreground);
+  transition:
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
+}
+.turn-trays-scope .row.is-key:hover {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
+}
+.turn-trays-scope .row.is-key .go {
+  --glyph: 11px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-settle);
+}
+.turn-trays-scope .row.is-key:hover .go,
+.turn-trays-scope .row.is-key:focus-visible .go {
+  opacity: 1;
+}
+.turn-trays-scope .row[data-status="completed"] {
+  color: var(--color-muted-foreground);
+}
+.turn-trays-scope .row[data-status="completed"] .row-text {
+  text-decoration: line-through;
+}
+.turn-trays-scope .row-text {
+  flex: 1;
+}
+.turn-trays-scope .circle {
+  --glyph: 10px;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  margin-inline: 1px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1.25px var(--color-muted-foreground);
+}
+.turn-trays-scope .row[data-status="in_progress"] .circle {
+  box-shadow:
+    inset 0 0 0 1.25px var(--color-foreground),
+    inset 0 0 0 3px var(--color-card),
+    inset 0 0 0 5px var(--color-foreground);
+}
+/* The mascot on the line, its words on the text column, Stop's words
+   ending on the line (its key pads 6px past them). */
+.turn-trays-scope.run {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-inline: var(--inset, 10px) calc(var(--inset, 10px) - 6px);
+  color: var(--color-muted-foreground);
+}
+.turn-trays-scope .run-time {
+  font-variant-numeric: tabular-nums;
+}
+.turn-trays-scope .run-mascot {
+  margin-inline: 1px;
+  color: var(--color-foreground);
+}
+/* Stop is quiet: a word and its key, never the loudest thing on screen. */
+.turn-trays-scope .quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.5rem;
+  margin-left: auto;
+  border-radius: 6px;
+  padding-inline: 6px;
+  color: var(--color-muted-foreground);
+  transition:
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
+}
+.turn-trays-scope .quiet:hover:not(:disabled) {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 7%, transparent);
+}
+.turn-trays-scope .quiet.text-destructive {
+  color: var(--color-destructive);
+}
+.turn-trays-scope .quiet kbd {
+  font: inherit;
+  font-size: 10px;
+  color: var(--color-muted-foreground);
+}
+.turn-trays-scope .head:focus-visible,
+.turn-trays-scope .toggle:focus-visible,
+.turn-trays-scope .row.is-key:focus-visible,
+.turn-trays-scope .quiet:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .turn-trays-scope .row.is-key,
+  .turn-trays-scope .row.is-key .go,
+  .turn-trays-scope .quiet {
+    transition: none;
+  }
+}

@@ -1,0 +1,11 @@
+/* The site's one stylesheet (tokens, materials, both themes), and where
+   Tailwind finds this app's and the Solid kit's classes. The package's
+   framework-free specs, its public files and the docs beside the source
+   write class names the pages never wear: they stay out of the stylesheet. */
+@import "./app/styles.css";
+@source "./";
+@source "../../dither-kit/src/solid";
+@source "../../dither-kit/src/tailwind/*.ts";
+@source not "../tests/*.spec.ts";
+@source not "../public";
+@source not "./**/*.md";

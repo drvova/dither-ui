@@ -1,0 +1,33 @@
+.dk-wc-digit {
+  animation: dk-wc-rise 260ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+@keyframes dk-wc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.dk-wc-morph-enter-active,
+.dk-wc-morph-leave-active {
+  transition:
+    opacity 160ms ease,
+    transform 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+.dk-wc-morph-enter-from,
+.dk-wc-morph-leave-to {
+  opacity: 0;
+  transform: scale(0.85);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dk-wc-digit {
+    animation: none;
+  }
+  .dk-wc-morph-enter-active,
+  .dk-wc-morph-leave-active {
+    transition: none;
+  }
+}

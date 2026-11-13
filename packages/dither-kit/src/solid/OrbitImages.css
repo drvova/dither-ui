@@ -1,0 +1,23 @@
+.dither-orbit {
+  animation: dither-orbit-spin linear infinite;
+}
+@keyframes dither-orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.dither-orbit-label {
+  display: block;
+  animation: dither-orbit-counter linear infinite;
+}
+@keyframes dither-orbit-counter {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-orbit,
+  .dither-orbit-label {
+    animation: none;
+  }
+}

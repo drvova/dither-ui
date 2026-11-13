@@ -1,0 +1,33 @@
+.context-meter-scope.meter {
+  display: inline-flex;
+  min-height: 1.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted-foreground);
+}
+.context-meter-scope.meter[data-full] .pct {
+  color: var(--color-destructive);
+}
+.context-meter-scope circle {
+  fill: none;
+  stroke-width: 2;
+}
+.context-meter-scope .track {
+  stroke: color-mix(in oklab, var(--color-foreground) 14%, transparent);
+}
+.context-meter-scope .used {
+  stroke: var(--color-muted-foreground);
+  stroke-linecap: round;
+  transition: stroke-dasharray 350ms var(--ease-settle);
+}
+.context-meter-scope.meter[data-full] .used {
+  stroke: var(--color-destructive);
+}
+@media (prefers-reduced-motion: reduce) {
+  .context-meter-scope .used {
+    transition: none;
+  }
+}

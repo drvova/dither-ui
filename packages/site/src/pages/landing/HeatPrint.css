@@ -1,0 +1,13 @@
+.heat-print-scope.heat-print {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.heat-print-scope.heat-print canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}

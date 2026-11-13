@@ -1,0 +1,387 @@
+.examples-scope.examples {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* The bento: twelve columns, row by row: a tall lead card (8) beside two
+   stacked (4); a full row; a wide card (8) beside a third; two halves; a
+   wide card beside a third; two halves. The order (`BENTO`) keeps unlike
+   cards side by side and stacked. Under 1024px a rail (below), so the
+   whole bento takes one screen. */
+.examples-scope .bento {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A card: the raised ground, no border. Its art hands its keys and picked
+   segments the page's ground, so they stay shapes on it. */
+.examples-scope .card {
+  --card: var(--surface);
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--card);
+}
+
+.examples-scope .t-world {
+  grid-column: span 8;
+  grid-row: span 2;
+}
+
+.examples-scope .t-print-screens {
+  grid-column: 1 / -1;
+}
+
+.examples-scope .t-area,
+.examples-scope .t-styling {
+  grid-column: span 8;
+}
+
+.examples-scope .t-silk,
+.examples-scope .t-decrypted-text,
+.examples-scope .t-shader,
+.examples-scope .t-button {
+  grid-column: span 6;
+}
+
+.examples-scope .card-art {
+  --surface: var(--background);
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 260px;
+  padding: 24px;
+  min-width: 0;
+}
+
+.examples-scope .t-world .card-art {
+  flex: 1;
+  height: auto;
+  min-height: 420px;
+}
+
+.examples-scope .t-gauge .card-art,
+.examples-scope .t-stats-cards .card-art {
+  height: 220px;
+  padding: 18px 20px;
+}
+
+.examples-scope .t-print-screens .card-art,
+.examples-scope .t-silk .card-art,
+.examples-scope .t-decrypted-text .card-art,
+.examples-scope .t-area .card-art,
+.examples-scope .t-button .card-art,
+.examples-scope .t-shader .card-art,
+.examples-scope .t-ferrofluid .card-art,
+.examples-scope .t-styling .card-art,
+.examples-scope .t-slide-action .card-art {
+  height: 300px;
+}
+
+/* The export card answers to its own width: its code alone when narrow. */
+.examples-scope .t-styling .card-art {
+  container-type: inline-size;
+}
+
+.examples-scope .card-art.flush {
+  padding: 0;
+}
+
+.examples-scope .card-art.flush > :first-child {
+  position: absolute;
+  inset: 0;
+}
+
+/* The footer: the name, the docs link, at page type (a card's copy is the
+   page's, never the size of the UI inside it). */
+.examples-scope .card-foot {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  margin: 0;
+  padding: 0 22px 6px;
+}
+
+.examples-scope .card-name {
+  margin-block: -4px;
+  padding-block: 4px;
+  font-size: 17px;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 150ms var(--ease-settle);
+}
+
+.examples-scope .card-name:hover,
+.examples-scope .card:hover .card-name {
+  text-decoration-color: currentColor;
+}
+
+/* Over the flush art: the model's tools along its foot, a pause chip at
+   the top right. */
+.examples-scope .art-tools {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.examples-scope .art-tools .seg {
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--card);
+}
+
+/* The five screens keep inside the card on the narrowest phones. */
+@media (max-width: 359px) {
+  .examples-scope .art-tools .seg > button {
+    padding-inline: 8px;
+  }
+}
+
+.examples-scope .chip {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+/* Print screens: the printed ramp under the raw one, the raw clipped at the
+   split; a full-size range takes the drag (vertical swipes still scroll) and
+   the keys, its handle a bone disc on a bone line. */
+.examples-scope .split-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.examples-scope .split-raw {
+  background: linear-gradient(in srgb-linear to bottom, #e4e1d8, #101214);
+  clip-path: inset(0 calc(100% - var(--split)) 0 0);
+}
+
+.examples-scope .split-range {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  touch-action: pan-y;
+}
+
+.examples-scope .split-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--split);
+  z-index: 1;
+  width: 1px;
+  background: var(--ink);
+  pointer-events: none;
+}
+
+.examples-scope .split-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--background);
+  background: var(--ink);
+  translate: -50% -50%;
+}
+
+/* The ring sits on a band of the ground, so it shows on the light end of
+   the ramp as on the dark. */
+.examples-scope .split-range:focus-visible + .split-handle .split-grip {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--background);
+}
+
+.examples-scope .stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+}
+
+.examples-scope .instrument {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: 100%;
+  height: 100%;
+}
+.examples-scope .instrument-dial {
+  width: min(55%, 180px);
+}
+.examples-scope .t-gauge .stack,
+.examples-scope .t-button .stack,
+.examples-scope .t-slide-action .stack {
+  justify-content: center;
+}
+
+.examples-scope .row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.examples-scope .area-chart {
+  flex: 1;
+  min-height: 0;
+}
+
+.examples-scope .swatches {
+  display: flex;
+  gap: 8px;
+}
+
+.examples-scope .swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.examples-scope .swatch[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px var(--card),
+    0 0 0 3px var(--ink);
+}
+
+.examples-scope .readout {
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A small app panel: a label line, a big figure, then its chart. */
+.examples-scope .panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+}
+
+.examples-scope .panel-d {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.examples-scope .panel-d b {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* The stat card: its figures over a chart that takes the rest of the art,
+   scrubbed by the pointer. The line under the figure holds both its
+   readings in one cell and crossfades between them. */
+.examples-scope .stat-sub {
+  display: grid;
+}
+
+.examples-scope .stat-sub > span {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-settle);
+}
+
+.examples-scope .stat-sub > span[data-on] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .examples-scope .stat-sub > span {
+    transition: none;
+  }
+}
+
+.examples-scope .stat-v {
+  font-size: 1.9rem;
+  font-weight: 500;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.examples-scope .stat-spark {
+  flex: 1;
+  min-height: 72px;
+  margin-top: 10px;
+  cursor: crosshair;
+}
+
+.examples-scope .cipher {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  font-family: var(--display-face);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  line-height: 1.15;
+  text-align: center;
+  color: var(--ink);
+}
+
+/* Under 1024px a rail the reader swipes: a card and the next one's edge
+   in view (a phone's card most of its width), the rail running out to the
+   page's edges past its gutter (24px, 16px on a phone). */
+@media (max-width: 1023px) {
+  .examples-scope .bento {
+    --gutter: 24px;
+    display: flex;
+    gap: 12px;
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 0 var(--gutter) 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+  }
+  .examples-scope .bento::-webkit-scrollbar {
+    display: none;
+  }
+  .examples-scope .card {
+    flex: 0 0 min(86%, 440px);
+    scroll-snap-align: start;
+  }
+  /* Every card the rail's height: the art takes what the name leaves. */
+  .examples-scope .bento .card .card-art {
+    flex: 1;
+    height: auto;
+    min-height: 340px;
+  }
+}
+
+@media (max-width: 639px) {
+  .examples-scope .bento {
+    --gutter: 16px;
+  }
+}

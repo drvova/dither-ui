@@ -1,0 +1,249 @@
+.thread-entry-scope.msg-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 4px;
+  padding-left: 1.5rem;
+}
+.thread-entry-scope .msg {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 12px 12px 4px 12px;
+  padding: 7px 13px;
+  background: var(--color-card);
+}
+/* The context chips are filled boxes, so their edge is what the eye reads:
+   it stands as far in from the bubble's top as from its side (13px; the
+   bubble's 7px top suits a line of text, whose leading pads it). */
+.thread-entry-scope .msg > .chips {
+  margin-top: 6px;
+}
+.thread-entry-scope .msg-text {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-foreground);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* Your message's keys, in a column at its side, shown under the pointer. */
+.thread-entry-scope .msg-keys {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 3px;
+}
+.thread-entry-scope .restore {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 7px;
+  color: var(--color-muted-foreground);
+  opacity: 0;
+  transition:
+    opacity 150ms var(--ease-settle),
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle);
+}
+.thread-entry-scope.msg-row:hover .restore,
+.thread-entry-scope.msg-row:focus-within .restore {
+  opacity: 1;
+}
+@media (hover: none) {
+  .thread-entry-scope .restore {
+    opacity: 1;
+  }
+}
+.thread-entry-scope .restore:hover {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+}
+.thread-entry-scope.reply {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+.thread-entry-scope .reply-actions {
+  display: flex;
+  margin: -2px 0 -6px -4px;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-settle);
+}
+.thread-entry-scope.reply:hover .reply-actions,
+.thread-entry-scope .reply-actions:focus-within,
+.thread-entry-scope.reply:last-child .reply-actions {
+  opacity: 1;
+}
+@media (hover: none) {
+  .thread-entry-scope .reply-actions {
+    opacity: 1;
+  }
+}
+/* The harness's reasoning: a quiet fold, open while it streams. */
+.thread-entry-scope.thought {
+  font-size: 11.5px;
+  color: var(--color-muted-foreground);
+}
+.thread-entry-scope .thought-text {
+  font-family: var(--font-sans);
+  max-height: 9rem;
+  overflow-y: auto;
+  margin: 4px 0 2px 5px;
+  padding-left: 13px;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  box-shadow: inset 1px 0 0 var(--color-border);
+}
+.thread-entry-scope.step {
+  font-size: 11.5px;
+  color: var(--color-muted-foreground);
+}
+.thread-entry-scope.step[data-ok="false"],
+.thread-entry-scope.activity[data-status="failed"] {
+  color: var(--color-destructive);
+}
+.thread-entry-scope .detail {
+  margin: 4px 0 2px 19px;
+  max-height: 14rem;
+  overflow: auto;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 10.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-muted-foreground);
+  background: var(--well);
+  box-shadow: var(--recess-sm);
+}
+/* A box in the thread: its edge on the panel's line, its contents 13px
+   in, the composer's own line. */
+.thread-entry-scope.approval {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  border-radius: 10px;
+  padding: 8px 13px;
+  background: var(--color-card);
+}
+/* Answered, it is a line of the thread again, on the panel's line. */
+.thread-entry-scope.approval[data-answered="true"] {
+  background: none;
+  padding: 0;
+}
+.thread-entry-scope .approval-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-foreground);
+  overflow-wrap: anywhere;
+}
+.thread-entry-scope .approval-title svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--swatch-orange);
+}
+.thread-entry-scope.approval[data-answered="true"] .approval-title {
+  color: var(--color-muted-foreground);
+}
+.thread-entry-scope .choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+/* A long choice wraps inside its key, its words read from the left. */
+.thread-entry-scope .choices .key {
+  justify-content: flex-start;
+  text-align: left;
+}
+.thread-entry-scope.line-system,
+.thread-entry-scope.line-error {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-muted-foreground);
+}
+.thread-entry-scope.line-error {
+  color: var(--color-destructive);
+}
+.thread-entry-scope .msg .ctx {
+  color: var(--color-muted-foreground);
+}
+.thread-entry-scope.activity {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 1.5rem;
+  line-height: 1.4;
+}
+.thread-entry-scope.step summary {
+  line-height: 1.4;
+}
+.thread-entry-scope.worked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 10.5px;
+  color: var(--color-muted-foreground);
+}
+.thread-entry-scope.worked p {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.thread-entry-scope.worked[data-end="failed"] p {
+  color: var(--color-destructive);
+}
+.thread-entry-scope .num {
+  --glyph: 1rem;
+  display: grid;
+  min-width: 1rem;
+  height: 1rem;
+  place-items: center;
+  border-radius: 4px;
+  font-size: 9.5px;
+  background: color-mix(in oklab, currentColor 14%, transparent);
+}
+/* A long message folds to its first lines, fading out at the fold. */
+.thread-entry-scope .msg-text[data-folded="true"] {
+  max-height: calc(1.55em * 8);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent);
+  mask-image: linear-gradient(180deg, #000 60%, transparent);
+}
+.thread-entry-scope .more {
+  justify-self: start;
+  min-height: 1.5rem;
+  border-radius: 6px;
+  font-size: 10.5px;
+  color: var(--color-muted-foreground);
+}
+.thread-entry-scope .more:hover {
+  color: var(--color-foreground);
+}
+.thread-entry-scope .more:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .thread-entry-scope .restore,
+  .thread-entry-scope .reply-actions {
+    transition: none;
+  }
+}

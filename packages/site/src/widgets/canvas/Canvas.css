@@ -1,0 +1,50 @@
+.canvas-scope {
+  /* Picking for the agent: a crosshair over everything on the canvas. */
+  &.is-picking,
+  &.is-picking * {
+    cursor: crosshair !important;
+  }
+  .pick-bar {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    translate: -50% 0;
+    padding: 4px 4px 4px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+    color: var(--color-foreground);
+  }
+  .pick-done {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 1.75rem;
+    border-radius: 999px;
+    padding-inline: 10px;
+    color: var(--color-foreground);
+    background: color-mix(in oklab, var(--color-foreground) 10%, transparent);
+    cursor: pointer !important;
+  }
+  .pick-done kbd {
+    font: inherit;
+    font-size: 10.5px;
+    color: var(--color-muted-foreground);
+  }
+  .pick-done:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 1px;
+  }
+  &.dk-canvas {
+    background-color: color-mix(in oklab, var(--color-background) 92%, var(--color-muted));
+    background-image: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--color-foreground) 12%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "discord",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Discord interactions service: /component answers with a section's share card.",
+  "type": "module",
+  "exports": {
+    ".": "./src/service.mjs"
+  },
+  "scripts": {
+    "start": "node src/service.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "^1.62.1"
+  },
+  "license": "MIT"
+}

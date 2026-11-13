@@ -2,7 +2,7 @@
 
 The one place the look is written down: what dither-ui looks, moves and
 reads like, everywhere it appears (the landing, the docs, the Studio, the
-Svelte site, the share cards, the films). Every value here is the code's
+share cards, the films). Every value here is the code's
 own; `tests/design-doc.spec.ts` holds the ones that drift to their source,
 so a design change is a change to both. The binding rules for contributors
 and agents stay in `AGENTS.md` and the `AGENTS.md` files under it; this
@@ -79,7 +79,7 @@ components' own looks, never for page chrome.
 The docs in the dark wear the print's obsidian and bone, keeping their
 tool chrome: a hairline a quiet step off the ground (`#2b2e32`), a raised
 card (`#17191c`). Their light theme and the Studio keep the kit's
-neutrals. All three share one set of materials (`src/app/styles.css`).
+neutrals. All three share one set of materials (`packages/site/src/app/styles.css`).
 
 ## Materials
 
@@ -210,7 +210,7 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
 
 - Icons do the work of labels where they can: kit glyphs (`DitherIcon`)
   for ideas.
-- Tools appear by their real marks (npm, pnpm, Bun, Node, Vue, Svelte,
+- Tools appear by their real marks (npm, pnpm, Bun, Node, Solid,
   Tailwind, StyleX, CSS Modules, CSS, GitHub, each coding agent), one
   colour, beside their names, never restyled.
 - Every icon button has a name.
@@ -294,13 +294,13 @@ Smoothness is part of the look, so these are design rules too:
 | Part | Source |
 |---|---|
 | Kit tokens (both themes) | `dither-kit/engine/theme.css` |
-| Site materials, chrome, motion | `src/app/styles.css` |
-| The landing's print | `src/pages/landing/chapters.css`, `LandingPage.vue` |
-| The docs' materials | `src/pages/docs/` (the Svelte site's `svelte-site/src/docs/docs.css`) |
+| Site materials, chrome, motion | `packages/site/src/app/styles.css` |
+| The landing's print | `packages/site/src/pages/landing/chapters.css`, `packages/site/src/pages/landing/LandingPage.tsx` |
+| The docs' materials | `packages/site/src/pages/docs/` |
 | Motion curves | `dither-kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `dither-kit/engine/spring.ts` |
 | Print screens | `dither-kit/engine/pixel.ts` (`SCREENS`) |
-| The heat and the plates | `src/pages/landing/heat.ts`, `plate.ts` |
-| The display face | `src/shared/fonts/` |
+| The heat and the plates | `packages/site/src/pages/landing/heat.ts`, `plate.ts` |
+| The display face | `packages/site/src/shared/fonts/` |
 | Studio audience and principles | `.impeccable.md` |
 
 Changing the look: change the source, then this file, in the same commit;

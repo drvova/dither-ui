@@ -1,0 +1,190 @@
+/* A flat shell (the site's material for a panel that is not the page's
+   hero: one hairline, a controlled radius) over the page's ground. */
+.source-panel-scope.src {
+  overflow: hidden;
+  background: var(--shell-ground), color-mix(in oklab, var(--color-background) 60%, transparent);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .source-panel-scope.src {
+    background: var(--color-background);
+  }
+}
+
+.source-panel-scope .src-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 4px;
+  border-bottom: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+}
+
+.source-panel-scope .src-tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.source-panel-scope .src-tabs.more {
+  mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+}
+
+.source-panel-scope .src-tab {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--color-muted-foreground);
+  border-bottom: 1px solid transparent;
+  margin-bottom: -1px;
+  transition: color 120ms ease;
+}
+
+.source-panel-scope .src-tab:hover {
+  color: var(--color-foreground);
+}
+
+.source-panel-scope .src-tab[aria-selected="true"] {
+  color: var(--color-foreground);
+  border-bottom-color: var(--color-foreground);
+}
+
+.source-panel-scope .src-tab:focus-visible {
+  outline-offset: -2px;
+}
+
+.source-panel-scope .src-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.source-panel-scope .src-tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+}
+
+.source-panel-scope .src-key,
+.source-panel-scope .src-run {
+  display: inline-grid;
+  place-items: center;
+  height: 28px;
+  border-radius: 7px;
+  color: var(--color-muted-foreground);
+  transition:
+    color 120ms ease,
+    background-color 120ms ease;
+}
+
+.source-panel-scope .src-key {
+  width: 28px;
+}
+
+.source-panel-scope .src-key svg,
+.source-panel-scope .src-run svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.source-panel-scope .src-run {
+  display: inline-flex;
+  gap: 5px;
+  margin-left: 4px;
+  padding: 0 10px 0 8px;
+  font-size: 11px;
+  color: var(--color-foreground);
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+
+.source-panel-scope .src-key:hover:not([aria-disabled="true"]),
+.source-panel-scope .src-run:hover:not([aria-disabled="true"]) {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
+}
+
+.source-panel-scope .src-key[aria-disabled="true"],
+.source-panel-scope .src-run[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.source-panel-scope .src-note {
+  margin: 0;
+  padding: 16px 14px;
+  font-size: 12px;
+  color: var(--color-muted-foreground);
+}
+
+.source-panel-scope .src-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.source-panel-scope .src-problems {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-top: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+}
+
+.source-panel-scope .src-problem {
+  display: block;
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 6px;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--color-foreground);
+}
+
+.source-panel-scope .src-problem:hover {
+  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
+}
+
+.source-panel-scope .src-where {
+  margin-right: 8px;
+  color: var(--swatch-orange);
+}
+
+.source-panel-scope .src-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  font-size: 10.5px;
+  color: var(--color-muted-foreground);
+  border-top: 1px solid color-mix(in oklab, var(--color-border) 40%, transparent);
+}
+
+.source-panel-scope .src-status {
+  color: var(--color-foreground);
+  text-align: right;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .source-panel-scope.src {
+    background: var(--color-background);
+  }
+}
+
+@media (forced-colors: active) {
+  .source-panel-scope .src-tab[aria-selected="true"] {
+    border-bottom-color: Highlight;
+  }
+}

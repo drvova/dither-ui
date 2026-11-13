@@ -1,0 +1,9 @@
+/* The card answers the checkbox inside it (a button with role="checkbox",
+   whose state is aria-checked): checked tints it, keyboard focus rings it. */
+.dk-check-card:has([aria-checked="true"]) {
+  border-color: color-mix(in oklab, var(--accent) 60%, transparent);
+  background-color: color-mix(in oklab, var(--accent) 10%, transparent);
+}
+.dk-check-card:has(:focus-visible) {
+  box-shadow: 0 0 0 2px var(--ring);
+}

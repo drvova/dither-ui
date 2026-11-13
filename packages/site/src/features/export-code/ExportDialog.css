@@ -1,0 +1,10 @@
+.export-dialog-scope {
+  &.dk-fade-enter-active,
+  &.dk-fade-leave-active {
+    transition: opacity 160ms ease;
+  }
+  &.dk-fade-enter-from,
+  &.dk-fade-leave-to {
+    opacity: 0;
+  }
+}

@@ -1,0 +1,9 @@
+.dither-fade-content {
+  transition-property: opacity, filter;
+  transition-timing-function: ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-fade-content {
+    transition: none;
+  }
+}

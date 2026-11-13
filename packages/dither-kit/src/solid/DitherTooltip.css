@@ -1,0 +1,14 @@
+.dk-tip-enter-active,
+.dk-tip-leave-active {
+  transition: opacity 140ms ease;
+}
+.dk-tip-enter-from,
+.dk-tip-leave-to {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dk-tip-enter-active,
+  .dk-tip-leave-active {
+    transition: none;
+  }
+}

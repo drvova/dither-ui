@@ -1,0 +1,13 @@
+.dither-caret {
+  animation: dither-blink 1s steps(1) infinite;
+}
+@keyframes dither-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-caret {
+    animation: none;
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "name": "dither-kit",
+  "version": "0.1.0",
+  "description": "Dithered UI toolkit for Solid: composable ordered-dither charts (area, line, bar, pie, radar) on one tiny canvas engine, plus generative avatars, buttons, gradient washes and more.",
+  "type": "module",
+  "main": "./src/solid/index.ts",
+  "module": "./src/solid/index.ts",
+  "types": "./src/solid/index.ts",
+  "exports": {
+    ".": "./src/solid/index.ts",
+    "./engine": "./src/engine/api.ts",
+    "./engine/*": "./src/engine/*",
+    "./tailwind/*": "./src/tailwind/*",
+    "./solid/*": "./src/solid/*",
+    "./testing/*": "./tests/support/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "vitest run",
+    "bench": "node --import ./benches/resolve-ts.mts benches/node-bench.mts",
+    "bench:browser": "node benches/browser-bench.mts"
+  },
+  "peerDependencies": {
+    "clsx": "^2.1.0",
+    "d3-scale": "^4.0.0",
+    "d3-shape": "^3.2.0",
+    "solid-js": "^1.9.0",
+    "tailwind-merge": "^2.5.0"
+  },
+  "devDependencies": {
+    "@solidjs/testing-library": "^0.8.10",
+    "@types/d3-scale": "^4.0.8",
+    "@types/d3-shape": "^3.1.6",
+    "clsx": "^2.1.1",
+    "d3-scale": "^4.0.2",
+    "d3-shape": "^3.2.0",
+    "jsdom": "^29.1.1",
+    "playwright-core": "^1.62.1",
+    "rstack": "^0.8.5",
+    "solid-js": "^1.9.19",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.8",
+    "vite-plugin-solid": "^2.11.16",
+    "vitest": "^5.1.0"
+  },
+  "keywords": [
+    "solid",
+    "solidjs",
+    "charts",
+    "dither",
+    "canvas",
+    "ui-kit",
+    "generative"
+  ],
+  "license": "MIT"
+}

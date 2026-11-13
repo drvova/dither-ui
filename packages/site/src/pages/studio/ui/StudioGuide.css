@@ -1,0 +1,81 @@
+/* Fixed at the window's corner and moved by its transform, so a flight is
+   one transition of one layer. */
+.studio-guide-scope {
+  &.guide {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 55;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: min(20rem, calc(100vw - 16px));
+  }
+  /* By a key on the right, the mascot sits at the right end, under it. */
+  &.guide.is-end {
+    flex-direction: row-reverse;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    &.guide.is-placed {
+      transition: transform 500ms var(--ease-settle);
+    }
+  }
+  .guide-mascot {
+    color: var(--color-foreground);
+  }
+  .bubble {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+    gap: 10px;
+    margin-top: 6px;
+    border-radius: 14px;
+    padding: 12px 12px 10px 14px;
+    background: var(--popover);
+    color: var(--popover-foreground);
+    box-shadow: 0 18px 44px -16px rgb(0 0 0 / 0.55);
+  }
+  .line {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+  .keys {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .count {
+    margin-right: auto;
+    font-size: 11px;
+    color: var(--color-muted-foreground);
+  }
+  .skip {
+    min-height: 1.75rem;
+    border-radius: 8px;
+    padding-inline: 8px;
+    font-size: 12px;
+    color: var(--color-muted-foreground);
+    transition: color 150ms var(--ease-settle);
+  }
+  .skip:hover {
+    color: var(--color-foreground);
+  }
+  .next {
+    min-height: 1.75rem;
+    padding-inline: 14px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .skip:focus-visible,
+  .next:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skip {
+      transition: none;
+    }
+  }
+}

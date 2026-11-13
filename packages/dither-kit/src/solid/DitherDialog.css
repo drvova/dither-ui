@@ -1,0 +1,27 @@
+.dk-dialog-enter-active,
+.dk-dialog-leave-active {
+  transition: opacity 160ms ease;
+}
+.dk-dialog-enter-active section,
+.dk-dialog-leave-active section {
+  transition:
+    transform 180ms cubic-bezier(0.2, 0, 0, 1),
+    opacity 120ms ease;
+}
+.dk-dialog-enter-from,
+.dk-dialog-leave-to {
+  opacity: 0;
+}
+.dk-dialog-enter-from section,
+.dk-dialog-leave-to section {
+  transform: translateY(8px) scale(0.98);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dk-dialog-enter-active,
+  .dk-dialog-leave-active,
+  .dk-dialog-enter-active section,
+  .dk-dialog-leave-active section {
+    transition: none;
+  }
+}

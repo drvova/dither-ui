@@ -1,0 +1,60 @@
+.selection-ask-scope {
+  &.ask {
+    position: absolute;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    border-radius: 12px;
+    padding: 0 4px 0 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--color-card);
+    box-shadow:
+      var(--float-shadow),
+      0 0 0 1px var(--color-border);
+    transition: box-shadow 150ms var(--ease-settle);
+  }
+  &.ask:focus-within {
+    box-shadow:
+      var(--float-shadow),
+      0 0 0 1px var(--color-ring);
+  }
+  .mark {
+    flex-shrink: 0;
+    color: var(--color-muted-foreground);
+  }
+  input {
+    min-width: 0;
+    flex: 1;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    color: var(--color-foreground);
+    outline: none;
+  }
+  input::placeholder {
+    color: var(--color-muted-foreground);
+  }
+  .go {
+    display: grid;
+    width: 1.625rem;
+    height: 1.625rem;
+    flex-shrink: 0;
+    place-items: center;
+    border-radius: 999px;
+    color: var(--color-muted-foreground);
+    background: color-mix(in oklab, var(--color-foreground) 10%, transparent);
+  }
+  .go:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 1px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &.ask {
+      transition: none;
+    }
+  }
+}

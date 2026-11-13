@@ -1,0 +1,67 @@
+.ink-scope.wb-ink {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ink-scope .marker {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.42;
+}
+
+.ink-scope .region {
+  fill: color-mix(in oklab, var(--wb-hl) 8%, transparent);
+  stroke: var(--wb-hl);
+  stroke-dasharray: 4 3;
+}
+
+.ink-scope .marquee {
+  fill: color-mix(in oklab, var(--color-foreground) 4%, transparent);
+  stroke: color-mix(in oklab, var(--color-foreground) 50%, transparent);
+  stroke-dasharray: 3 3;
+}
+
+.ink-scope .selected {
+  fill: none;
+  stroke: var(--wb-hl);
+  stroke-dasharray: 3 2;
+}
+
+.ink-scope .handles .frame {
+  fill: none;
+  stroke: var(--wb-hl);
+  stroke-width: 1;
+}
+
+.ink-scope .handles .stem {
+  stroke: var(--wb-hl);
+}
+
+.ink-scope .handles .knob {
+  fill: var(--color-background);
+  stroke: var(--wb-hl);
+  stroke-width: 1.5;
+}
+
+.ink-scope .eraser {
+  fill: color-mix(in oklab, var(--color-foreground) 8%, transparent);
+  stroke: color-mix(in oklab, var(--color-foreground) 60%, transparent);
+}
+
+.wb-size {
+  position: absolute;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 12px;
+  white-space: nowrap;
+  transform: translateX(-100%);
+  color: black;
+  background: var(--wb-hl);
+  pointer-events: none;
+}

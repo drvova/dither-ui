@@ -1,0 +1,90 @@
+.settings-scope.wb-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.settings-scope .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.settings-scope .spacer {
+  flex: 1;
+}
+
+.settings-scope .dim {
+  color: var(--color-muted-foreground);
+}
+
+.settings-scope .label {
+  min-width: 140px;
+  color: var(--color-muted-foreground);
+}
+
+.settings-scope .check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  color: var(--color-muted-foreground);
+}
+
+.settings-scope .check input {
+  accent-color: var(--color-foreground);
+}
+
+.settings-scope .chipsw {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 25%, transparent);
+}
+
+.settings-scope .chipsw[aria-checked="true"] {
+  outline: 2px solid var(--color-foreground);
+  outline-offset: 2px;
+}
+
+.settings-scope .act,
+.settings-scope .seg > button {
+  display: inline-flex;
+  align-items: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 5px;
+  color: var(--color-muted-foreground);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.settings-scope .act:hover,
+.settings-scope .seg > button:hover:not(:disabled) {
+  color: var(--color-foreground);
+}
+
+.settings-scope .seg {
+  display: flex;
+  gap: 3px;
+}
+
+.settings-scope .seg > button {
+  box-shadow: none;
+}
+
+.settings-scope .seg > button:disabled {
+  opacity: 0.4;
+}
+
+.settings-scope .seg > button[aria-pressed="true"] {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 24%, transparent);
+}

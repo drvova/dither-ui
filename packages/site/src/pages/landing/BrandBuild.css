@@ -1,0 +1,19 @@
+/* The run: the scroll the stage plays over, pinned under the header. */
+.brand-build-scope.build-run {
+  position: relative;
+  height: 260svh;
+}
+.brand-build-scope .build-stage {
+  position: sticky;
+  top: 64px;
+  height: calc(100svh - 64px);
+  max-height: 56rem;
+}
+.brand-build-scope.build-run.still {
+  height: auto;
+}
+.brand-build-scope.build-run.still .build-stage {
+  position: relative;
+  top: 0;
+  height: clamp(16rem, 50svh, 30rem);
+}

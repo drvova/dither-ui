@@ -1,0 +1,22 @@
+.dither-blur-part {
+  display: inline-block;
+  white-space: pre;
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateY(6px);
+  transition-property: opacity, filter, transform;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+.dither-blur-part.shown {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-blur-part {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition: none;
+  }
+}

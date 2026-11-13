@@ -1,0 +1,32 @@
+/* The overlay covers the frame's padding box; it is never part of a
+   capture (`.capturing` while a still or a recording is taken). */
+.wb {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  font: 500 9px/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted-foreground);
+  pointer-events: none;
+}
+
+.wb.capturing {
+  visibility: hidden;
+}
+
+.wb-surface {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+@media (forced-colors: active) {
+  .wb {
+    --wb-hl: Highlight;
+    --wb-guide: LinkText;
+    forced-color-adjust: none;
+  }
+}

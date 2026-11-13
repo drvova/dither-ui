@@ -1,0 +1,14 @@
+.play-page-scope {
+  &.play-surface {
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  &.play-empty {
+    margin: 0;
+    padding: 24px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-muted-foreground);
+  }
+}

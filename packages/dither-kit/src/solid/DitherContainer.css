@@ -1,0 +1,21 @@
+/* Container-relative traverses — distances measure the QUERY CONTAINER
+   (cqw/cqh), never the animated element's own box and never the viewport,
+   so every frame re-scales when the container resizes. Without a container
+   ancestor the units fall back to small-viewport sizes (CSS spec), which
+   still reads as motion. Use via `animation: dither-cq-traverse …`. */
+@keyframes dither-cq-traverse {
+  from {
+    transform: translateX(-100cqw);
+  }
+  to {
+    transform: translateX(100cqw);
+  }
+}
+@keyframes dither-cq-rise {
+  from {
+    transform: translateY(-100cqh);
+  }
+  to {
+    transform: translateY(100cqh);
+  }
+}

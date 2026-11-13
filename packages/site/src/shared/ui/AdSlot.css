@@ -1,0 +1,27 @@
+/* Token-dress the network's markup so the unit reads as part of the docs. */
+.ad-slot-scope.ad-slot [data-ea-publisher] {
+  font-family: inherit;
+}
+.ad-slot-scope.ad-slot .ea-content {
+  margin: 0;
+  padding: 0.625rem;
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in oklab, var(--card) 40%, transparent);
+  box-shadow: none;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.ad-slot-scope.ad-slot .ea-content a {
+  color: var(--foreground);
+  text-decoration: none;
+}
+.ad-slot-scope.ad-slot .ea-callout {
+  margin: 0.25rem 0 0;
+  font-size: 9px;
+  color: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+}
+.ad-slot-scope.ad-slot .ea-callout a {
+  color: inherit;
+}

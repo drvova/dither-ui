@@ -1,0 +1,43 @@
+.dither-target {
+  animation: dither-target-spin 6s linear infinite;
+}
+.dk-target-cursor .corner {
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  border: 2px solid currentColor;
+}
+.dk-target-cursor .tl {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+.dk-target-cursor .tr {
+  top: 0;
+  right: 0;
+  border-left: 0;
+  border-bottom: 0;
+}
+.dk-target-cursor .bl {
+  bottom: 0;
+  left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+.dk-target-cursor .br {
+  bottom: 0;
+  right: 0;
+  border-left: 0;
+  border-top: 0;
+}
+@keyframes dither-target-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-target {
+    animation: none;
+  }
+}

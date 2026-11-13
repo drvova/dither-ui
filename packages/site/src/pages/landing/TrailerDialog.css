@@ -1,0 +1,8 @@
+.trailer-dialog-scope.trailer {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  background: #000;
+}

@@ -24,3 +24,7 @@ sources*.zip
 
 # Videos the agent demo recorder writes (npm run demo:agent).
 /agent-demo/
+
+# the site's build output (Nitro, Vite)
+.output/
+.nitro/

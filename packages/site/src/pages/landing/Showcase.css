@@ -1,0 +1,175 @@
+/* The hero: the first screen under the header; on the page width, the
+   statement (left) beside the print (right). Under 900px the statement
+   comes first and the print takes the width under it, landscape. */
+.showcase-scope.hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-items: center;
+  min-height: clamp(34rem, calc(100svh - 64px), 52rem);
+  overflow: hidden;
+}
+
+/* Positioned: the brand's field is the page's column. */
+.showcase-scope .hero-in {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: 0 48px;
+  width: 100%;
+  max-width: var(--page);
+  margin-inline: auto;
+  padding: 0 1.5rem;
+}
+
+/* The statement: the h1 at display size, the lede, the keys, then what
+   the kit works with. */
+.showcase-scope .statement {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 36px 0;
+}
+
+/* The statement in the display face (extended, one weight) at display
+   size: three short lines in its column on a wide screen. */
+.showcase-scope .hero-h {
+  margin: 0;
+  font-family: var(--display-face);
+  font-size: clamp(2rem, 3.9vw, 3.5rem);
+  font-weight: 400;
+  line-height: 1.08;
+  text-wrap: balance;
+  color: var(--ink);
+}
+
+.showcase-scope .hero-lede {
+  margin: 0;
+  max-width: 30rem;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+.showcase-scope .hero-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.showcase-scope .primary {
+  padding-inline: 14px;
+}
+
+/* What it works with: a quiet line of marks and names. */
+.showcase-scope .works {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.showcase-scope .works ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.showcase-scope .works li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* The brand at the statement's foot, its sign-off; its cells travel the
+   page's column (`.hero-in`), the nearest positioned ancestor. */
+.showcase-scope .hero-brand {
+  position: relative;
+  margin-top: 20px;
+}
+
+/* The print: a portrait sheet set on the obsidian inside its column, square
+   cornered and flat, never a panel run to the frame. Its pause sits on its
+   top right corner. */
+.showcase-scope .print-col {
+  display: grid;
+  justify-items: end;
+  min-width: 0;
+  padding: 40px 0;
+}
+
+.showcase-scope .print {
+  position: relative;
+  width: min(100%, 30rem);
+  aspect-ratio: 4 / 5;
+  container-type: inline-size;
+}
+
+/* The floor: 40px under the print (ten cells; the wipe's band runs twice
+   that, so at a third of its travel only its two thinnest steps show),
+   holding the print's mirror, as tall as the print and turned over so its
+   foot meets the print's. */
+.showcase-scope .print-floor {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.showcase-scope .print-mirror {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 125cqw;
+  transform: scaleY(-1);
+}
+
+/* Between 900 and 1199px the columns share the width evenly, so the keys
+   keep one row. */
+@media (max-width: 1199px) {
+  .showcase-scope .hero-in {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 899px) {
+  .showcase-scope .hero-in {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0;
+  }
+  .showcase-scope .statement {
+    padding: 28px 1.5rem 8px;
+  }
+  .showcase-scope .print-col {
+    justify-items: stretch;
+    padding: 16px 1.5rem 48px;
+  }
+  .showcase-scope .print {
+    width: 100%;
+    aspect-ratio: 5 / 4;
+  }
+  .showcase-scope .print-mirror {
+    height: 80cqw;
+  }
+}
+
+/* On a phone the page's gutter is 16px, as the sections' and the docs'. */
+@media (max-width: 639px) {
+  .showcase-scope .statement,
+  .showcase-scope .print-col {
+    padding-inline: 16px;
+  }
+}

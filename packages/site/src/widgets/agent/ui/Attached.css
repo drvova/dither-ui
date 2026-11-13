@@ -1,0 +1,29 @@
+.attached-scope .thumb {
+  --glyph: 14px;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+.attached-scope .unfold {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.attached-scope .unfold:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.attached-scope .unfold:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.attached-scope .dim {
+  color: var(--color-muted-foreground);
+}

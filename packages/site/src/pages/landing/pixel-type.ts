@@ -1,0 +1,71 @@
+// Pixel type: a 5×7 bitmap face (proportional — I, the hyphen and the
+// punctuation are narrower) for the brand's wordmark, with a lowercase set
+// (four wide, x-height from the third row, a descender hanging two rows
+// under the baseline) for the kit's parts' names. Pure: a string in, a
+// list of lit cells out; `BrandGather` draws them as its own cells.
+
+/** Rows top to bottom; `#` is a lit cell. Every row of a glyph is as wide
+ * as the glyph. Seven rows stand on the baseline; a descender's rows past
+ * them hang under it, into the room under the line. */
+const FACE: Record<string, readonly string[]> = {
+  "0": [".###.", "#...#", "#..##", "#.#.#", "##..#", "#...#", ".###."],
+  "1": ["..#..", ".##..", "..#..", "..#..", "..#..", "..#..", ".###."],
+  "2": [".###.", "#...#", "....#", "...#.", "..#..", ".#...", "#####"],
+  "3": ["#####", "...#.", "..#..", "...#.", "....#", "#...#", ".###."],
+  "4": ["...#.", "..##.", ".#.#.", "#..#.", "#####", "...#.", "...#."],
+  "5": ["#####", "#....", "####.", "....#", "....#", "#...#", ".###."],
+  "6": ["..##.", ".#...", "#....", "####.", "#...#", "#...#", ".###."],
+  "7": ["#####", "....#", "...#.", "..#..", ".#...", ".#...", ".#..."],
+  "8": [".###.", "#...#", "#...#", ".###.", "#...#", "#...#", ".###."],
+  "9": [".###.", "#...#", "#...#", ".####", "....#", "...#.", ".##.."],
+  D: ["####.", "#...#", "#...#", "#...#", "#...#", "#...#", "####."],
+  E: ["#####", "#....", "#....", "####.", "#....", "#....", "#####"],
+  H: ["#...#", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+  I: ["###", ".#.", ".#.", ".#.", ".#.", ".#.", "###"],
+  R: ["####.", "#...#", "#...#", "####.", "#.#..", "#..#.", "#...#"],
+  T: ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."],
+  U: ["#...#", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+  b: ["#...", "#...", "###.", "#..#", "#..#", "#..#", "###."],
+  d: ["...#", "...#", ".###", "#..#", "#..#", "#..#", ".###"],
+  e: ["....", "....", ".##.", "#..#", "####", "#...", ".###"],
+  g: ["....", "....", ".###", "#..#", "#..#", "#..#", ".###", "...#", ".##."],
+  i: ["#", ".", "#", "#", "#", "#", "#"],
+  k: ["#...", "#...", "#..#", "#.#.", "##..", "#.#.", "#..#"],
+  o: ["....", "....", ".##.", "#..#", "#..#", "#..#", ".##."],
+  r: ["....", "....", "#.##", "##..", "#...", "#...", "#..."],
+  s: ["....", "....", ".###", "#...", ".##.", "...#", "###."],
+  t: [".#.", ".#.", "###", ".#.", ".#.", ".#.", "..#"],
+  u: ["....", "....", "#..#", "#..#", "#..#", "#..#", ".###"],
+  "-": ["...", "...", "...", "###", "...", "...", "..."],
+  "+": [".....", "..#..", "..#..", "#####", "..#..", "..#..", "....."],
+  "×": [".....", "#...#", ".#.#.", "..#..", ".#.#.", "#...#", "....."],
+  "/": ["....#", "...#.", "...#.", "..#..", ".#...", ".#...", "#...."],
+  ".": [".", ".", ".", ".", ".", ".", "#"],
+  ":": [".", ".", "#", ".", "#", ".", "."],
+  " ": ["..", "..", "..", "..", "..", "..", ".."],
+}
+
+/** The rows a line stands on, baseline included; descenders hang under. */
+export const PIXEL_ROWS = 7
+/** The most a descender hangs under the baseline. */
+export const PIXEL_DESCENT = 2
+export const PIXEL_CHARS = Object.keys(FACE).join("")
+
+export type PixelCell = { x: number; y: number; char: number }
+
+/** Lay `text` out on the cell grid: one empty column between glyphs. Throws
+ * on a character the face lacks — every string the page sets is covered by
+ * `tests/pixel-type.spec.ts`. */
+export function layoutPixelText(text: string): { cells: PixelCell[]; width: number } {
+  const cells: PixelCell[] = []
+  let x = 0
+  ;[...text].forEach((ch, i) => {
+    const glyph = FACE[ch]
+    if (!glyph) throw new Error(`pixel-type: no glyph for ${JSON.stringify(ch)}`)
+    glyph.forEach((row, y) => {
+      for (let c = 0; c < row.length; c++) if (row[c] === "#") cells.push({ x: x + c, y, char: i })
+    })
+    x += glyph[0].length + 1
+  })
+  return { cells, width: Math.max(0, x - 1) }
+}

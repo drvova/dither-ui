@@ -1,0 +1,51 @@
+{
+  "name": "site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build && node build/postbuild.mjs",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@babel/standalone": "^7.29.14",
+    "@solidjs/meta": "^0.29.8",
+    "@solidjs/router": "^1.0.3",
+    "@solidjs/start": "^2.2.2",
+    "babel-preset-solid": "^1.9.19",
+    "bridge": "*",
+    "clsx": "^2.1.1",
+    "d3-scale": "^4.0.3",
+    "d3-shape": "^3.2.1",
+    "dither-kit": "*",
+    "dither-kit-stylex": "*",
+    "html-to-image": "^1.11.13",
+    "nitro": "^3.0.261103-rc",
+    "restyle": "*",
+    "seroval": "^1.8.1",
+    "seroval-plugins": "^1.8.0",
+    "solid-js": "^1.9.19",
+    "tailwind-merge": "^3.7.0",
+    "tasks": "*"
+  },
+  "devDependencies": {
+    "@solidjs/testing-library": "^0.8.10",
+    "@stylexjs/stylex": "0.19.1",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.2.0",
+    "jsdom": "^29.1.1",
+    "playwright-core": "^1.62.1",
+    "rstack": "^0.8.5",
+    "tailwindcss": "^4.3.5",
+    "typescript": "~5.6.3",
+    "vite": "^8.3.8",
+    "vite-plugin-solid": "^2.11.16",
+    "vitest": "^5.1.0"
+  }
+}

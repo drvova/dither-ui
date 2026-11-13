@@ -1,0 +1,78 @@
+.tray-scope.wb-tray {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  max-width: calc(100% - 24px);
+  padding: 4px;
+  overflow-x: auto;
+  transform: translateX(-50%);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--color-background) 94%, transparent);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.28);
+  pointer-events: auto;
+  scrollbar-width: none;
+}
+
+.tray-scope.wb-tray.top {
+  top: 22px;
+  bottom: auto;
+}
+
+.tray-scope .wb-seg {
+  display: flex;
+  gap: 2px;
+}
+
+.tray-scope .wb-sep {
+  flex: none;
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: var(--color-border);
+}
+
+.tray-scope .wb-key {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  color: var(--color-muted-foreground);
+  transition:
+    color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.tray-scope .wb-key:hover:not(:disabled) {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
+}
+
+.tray-scope .wb-key[aria-pressed="true"] {
+  color: var(--color-foreground);
+  background: color-mix(in oklab, var(--color-foreground) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-foreground) 24%, transparent);
+}
+
+.tray-scope .wb-key:disabled {
+  opacity: 0.35;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .tray-scope.wb-tray {
+    background: var(--color-background);
+  }
+}
+
+@media (forced-colors: active) {
+  .tray-scope .wb-key[aria-pressed="true"] {
+    outline: 1px solid Highlight;
+  }
+}

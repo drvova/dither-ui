@@ -1,0 +1,4 @@
+/* The drop zone rings while the file input inside it has keyboard focus. */
+.dk-file-drop:has(:focus-visible) {
+  box-shadow: 0 0 0 2px var(--ring);
+}
