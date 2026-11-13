@@ -1,4 +1,4 @@
-// The Solid kit's first components, held to what their Vue twins do: each
+// The Solid kit's first components, held to what their Vue twins did: each
 // prints through the shared engine, follows its props, and lets go of what
 // it listened to when it leaves.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
@@ -155,6 +155,35 @@ describe("DitherButton", () => {
     expect([canvas.width, canvas.height]).toEqual([48, 20])
     expect(w.uploads).toContain(canvas)
     expect(read).not.toHaveBeenCalled()
+  })
+
+  it("sizes its canvas to the capped raster, so none of it is left unpainted", async () => {
+    const { getByRole } = render(() => (
+      <DitherButton cell={2} maxCols={16} maxRows={8}>
+        Save
+      </DitherButton>
+    ))
+    await w.frame(16)
+    w.size()
+    const canvas = getByRole("button").querySelector("canvas")!
+    expect([canvas.width, canvas.height]).toEqual([16, 8])
+  })
+
+  it("prints again when only its seed changes", async () => {
+    const [seed, setSeed] = createSignal(1)
+    const { getByRole } = render(() => (
+      <DitherButton color="blue" variant="gradient" bloom="off" cell={2} seed={seed()}>
+        Save
+      </DitherButton>
+    ))
+    await w.frame(16)
+    w.size()
+    const canvas = getByRole("button").querySelector("canvas")!
+    const before = w.uploads.filter((c) => c === canvas).length
+    setSeed(2)
+    await w.frame(32)
+    w.size()
+    expect(w.uploads.filter((c) => c === canvas).length).toBeGreaterThan(before)
   })
 
   it("keeps the focus ring in the theme's ring ink", () => {

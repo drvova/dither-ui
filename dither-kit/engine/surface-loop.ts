@@ -5,8 +5,7 @@
 // start/restart/teardown steps. A component supplies only its per-frame
 // `render`; a framework's runtime supplies the elements and calls `mount`,
 // `start`, `pausedChanged` and `dispose` from its own lifecycle
-// (`use-dither-background.ts` for Vue, `solid/runtime/surface.ts` for
-// Solid). Making a loop touches nothing, so it is safe while rendering on a
+// (`solid/runtime/surface.ts`). Making a loop touches nothing, so it is safe while rendering on a
 // server; everything that listens starts at `mount`.
 
 import { directedTime, isDirected, onSeek } from "./clock"
@@ -22,8 +21,8 @@ export type SurfaceLoopOptions = {
   wrap: () => HTMLElement | null
   /** The canvas the raster is uploaded to, null until it exists. */
   canvas: () => HTMLCanvasElement | null
-  /** Run `fn` once the framework has put its pending changes in the DOM
-   * (Vue's `nextTick`); a microtask by default. */
+  /** Run `fn` once the framework has put its pending changes in the DOM;
+   * a microtask by default. */
   defer?: (fn: () => void) => void
   /** Backing cell size in CSS px before dpr scaling — bigger = chunkier
    * (a getter when it is a prop). */
@@ -265,6 +264,7 @@ export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
       box = null
       startNow = typeof performance !== "undefined" ? performance.now() : 0
       lastPaint = 0
+      lastFrame = -1 // a restart paints at once, as a wake does: a source driven every frame never starves
       lastSeek = -1
       paintedSeek = -1
       if (opts.renderMode() === "static" || pixelPrefersReducedMotion()) {

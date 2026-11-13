@@ -160,8 +160,10 @@ export default function DitherButton(raw: DitherButtonProps) {
 
     const resizeTo = (width: number, height: number) => {
       const cellPx = Math.max(1, cell())
-      cols = Math.max(4, Math.round(width / cellPx))
-      rows = Math.max(4, Math.round(height / cellPx))
+      // The canvas is the raster's size, caps included: a wider canvas would
+      // leave what lies past the capped raster unpainted.
+      cols = Math.max(4, Math.min(effMaxCols(), Math.round(width / cellPx)))
+      rows = Math.max(4, Math.min(effMaxRows(), Math.round(height / cellPx)))
       surface.width = cols
       surface.height = rows
       if (glow) {
@@ -242,6 +244,7 @@ export default function DitherButton(raw: DitherButtonProps) {
           variant,
           bloom,
           cell,
+          () => props.seed,
           precompiled,
           () => props.renderMode,
           () => props.loading,

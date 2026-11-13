@@ -1,11 +1,11 @@
 // @rstest-environment jsdom
 // The surface loop is one framework-free core (`engine/surface-loop.ts`)
-// that Vue's and Solid's runtimes both drive, so the two kits cannot drift
-// while the Solid one grows. Making a loop must touch nothing (a server
-// render makes one for every surface on the page); everything that listens
-// starts at `mount` and ends at `dispose`.
+// that a kit's runtime drives (`solid/runtime/surface.ts`). Making a loop
+// must touch nothing (a server render makes one for every surface on the
+// page); everything that listens starts at `mount` and ends at `dispose`.
 import { afterEach, describe, expect, it, rs } from "rstack/test"
 import { release, seek } from "../dither-kit/engine/clock"
+import { coverPage } from "../dither-kit/engine/cover"
 import { createSurfaceLoop, surfaceOf } from "../dither-kit/engine/surface-loop"
 import { watchVisibility } from "../dither-kit/engine/visibility"
 
@@ -51,7 +51,7 @@ function world() {
   return { made, show: () => shows.forEach((s) => s()), run }
 }
 
-function loopOn(opts: { paused?: () => boolean } = {}) {
+function loopOn(opts: { paused?: () => boolean; frameRate?: number } = {}) {
   const wrap = document.createElement("div")
   const canvas = document.createElement("canvas")
   const painted: number[] = []
@@ -65,6 +65,7 @@ function loopOn(opts: { paused?: () => boolean } = {}) {
     paused: opts.paused ?? (() => false),
     renderMode: () => "live",
     precompiled: () => undefined,
+    frameRate: () => opts.frameRate,
     render: (_buffer, clock) => painted.push(clock),
   })
   return { loop, canvas, painted }
@@ -112,6 +113,21 @@ describe("a surface loop", () => {
     loop.dispose()
   })
 
+  it("a stop-motion surface restarted every frame still paints every frame", async () => {
+    // each restart begins the cadence again at frame 0: holding "frame 0, as
+    // painted" starved a surface for as long as its source was driven
+    const w = world()
+    const { loop, painted } = loopOn({ frameRate: 8 })
+    loop.mount()
+    w.show()
+    for (let f = 1; f <= 4; f++) {
+      loop.start()
+      await w.run(performance.now() + f)
+    }
+    expect(painted.length).toBe(4)
+    loop.dispose()
+  })
+
   it("paints a directed moment once, whoever asks first", async () => {
     const w = world()
     const { loop, painted } = loopOn()
@@ -144,6 +160,26 @@ describe("watching an element's visibility", () => {
     v.mount()
     expect(w.made.observers).toBe(1)
     w.show()
+    expect(v.visible()).toBe(true)
+    expect(woke).toBe(1)
+    v.dispose()
+  })
+
+  it("wakes as a cover lifts, one it was mounted under included", () => {
+    const w = world()
+    const el = document.createElement("div")
+    const sheet = document.createElement("div")
+    let woke = 0
+    const v = watchVisibility(
+      () => el,
+      () => woke++,
+    )
+    coverPage(sheet)
+    v.mount()
+    w.show()
+    expect(v.visible()).toBe(false)
+    expect(woke).toBe(0)
+    coverPage(null)
     expect(v.visible()).toBe(true)
     expect(woke).toBe(1)
     v.dispose()

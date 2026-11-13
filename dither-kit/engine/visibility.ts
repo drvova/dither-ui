@@ -27,6 +27,8 @@ export function watchVisibility(el: () => Element | null | undefined, onWake?: (
   return {
     visible: () => visible && !isCovered(el()),
     mount() {
+      // Mounted under a standing cover: its lift is this element's wake too.
+      if (!unCover) covered = isCovered(el())
       unCover ??= onCoverChange(() => {
         const now = isCovered(el())
         if (covered && !now && visible) onWake?.()
