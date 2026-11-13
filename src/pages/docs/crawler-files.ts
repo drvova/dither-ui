@@ -13,8 +13,6 @@ export { ROUTE_CARDS, sectionCard, type ShareCard, shareCards } from "./share-ca
 // TypeScript, so this module and its graph (groups, seo, the *-nav packs)
 // write relative imports with `.ts`.
 
-const REPO_SVELTE_URL = `${REPO_URL}/tree/master/dither-kit-svelte`
-
 const docsUrl = (id: string): string => {
   if (!SECTIONS.some((s) => s.id === id))
     throw new Error(
@@ -164,7 +162,7 @@ export function sitemapXml(): string {
 // derived through docsUrl() so every docs link is validated against GROUPS.
 
 const LLMS_SUMMARY =
-  "dither-ui is a Solid UI toolkit (plus a Svelte 5 port, dither-kit-svelte) rendered on one " +
+  "dither-ui is a Solid UI toolkit rendered on one " +
   "ordered-dither canvas engine: composable area, line, bar, pie, radar and sparkline charts, " +
   "55+ Base UI-parity components, generative backgrounds, text and animation effects, all " +
   "seed-generative, MIT licensed, and free to use."
@@ -197,7 +195,7 @@ const LLMS_GROUPS: LlmsGroup[] = [
       {
         title: "GitHub repository",
         href: REPO_URL,
-        desc: "Full source for both kits (dither-kit for Solid, dither-kit-svelte for Svelte 5), benchmarks, and this site.",
+        desc: "Full source for the kit (dither-kit), its benchmarks, and this site.",
       },
     ],
   },
@@ -332,19 +330,14 @@ const LLMS_GROUPS: LlmsGroup[] = [
         href: `${SITE_URL}/docs`,
         desc: "The complete docs IA: every section lives on this one page, and deep links like /docs/avatar scroll to the section.",
       },
-      {
-        title: "Svelte port",
-        href: REPO_SVELTE_URL,
-        desc: "Runes-only Svelte 5 port with a verbatim copy of the engine.",
-      },
     ],
   },
 ]
 
 const LLMS_CONTEXT =
   "dither-ui is not published to a package registry. Install by copying the `dither-kit` folder " +
-  "(or `dither-kit-svelte` for Svelte 5) from the GitHub repository into your project, installing " +
-  "four small runtime dependencies (d3-scale, d3-shape, clsx, tailwind-merge) beside solid-js or svelte, and aliasing " +
+  "from the GitHub repository into your project, installing " +
+  "four small runtime dependencies (d3-scale, d3-shape, clsx, tailwind-merge) beside solid-js, and aliasing " +
   "the folder. The documentation site is served as prerendered static HTML, so every page below " +
   "can be fetched directly without a browser."
 

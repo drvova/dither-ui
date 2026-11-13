@@ -1,8 +1,6 @@
 // The film behind the hero's "Watch the film" key, in words: the dialog's
 // title and its description (no speech in it, so the description is what a
-// screen reader hears of it). Shared byte for byte with the Svelte landing
-// (tests/svelte-site-copies.spec.ts): written twice, the Svelte copy went on
-// describing a cut the site no longer plays.
+// screen reader hears of it).
 export const FILM = {
   title: "The dither-ui film",
   description:

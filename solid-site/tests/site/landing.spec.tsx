@@ -873,9 +873,7 @@ describe("the landing", () => {
       all(root, ".sheet .sheet-row").map((r) => [text(r.querySelector("dt")), text(r.querySelector("dd"))]),
     ).toEqual(SPECS.map((s) => [s.label, s.value]))
     expect(root.querySelector("#install .close-tab")!.getAttribute("aria-hidden")).toBe("true")
-    expect(text(root.querySelector(".install-note"))).toBe(
-      "On Svelte 5? The same kit ships as dither-kit-svelte, and the quick start has its steps.",
-    )
+    expect(root.textContent).not.toMatch(/svelte/i)
     // The footer: the brand home, three named columns, the copyright line.
     const foot = root.querySelector("footer.foot")!
     expect(text(foot.querySelector(".foot-name"))).toBe("dither-ui")

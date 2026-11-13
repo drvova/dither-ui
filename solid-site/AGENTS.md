@@ -71,7 +71,7 @@ prerendered to a static file.
   `watch` from the editor barrel (`entities/editor/model/watch.ts`) calls
   back once, a microtask after the writes of a turn, which history,
   autosave and the agent's mirror depend on. Stored choices (theme,
-  sounds, styling, framework, the Studio's document) are restored in
+  sounds, styling, the Studio's document) are restored in
   `onMount`, never at module load or render.
 - A parent's `onMount` runs before its children's: what a child measures
   in its mount is read by the parent in an effect or a microtask later,
@@ -79,18 +79,18 @@ prerendered to a static file.
 - A component's scoped styles are `<Name>.css` beside it, nested under a
   root hook class `<kebab-name>-scope`.
 - Docs tooling: each demo's snippet is authored once, in Vue's template
-  notation (a fragment or a short `<script setup>` file: the notation
-  both translators read), and every flavour a reader sees is derived from
-  it, never forked by hand: `pages/docs/solid.ts` (`toSolidCode`) for
-  Solid, the shared `@/pages/docs/svelte-code` for Svelte;
-  `@/shared/lib/restyle-rewrite` writes either in the reader's styling
-  system. Readers choose Solid or Svelte, never the authoring notation.
-  `widgets/source` shows the files and runs a Solid example in the page
+  notation (a fragment or a short `<script setup>` file), and the Solid
+  a reader sees is derived from it, never forked by hand:
+  `pages/docs/solid.ts` (`toSolidCode`) translates it,
+  `@/shared/lib/restyle-rewrite` writes it in the reader's styling
+  system (`pages/docs/snippet.ts`: `docsCode`, `docsFiles`). Readers never
+  see the authoring notation.
+  `widgets/source` shows the files and runs the example in the page
   (`../src/widgets/source/AGENTS.md`).
 - The docs' API tables and prose are written in Solid's words (a row's
   names are its component's real props; `tests/site/docs-api.spec.ts`
   type-checks every row against the kit, with its exceptions listed and
-  commented); `PropsTable`'s `svelteRow` derives the Svelte wording.
+  commented).
 - The Studio exports a frame as a Solid component: `entities/widget/model/codegen.ts`
   and `entities/chart/model/codegen.ts`, through `entities/artboard/code.ts`
   (`frameCode`: the `.tsx`, and its stylesheet where the styling system has
@@ -100,9 +100,9 @@ prerendered to a static file.
   real compiler). `entities/widget/model/model.ts` is the one reading of
   the shared registry's `vmodel` rows as Solid's prop and callback.
 - Vite plugins, each a file at the package root: `utilities.ts` (the
-  utility map the rewriter reads), `kit-sources.ts` (the kits' own source
-  at `kit/src/<solid|svelte>/` with `files.json`, by the one rule in
-  `@/shared/lib/kit-sources`), `run-compiler.ts` (what the Solid compiler
+  utility map the rewriter reads), `kit-sources.ts` (the kit's own source
+  at `kit/src/solid/` with `files.json`, by the one rule and the one
+  path, `KIT_SRC`, in `@/shared/lib/kit-sources`), `run-compiler.ts` (what the Solid compiler
   needs to load in a browser). Nitro copies `../public` into the build.
   `site-files.ts` emits the crawler files (`sitemap.xml`, `robots.txt`,
   `llms.txt`, `embed/`, `oembed/`, `og/sections.json`), the install files

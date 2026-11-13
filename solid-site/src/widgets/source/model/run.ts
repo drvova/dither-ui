@@ -82,7 +82,7 @@ export async function run(input: RunInput): Promise<RunResult> {
   // evaluated from source, from what the example imports — read up front:
   // the linker evaluates synchronously.
   const texts = new Map(edited)
-  let wave = [...edited.keys(), ...(fresh ? kitFilesOf(input.example.text, "solid", input.index, input.files) : [])]
+  let wave = [...edited.keys(), ...(fresh ? kitFilesOf(input.example.text, input.index, input.files) : [])]
   while (wave.length) {
     const next = new Set<string>()
     for (const file of wave) {

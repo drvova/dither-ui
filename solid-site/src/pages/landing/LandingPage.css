@@ -269,14 +269,6 @@
   color: var(--ink);
 }
 
-.landing-page-scope .install-note {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.6;
-  text-align: center;
-  color: var(--ink-3);
-}
-
 .landing-page-scope.landing code {
   color: var(--ink);
   white-space: nowrap;

@@ -1,8 +1,8 @@
-// What a docs snippet is, before any framework reads it: the docs' snippets
+// What a docs snippet is, before it is translated: the docs' snippets
 // are authored once, in Vue's notation (template fragments and short-form
-// SFCs), and each reader's framework is translated from that. Here: a
+// SFCs), and the Solid a reader sees is translated from that. Here: a
 // snippet's kind, and a fragment completed into the whole file the
-// translators take. What a preview is as files lives with the panel
+// translator takes. What a preview is as files lives with the panel
 // (`solid-site/src/widgets/source/model/files.ts`).
 
 const VUE_API =

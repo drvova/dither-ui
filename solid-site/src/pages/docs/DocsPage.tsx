@@ -43,7 +43,7 @@ import { docsMeta } from "@/pages/docs/seo"
 import "@/shared/fonts/display.css"
 import { version } from "../../../../package.json"
 import { assetPath, modKey, routePath, useTheme } from "~/shared/lib"
-import { setStyling, STYLING_LABELS } from "~/shared/lib/restyle"
+import { restoreStyling, setStyling, STYLING_LABELS, styling, STYLINGS } from "~/shared/lib/restyle"
 import { play, restoreSounds, setSounds, sounds } from "~/shared/lib/sound"
 import { AdSlot, CodeBlock } from "~/shared/ui"
 import Mascot from "~/shared/ui/Mascot"
@@ -60,7 +60,7 @@ import QuickStart from "./overview/QuickStart"
 import { PACK_COMPONENTS } from "./pack-loaders"
 import PropsTable, { type PropRow } from "./PropsTable"
 import SectionShare from "./SectionShare"
-import { docsCode, docsFramework, docsStyling, docsStylings, restoreDocsFramework, setDocsFramework } from "./svelte"
+import { docsCode } from "./snippet"
 import ScreensSection from "./utils/ScreensSection"
 import "./DocsPage.css"
 
@@ -808,7 +808,7 @@ export default function DocsPage(props: DocsPageProps) {
     setSearchKbd(modKey("K"))
     // the reader's own switches, read once in a browser
     restoreSounds()
-    restoreDocsFramework()
+    restoreStyling()
     window.addEventListener("keydown", searchHotkey)
     // A legacy link (`#/docs/<id>` on the docs' own address) lands on its
     // section's page, in place of the entry it came by.
@@ -838,7 +838,7 @@ export default function DocsPage(props: DocsPageProps) {
   const [effectSeed, setEffectSeed] = createSignal(7)
   const rollEffect = () => setEffectSeed(Math.floor(Math.random() * 1_000_000))
 
-  // Handbook code blocks follow the framework and styling toggles like DemoCard tabs do.
+  // Handbook code blocks follow the styling switch like DemoCard tabs do.
   const fw = docsCode
 
   // Code tabs mirror the picked variant — what you see is what you copy.
@@ -993,33 +993,14 @@ export default function DocsPage(props: DocsPageProps) {
               )}
             </Show>
             <div class="flex flex-wrap items-center gap-2 text-muted-foreground">
-              <div class="track" role="group" aria-label="Framework">
-                <button
-                  type="button"
-                  aria-pressed={docsFramework() === "solid"}
-                  class={`flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors ${docsFramework() === "solid" ? "ring-on" : "hover:text-foreground"}`}
-                  onClick={() => choose(() => setDocsFramework("solid"), docsFramework() === "solid")}
-                >
-                  <span>Solid</span>
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={docsFramework() === "svelte"}
-                  class={`flex h-6 items-center gap-1.5 px-2.5 text-[11px] transition-colors ${docsFramework() === "svelte" ? "ring-on" : "hover:text-foreground"}`}
-                  onClick={() => choose(() => setDocsFramework("svelte"), docsFramework() === "svelte")}
-                >
-                  <ToolMark id="svelte" size={11} />
-                  <span class="max-sm:sr-only">Svelte</span>
-                </button>
-              </div>
               <div class="track max-lg:hidden" role="group" aria-label="Styling">
-                <For each={docsStylings()}>
+                <For each={STYLINGS}>
                   {(s) => (
                     <button
                       type="button"
-                      aria-pressed={docsStyling() === s}
-                      class={`h-6 px-2.5 text-[11px] transition-colors ${docsStyling() === s ? "ring-on" : "hover:text-foreground"}`}
-                      onClick={() => choose(() => setStyling(s), docsStyling() === s)}
+                      aria-pressed={styling() === s}
+                      class={`h-6 px-2.5 text-[11px] transition-colors ${styling() === s ? "ring-on" : "hover:text-foreground"}`}
+                      onClick={() => choose(() => setStyling(s), styling() === s)}
                     >
                       {STYLING_LABELS[s]}
                     </button>
@@ -1061,7 +1042,6 @@ export default function DocsPage(props: DocsPageProps) {
               <ul class="flex flex-wrap gap-1 pb-1" aria-label="The kit">
                 <li class="speed-tag">{GROUPS.flatMap((g) => g.items).length} sections</li>
                 <li class="speed-tag">Solid</li>
-                <li class="speed-tag">Svelte 5</li>
                 <li class="speed-tag">Tailwind or StyleX</li>
               </ul>
             </div>

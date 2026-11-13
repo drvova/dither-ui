@@ -47,7 +47,7 @@ export default function Showcase() {
           </h1>
           <p data-rise class="hero-lede">
             {COMPONENT_COUNT} components, from charts and controls to GLSL and 3D, each printed cell by cell through one
-            seeded {MATRIX} matrix. Copy the folder into a Solid or Svelte 5 app and change what you need.
+            seeded {MATRIX} matrix. Copy the folder into your Solid app and change what you need.
           </p>
           <div data-rise class="hero-keys">
             <a href={routePath("/studio")} class="nav-a key-chrome primary">

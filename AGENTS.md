@@ -76,12 +76,11 @@ Default section order:
 
 ## Project Facts
 
-- dither-ui: a dithered UI toolkit for SolidJS, with a Svelte 5 port
-  (dither-ui.com). Three parts: `dither-kit/` (the portable component
+- dither-ui: a dithered UI toolkit for SolidJS (dither-ui.com). Three
+  parts: `dither-kit/` (the portable component
   library), `solid-site/` (the site: landing, docs, Studio, player) and
   `src/` (the site's framework-free modules, which `solid-site/` imports
-  through `@/` and never copies). The Svelte port is `dither-kit-svelte/`
-  with its showcase `svelte-site/`.
+  through `@/` and never copies).
 - Folder names: `dither-kit/solid`, `dither-kit/solid-stylex` and
   `solid-site` keep their names; no rename is decided.
 - Stack: SolidJS and SolidStart 2 (on Vite, Nitro's `static` preset, every
@@ -102,8 +101,7 @@ Default section order:
   and every spec, the root's included. Config files load under Node's own
   TypeScript, so a module one imports at run time (`utility-map.ts`,
   `crawler-files.ts` and its graph: `groups.ts`, `seo.ts`, the `*-nav.ts`
-  packs) writes relative imports WITH `.ts`. `svelte-site/` runs `rs` with
-  its own `rstack.config.ts` (Rsbuild). `benchmarks/node-bench.mts` is the
+  packs) writes relative imports WITH `.ts`. `benchmarks/node-bench.mts` is the
   kit's raster micro-benchmark, run by hand in Node, never part of a build.
 - The site's build (`npm run build` in `solid-site/`): `vite build`
   prerenders every page into `solid-site/.output/public` (the landing,
@@ -112,7 +110,7 @@ Default section order:
   it), with the files the plugins at the package root emit beside them:
   `site-files.ts` (the crawler files, the cards' manifest and embeds, the
   install surface, the mascot's capture, the bridge), `kit-sources.ts`
-  (both kits' own source at `kit/src/<solid|svelte>/` with a `files.json`
+  (the kit's own source at `kit/src/solid/` with a `files.json`
   listing: what the docs' source panel shows, runs and zips),
   `standalone.ts` (`sw.js` and the single-file player `play/player.js` +
   `player.css`), `utilities.ts` (the styling rewriter's utility map) and
@@ -294,7 +292,7 @@ Default section order:
   `dither-kit/engine/theme.ts` themes from JS. Details in
   `dither-kit/AGENTS.md`. What the site writes for a reader is Solid (the
   docs' tables, prose and snippets, the Studio's code export and
-  `code.get`; the docs also derive each snippet for Svelte) and comes in
+  `code.get`) and comes in
   their styling system too: `src/shared/lib/restyle-rewrite.ts` rewrites a
   Tailwind-classed snippet into a scoped stylesheet, CSS Modules or StyleX
   from the declarations Tailwind's compiler gives each class
@@ -407,17 +405,16 @@ Default section order:
 
 - Verification gate before any commit, the full set CI runs (a remembered
   subset ships red): at the root on Node 22, `npm run lint`,
-  `npx rs fmt --check` and `npm test`; in `dither-kit-svelte/`,
-  `npm run check`; in `svelte-site/`, `npm run check` and `npx rs build`;
+  `npx rs fmt --check` and `npm test`;
   in `solid-site/` on Node 24, `npm run check`, `npm test`,
   `npm run build` (which needs Chromium) and `npm test` again over the
   built site. Visual/stateful changes are also checked in a live browser
   (`npm run dev` or `npm run preview` in `solid-site/` + screenshots).
   Format what you touch with `rs fmt <paths>`.
-- CI (`.github/workflows/ci.yml`) is three jobs: `root` (lint, format and
-  the framework-free specs), `site` (`solid-site/`: types for the whole
+- CI (`.github/workflows/ci.yml`) is two jobs: `root` (lint, format and
+  the framework-free specs) and `site` (`solid-site/`: types for the whole
   repository, the component specs, the static build, the specs again over
-  the built site) and `svelte` (the Svelte kit and its site).
+  the built site).
 - The site's build prerenders every page so non-JS crawlers read the real
   page DOM from bytes, and its post-build draws in headless Chromium
   (`CHROME_PATH` or standard install paths, preinstalled on GitHub Actions
@@ -542,7 +539,7 @@ Default section order:
   No space on a page is left empty. Icons do the
   work of labels where they can, with attention to detail: kit glyphs
   (`DitherIcon`) for ideas, and the REAL marks of the tools themselves
-  (npm, pnpm, Bun, Node, Solid, Svelte, Tailwind, StyleX, CSS Modules, CSS,
+  (npm, pnpm, Bun, Node, Solid, Tailwind, StyleX, CSS Modules, CSS,
   GitHub, each coding agent) from
   `src/shared/ui/marks.ts`, one-colour beside their names, never
   restyled. Under its own hero the landing keeps the page layout the
@@ -586,11 +583,11 @@ Default section order:
   and reduced-transparency support are expected in every change, and the
   user's design system asks it too: text at AA (4.5:1) on the rendered
   page, gradients and materials included, and 24px targets (WCAG 2.5.8).
-  One focus colour everywhere (the kit, its Svelte port, the site): a
+  One focus colour everywhere (the kit, the site): a
   control that draws its own indicator draws it in the theme's ring ink
   (`ring-ring`, a field's `border-ring`), never a tinted accent or a faded
   foreground, which vanish on some ground; `tests/focus-ring.spec.ts`
-  scans all three, utilities and stylesheet `:focus` rules alike.
+  scans both, utilities and stylesheet `:focus` rules alike.
 - Studio serves Solid developers and visual designers equally. Use the durable
   audience, interaction, and aesthetic contract in `.impeccable.md` for UI work.
 
@@ -601,14 +598,9 @@ Default section order:
 - `dither-kit/AGENTS.md` — the toolkit: dither engine, palette, component
   contracts, portability rules, the Solid layer and its generated StyleX
   twin
-- `dither-kit-svelte/AGENTS.md` — the Svelte 5 port of the toolkit: runes-only
-  components, `ditherBackground` action runtime, verbatim engine copies,
-  organized into engine/runtime/family subfolders
 - `solid-site/AGENTS.md` — the site's SolidStart package: routes, the
   shell, aliases, the build's plugins and post-build, Solid conventions,
   the component and site specs
-- `svelte-site/AGENTS.md` — the Svelte showcase app: a landing and docs
-  mirroring the site's, built on `dither-kit-svelte`
 - `src/AGENTS.md` — the app's contracts for both halves of its source
   (`src/`, the framework-free modules; `solid-site/src/`, the components
   at the same paths): FSD layers, routing, editor/history/persistence

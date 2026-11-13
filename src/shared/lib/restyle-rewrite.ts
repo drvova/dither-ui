@@ -16,7 +16,7 @@ export type UtilityMap = {
 
 export const STYLINGS = ["tailwind", "css", "modules", "stylex"] as const
 export type Styling = (typeof STYLINGS)[number]
-export type Framework = "vue" | "svelte" | "solid"
+export type Framework = "vue" | "solid"
 export const STYLING_LABELS: Record<Styling, string> = {
   tailwind: "Tailwind",
   css: "CSS",
@@ -384,12 +384,11 @@ function splitTop(list: string): string[] {
 }
 
 function rewriteTag(tag: string, attrs: string, names: Names, target: Target): string {
-  const svelte = target.framework === "svelte"
   const stylex = target.system === "stylex"
   const modules = target.system === "modules"
   const classAttr = attrOf(attrs, "class")
-  const dynamic = svelte ? (classAttr?.braces ? classAttr : null) : attrOf(attrs, ":class")
-  const fixed = svelte ? (classAttr?.braces ? null : classAttr) : classAttr
+  const dynamic = attrOf(attrs, ":class")
+  const fixed = classAttr
   const style = attrOf(attrs, "style")
   const inline = style && !style.braces ? style : null
   if ((!fixed && !dynamic && !inline) || fixed?.value.includes("{{")) return attrs
@@ -404,7 +403,7 @@ function rewriteTag(tag: string, attrs: string, names: Names, target: Target): s
       : compiled.chains.unshift({ chain: [], decl: parseInline(inline.value) })
   }
   const own = compiled.chains.length ? names.claim(baseName(tag, tokens), compiled) : null
-  const bindDynamic = () => (svelte ? `class={${dynamic!.value}}` : `:class="${dynamic!.value}"`)
+  const bindDynamic = () => `:class="${dynamic!.value}"`
   const parts: string[] = []
   const kept = compiled.rest
   let changed = !!own
@@ -420,20 +419,19 @@ function rewriteTag(tag: string, attrs: string, names: Names, target: Target): s
         changed = true
       } else parts.push(bindDynamic())
     }
-    if (args.length)
-      parts.unshift(svelte ? `{...stylex.attrs(${args.join(", ")})}` : `v-bind="stylex.attrs(${args.join(", ")})"`)
+    if (args.length) parts.unshift(`v-bind="stylex.attrs(${args.join(", ")})"`)
     if (kept.length) parts.push(`class="${kept.join(" ")}"`)
   } else {
     const bound = dynamic ? nameLiterals(dynamic.value, names, target) : null
     if (bound?.found) changed = true
-    if (modules && !svelte) {
+    if (modules) {
       if (kept.length) parts.push(`class="${kept.join(" ")}"`)
       const bindings = [...(own ? [`$style.${own}`] : []), ...(bound ? [bound.expr] : [])]
       if (bindings.length) parts.push(`:class="${bindings.length > 1 ? `[${bindings.join(", ")}]` : bindings[0]}"`)
     } else {
       const classes = [...(own ? [own] : []), ...kept]
       if (classes.length) parts.push(`class="${classes.join(" ")}"`)
-      if (bound) parts.push(svelte ? `class={${bound.expr}}` : `:class="${bound.expr}"`)
+      if (bound) parts.push(`:class="${bound.expr}"`)
     }
   }
   if (!changed) return attrs
@@ -536,39 +534,31 @@ function printCond(value: Cond, indent: string): string {
   return `{\n${entries.map((e) => `${indent}  ${e},`).join("\n")}\n${indent}}`
 }
 
-export function stylexText(styles: Named[], indent: string): string {
-  const entries = styles.map(
-    ({ name, compiled }) => `${indent}  ${key(name)}: ${printCond(stylexObject(compiled), indent + "  ")},`,
-  )
-  return `${indent}const styles = stylex.create({\n${entries.join("\n")}\n${indent}})`
+export function stylexText(styles: Named[]): string {
+  const entries = styles.map(({ name, compiled }) => `  ${key(name)}: ${printCond(stylexObject(compiled), "  ")},`)
+  return `const styles = stylex.create({\n${entries.join("\n")}\n})`
 }
 
 /* ------------------------------ placement --------------------------------- */
 
 const STYLEX_IMPORT = `import * as stylex from "@stylexjs/stylex"`
 
-function withScript(code: string, framework: Framework, lines: (indent: string) => string): string {
-  const open = framework === "svelte" ? /<script lang="ts">\n/ : /<script setup[^>]*>\n/
-  const m = code.match(open)
+function withScript(code: string, lines: string): string {
+  const m = code.match(/<script setup[^>]*>\n/)
   if (m) {
     const start = m.index! + m[0].length
     const close = code.indexOf("</script>", start)
     const body = code.slice(start, close)
-    const indent = framework === "svelte" ? "  " : ""
     const imports = body.match(/^(?:\s*import .*\n)+/)
     const head = imports ? imports[0] : ""
     const rest = body.slice(head.length)
-    const headOut = head.includes("@stylexjs/stylex") ? head : `${head}${indent}${STYLEX_IMPORT}\n`
+    const headOut = head.includes("@stylexjs/stylex") ? head : `${head}${STYLEX_IMPORT}\n`
     const restOut = rest.replace(/\n*$/, "")
-    return `${code.slice(0, start)}${headOut}${restOut ? restOut + "\n" : ""}\n${lines(indent)}\n${code.slice(close)}`
+    return `${code.slice(0, start)}${headOut}${restOut ? restOut + "\n" : ""}\n${lines}\n${code.slice(close)}`
   }
-  const block =
-    framework === "svelte"
-      ? `<script lang="ts">\n  ${STYLEX_IMPORT}\n\n${lines("  ")}\n</script>`
-      : `<script setup lang="ts">\n${STYLEX_IMPORT}\n\n${lines("")}\n</script>`
   // An SFC without a script gets one; a fragment gets the lines it would add.
-  if (/<template>/.test(code) || framework === "svelte") return `${block}\n\n${code}`
-  return `${STYLEX_IMPORT}\n\n${lines("")}\n\n${code}`
+  if (/<template>/.test(code)) return `<script setup lang="ts">\n${STYLEX_IMPORT}\n\n${lines}\n</script>\n\n${code}`
+  return `${STYLEX_IMPORT}\n\n${lines}\n\n${code}`
 }
 
 /* ------------------------------ Solid ------------------------------------- */
@@ -747,7 +737,7 @@ export function restyleSolid(code: string, system: Styling, name = "styles"): { 
   if (!names.all.length) return { code, sheet: null }
   let out = code
   for (const m of [...tags].reverse()) out = rewriteAt(out, m)
-  if (system === "stylex") return { code: withImports(out, [STYLEX_IMPORT], stylexText(names.all, "")), sheet: null }
+  if (system === "stylex") return { code: withImports(out, [STYLEX_IMPORT], stylexText(names.all)), sheet: null }
   const file = system === "modules" ? `${name}.module.css` : `${name}.css`
   const line = system === "modules" ? `import styles from "./${file}"` : `import "./${file}"`
   return { code: withImports(out, [line]), sheet: { file, text: cssText(names.all) } }
@@ -765,7 +755,7 @@ export function restyle(code: string, system: Styling, framework: Framework): st
       ? `${solid.code.replace(/\s+$/, "")}\n\n/* ${solid.sheet.file} */\n${solid.sheet.text}`
       : solid.code
   }
-  const target: Target = { system: system === "modules" && framework === "svelte" ? "css" : system, framework }
+  const target: Target = { system, framework }
   const names = new Names()
   const out = code.replace(TAG_RE, (all, tag: string, attrs: string, selfClose: string) => {
     if (!/\b(class|style)=/.test(attrs)) return all
@@ -773,7 +763,7 @@ export function restyle(code: string, system: Styling, framework: Framework): st
     return next === attrs ? all : `<${tag}${next}${selfClose ? " /" : ""}>`
   })
   if (!names.all.length) return code
-  if (target.system === "stylex") return withScript(out, framework, (indent) => stylexText(names.all, indent))
-  const tagName = target.system === "modules" ? "<style module>" : framework === "svelte" ? "<style>" : "<style scoped>"
+  if (target.system === "stylex") return withScript(out, stylexText(names.all))
+  const tagName = target.system === "modules" ? "<style module>" : "<style scoped>"
   return `${out.replace(/\s+$/, "")}\n\n${tagName}\n${cssText(names.all)}\n</style>`
 }

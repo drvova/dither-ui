@@ -1,18 +1,34 @@
 // Vue → Solid snippet translation.
 //
 // The docs' snippets are authored once, as Vue template fragments and
-// short-form SFCs; the Solid kit carries the Vue kit's surface under the same
-// names, so every Solid code tab is derived from the authored snippet the way
-// the Svelte one is (`@/pages/docs/svelte-code`), never forked by hand. The
-// markup is read into a small tree (tags found with the Svelte translator's
-// own scanner) and written back as JSX, text and layout kept as authored:
+// short-form SFCs; the Solid kit carries that surface under the same names,
+// so every Solid code tab is derived from the authored snippet, never forked
+// by hand. The markup is read into a small tree and written back as JSX,
+// text and layout kept as authored:
 // directives become Solid's control flow, slots become props, refs become
 // signals read as calls and written through their setters. A file (a
 // `<script setup>` with its markup) comes out as a `.tsx` module whose
 // default export is the component; a fragment stays a fragment. Content that
 // is not component code (shell, CSS, a TypeScript sketch) passes through.
-import { camel, findTagEnd } from "@/pages/docs/svelte-code"
 import { snippetKind } from "@/widgets/source/model/files"
+
+const camel = (s: string) => s.replace(/-([a-z0-9])/g, (_, c: string) => c.toUpperCase())
+
+/** Index of the `>` that ends the tag opened at `from` (quote-aware). */
+function findTagEnd(text: string, from: number): number {
+  let quote: string | null = null
+  for (let i = from; i < text.length; i++) {
+    const c = text[i]
+    if (quote) {
+      if (c === quote) quote = null
+    } else if (c === '"' || c === "'") {
+      quote = c
+    } else if (c === ">") {
+      return i
+    }
+  }
+  return text.length - 1
+}
 
 /* ------------------------------ expressions ------------------------------ */
 

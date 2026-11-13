@@ -10,12 +10,12 @@ import { describe, expect, it } from "rstack/test"
 import { ROUTE_TITLES } from "@/shared/config/titles"
 
 const root = new URL("..", import.meta.url).pathname
-const SOURCES = ["src", "solid-site/src", "svelte-site/src", "dither-kit", "dither-kit-svelte"]
+const SOURCES = ["src", "solid-site/src", "dither-kit"]
 const files = (dir: string): string[] =>
   readdirSync(dir).flatMap((entry) => {
     if (entry === "node_modules" || entry.startsWith(".")) return []
     const path = join(dir, entry)
-    return statSync(path).isDirectory() ? files(path) : /\.(css|svelte)$/.test(entry) ? [path] : []
+    return statSync(path).isDirectory() ? files(path) : entry.endsWith(".css") ? [path] : []
   })
 const read = (path: string) => readFileSync(join(root, path), "utf8")
 
@@ -29,12 +29,9 @@ describe("the root's style", () => {
     expect(hits).toEqual([])
   })
 
-  it("is marked with the page by both apps, in the routes' own names", () => {
+  it("is marked with the page by the app, in the routes' own names", () => {
     expect(read("solid-site/src/entry-server.tsx")).toContain(
       '<html lang="en" class="dark" data-page={page ?? undefined}>',
-    )
-    expect(read("svelte-site/src/App.svelte")).toContain(
-      'document.documentElement.dataset.page = isDocs ? "docs" : "landing"',
     )
     // every page a stylesheet keys on is a route the app marks
     const keyed = SOURCES.flatMap((dir) => files(join(root, dir))).flatMap((path) =>

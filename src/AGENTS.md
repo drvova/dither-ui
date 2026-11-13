@@ -79,7 +79,7 @@ is `../solid-site/AGENTS.md`'s.
   shifts nothing).
 - `shared/` — ui primitives (Segmented, NumberField, ColorField, CodeBlock,
   ContextMenu, ...; `ToolMark` over `marks.ts` — the real one-colour
-  marks of npm, pnpm, Bun, Node, Solid, Svelte, Tailwind, StyleX, CSS
+  marks of npm, pnpm, Bun, Node, Solid, Tailwind, StyleX, CSS
   Modules, CSS, GitHub and the coding agents
   the bridge starts (keyed by its harness ids), from Simple Icons (CC0),
   LobeHub (MIT) and the tools' own site icons, paths verbatim; their
@@ -354,10 +354,9 @@ is `../solid-site/AGENTS.md`'s.
   attributes of a snippet into named styles: a Solid file's (`class`,
   `classList`; `restyleSolid` also hands back the stylesheet the `.tsx`
   imports on `css` or `modules`, and writes `stylex.create` with
-  `{...stylex.props()}` on the element), the authoring notation's
+  `{...stylex.props()}` on the element) or the authoring notation's
   (`class` / `:class`: a `<style scoped>` block, `$style` bindings +
-  `<style module>`, or `stylex.attrs` through `v-bind`) or a Svelte one's
-  (`class={…}`: a plain `<style>`, a spread); `tailwind` returns
+  `<style module>`, or `stylex.attrs` through `v-bind`); `tailwind` returns
   the code untouched. Its data is `virtual-dither-utilities`:
   `utility-map.ts` (node-side only: the Vite plugin
   `solid-site/utilities.ts`, and `rstack.config.ts` for the root's specs)
@@ -701,9 +700,8 @@ is `../solid-site/AGENTS.md`'s.
   the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
   runs the inline script both ways. The rise (`shared/lib/rise.ts`: a
   headline's words up one after another on the glide, 24px over 900ms,
-  60ms apart, then its blocks 90ms apart; `rise(node)` is the Svelte
-  action the Svelte site's copy uses, the Solid site's `rise(el)` is
-  `solid-site/src/shared/lib/rise.ts` over the same table) waits in the
+  60ms apart, then its blocks 90ms apart; the site's `rise(el)` is
+  `solid-site/src/shared/lib/rise.ts` over it) waits in the
   prerendered bytes:
   `RISE_HEAD_SCRIPT` (`shared/lib/rise-wait.ts`, inlined after the reveal
   script) sets `rise-wait` on `<html>` unless the reader asks for reduced

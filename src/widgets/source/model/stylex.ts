@@ -128,7 +128,7 @@ function classesOf(args: readonly Arg[]): string {
   return names.join(" ")
 }
 
-/** A DOM template's spelling (Svelte): `{...stylex.attrs(styles.a, on && styles.b)}`. */
+/** A DOM template's spelling: `{...stylex.attrs(styles.a, on && styles.b)}`. */
 export function attrs(...args: Arg[]): { class?: string } {
   const c = classesOf(args)
   return c ? { class: c } : {}

@@ -472,13 +472,6 @@ export default function LandingPage() {
               </DitherClipboard>
             </div>
             <InstallBlock />
-            <p class="install-note">
-              On Svelte 5? The same kit ships as <code>dither-kit-svelte</code>, and the{" "}
-              <a href={routePath("/docs/getting-started")} class="lead">
-                quick start
-              </a>{" "}
-              has its steps.
-            </p>
             <dl ref={rise} class="sheet" aria-label="The kit in brief">
               <For each={SPECS}>
                 {(s) => (

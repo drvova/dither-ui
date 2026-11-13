@@ -75,7 +75,7 @@ tree holds it.
   hero statement's and the primary key's alone); `.sec-side`
   right, on its baseline, a `.sec-lede` (two tones: the muted ink, its one
   key clause, `.lede-key`, in the full ink, so the eye finds the point
-  without bold; `tests/ledes.spec.ts`, both landings) and a `.more-link`; stacked under
+  without bold; `tests/ledes.spec.ts`) and a `.more-link`; stacked under
   900px; it rises as it comes into view: `ref={rise}` on the head, the title's
   words through `RiseWords`, the lede and the link `data-rise` after them,
   the hero's statement likewise, and the blocks under a head (the three
@@ -88,7 +88,7 @@ tree holds it.
   buttons, quiet labels, the pressed one filled with `--surface`), and
   `[id]` scroll margins (76px) clear of the header, an in-page link
   travelling there by the browser's own smooth scroll (`:root[data-page="landing"]`,
-  none under reduced motion; the Svelte landing's `landing.css` likewise;
+  none under reduced motion;
   `tests/motion.spec.ts`). A card or panel whose
   own ground is `--surface` resets `--surface` to the page's ground on
   what it holds, so its keys and pressed segments stay shapes. Page geometry (`--page` 80rem, `--rhythm`) lives on
@@ -144,8 +144,7 @@ tree holds it.
   `(hover: hover)`, since a tap's hover sticks on a phone) and the menu key's bands
   part on a hover (none of it under reduced motion). A focused band rings
   in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css`
-  (the capsule and the sheet) are the one table and stylesheet; the
-  Svelte landing carries both byte for byte. It stays positioned
+  (the capsule and the sheet) are the one table and stylesheet. It stays positioned
   (`z-40`): `main` is `relative isolate`, so a positioned sibling paints
   over a static header.
 - Hero (`Showcase.tsx`, our own): the first screen's height under the
@@ -164,7 +163,7 @@ tree holds it.
   the lede (three or four lines), the keys (`.key-chrome` "Open the
   studio", `.key` "Read the docs" and "Watch the film" under the Play
   glyph, which opens the trailer; `TrailerDialog` lives in the hero),
-  then a quiet line of what the kit works with (`WORKS` in `facts.ts`: Solid, Svelte 5,
+  then a quiet line of what the kit works with (`WORKS` in `facts.ts`: Solid,
   Tailwind, StyleX, CSS Modules, CSS, each under its mark, after "Works
   with"). Right, in `.print-col`: the PRINT, a live `DitherPoster` (seed
   5, cell 4, `INKS` from `plate.ts`: the kit's blue, the ember and the page's bone ink;
@@ -208,7 +207,7 @@ tree holds it.
 - The trailer (`TrailerDialog.tsx`): the kit's `DitherDialog` (focus
   trapped and handed back, Escape and the backdrop close it) titled "The
   dither-ui film", its description the film in words (no speech in it;
-  both in `film.ts`, shared with the Svelte landing).
+  both in `film.ts`).
   The `<video>` exists only while the dialog is open: `public/trailer/`
   `dither-ui.mp4` (H.264 + AAC) first, `dither-ui.webm` (VP9 + Opus) for a
   browser built without H.264, `poster.webp`; it starts with `play()` in
@@ -269,10 +268,8 @@ tree holds it.
   tall, flush; `sampleWorld` of a seed on a picked ramp: blue, metal or
   ember, and "New model" for the next seed) beside the gauge (an
   instrument: the kit's `DitherKnob` sets the load and the `DitherGauge`
-  needle settles on it; the Svelte site drives it with a slider, its kit
-  having no knob) and the
-  stat card (frames exported a day, `stat.ts`, copied byte for byte to the
-  Svelte site: the headline is the total at rest; scrub the `Sparkline`
+  needle settles on it) and the
+  stat card (frames exported a day, `stat.ts`: the headline is the total at rest; scrub the `Sparkline`
   (`interactive`) and its own crosshair marks the day under the pointer
   while the headline rolls to that day, the line under it crossfading from
   the week's change to the day's name; `hover-lift` off, so the marked day
@@ -358,8 +355,7 @@ tree holds it.
   pointer move, so no pause chip); a pointer over it leans the cells
   away, a drag turns it. Reduced motion: no run, the lockup whole and
   still. `tests/assemble.spec.ts` holds its piece count to the lockup and
-  the run's mapping. The Svelte landing has no world component, so it has
-  no build.
+  the run's mapping.
 - Ask (`#ask`, "Your agent builds the screen."): a section head ("Read the
   agent skill"), then `AgentStory.tsx`, one agent session played as the
   page scrolls: a stage pinned under the header (`--pin`, most of the
@@ -419,7 +415,7 @@ tree holds it.
   ember) for the bridge, which carries signals between the tab and the
   agent, its signals running on cue (`drive.ts`'s `useDrive`, which the
   footer's road runs on too: 3s as its card comes into view, then the
-  reader's scroll); the Svelte site mirrors it (its `drive` action); its own
+  reader's scroll); its own
   character standing on the strip's foot at the right, half over the card
   (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, on a
   plate of the card's ground so its ink never melts into the strip's), then
@@ -540,7 +536,7 @@ tree holds it.
   every fourth cell, and blended between, the final noise per cell: within
   a cell in a hundred of the exact fold at a quarter of its noise, a
   phone's finer fold every cell (`tests/heat.spec.ts`), `closeField`
-  here, copied byte for byte to the Svelte landing; `HeatPrint.tsx` paints
+  here; `HeatPrint.tsx` paints
   it on the kit's background runtime at `CLOSE.fps`; while it runs the
   close is painted in a worker, `heat-offload.ts` (the page's side: each
   paint takes the worker's latest frame and asks for the one due at the
@@ -578,7 +574,7 @@ tree holds it.
   mono with the ember `$`; the box and the spec sheet under it keep the
   install head's centred measure (52rem). Under 640px the picker takes the
   top row alone and the command wraps beside the key between its words
-  or after a path's slash (`command.ts`, shared with the Svelte landing;
+  or after a path's slash (`command.ts`;
   each piece unbroken, never at a hyphen), the caret flowing after the last
   word, so all of it shows; inline
   `code` on the landing never wraps. A copy is ONE gesture: while copied the
@@ -587,9 +583,8 @@ tree holds it.
   swaps both at once. Its four steps (degit folder + npm/pnpm/bun deps)
   run the docs' own commands (`docs/install.ts`; the landing never imports
   the docs, so `tests/docs-install.spec.ts` holds its folder and
-  `RUNTIME_DEPS` to `INSTALL_STEPS.solid` and `INSTALL_DEPS.solid`). Then one centred line for Svelte 5
-  (`dither-kit-svelte`, the quick start).
-- Marks: tool logos (the package managers, Node, Solid, Svelte, Tailwind,
+  `RUNTIME_DEPS` to `INSTALL_STEPS` and `INSTALL_DEPS`).
+- Marks: tool logos (the package managers, Node, Solid, Tailwind,
   StyleX, CSS Modules, CSS, GitHub and the coding agents) come ONLY from
   `src/shared/ui/marks.ts` through
   `ToolMark`, one-colour in `currentColor` beside the tool's name, never
@@ -808,28 +803,19 @@ tree holds it.
   read through `docs/components/frames.ts` (`readFrames`, guarded by
   `tests/frames.spec.ts`); its snippet measures the same way on its own,
   so Run plays it.
-- Docs serve Solid AND Svelte: snippets are authored once, in Vue's
-  template notation (the notation both translators read; a reader never
-  sees it), and each flavor is derived, never forked by hand:
-  `docs/solid.ts` (`toSolidCode`) writes the Solid one, the framework-free
-  `docs/svelte-code.ts` (`toSvelteCode`) the Svelte one, for DemoCard code
+- Docs serve Solid: snippets are authored once, in Vue's
+  template notation (a reader never sees it), and the Solid a reader
+  sees is derived, never forked by hand:
+  `docs/solid.ts` (`toSolidCode`) writes it, for DemoCard code
   tabs and Handbook CodeBlocks; the API tables are written in Solid's
-  words and `PropsTable`'s `svelteRow` derives the Svelte wording. The
-  global `docsFramework` signal (`docs/svelte.ts`; header toggle + per-card
-  chips, persisted to localStorage, restored on mount) drives all of them.
-  The Svelte translator parses real export names
-  from `dither-kit-svelte/index.ts?raw` (plain-named background/text/animation
-  families rename automatically); `V_MODEL_TARGETS` maps the two non-`value`
-  bindables (Sidebar→collapsed, SidebarSub→open). A new idiom in a snippet
-  needs a rule in both translators + a case in `tests/svelte-code.spec.ts`
-  and `solid-site/tests/site/solid-code.spec.tsx` (which also compiles
-  every snippet as Solid in every styling system).
-- Docs serve any styling system: `docs/svelte.ts` `docsCode()` (and
+  words. A new idiom in a snippet
+  needs a rule in the translator + a case in
+  `solid-site/tests/site/solid-code.spec.tsx` (which also compiles
+  every snippet in every styling system).
+- Docs serve any styling system: `docs/snippet.ts` `docsCode()` (and
   `docsFiles()`, the file with its stylesheet for the source panel) is the
-  framework translation followed by `shared/lib/restyle-rewrite.ts` with the
-  reader's `styling` (header switch at md+, per-card chips beside
-  Solid/Svelte; `docsStylings` hides CSS Modules under Svelte and
-  `docsStyling` shows CSS in its place). Every DemoCard code tab and
+  translation followed by `shared/lib/restyle-rewrite.ts` with the
+  reader's `styling` (header switch at lg+, per-card chips). Every DemoCard code tab and
   Handbook block goes through it, so a snippet idiom the rewriter
   mangles gets a rule in `restyle-rewrite.ts` + a `tests/restyle.spec.ts` case.
 - `SNIPPETS`/derived code must match what the demo renders — it now
@@ -880,9 +866,9 @@ tree holds it.
   the page, to centre it when it leaves the middle band.
 - The docs' header is the site's (Header, above) with Search in its
   tools (a `.nav-a` with its shortcut, `modKey`); the switches that act on
-  the page (framework, styling, sounds, theme) sit in the page's row
-  beside the breadcrumb, not in the header. Under sm the Solid/Svelte
-  switch shows its marks and Search its glyph (the words stay for screen
+  the page (styling, sounds, theme) sit in the page's row
+  beside the breadcrumb, not in the header. Under sm Search shows its
+  glyph (the words stay for screen
   readers); under 360px the brand shows its mark alone (the word stays
   for screen readers); the ⌘K kbd shows from md; the styling switch (on
   every card anyway) returns at lg. Under lg the header's tools add a key,
@@ -971,9 +957,8 @@ tree holds it.
   with Search and the sections key in its `tools`; the toggles under it
   are tracks, the picked one `.ring-on`. The search
   hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
-  elsewhere — the handler accepts both). The Solid/Svelte
-  switch carries the tools' marks
-  (`ToolMark`), the styling switch their names (`STYLING_LABELS`), sound
+  elsewhere — the handler accepts both). The styling switch carries the
+  systems' names (`STYLING_LABELS`), sound
   and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
   mark. The section list is ONE component, `DocsNav.tsx` (the sidebar
   rail at lg, the sheet under it; `docsUrl` is the one section address):
@@ -983,7 +968,7 @@ tree holds it.
   "Documentation" in the display face (`font-display`, 1.6rem) in plain
   ink, no eyebrow; on its
   baseline, the kit's spec as `.speed-tag`s (the section count, Solid,
-  Svelte 5, Tailwind or StyleX). At xl the rail right of
+  Tailwind or StyleX). At xl the rail right of
   the content is "On this page": the section in view, its gallery headings
   and its API table, read from its DOM as the scroll-spy moves (headings
   inside a preview are the demo's), each a button that scrolls to it (the
@@ -1014,13 +999,12 @@ tree holds it.
   chart, an avatar and a gradient, its screen picked by chips). New
   packs follow this shape instead of growing DocsPage. `docs/overview/` =
   the Quick start (`QuickStart.tsx`, `getting-started`): the install as
-  steps from `docs/install.ts` (`INSTALL_STEPS` per kind: Solid,
-  Svelte; `INSTALL_DEPS`, the packages each needs), one at a
+  steps from `docs/install.ts` (`INSTALL_STEPS`; `INSTALL_DEPS`, the packages the kit needs), one at a
   time, each its title, why where a reader would ask, and its own
   `CodeBlock` (full width on a phone), then
   "Without Tailwind" (the kit stylesheet, then theming), short under
-  its own heading; `installScript` turns the same steps into the one
-  commented script the source panel's prompt.md carries (`INSTALL`). `docs/primitives/` =
+  its own heading; `INSTALL` is the same steps as the one
+  commented script the source panel's prompt.md carries. `docs/primitives/` =
   the Primitives pack (Box, Text, Divider, VisuallyHidden — the paste-list
   foundation family; new plain primitives extend it + PRIMITIVES_NAV).
 

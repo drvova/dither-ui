@@ -15,11 +15,11 @@ import {
   useContext,
 } from "solid-js"
 import { routePath } from "~/shared/lib"
-import { setStyling, STYLING_LABELS } from "~/shared/lib/restyle"
+import { restoreStyling, setStyling, STYLING_LABELS, styling, STYLINGS } from "~/shared/lib/restyle"
 import { play } from "~/shared/lib/sound"
 import type { RunResult, SourceContext } from "~/widgets/source"
 import { INSTALL } from "@/pages/docs/install"
-import { docsFiles, docsFramework, docsStyling, docsStylings, restoreDocsFramework, setDocsFramework } from "./svelte"
+import { docsFiles } from "./snippet"
 import "./DemoCard.css"
 
 /** How a demo sits in its well: inset on the well's padding, or bled to its
@@ -66,8 +66,8 @@ export default function DemoCard(props: DemoCardProps) {
   const [revealed, setRevealed] = createSignal(false)
 
   onMount(() => {
-    // the reader's own framework and styling system, read once in a browser
-    restoreDocsFramework()
+    // the reader's own styling system, read once in a browser
+    restoreStyling()
     if (typeof IntersectionObserver === "undefined" || !host) {
       setRevealed(true)
       return
@@ -230,31 +230,15 @@ export default function DemoCard(props: DemoCardProps) {
           }
         >
           <div class="flex flex-wrap justify-end gap-x-3 gap-y-1 pb-2 text-[11px]">
-            <div class="track" role="group" aria-label="Framework">
-              <button
-                aria-pressed={docsFramework() === "solid"}
-                class={chipClass(docsFramework() === "solid")}
-                onClick={() => chip(() => setDocsFramework("solid"), docsFramework() === "solid")}
-              >
-                Solid
-              </button>
-              <button
-                aria-pressed={docsFramework() === "svelte"}
-                class={chipClass(docsFramework() === "svelte")}
-                onClick={() => chip(() => setDocsFramework("svelte"), docsFramework() === "svelte")}
-              >
-                Svelte
-              </button>
-            </div>
             {/* The same snippet in the reader's styling system: Tailwind as
-                authored, or a stylesheet, CSS Modules (Solid) or StyleX. */}
+                authored, or a stylesheet, CSS Modules or StyleX. */}
             <div class="track" role="group" aria-label="Styling">
-              <For each={docsStylings()}>
+              <For each={STYLINGS}>
                 {(s) => (
                   <button
-                    aria-pressed={docsStyling() === s}
-                    class={chipClass(docsStyling() === s)}
-                    onClick={() => chip(() => setStyling(s), docsStyling() === s)}
+                    aria-pressed={styling() === s}
+                    class={chipClass(styling() === s)}
+                    onClick={() => chip(() => setStyling(s), styling() === s)}
                   >
                     {STYLING_LABELS[s]}
                   </button>
@@ -320,14 +304,7 @@ export default function DemoCard(props: DemoCardProps) {
           and stays, so edits survive the Preview tab. */}
       <Show when={opened()}>
         <div class="mt-3" style={{ display: tab() === "code" ? undefined : "none" }}>
-          <SourcePanel
-            code={props.code}
-            translate={docsFiles}
-            flavor={docsFramework()}
-            styling={docsStyling()}
-            context={where()}
-            onRun={onRun}
-          />
+          <SourcePanel code={props.code} translate={docsFiles} styling={styling()} context={where()} onRun={onRun} />
         </div>
       </Show>
     </div>

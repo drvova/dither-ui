@@ -18,7 +18,6 @@ import EngineSection from "../../src/pages/docs/handbook/EngineSection"
 import VerificationSection from "../../src/pages/docs/handbook/VerificationSection"
 import QuickStart from "../../src/pages/docs/overview/QuickStart"
 import PrimitivesDocs from "../../src/pages/docs/primitives/PrimitivesDocs"
-import { setDocsFramework } from "../../src/pages/docs/svelte"
 import TextDocs from "../../src/pages/docs/text/TextDocs"
 import TypographyDocs from "../../src/pages/docs/typography/TypographyDocs"
 import { world } from "../world"
@@ -45,7 +44,6 @@ afterEach(() => {
   cleanup()
   w.restore()
   vi.useRealTimers()
-  setDocsFramework("solid")
   localStorage.clear()
 })
 
@@ -252,12 +250,12 @@ describe("the Quick start", () => {
       code: li.querySelector(".qs-code pre")!.textContent,
     }))
 
-  it("shows the Solid kit's steps one at a time, numbered, each with its code", () => {
+  it("shows the kit's steps one at a time, numbered, each with its code", () => {
     const { container } = render(() => <QuickStart />)
     const section = container.querySelector("section#getting-started")!
     expect(section.querySelector("h2")!.textContent).toBe("Quick start")
     expect(stepsOf(container)).toEqual(
-      INSTALL_STEPS.solid.map((s, i) => ({ n: String(i + 1), title: s.title, why: s.why, code: s.code })),
+      INSTALL_STEPS.map((s, i) => ({ n: String(i + 1), title: s.title, why: s.why, code: s.code })),
     )
     const lede = section.querySelector("p")!.textContent!.replace(/\s+/g, " ").trim()
     expect(lede).toBe(
@@ -269,29 +267,11 @@ describe("the Quick start", () => {
     )
   })
 
-  it("shows the Svelte kit's steps to a Svelte reader", () => {
-    const { container } = render(() => <QuickStart />)
-    setDocsFramework("svelte")
-    expect(stepsOf(container)).toEqual(
-      INSTALL_STEPS.svelte.map((s, i) => ({ n: String(i + 1), title: s.title, why: s.why, code: s.code })),
-    )
-    const section = container.querySelector("section#getting-started")!
-    expect(section.querySelector("p")!.textContent).toContain("dither-kit-svelte/")
-    expect(section.querySelector("p")!.textContent).toContain("You already have Svelte 5, and Tailwind if you use it.")
-    expect(section.querySelector<HTMLAnchorElement>("p:last-of-type a")!.href).toBe(
-      "https://github.com/drvova/dither-ui/tree/master/dither-kit-svelte",
-    )
-  })
-
-  it("reads the stored framework once it is in a browser", () => {
+  it("shows them to a reader who once stored Svelte as their framework", () => {
     localStorage.setItem("dither-docs-framework", "svelte")
-    // a module that has not restored yet
-    vi.resetModules()
-    return (async () => {
-      const { default: Fresh } = await import("../../src/pages/docs/overview/QuickStart")
-      const { container } = render(() => <Fresh />)
-      expect(container.querySelector(".qs-code pre")!.textContent).toBe(INSTALL_STEPS.svelte[0].code)
-    })()
+    const { container } = render(() => <QuickStart />)
+    expect(stepsOf(container).map((s) => s.code)).toEqual(INSTALL_STEPS.map((s) => s.code))
+    expect(container.textContent).not.toMatch(/svelte/i)
   })
 })
 

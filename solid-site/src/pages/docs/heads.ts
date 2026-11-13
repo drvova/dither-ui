@@ -28,14 +28,14 @@ const PAGES: Record<
   landing: {
     card: "home",
     description:
-      "dither-ui is a Solid UI toolkit of 270 components drawn pixel by pixel from one seeded palette: charts, controls, forms, overlays, backgrounds, text effects, 3D models and shaders. A Svelte 5 port, a live docs section for every component and a Studio your coding agent can drive. MIT licensed.",
+      "dither-ui is a Solid UI toolkit of 270 components drawn pixel by pixel from one seeded palette: charts, controls, forms, overlays, backgrounds, text effects, 3D models and shaders. A live docs section for every component and a Studio your coding agent can drive. MIT licensed.",
     keywords:
       "dither, dithering, Solid, SolidJS, UI toolkit, component library, charts, canvas, pixel art, ordered dither, Bayer, seed-generative, shadcn, Base UI, data visualization",
     data: {
       ...APP,
       name: "dither-ui",
       description:
-        "A Solid UI toolkit of 270 components drawn pixel by pixel from one seeded palette, with a Svelte 5 port, live docs and a Studio your coding agent can drive.",
+        "A Solid UI toolkit of 270 components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive.",
       operatingSystem: "Web",
       license: "https://opensource.org/licenses/MIT",
       author: { "@type": "Organization", name: "dither-ui" },

@@ -1,7 +1,7 @@
 // The glide everywhere (the user's call): one curve eases every transition
 // and every driven wipe on the site, full speed from the first frame and a
 // long soft settle, never past its mark. The kit's "glide" easing is the
-// source (`GLIDE_BEZIER`); both stylesheets carry that bezier, and no other
+// source (`GLIDE_BEZIER`); the site's stylesheet carries that bezier, and no other
 // curve or linear wipe is left in the site's own motion. The kit's spring
 // stays the kit's (its "spring" easing), held here too.
 import { readdirSync, readFileSync, statSync } from "node:fs"
@@ -23,7 +23,6 @@ const MOTION_ROOTS = [
   "src/widgets/site-header",
   "solid-site/src/pages/landing",
   "solid-site/src/widgets/site-header",
-  "svelte-site/src/landing",
 ]
 const MOTION_FILES = [
   "solid-site/src/pages/docs/DocsNav.tsx",
@@ -40,7 +39,7 @@ function* files(dir: string): Generator<string> {
   for (const name of readdirSync(join(root, dir))) {
     const path = join(dir, name)
     if (statSync(join(root, path)).isDirectory()) yield* files(path)
-    else if (/\.(tsx|svelte|css|ts)$/.test(name)) yield path
+    else if (/\.(tsx|css|ts)$/.test(name)) yield path
   }
 }
 
@@ -88,26 +87,22 @@ describe("the glide", () => {
     expect(resolveEasing("glide")(0.5)).toBeCloseTo(glide(0.5))
   })
 
-  it("is what both sites' stylesheets carry", () => {
-    for (const sheet of ["src/app/styles.css", "svelte-site/src/landing/landing.css"]) {
-      const css = read(sheet)
-      expect(css).toContain(`--ease-settle: cubic-bezier(${GLIDE_BEZIER.join(", ")});`)
-      expect(css).not.toContain("--ease-settle: linear(")
-    }
-    expect(read("src/app/styles.css")).toContain("--default-transition-timing-function: var(--ease-settle);")
+  it("is what the site's stylesheet carries", () => {
+    const css = read("src/app/styles.css")
+    expect(css).toContain(`--ease-settle: cubic-bezier(${GLIDE_BEZIER.join(", ")});`)
+    expect(css).not.toContain("--ease-settle: linear(")
+    expect(css).toContain("--default-transition-timing-function: var(--ease-settle);")
   })
 
-  it("carries an in-page link on both landings, and never under reduced motion", () => {
+  it("carries an in-page link on the landing, and never under reduced motion", () => {
     const rule = `@media (prefers-reduced-motion: no-preference) {
   :root[data-page="landing"] {
     scroll-behavior: smooth;
   }
 }`
-    for (const sheet of ["src/pages/landing/chapters.css", "svelte-site/src/landing/landing.css"]) {
-      const css = read(sheet)
-      expect(css).toContain(rule)
-      expect(css.match(/scroll-behavior/g)).toHaveLength(1)
-    }
+    const css = read("src/pages/landing/chapters.css")
+    expect(css).toContain(rule)
+    expect(css.match(/scroll-behavior/g)).toHaveLength(1)
     expect(read("src/app/styles.css")).not.toContain("scroll-behavior")
   })
 

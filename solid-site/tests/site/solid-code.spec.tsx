@@ -1,5 +1,4 @@
-// The docs' snippets as Solid: the Vue → Solid translation (`toSolidCode`,
-// held to every case the Vue site held its Svelte translation to, and one
+// The docs' snippets as Solid: the Vue → Solid translation (`toSolidCode`, one case
 // per construct the snippets use), the same file in each styling system
 // (`restyle` for Solid), and a sweep: every snippet the docs carry, as the
 // file the source panel shows, parses as TSX in all four systems.
@@ -11,8 +10,7 @@ import { restyle, restyleSolid, STYLINGS } from "@/shared/lib/restyle-rewrite"
 import { asSfc, snippetKind } from "@/widgets/source/model/files"
 import { toSolidCode } from "../../src/pages/docs/solid"
 
-// Inputs are verbatim Vue docs snippets: the cases of the earlier Vue site's
-// `tests/svelte-code.spec.ts`, one for one, in its order.
+// Inputs are verbatim docs snippets, in the authoring notation.
 describe("toSolidCode", () => {
   it("translates a full SFC snippet: script setup, ref, v-model, kit import", () => {
     expect(
@@ -731,7 +729,6 @@ describe("every docs snippet, as Solid", () => {
     expect(cut.map((c) => c.file).sort()).toEqual([
       "solid-site/src/pages/docs/DocsPage.tsx",
       "solid-site/src/pages/docs/animations/AnimationsDocs.tsx",
-      "src/pages/docs/svelte-code.ts",
     ])
   })
 

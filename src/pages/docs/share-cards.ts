@@ -34,7 +34,7 @@ export const ROUTE_CARDS = [
     id: "home",
     url: `${SITE_URL}/`,
     title: "dither-ui",
-    line: "A dithered UI toolkit for Solid and Svelte",
+    line: "A dithered UI toolkit for Solid",
     description:
       "270 Solid components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed.",
     links: [

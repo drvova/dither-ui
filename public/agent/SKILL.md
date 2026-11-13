@@ -5,8 +5,7 @@ description: Compose dither-ui screens, components and charts as Studio document
 
 # dither-ui Studio
 
-dither-ui is a Solid toolkit (plus a Svelte 5 port) rendered on one ordered-dither
-canvas engine: charts, 55+ components, generative backgrounds, text and motion
+dither-ui is a Solid toolkit rendered on one ordered-dither canvas engine: charts, 55+ components, generative backgrounds, text and motion
 effects, all seed-deterministic. The **Studio** at https://dither-ui.com/studio is
 an infinite-canvas editor: every frame ("artboard") is a chart, a widget, one
 registry component, or a **screen** composed of rows of registry components.

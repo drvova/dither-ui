@@ -1,8 +1,7 @@
 // A number with its decimals fixed, in the reader's locale. `toLocaleString`
 // with options builds a new formatter every call; a counter rolling every
 // frame built one a frame (and a page of them, one each, at mount). One
-// formatter per precision, made once. Framework-free: both kits' copies are
-// verbatim.
+// formatter per precision, made once. Framework-free.
 
 const FORMATS = new Map<number, Intl.NumberFormat>()
 

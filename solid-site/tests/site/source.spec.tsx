@@ -1,5 +1,5 @@
 // The docs previews' source panel on Solid: the files a preview is made of,
-// the compiler and the linker behind Run, the kits' served sources, and a
+// the compiler and the linker behind Run, the kit's served sources, and a
 // DemoCard opened to its files, edited and run. The earlier Vue site's
 // `tests/source.spec.ts`, case for case where the behaviour is this site's
 // too (the zip, the sounds and the StyleX runtime are the earlier Vue site's own
@@ -8,12 +8,12 @@ import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
+import { KIT_SRC } from "@/shared/lib/kit-sources"
 import { restyleSolid, STYLINGS } from "@/shared/lib/restyle-rewrite"
 import { kitFiles } from "../../kit-sources"
 import DemoCard, { DEMO_FIT } from "../../src/pages/docs/DemoCard"
-import PropsTable from "../../src/pages/docs/PropsTable"
 import { toSolidCode } from "../../src/pages/docs/solid"
-import { docsCode, docsFramework, docsStyling, docsStylings, setDocsFramework } from "../../src/pages/docs/svelte"
+import { docsCode } from "../../src/pages/docs/snippet"
 import { setStyling } from "../../src/shared/lib/restyle"
 import {
   type Compile,
@@ -37,14 +37,11 @@ import {
 import { PACKAGES } from "../../src/widgets/source/model/run"
 import { world } from "../world"
 
-// the build's own listing of each kit (`kitSources` in `../../kit-sources.ts`)
-const SOLID = await kitFiles("solid")
-const SVELTE = await kitFiles("svelte")
+// the build's own listing of the kit (`kitSources` in `../../kit-sources.ts`)
+const SOLID = await kitFiles()
 const solidFiles = SOLID.map((f) => f.file)
-const svelteFiles = SVELTE.map((f) => f.file)
 const read = (list: typeof SOLID, file: string) => readFileSync(list.find((f) => f.file === file)!.path, "utf8")
 const SOLID_INDEX = await loadKitIndex(async (f) => read(SOLID, f), solidFiles, "solid/index.ts")
-const SVELTE_INDEX = kitIndex(read(SVELTE, "index.ts"), svelteFiles)
 
 const SWITCH = `<script setup lang="ts">
 import { ref } from "vue"
@@ -79,8 +76,8 @@ beforeAll(async () => {
   compile = await compiler()
 }, 60000)
 
-describe("the kits' served sources", () => {
-  it("lists the Solid kit as its files import each other, and the Svelte kit whole", () => {
+describe("the kit's served sources", () => {
+  it("lists the kit as its files import each other", () => {
     expect(solidFiles).toContain("solid/index.ts")
     expect(solidFiles).toContain("solid/DitherSwitch.tsx")
     expect(solidFiles).toContain("solid/runtime/surface.ts")
@@ -90,9 +87,6 @@ describe("the kits' served sources", () => {
     // the Tailwind layer gives its framework-free modules only; the StyleX layer nothing
     expect(solidFiles.filter((f) => /\.vue$|^stylex\/|node_modules/.test(f))).toEqual([])
     expect(solidFiles).toEqual([...solidFiles].sort())
-    expect(svelteFiles).toContain("index.ts")
-    expect(svelteFiles).toContain("backgrounds/Aurora.svelte")
-    expect(svelteFiles.filter((f) => f.startsWith("node_modules/"))).toEqual([])
   })
 
   it("holds every file the Solid kit's own files import", () => {
@@ -113,7 +107,6 @@ describe("source files", () => {
     expect(SOLID_INDEX.get("copyText")).toEqual({ file: "engine/copy-text.ts", name: "copyText" })
     expect(kitIndex(read(SOLID, "solid/index.ts"), solidFiles, "solid/index.ts").has("copyText")).toBe(false)
     expect(SOLID_INDEX.has("DitherButtonProps")).toBe(false)
-    expect(SVELTE_INDEX.get("Aurora")?.file).toBe("backgrounds/Aurora.svelte")
     expect(resolveKitFile("../engine/pixel", solidFiles, "solid/DitherButton.tsx")).toBe("engine/pixel.ts")
     expect(resolveKitFile("./DitherSwitch", solidFiles, "solid/index.ts")).toBe("solid/DitherSwitch.tsx")
     expect(resolveKitFile("../tailwind/lib", solidFiles, "solid/DitherButton.tsx")).toBe("tailwind/lib.ts")
@@ -150,25 +143,20 @@ export default function Example() {
     )
   })
 
-  it("lists the kit files an example imports, per framework", () => {
+  it("lists the kit files an example imports", () => {
     const solid =
       'import { DitherSwitch, DitherButton, type DitherColor } from "@dither-kit"\nimport { createSignal } from "solid-js"'
-    expect(kitFilesOf(solid, "solid", SOLID_INDEX, solidFiles)).toEqual([
-      "solid/DitherSwitch.tsx",
-      "solid/DitherButton.tsx",
-    ])
-    const svelte =
-      'import { Aurora } from "@dither-kit-svelte"\nimport { toast } from "@dither-kit-svelte/runtime/toast.svelte"'
-    expect(kitFilesOf(svelte, "svelte", SVELTE_INDEX, svelteFiles)).toEqual([
-      "backgrounds/Aurora.svelte",
-      "runtime/toast.svelte.ts",
+    expect(kitFilesOf(solid, SOLID_INDEX, solidFiles)).toEqual(["solid/DitherSwitch.tsx", "solid/DitherButton.tsx"])
+    // a file of the kit by its path
+    expect(kitFilesOf('import { cn } from "@dither-kit/tailwind/lib"', SOLID_INDEX, solidFiles)).toEqual([
+      "tailwind/lib.ts",
     ])
   })
 
   it("names the example and writes the brief from the files", () => {
-    expect(exampleName("area-chart", 1, "sfc", "solid")).toBe("AreaChartExample.tsx")
-    expect(exampleName("switch", 2, "fragment", "svelte")).toBe("SwitchExample2.svelte")
-    expect(exampleName("install", 1, "sh", "solid")).toBe("install.sh")
+    expect(exampleName("area-chart", 1, "sfc")).toBe("AreaChartExample.tsx")
+    expect(exampleName("switch", 2, "fragment")).toBe("SwitchExample2.tsx")
+    expect(exampleName("install", 1, "sh")).toBe("install.sh")
     const files: SourceFile[] = [
       { path: "SwitchExample.tsx", name: "SwitchExample.tsx", lang: "tsx", role: "example" },
       { path: "SwitchExample.css", name: "SwitchExample.css", lang: "css", role: "styles" },
@@ -182,7 +170,6 @@ export default function Example() {
         description: "A dithered toggle.",
         url: "https://dither-ui.com/docs/switch",
         install: "npx degit drvova/dither-ui/dither-kit src/dither-kit",
-        flavor: "solid",
         styling: "css",
       },
       files,
@@ -196,9 +183,6 @@ export default function Example() {
     expect(md).toContain("plain CSS, in the stylesheet the example imports")
     expect(md).toContain("Render `SwitchExample.tsx`")
     expect(md).not.toMatch(/\n\n\n/)
-    expect(
-      promptFor({ title: "", description: "", url: "", install: "", flavor: "svelte", styling: "css" }, files),
-    ).toContain("Svelte 5 (runes")
   })
 })
 
@@ -320,8 +304,6 @@ export const mode = import.meta.env.MODE`,
     const failures: string[] = []
     let snippets = 0
     for (const file of docs.flatMap(files)) {
-      // the translator's own source: its literals name constructs, they are not snippets
-      if (file.endsWith("svelte-code.ts")) continue
       for (const m of readFileSync(file, "utf8").matchAll(/`((?:[^`\\]|\\.)*)`/g)) {
         if (!/<[A-Za-z]/.test(m[1])) continue
         const code = m[1]
@@ -346,68 +328,32 @@ export const mode = import.meta.env.MODE`,
   }, 120000)
 })
 
-describe("the reader's framework and styling system", () => {
+describe("the reader's styling system", () => {
   afterEach(() => {
-    setDocsFramework("solid")
     setStyling("tailwind")
     localStorage.clear()
   })
 
-  it("shows Solid first, remembers Svelte, and has no CSS Modules under Svelte", () => {
-    expect(docsFramework()).toBe("solid")
+  it("shows a snippet in Solid, whatever framework an earlier visit stored", () => {
+    localStorage.setItem("dither-docs-framework", "svelte")
     expect(docsCode('<DitherSwitch v-model="on" />')).toBe(
       "<DitherSwitch modelValue={on()} onUpdateModelValue={setOn} />",
     )
     setStyling("modules")
-    expect(docsStylings()).toEqual(STYLINGS)
-    expect(docsStyling()).toBe("modules")
-    setDocsFramework("svelte")
-    expect(localStorage.getItem("dither-docs-framework")).toBe("svelte")
-    expect(docsCode('<DitherSwitch v-model="on" />')).toBe("<DitherSwitch bind:value={on} />")
-    expect(docsStylings()).toEqual(["tailwind", "css", "stylex"])
-    expect(docsStyling()).toBe("css")
-  })
-
-  it("writes a prop table as authored for Solid, and in Svelte's words for its port", () => {
-    const rows = [
-      { prop: "modelValue", type: "boolean (with onUpdateModelValue)", default: "false" },
-      { prop: "snapPoint", type: "number (with onUpdateSnapPoint)", default: "first snap" },
-      { prop: "onSelect / onHoverChange", type: "(value), after onClose", default: "" },
-      { prop: "preview", type: "({ item }) => JSX.Element (custom preview content)", default: "label + hint" },
-      { prop: "compact / children", type: "JSX.Element (children: the detail panel)", default: "" },
-    ]
-    const view = render(() => <PropsTable rows={rows} />)
-    const cells = () => [...view.container.querySelectorAll("td")].map((td) => td.textContent)
-    // a Solid reader gets the rows as written
-    expect(cells()).toEqual(rows.flatMap((r) => [r.prop, r.type, r.default || "none"]))
-    setDocsFramework("svelte")
-    expect(cells()).toEqual([
-      ...["value", "boolean (bind:value)", "false"],
-      ...["snapPoint", "number (bind:snapPoint)", "first snap"],
-      // a one-word event is lowercase in the port, a two-word one keeps its capitals
-      ...["onselect / onHoverChange", "(value), after onclose", "none"],
-      ...["preview", "Snippet<[{ item }]> (custom preview content)", "label + hint"],
-      ...["compact / children", "Snippet (children: the detail panel)", "none"],
-    ])
-    expect(view.container.querySelector("dt")!.textContent).toBe("value")
-    cleanup()
-    const none = render(() => <PropsTable rows={[{ prop: "seed", type: "number", default: "" }]} />)
-    expect(none.container.querySelectorAll("td")[2].textContent).toBe("none")
-    cleanup()
+    expect(docsCode('<div class="flex" />')).toContain("<div class={styles.row} />")
   })
 })
 
 describe("the source panel on a docs preview", () => {
   let w: ReturnType<typeof world>
   const kits = (url: string) => {
-    const m = /kit\/src\/(solid|svelte)\/(.+)$/.exec(String(url))
-    const list = m?.[1] === "svelte" ? SVELTE : SOLID
-    const text = !m
-      ? undefined
-      : m[2] === "files.json"
-        ? JSON.stringify(list.map((f) => f.file))
-        : list.some((f) => f.file === m[2])
-          ? read(list, m[2])
+    const at = String(url).indexOf(KIT_SRC)
+    const file = at < 0 ? undefined : String(url).slice(at + KIT_SRC.length)
+    const text =
+      file === "files.json"
+        ? JSON.stringify(solidFiles)
+        : file !== undefined && solidFiles.includes(file)
+          ? read(SOLID, file)
           : undefined
     return { ok: text !== undefined, status: text !== undefined ? 200 : 404, text: async () => text ?? "" }
   }
@@ -454,8 +400,8 @@ describe("the source panel on a docs preview", () => {
   afterEach(() => {
     cleanup()
     document.querySelectorAll("section").forEach((s) => s.remove())
-    setDocsFramework("solid")
     setStyling("tailwind")
+    localStorage.clear()
     w.restore()
     vi.unstubAllGlobals()
   })
@@ -488,12 +434,12 @@ describe("the source panel on a docs preview", () => {
     expect(files()).toEqual(["SwitchExample.tsx", "DitherSwitch.tsx", "theme.css", "prompt.md"])
     expect(editor().value).toBe(SWITCH_TSX)
     expect(editor().getAttribute("aria-label")).toBe("SwitchExample.tsx source")
-    // the chips: Solid and Svelte, and the four styling systems
+    // the chips: the four styling systems, and no framework to pick
     const chips = (label: string) =>
       [...card.querySelectorAll(`[role="group"][aria-label="${label}"] button`)].map(
         (b) => `${b.textContent!.trim()}${b.getAttribute("aria-pressed") === "true" ? "*" : ""}`,
       )
-    expect(chips("Framework")).toEqual(["Solid*", "Svelte"])
+    expect(chips("Framework")).toEqual([])
     expect(chips("Styling")).toEqual(["Tailwind*", "CSS", "Modules", "StyleX"])
 
     type(SWITCH_TSX.replace(">Bloom on hover</span>", ">Edited in the page</span>"))
@@ -612,26 +558,18 @@ describe("the source panel on a docs preview", () => {
     expect(card.querySelector('.demo-well [role="switch"]')!.className).not.toBe("")
   }, 120000)
 
-  it("shows Svelte's files, and says why it does not run them", async () => {
-    const { card, tab, chip, files, editor, problems, code } = open()
+  it("shows a reader who once stored Svelte the Solid files, and runs them", async () => {
+    localStorage.setItem("dither-docs-framework", "svelte")
+    const { card, files, editor, run, problems, code } = open()
     await code()
-    fireEvent.click(chip("Svelte"))
-    await settle()
-    expect(files()).toEqual(["SwitchExample.svelte", "DitherSwitch.svelte", "theme.css", "prompt.md"])
-    expect(editor().value).toContain("let bloom = $state(true)")
-    expect(editor().value).toContain("<DitherSwitch bind:value={bloom}")
-    const runKey = card.querySelector("button.src-run")!
-    expect(runKey.getAttribute("aria-disabled")).toBe("true")
-    fireEvent.click(runKey)
-    expect(card.querySelector(".src-status")!.textContent).toBe(
-      "The preview runs the Solid kit; switch the framework to Solid to run.",
-    )
+    expect(files()).toEqual(["SwitchExample.tsx", "DitherSwitch.tsx", "theme.css", "prompt.md"])
+    expect(editor().value).toBe(SWITCH_TSX)
+    expect(card.querySelector("button.src-run")!.getAttribute("aria-disabled")).not.toBe("true")
+    await run()
     expect(problems()).toBeNull()
-    expect(card.textContent).not.toContain("Running your files")
-    fireEvent.click(tab("prompt.md"))
-    expect(editor().value).toContain("Svelte 5 (runes")
-    expect(editor().value).toContain("`dither-kit-svelte/")
-  })
+    expect(card.textContent).toContain("Running your files")
+    expect(card.textContent).not.toMatch(/svelte/i)
+  }, 120000)
 
   it("moves through the file tabs by keyboard, and reverts an edit", async () => {
     const { card, files, editor, type, code } = open()

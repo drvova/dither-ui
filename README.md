@@ -23,8 +23,8 @@
 A dithered UI toolkit for Solid. 270 components draw themselves pixel by pixel
 from one seeded palette: charts, controls, forms, overlays, backgrounds, text
 effects, 3D models and GLSL shaders, all through the same ordered-dither
-(Bayer) engine. It has a Svelte 5 port, a live docs section for every
-component, and a Studio your coding agent can drive.
+(Bayer) engine. It has a live docs section for every component, and a Studio
+your coding agent can drive.
 
 Live at **[dither-ui.com](https://dither-ui.com)**, with the [docs](https://dither-ui.com/docs) and the [Studio](https://dither-ui.com/studio).
 
@@ -83,9 +83,7 @@ On StyleX, alias `"@dither-kit"` to `./src/dither-kit/solid-stylex` instead, ins
 component that takes `class` also takes `xstyle`: your StyleX styles, merged
 after its own.
 
-Svelte 5 apps copy `drvova/dither-ui/dither-kit-svelte` instead and import from
-`@dither-kit-svelte`. Charts use a children-as-config API: compose parts inside
-a root.
+Charts use a children-as-config API: compose parts inside a root.
 
 ```tsx
 import {
@@ -154,7 +152,7 @@ tags or borders:
 ### Docs
 
 Every component has a section at `/docs/<id>`: a live preview, its props table,
-pickers for its variants and the code. The code comes in Solid or Svelte, written
+pickers for its variants and the code. The code is Solid, written
 with Tailwind classes, plain CSS, CSS Modules or StyleX. Every preview is also a
 working tool.
 
@@ -407,9 +405,7 @@ dither-kit/          the Solid kit (@dither-kit): copy-in, MIT, no imports from 
   solid/         the components, styled with Tailwind (what @dither-kit points at)
   solid-stylex/  the same components in StyleX, generated from solid/
   tailwind/      what both share: the class helpers, the kit's stylesheet entry
-dither-kit-svelte/   the Svelte 5 port (runes)
 solid-site/          the site on SolidStart: routes, pages, widgets, its build and tests
-svelte-site/         a Svelte showcase built on the port
 bridge/              the local bridge between the Studio and your coding agent
 discord/             the /component slash command for Discord
 benchmarks/          the engine's hot paths, timed in Node
@@ -463,7 +459,7 @@ Dithering approach and the original **Dither Kit** charts by
 [tripwire.sh/dither-kit](https://www.tripwire.sh/dither-kit).
 
 The site names the tools it works with by their own marks: npm, pnpm, Bun,
-Node.js, Solid, Svelte, Tailwind CSS, CSS Modules, CSS, GitHub, Qwen and OpenCode
+Node.js, Solid, Tailwind CSS, CSS Modules, CSS, GitHub, Qwen and OpenCode
 from [Simple Icons](https://simpleicons.org) (CC0); Claude Code, Codex,
 Gemini CLI and Goose from [LobeHub icons](https://github.com/lobehub/lobe-icons)
 (MIT); oh-my-pi, Auggie and StyleX from their own sites. Each mark is its owner's trademark,

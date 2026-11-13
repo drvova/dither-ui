@@ -1,11 +1,10 @@
 // The Quick start: the kit is a folder, so installing it is a few steps a
 // reader takes one at a time, each with its own copy (`@/pages/docs/install`
-// holds both kits'). Then the question a reader asks next, under its own
+// holds them). Then the question a reader asks next, under its own
 // heading: the kit without Tailwind.
-import { createMemo, For, onMount, Show } from "solid-js"
+import { For, Show } from "solid-js"
 import { INSTALL_DEPS, INSTALL_STEPS } from "@/pages/docs/install"
 import { CodeBlock } from "~/shared/ui"
-import { docsFramework, restoreDocsFramework } from "../svelte"
 import "./QuickStart.css"
 
 const COUNT = ["no", "one", "two", "three", "four", "five", "six"]
@@ -28,30 +27,21 @@ const LINK =
 const CODE = "text-foreground/80"
 
 export default function QuickStart() {
-  const kind = docsFramework
-  // the reader's own framework, read once in a browser
-  onMount(restoreDocsFramework)
-  const steps = createMemo(() => INSTALL_STEPS[kind()])
-  const folder = createMemo(() => (kind() === "svelte" ? "dither-kit-svelte" : "dither-kit"))
-  const packages = createMemo(() => INSTALL_DEPS[kind()])
-  const deps = createMemo(() => COUNT[packages().length] ?? String(packages().length))
-  const already = createMemo(() =>
-    kind() === "svelte" ? "Svelte 5, and Tailwind if you use it" : "Solid, and Tailwind if you use it",
-  )
+  const deps = COUNT[INSTALL_DEPS.length] ?? String(INSTALL_DEPS.length)
 
   return (
     <section id="getting-started" class="quick-start-scope mt-16 scroll-mt-24">
       <h2 class="text-lg tracking-tight">Quick start</h2>
       <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-        The kit is a folder, not a package. Copy <code class={CODE}>{folder()}/</code> from the{" "}
+        The kit is a folder, not a package. Copy <code class={CODE}>dither-kit/</code> from the{" "}
         <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class={LINK}>
           GitHub repo<span class="sr-only"> (opens in a new tab)</span>
         </a>
-        , install {deps()} small runtime deps and alias it. You already have {already()}.
+        , install {deps} small runtime deps and alias it. You already have Solid, and Tailwind if you use it.
       </p>
 
       <ol class="mt-6 flex flex-col gap-6" aria-label="Install steps">
-        <For each={steps()}>
+        <For each={INSTALL_STEPS}>
           {(step, i) => (
             <li class="qs-step">
               <span class="qs-n" aria-hidden="true">
@@ -90,12 +80,12 @@ export default function QuickStart() {
       <p class="mt-6 text-[12px] leading-relaxed text-muted-foreground">
         Prefer to read the source first? Every component lives under{" "}
         <a
-          href={`https://github.com/drvova/dither-ui/tree/master/${folder()}`}
+          href="https://github.com/drvova/dither-ui/tree/master/dither-kit"
           target="_blank"
           rel="noreferrer"
           class={LINK}
         >
-          {folder()}/<span class="sr-only"> (opens in a new tab)</span>
+          dither-kit/<span class="sr-only"> (opens in a new tab)</span>
         </a>
         . No build step, no black box.
       </p>

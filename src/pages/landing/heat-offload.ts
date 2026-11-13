@@ -5,9 +5,7 @@
 // frame (a copy, under a tenth of a millisecond) and asks for the frame due
 // at the next paint, so what shows lands on time. The first paint, and any
 // sheet that holds still, paints here at once; without workers every paint
-// does. Shared byte for byte with the Svelte landing
-// (tests/svelte-site-copies.spec.ts), as `heat-ask.ts` and `heat-worker.ts`
-// are.
+// does.
 import type { Rgb } from "@dither-kit/engine/palette"
 import type { RasterBuffer } from "@dither-kit/engine/raster"
 import { CLOSE, paintHeat } from "./heat"

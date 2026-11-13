@@ -36,8 +36,8 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   timing, sequence, clock, wipe, keyframes, score, parsers and GL engines,
   `copy-text.ts`, `theme.css`, `theme.ts` and `base.css` (the scoped
   box-model base every layer assumes). It imports only `d3-*` and itself,
-  never a framework or a styling layer (`tests/solid-kit.spec.ts`), and is
-  what the Svelte port copies verbatim. Behaviour lives here: where a
+  never a framework or a styling layer (`tests/solid-kit.spec.ts`).
+  Behaviour lives here: where a
   runtime must follow a component's lifecycle, a core holds the behaviour
   (`surface-loop.ts`, the loop behind every generative surface;
   `visibility.ts`) and the framework's binding is a few lines over it
@@ -127,15 +127,14 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
 - Covers: `engine/cover.ts` holds every loop under a layer that covers
   the page (`coverPage(el)` raises it, `coverPage(null)` lifts it): the
   loop gates (the engine's `watchVisibility`, so the surface loop and every
-  canvas loop gated on it, and the Solid runtime's `createInviewLoop`; the
-  Svelte kit's `ditherBackground` action) read a covered element as out of
+  canvas loop gated on it, and the Solid runtime's `createInviewLoop`) read a covered element as out of
   view and wake as the cover lifts; loops inside the covering layer run on.
   `tests/surface-loop.spec.ts` and the cover's cases in
   `solid-site/tests/carried.spec.tsx`.
 - Motion: `engine/spring.ts` is Apple's smooth spring (critically damped,
   from rest, settling to within a thousandth by its end, never past its
   mark; one shape at every duration), the `"spring"` easing name in
-  `dither-paint.ts` (both kits). It also gives the curve as CSS `linear()`
+  `dither-paint.ts`. It also gives the curve as CSS `linear()`
   (`springLinear`) and the closest bezier (`SPRING_BEZIER`, within 3.5%)
   for stylesheets. The `"glide"` easing (`glide`, `GLIDE_BEZIER`, in
   `dither-paint.ts`) leaves at full speed and settles long and soft,
@@ -145,27 +144,27 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
 - `DitherCommand` is modal: Escape closes, Tab never leaves it (focus
   returns to its input; the list is arrow-driven), focus restores to the
   opener on close. With nothing matching it shows `empty`: a string, or a
-  function (the Svelte kit: a snippet) that draws it instead, given the
+  function that draws it instead, given the
   query.
-- `DitherGauge` (both kits) is an instrument dial, read-only
+- `DitherGauge` is an instrument dial, read-only
   (`role="meter"`, valued, named by its `label`, read out as the reading
   and the label): its geometry and its band live in `engine/gauge.ts`
   (one 240-degree sweep from the lower left, the band printed through
   `useDitherMatrix` filled to the needle, the zone past `warn` in the
   warning ink); ticks, numerals (every other major past six intervals)
   and the needle are SVG over it. A changed value settles on the kit's
-  spring; reduced motion and a director's clock stand it on the reading
-  (the Svelte port has no director). Guarded by `tests/gauge.spec.ts`.
-- `DitherScope` (both kits) is an oscilloscope screen (`role="img"`,
+  spring; reduced motion and a director's clock stand it on the reading.
+  Guarded by `tests/gauge.spec.ts`.
+- `DitherScope` is an oscilloscope screen (`role="img"`,
   named by its `label` or its wave): its trace lives in `engine/scope.ts`
   (a named wave or samples in -1..1 across a 5:4 screen; the beam bright
   where it moves slowly and faint on its edges, a glow on the rows beside
   it; a named wave's afterglow is the trace at earlier phases, so a moment
   prints the same however it was reached); the graticule is SVG over it.
   A named wave drifts at `speed` while on screen; reduced motion holds it
-  and a director's clock sets its phase (the Svelte port has no director).
+  and a director's clock sets its phase.
   Guarded by `tests/scope.spec.ts`.
-- `DitherTabs` (both kits) keeps its marker canvas (the underline or the
+- `DitherTabs` keeps its marker canvas (the underline or the
   wash) INSIDE the `relative` tablist, positioned from the selected tab's
   offsets: a list that scrolls (more tabs than width) carries the marker
   with its tab and clips it at its edges. Outside the list, it stayed put
@@ -284,7 +283,7 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   first state), then for the run, which drops it to end the transition.
   Without the API, under reduced motion or while the clock is directed,
   `update` just runs (a browser-started one is skipped). Pinned by
-  `tests/transition.spec.ts`; not in the Svelte kit, like the wipe.
+  `tests/transition.spec.ts`.
 - `score.ts` is the score engine: a film's soundtrack synthesized from its
   cut, sample by sample, in plain arithmetic (polyBLEP oscillators, a
   state-variable filter, a ping-pong echo, Freeverb's hall; no Web Audio,
@@ -300,8 +299,7 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   under 25 Hz, a soft clip to a 0.89 peak. `wavBytes(audio, seed)` writes a
   16-bit stereo WAV with seeded triangular dither. The same plan and seed
   give the same samples (it reads no time and no entropy). The Studio's
-  films carry it into their videos and preview it; not ported to the Svelte
-  kit (nor are the wipe and keyframe engines). Pinned by
+  films carry it into their videos and preview it. Pinned by
   `tests/score.spec.ts`.
 - Type voice: the kit's controls speak `--font-mono` (Button, Badge,
   Toaster, Command), and every overlay that PORTALS to `<body>` carries
@@ -309,13 +307,11 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   `DitherDrawer`, `DitherContextMenu`, `CenterMorphModal` — because a
   portal leaves the host's font behind (the body's sans, not the page's
   voice). Where the panel takes `class`, a consumer's `font-sans` wins
-  through `cn()`. New portaled overlays follow; the Svelte port mirrors
-  each one.
+  through `cn()`. New portaled overlays follow.
 - Modal focus: every modal overlay holds focus through `FocusScope` (in on
   open, Tab cycling inside, back to its opener on close; only rendered
   controls are its Tab endpoints, never one hidden by CSS); `DitherDrawer`
-  wraps its panel in one while `modal`. The Svelte port, which has no
-  `FocusScope`, does the same inline in each overlay. Pinned by the
+  wraps its panel in one while `modal`. Pinned by the
   `FocusScope` and `DitherDrawer` cases of
   `solid-site/tests/w2part5.spec.tsx`.
 - Styling contract: Tailwind is the kit's authoring tool, not a requirement
@@ -330,9 +326,8 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   (Tailwind's preflight is the global version the site uses), scoped under
   `.dither-kit` through `:where()` at zero specificity. `tailwind/kit.css` is
   the standalone entry: the two files plus Tailwind's utilities with
-  `source(none)` and `@source` limited to `dither-kit/tailwind/`,
-  `dither-kit/solid/` and `dither-kit-svelte/` (one stylesheet serves
-  either kit), in the `dither-kit.theme/base/utilities` layers;
+  `source(none)` and `@source` limited to `dither-kit/tailwind/` and
+  `dither-kit/solid/`, in the `dither-kit.theme/base/utilities` layers;
   `scripts/kit-css.mjs` (`buildKitCss`, called by the site's post-build;
   `npm run build:css` writes the file alone) compiles it with
   `@tailwindcss/node` + `oxide` into `kit/dither-kit.css` in the site's
@@ -371,7 +366,7 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   the slider, knob, colour planes, scrub grip, slide and hold actions,
   signature pad, drawer handle; a model orbits under `pan-y`) and ends its
   drag on `pointercancel` as on `pointerup`. A list option (select,
-  combobox, autocomplete; both kits) keeps focus on `pointerdown` and picks
+  combobox, autocomplete) keeps focus on `pointerdown` and picks
   on `click`, so a finger that scrolls the list picks nothing. The video
   player falls back to the video's own fullscreen
   (`webkitEnterFullscreen`) where an element has none (an iPhone) and
@@ -439,8 +434,7 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   `tests/container.spec.ts` (boundaries, ordering, overlaps, quantize) and
   the `DitherContainer` cases of `solid-site/tests/carried-motion.spec.tsx`
   (observer, var/attr writes, scope state, silent-observer fallback) pin
-  both halves; the docs' `v-slot` snippet rides the `toSvelteCode`
-  children-snippet rule (`tests/svelte-code.spec.ts`).
+  both halves.
 - Seed-generative contract: a `number` is a deterministic SEED everywhere a
   visual input is accepted — `VariantInput` (texture via `textureFromSeed`),
   `BloomInput`/`PixelBloomInput` (`bloomFromSeed`; pixel.ts mirrors the exact
@@ -465,7 +459,7 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   clean sweep (optionally reversed), higher jitter dissolves the fill so it
   develops out of order — half of all seeds stay a clean sweep. A column's
   dissolve threshold is `revealThreshold` (capped at 1, so the finished
-  reveal holds every column; both kits' cartesian canvases call it).
+  reveal holds every column; the cartesian canvas calls it).
   Chart roots take a master `seed` prop deriving duration, delay,
   easing, stagger, sparkle character, geometry, matrix, bloom (+ startAngle on
   polar) with precedence: explicit prop > seed derivation > house default. All
@@ -500,7 +494,7 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   generative background surfaces (FaultyTerminal, Ferrofluid, Aurora, and the
   ones that follow) share these rules: WebGL-free canvas + Bayer, a self-sizing
   `relative h-full w-full` root, and an ordinary `COMPONENT_REGISTRY` entry.
-- `Circuit` (`circuit.ts`, both kits) is a board: `circuitBoard(cols,
+- `Circuit` (`circuit.ts`) is a board: `circuitBoard(cols,
   rows, { density, pitch, seed })` lays chips on a lattice (a node of
   clearance each) and routes traces from their pins, then free runs, in
   straight runs with 45 degree jogs that never take a held node nor cut a
@@ -510,7 +504,7 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   signal per trace whose head (`signalHead`, a pure function of time)
   runs in `pulse` with a `SIGNAL_TAIL` fading through the thresholds.
   Guarded by `tests/circuit.spec.ts`.
-- `HeatTrail` (`heat-trail.ts`, both kits; exported as `DitherHeatTrail`) is the
+- `HeatTrail` (`heat-trail.ts`; exported as `DitherHeatTrail`) is the
   pointer printing: heat per cell, `trailTo` stamps the kit's diamond
   (hottest at its heart, its rim `RIM_COOL` cooler, so a stroke cools from
   its edges in and tapers like a comet, never one width along) at every cell from the stroke's last point, so a
@@ -764,12 +758,10 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   a restart, still paint before the loop stands down (so a paused surface
   repaints when a `restart` source such as a drag changes); a surface out of
   view at first paints that frame as it comes into view, and a pause that
-  lands before it keeps it (`tests/surface.spec.ts`; the Svelte runtime
-  alike). A restart keeps a paint already queued: a `restart` source driven
+  lands before it keeps it (`tests/surface.spec.ts`). A restart keeps a paint already queued: a `restart` source driven
   every frame (a `time`, a `scatter` from the page's own clock) once
   cancelled each queued paint and starved the surface until the driving
-  stopped (the Svelte action's `restartKey` alike; both in
-  `tests/surface.spec.ts`). A still surface
+  stopped (`tests/surface.spec.ts`). A still surface
   (static mode, reduced motion) paints its one frame in `start()` and the
   visibility wake never starts the loop behind it — it did once, and every
   background animated under reduced motion as soon as it scrolled into view.
@@ -785,11 +777,10 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   asked for once per element, and the observer's report repaints a held
   surface only where it shows (its first report on observe painted every
   paused surface down the page at load); a surface first painted out of
-  view waits for the visibility wake. The Svelte runtime alike, its cadence
-  gates before `measure()` too (`tests/surface.spec.ts` counts the reads).
+  view waits for the visibility wake (`tests/surface.spec.ts` counts the reads).
   Every paint books its time against one budget a frame
-  (`engine/frame-budget.ts`, `FRAME_BUDGET_MS` 8, shared by every surface
-  of a kit; the Svelte kit's copy verbatim): past it a due paint waits a
+  (`engine/frame-budget.ts`, `FRAME_BUDGET_MS` 8, shared by every surface):
+  past it a due paint waits a
   frame, consuming nothing, and one that waited always paints, so no
   surface runs more than a frame late and where several cadences meet the
   frame holds the budget and one paint, not all of them
@@ -813,7 +804,7 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   tone turns over (the tiles' negative) and the screen slides `speed` cells a second on the
   clock; `ground` `transparent` leaves open cells clear. Its screen is the
   one around it, else Bayer. Pinned by `tests/poster.spec.ts`.
-- `format-number.ts` (`formatFixed`, both kits verbatim) is how a counter
+- `format-number.ts` (`formatFixed`) is how a counter
   prints a number with its decimals fixed: one `Intl.NumberFormat` a
   precision, made once (`toLocaleString` with options built one a call, a
   rolling `CountUp` one a frame); `CountUp` and `NumberFlow` use it.
@@ -885,7 +876,7 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   with a `restartToken` guard and sizes its canvas from its ResizeObserver's
   report (`borderBoxSize`), never a read of its box, so a wall of buttons
   starting together forces no layout (a static button, without one, reads
-  once; both kits). `DitherToggleGroup` defers `paintAll()` via RAF.
+  once). `DitherToggleGroup` defers `paintAll()` via RAF.
 - A canvas painted cell by cell writes a raster and uploads it once: a
   RasterBuffer + `putRasterBuffer` (`paintToggleCanvas`, the spinner's
   loop), or `cellCanvas(ctx, cols, rows)` (`raster.ts`), whose `cell` /
@@ -917,13 +908,12 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
 - Text and targets hold WCAG AA in both themes, measured on the rendered
   page. No readable text fades under 4.5:1: `faint` tones share the muted
   ink; a field's placeholder takes ONE token, `--placeholder`, in every
-  control of both ports (`placeholder:text-placeholder`, the
-  `--color-placeholder` map in `kit.css`, the site's and the Svelte site's
-  stylesheets, `base.css`'s `::placeholder`; unset, the muted ink). Each
+  control (`placeholder:text-placeholder`, the
+  `--color-placeholder` map in `kit.css` and the site's
+  stylesheet, `base.css`'s `::placeholder`; unset, the muted ink). Each
   theme sets it in the muted ink's hue, as dim as AA allows in a field (the
   page at 60% over any ground, 4.6:1 at worst, under 5:1 on the page): the
-  kit's two, the site's light, the docs' and the landing's darks, and the
-  Svelte site's copies; a theme that moves its muted ink or grounds
+  kit's two, the site's light, the docs' and the landing's darks; a theme that moves its muted ink or grounds
   re-picks it. `tests/placeholder.spec.ts` and `theme-contrast.spec.ts`
   hold every one; and only `aria-hidden` separators and the wheel picker's masked edge
   rows keep a fade. The light `--swatch-*` inks clear 5:1 on white. A label
@@ -946,7 +936,7 @@ folders keep these names (`solid`, `solid-stylex`); no rename is decided.
   visible before calling `onWake` so `schedule()` sees the correct state.
 - A chart loop that skips a frame with nothing new to paint still asks for
   the next one while its entrance is under way (a delay, or two frames on
-  one timestamp), in the engine's cartesian loop and the Svelte kit's copy; else it stops
+  one timestamp), in the engine's cartesian loop; else it stops
   part drawn until a hover wakes it. `tests/chart-entrance.spec.ts`.
 - `precompile.ts` must remain browser/SSR safe: it returns raw RGBA buffers and
   must not import a framework, DOM APIs, or a server-specific image encoder. Consumers

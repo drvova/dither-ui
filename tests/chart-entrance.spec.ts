@@ -2,9 +2,8 @@
 // A chart's entrance plays to its end on its own. The paint loop skips a
 // frame with nothing new to paint; it used to let go of the loop there too,
 // so an entrance with a delay (or two frames on one timestamp) stopped part
-// drawn until a hover woke it (the Svelte landing's area chart showed only
-// January). The Svelte kit carries the same loop inline.
-import { readFileSync } from "node:fs"
+// drawn until a hover woke it (a landing area chart showed only
+// January).
 import { afterEach, expect, it } from "rstack/test"
 import { startCartesianLoop } from "@dither-kit/engine/cartesian-loop"
 
@@ -77,9 +76,4 @@ it("keeps painting through an entrance's delay until the entrance is done", () =
   // Run the frames the loop asks for, 16ms apart, for a second.
   for (let t = 16; t <= 1000 && frames.length; t += 16) frames.shift()!(t)
   expect(done).toBe(true)
-})
-
-it("keeps the Svelte kit's copy of the loop on the same rule", () => {
-  const svelte = readFileSync("dither-kit-svelte/charts/CartesianCanvas.svelte", "utf8")
-  expect(svelte).toContain("if (sparkleMotion || (animate && !entranceReported)) schedule()")
 })

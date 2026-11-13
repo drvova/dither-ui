@@ -174,51 +174,6 @@ describe("a surface driven every frame", () => {
   })
 })
 
-describe("the Svelte runtime driven every frame", () => {
-  it("paints while its restart key changes every frame", async () => {
-    const { ditherBackground } = await import("../dither-kit-svelte/runtime/use-dither-background")
-    rs.stubGlobal(
-      "IntersectionObserver",
-      class {
-        constructor(private callback: IntersectionObserverCallback) {}
-        observe() {
-          this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as never)
-        }
-        disconnect() {}
-      },
-    )
-    const frames = new Map<number, FrameRequestCallback>()
-    let id = 0
-    rs.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => (frames.set(++id, cb), id))
-    rs.stubGlobal("cancelAnimationFrame", (n: number) => frames.delete(n))
-    const wrap = document.createElement("div")
-    const canvas = document.createElement("canvas")
-    let paints = 0
-    const params = (key: number) => ({
-      canvas,
-      cell: 4,
-      maxCols: 8,
-      maxRows: 8,
-      dpr: 1,
-      restartKey: String(key),
-      render: () => void paints++,
-    })
-    const action = ditherBackground(wrap, params(0))
-    // each frame the page's own callback moves the key first, then the surface's runs
-    for (let f = 1; f <= 10; f++) {
-      const due = [...frames.keys()]
-      action.update(params(f))
-      for (const n of due) {
-        const cb = frames.get(n)
-        frames.delete(n)
-        cb?.(f * 40)
-      }
-    }
-    expect(paints).toBeGreaterThanOrEqual(8)
-    action.destroy()
-  })
-})
-
 describe("a surface reads the page once, not once a frame", () => {
   /** Ten painted frames of a surface in view; what it read from the page. */
   async function tenFrames(start: (wrap: HTMLElement, canvas: HTMLCanvasElement) => () => void) {
@@ -293,29 +248,10 @@ describe("a surface reads the page once, not once a frame", () => {
     expect(paints).toBeGreaterThanOrEqual(8)
     expect(read).toEqual({ contexts: 1, boxes: 1, resized: 1 })
   })
-
-  it("the Svelte runtime measures its box and asks for its context once", async () => {
-    const { ditherBackground } = await import("../dither-kit-svelte/runtime/use-dither-background")
-    let paints = 0
-    const read = await tenFrames((wrap, canvas) => {
-      const action = ditherBackground(wrap, {
-        canvas,
-        cell: 4,
-        maxCols: 8,
-        maxRows: 8,
-        dpr: 1,
-        restartKey: "",
-        render: () => void paints++,
-      })
-      return () => action.destroy()
-    })
-    expect(paints).toBeGreaterThanOrEqual(8)
-    expect(read).toEqual({ contexts: 1, boxes: 1, resized: 1 })
-  })
 })
 
 describe("a held surface out of view", () => {
-  it("never paints when the resize observer first reports, in either runtime", async () => {
+  it("never paints when the resize observer first reports", async () => {
     rs.stubGlobal(
       "IntersectionObserver",
       class {
@@ -340,19 +276,7 @@ describe("a held surface out of view", () => {
     )
     await nextTick()
     await nextTick()
-    const { ditherBackground } = await import("../dither-kit-svelte/runtime/use-dither-background")
-    const action = ditherBackground(document.createElement("div"), {
-      canvas: document.createElement("canvas"),
-      cell: 4,
-      maxCols: 8,
-      maxRows: 8,
-      dpr: 1,
-      paused: true,
-      restartKey: "",
-      render: () => void paints++,
-    })
     expect(paints).toBe(0)
-    action.destroy()
     w.unmount()
   })
 })

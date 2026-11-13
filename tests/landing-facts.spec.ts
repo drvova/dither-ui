@@ -27,9 +27,6 @@ const kit = JSON.parse(readFileSync(new URL("../dither-kit/package.json", import
   peerDependencies: Record<string, string>
   peerDependenciesMeta: Record<string, { optional?: boolean }>
 }
-const port = JSON.parse(readFileSync(new URL("../dither-kit-svelte/package.json", import.meta.url), "utf8")) as {
-  peerDependencies: Record<string, string>
-}
 
 describe("landing facts", () => {
   it("counts the kit's public Dither components", () => {
@@ -63,8 +60,6 @@ describe("landing facts", () => {
     const spec = (label: string) => SPECS.find((s) => s.label === label)?.value ?? ""
     expect(spec("Components")).toContain("Solid")
     expect(kit.peerDependencies["solid-js"]).toMatch(/^\^1\./)
-    expect(spec("Components")).toContain("Svelte 5")
-    expect(port.peerDependencies.svelte).toMatch(/^\^5\./)
     expect(spec("Engine")).toContain(`${SCREENS.bayer.length}×${SCREENS.bayer[0].length}`)
     expect(spec("Screens")).toBe(SCREEN_KINDS.join(", "))
     for (const name of Object.values(STYLING_LABELS)) expect(spec("Styling")).toContain(name)
@@ -73,19 +68,21 @@ describe("landing facts", () => {
   })
 
   it("calls the product a Solid toolkit wherever a reader, a crawler or an agent is told what it is", () => {
-    // The kit and the site were Vue once: copy that still says so tells a
+    // The kit is Solid's alone: copy that names another framework tells a
     // reader to install the wrong thing. Every place that states what the
-    // product is, by file: none names Vue, and the ones that name the
-    // framework name Solid.
+    // product is, by file: none names Vue or Svelte, and the ones that name
+    // the framework name Solid.
     const read = (f: string) => readFileSync(new URL(`../${f}`, import.meta.url), "utf8")
     const told = [
       "src/shared/config/titles.ts",
       "src/pages/docs/seo.ts",
       "src/pages/docs/share-cards.ts",
       "src/pages/docs/crawler-files.ts",
+      "src/pages/docs/install.ts",
       "src/pages/landing/facts.ts",
       "src/pages/landing/story.ts",
       "solid-site/src/pages/docs/heads.ts",
+      "solid-site/src/pages/docs/overview/QuickStart.tsx",
       "solid-site/src/pages/landing/Showcase.tsx",
       "solid-site/src/pages/landing/LandingPage.tsx",
       "solid-site/src/features/agent/film.ts",
@@ -94,12 +91,14 @@ describe("landing facts", () => {
       "dither-kit/package.json",
       "dither-kit/README.md",
     ]
-    for (const f of told) expect(read(f).match(/.*\bvue\b.*/gi) ?? [], f).toEqual([])
+    for (const f of told) expect(read(f).match(/.*\b(?:vue|svelte)\b.*/gi) ?? [], f).toEqual([])
+    // generated copy, and the README (its credits may name Vue)
+    for (const text of [llmsTxt(), read("README.md")]) expect(text.match(/.*svelte.*/gi) ?? []).toEqual([])
     for (const title of [ROUTE_TITLES.landing, ROUTE_TITLES.docs, ROUTE_TITLES.studio]) expect(title).toContain("Solid")
     expect(DOCS_ROOT.description).toContain("Solid")
     expect(docsMeta("button").description).toContain("a Solid UI toolkit")
     expect(llmsTxt()).toContain("dither-ui is a Solid UI toolkit")
-    expect(ROUTE_CARDS[0].line).toBe("A dithered UI toolkit for Solid and Svelte")
+    expect(ROUTE_CARDS[0].line).toBe("A dithered UI toolkit for Solid")
     for (const f of ["public/agent/SKILL.md", "dither-kit/package.json", "solid-site/src/pages/docs/heads.ts"])
       expect(read(f)).toMatch(/\bSolid\b/)
     expect(JSON.parse(read("dither-kit/package.json")).keywords).toContain("solid")

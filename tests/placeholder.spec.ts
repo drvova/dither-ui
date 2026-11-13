@@ -1,4 +1,4 @@
-// A field's placeholder: one ink for the whole kit and its Svelte port, the
+// A field's placeholder: one ink for the whole kit, the
 // theme's `--placeholder` (unset, its muted ink), set per theme a step under
 // the muted ink and as dim as AA allows on a field's ground. The shared field
 // control once took 60% of the muted ink (2.8:1 dark, 2.6:1 light) while ten
@@ -30,15 +30,15 @@ function files(dir: string): string[] {
       ? []
       : e.isDirectory()
         ? files(join(dir, e.name))
-        : /\.(vue|svelte|ts)$/.test(e.name)
+        : /\.ts$/.test(e.name)
           ? [join(dir, e.name)]
           : [],
   )
 }
 
 describe("a field's placeholder", () => {
-  it("is read through the one token in every kit control, both ports", () => {
-    const stray = [...files(`${root}dither-kit/tailwind`), ...files(`${root}dither-kit-svelte`)].flatMap((f) =>
+  it("is read through the one token in every kit control", () => {
+    const stray = files(`${root}dither-kit/tailwind`).flatMap((f) =>
       [...readFileSync(f, "utf8").matchAll(/placeholder:[\w/[\]-]+/g)]
         .map((m) => m[0])
         .filter((c) => c !== "placeholder:text-placeholder")
@@ -48,7 +48,7 @@ describe("a field's placeholder", () => {
     expect(readFileSync(`${root}dither-kit/engine/base.css`, "utf8")).toContain(
       "color: var(--placeholder, var(--muted-foreground));",
     )
-    for (const css of ["dither-kit/tailwind/kit.css", "src/app/styles.css", "svelte-site/src/app.css"])
+    for (const css of ["dither-kit/tailwind/kit.css", "src/app/styles.css"])
       expect(readFileSync(`${root}${css}`, "utf8"), css).toContain(
         "--color-placeholder: var(--placeholder, var(--muted-foreground));",
       )
@@ -65,12 +65,5 @@ describe("a field's placeholder", () => {
       expect(contrast(ink, page)).toBeLessThan(contrast(colour(t["muted-foreground"]), page))
       expect(contrast(ink, page)).toBeLessThan(5)
     }
-  })
-
-  it("is the kit's in the Svelte site's copy of its themes", () => {
-    const app = readFileSync(`${root}svelte-site/src/app.css`, "utf8")
-    const values = (css: string) => [...css.matchAll(/--placeholder:\s*([^;]+);/g)].map((m) => m[1])
-    expect(values(app)).toEqual(values(theme))
-    expect(values(theme)).toHaveLength(2)
   })
 })

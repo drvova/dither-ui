@@ -14,6 +14,7 @@ import { GROUPS } from "@/pages/docs/groups"
 import { PACKS, type PackName } from "@/pages/docs/packs"
 import { SECTION_IDS } from "@/pages/docs/pages"
 import { docsBreadcrumb, docsMeta } from "@/pages/docs/seo"
+import { STYLING_LABELS } from "@/shared/lib/restyle-rewrite"
 import { SHEET_WIPE, bandFill } from "@/widgets/site-header/menu"
 import DocsNav, { docsUrl, NAV_LINK, type PagePart } from "../../src/pages/docs/DocsNav"
 import DocsPage, { DOCS_GROUND } from "../../src/pages/docs/DocsPage"
@@ -22,7 +23,6 @@ import DocsSheet, { SHEET_ID } from "../../src/pages/docs/DocsSheet"
 import OnThisPage from "../../src/pages/docs/OnThisPage"
 import { PACK_COMPONENTS, PACK_LOADERS, preloadOpenPacks } from "../../src/pages/docs/pack-loaders"
 import SectionShare from "../../src/pages/docs/SectionShare"
-import { setDocsFramework } from "../../src/pages/docs/svelte"
 import { world } from "../world"
 
 const SITE = join(__dirname, "../..")
@@ -43,7 +43,6 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   w.restore()
-  setDocsFramework("solid")
   localStorage.clear()
   document.head.querySelectorAll("title, meta, link, script").forEach((el) => el.remove())
   delete document.documentElement.dataset.page
@@ -365,7 +364,6 @@ describe("the docs' page", () => {
     expect([...front[0].querySelectorAll(".speed-tag")].map((t) => t.textContent)).toEqual([
       `${ids.length} sections`,
       "Solid",
-      "Svelte 5",
       "Tailwind or StyleX",
     ])
     // no Share for the front: it is no section's page
@@ -520,16 +518,19 @@ describe("the docs' page", () => {
     const group = (name: string) => document.querySelector(`main [role="group"][aria-label="${name}"]`)!
     const pressed = (name: string) =>
       [...group(name).querySelectorAll("button[aria-pressed='true']")].map((b) => b.textContent?.trim())
-    expect(pressed("Framework")).toEqual(["Solid"])
+    // the code is Solid: there is no framework to switch
+    expect(document.querySelector('main [role="group"][aria-label="Framework"]')).toBeNull()
     expect(pressed("Styling")).toEqual(["Tailwind"])
+    expect([...group("Styling").querySelectorAll("button")].map((b) => b.textContent?.trim())).toEqual(
+      Object.values(STYLING_LABELS),
+    )
     const code = () => document.querySelector("#styling pre")?.textContent ?? ""
     const solid = code()
     expect(solid).toContain("<AreaChart")
-    fireEvent.click([...group("Framework").querySelectorAll("button")][1])
-    expect(pressed("Framework")).toEqual(["Svelte"])
-    // a Svelte component has no CSS Modules
-    expect([...group("Styling").querySelectorAll("button")].map((b) => b.textContent?.trim())).not.toContain("Modules")
-    fireEvent.click([...group("Framework").querySelectorAll("button")][0])
+    fireEvent.click([...group("Styling").querySelectorAll("button")][1])
+    expect(pressed("Styling")).toEqual([STYLING_LABELS.css])
+    expect(code()).not.toBe(solid)
+    fireEvent.click([...group("Styling").querySelectorAll("button")][0])
     expect(code()).toBe(solid)
     const sound = document.querySelector<HTMLButtonElement>('button[aria-label="Interface sounds"]')!
     expect(sound.getAttribute("aria-pressed")).toBe("true")

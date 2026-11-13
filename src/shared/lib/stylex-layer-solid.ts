@@ -430,7 +430,7 @@ function solidFile(
     s.edit(
       end,
       end,
-      `${end ? "\n" : ""}import * as stylex from "@stylexjs/stylex"\n\n${stylexText(ctx.names.all, "")}\n${end ? "" : "\n"}`,
+      `${end ? "\n" : ""}import * as stylex from "@stylexjs/stylex"\n\n${stylexText(ctx.names.all)}\n${end ? "" : "\n"}`,
     )
   const named = lib?.importClause?.namedBindings
   const had = named && ts.isNamedImports(named) ? named.elements.map((e) => e.getText()) : []

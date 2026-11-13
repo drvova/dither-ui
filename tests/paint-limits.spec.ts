@@ -1,9 +1,7 @@
 // The paths that paint the kit at memory speed must paint exactly what the
 // slow paths painted: a cell laid by `cellCanvas` is the pixel a fillStyle
 // string and a 1x1 fillRect over a cleared canvas leave, and fbm with its
-// lattice cache is bit-identical to summing valueNoise. The Svelte port
-// paints through the same bytes: its engine is a verbatim copy.
-import { readdirSync, readFileSync } from "node:fs"
+// lattice cache is bit-identical to summing valueNoise.
 import { describe, expect, it } from "rstack/test"
 import { fbm, valueNoise } from "../dither-kit/engine/noise"
 import { cellCanvas } from "../dither-kit/engine/raster"
@@ -99,20 +97,5 @@ describe("fbm's lattice cache", () => {
       .map((v) => v.s)
     for (const [x, y, t] of shuffled) expect(fbm(x, y, t)).toBe(reference(x, y, t))
     expect(fbm(-12.5, 7.25, -3)).toBe(reference(-12.5, 7.25, -3))
-  })
-})
-
-describe("the Svelte port's engine", () => {
-  // dither-paint.ts carries the port's one deliberate change (its AGENTS.md).
-  const OWN = new Set(["dither-paint.ts"])
-
-  it("is the kit's engine, byte for byte", () => {
-    const files = readdirSync("dither-kit-svelte/engine").filter((f) => f.endsWith(".ts") && !OWN.has(f))
-    expect(files).toContain("raster.ts")
-    expect(files).toContain("noise.ts")
-    for (const f of files)
-      expect(readFileSync(`dither-kit-svelte/engine/${f}`, "utf8"), f).toBe(
-        readFileSync(`dither-kit/engine/${f}`, "utf8"),
-      )
   })
 })

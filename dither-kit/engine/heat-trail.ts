@@ -4,7 +4,7 @@
 // nothing is left and the ground is still again. The field is heat per
 // cell: a stroke stamps along its path (never a dotted line however fast
 // the hand), and time only ever takes heat away, at one rate, so a cooled
-// field is exactly empty. Framework-free: both kits share it verbatim.
+// field is exactly empty. Framework-free.
 
 import type { Rgb } from "./palette"
 import type { RasterBuffer } from "./raster"

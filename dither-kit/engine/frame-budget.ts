@@ -4,8 +4,8 @@
 // (measured on the landing: frames of 20ms and more where two met). A paint
 // asks first: past the budget it waits one frame, and one that has waited
 // always paints, so nothing runs more than a frame late and no frame holds
-// more than the budget and one paint. Framework-free: both kits' runtimes
-// read it (the Svelte kit's copy is verbatim).
+// more than the budget and one paint. Framework-free: every surface's
+// runtime reads it.
 
 /** Main-thread ms the kit's paints may take in one frame, together: half a
  * 60Hz frame, the rest left to the page's own work and the browser's. */

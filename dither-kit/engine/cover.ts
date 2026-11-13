@@ -3,7 +3,7 @@
 // kit loop under it holds its last frame (nothing it would paint can be
 // seen, and its frames would only steal the cover's own), and each wakes as
 // the cover lifts, its timing kept. Loops inside the cover run on. Plain DOM,
-// no framework, so both kits share it verbatim.
+// no framework.
 
 let layer: Element | null = null
 const listeners = new Set<() => void>()

@@ -1,11 +1,9 @@
 // The rise (the user's call): as a headline comes into view its words come
 // up one after another, a short travel each on the glide, then what stands
 // with it (`data-rise` on a block) follows in turn. `rise(node)` goes on the
-// element that holds them: a Svelte action as it stands, `vRise` the Vue
-// directive over it; the words come from each site's `RiseWords`. Under
+// element that holds them; the words come from the site's `RiseWords`. Under
 // reduced motion everything stands where it is. What the prerendered bytes
-// show before the app runs waits in `rise-wait.ts`. Framework-free, so the
-// Svelte site keeps a byte-for-byte copy (tests/svelte-site-copies.spec.ts).
+// show before the app runs waits in `rise-wait.ts`. Framework-free.
 import { GLIDE_BEZIER } from "@dither-kit/engine/dither-paint"
 import { RISE_LIVE } from "./rise-wait"
 
@@ -68,11 +66,4 @@ export function rise(node: HTMLElement): { destroy(): void } {
   )
   io.observe(node)
   return { destroy: () => io.disconnect() }
-}
-
-const rising = new WeakMap<HTMLElement, { destroy(): void }>()
-/** `rise` as a Vue directive (`v-rise`). */
-export const vRise = {
-  mounted: (el: HTMLElement) => void rising.set(el, rise(el)),
-  unmounted: (el: HTMLElement) => rising.get(el)?.destroy(),
 }

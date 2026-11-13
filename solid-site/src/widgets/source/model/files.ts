@@ -1,18 +1,16 @@
 // What a docs preview is made of, as files: the example as a complete file
-// in the reader's framework (a fragment completed by `asSfc`, then
-// translated by the page: a Solid `.tsx` module, or a Svelte
-// component), the stylesheet a Solid file imports on CSS or CSS Modules, the
+// (a fragment completed by `asSfc`, then translated by the page into a Solid
+// `.tsx` module), the stylesheet it imports on CSS or CSS Modules, the
 // kit's own source for every kit export the example imports, the kit's
 // tokens, and a prompt that hands the lot to a coding agent. Pure: the panel
-// fetches the kit sources and renders these. What does not depend on the
-// framework (a snippet's kind, its completion) is `@/widgets/source/model/files`,
-// re-exported; what reads a kit's files is written here, since the Solid
-// kit's are `.tsx`.
+// fetches the kit sources and renders these. What does not read a kit file
+// (a snippet's kind, its completion) is `@/widgets/source/model/files`,
+// re-exported; what reads the kit's files is written here, since they are
+// `.tsx`.
 export { asSfc, snippetKind } from "@/widgets/source/model/files"
 import type { snippetKind } from "@/widgets/source/model/files"
 
-export type Flavor = "solid" | "svelte"
-export type Lang = "tsx" | "svelte" | "ts" | "css" | "md" | "sh"
+export type Lang = "tsx" | "ts" | "css" | "md" | "sh"
 
 export interface SourceFile {
   /** Its path in the download: the example and prompt at the root, the
@@ -28,14 +26,14 @@ export interface SourceFile {
   text?: string
 }
 
-export const KIT_FOLDER: Record<Flavor, string> = { solid: "dither-kit", svelte: "dither-kit-svelte" }
-/** Each kit's public index, inside the folder the build serves it from: the
- * Solid kit's components live in `solid/`, over the shared `engine/`. */
-export const KIT_ENTRY: Record<Flavor, string> = { solid: "solid/index.ts", svelte: "index.ts" }
-const PACKAGE: Record<Flavor, string> = { solid: "@dither-kit", svelte: "@dither-kit-svelte" }
+/** The kit's folder in a reader's project (and in the download). */
+export const KIT_FOLDER = "dither-kit"
+/** The kit's public index, inside the folder the build serves it from: the
+ * components live in `solid/`, over the `engine/`. */
+export const KIT_ENTRY = "solid/index.ts"
+const PACKAGE = "@dither-kit"
 
-/** A relative kit import (`./pixel`, `../engine/pixel`, `./DitherButton`,
- * `./controls/Button.svelte`) made in the kit file `from` (the kit's root
+/** A relative kit import (`./pixel`, `../engine/pixel`, `./DitherButton`) made in the kit file `from` (the kit's root
  * when omitted) as the kit file it names, if the kit has it. */
 export function resolveKitFile(spec: string, files: readonly string[], from = ""): string | undefined {
   const parts = from.split("/").slice(0, -1)
@@ -92,15 +90,13 @@ export async function loadKitIndex(
 /** The kit files an example imports, in order of first use. */
 export function kitFilesOf(
   example: string,
-  flavor: Flavor,
   exports: Map<string, { file: string; name: string }>,
   files: readonly string[],
 ): string[] {
-  const pkg = PACKAGE[flavor]
   const out: string[] = []
   const add = (f?: string) => f && !out.includes(f) && out.push(f)
   for (const m of example.matchAll(/import\s*\{([^}]*)\}\s*from\s*["']([^"']+)["']/g)) {
-    if (m[2] === pkg)
+    if (m[2] === PACKAGE)
       for (const raw of m[1].split(",")) {
         const name = raw
           .trim()
@@ -108,31 +104,30 @@ export function kitFilesOf(
           .split(/\s+as\s+/)[0]
         if (name && !raw.trim().startsWith("type ")) add(exports.get(name)?.file)
       }
-    else if (m[2].startsWith(`${pkg}/`)) add(resolveKitFile(`./${m[2].slice(pkg.length + 1)}`, files))
+    else if (m[2].startsWith(`${PACKAGE}/`)) add(resolveKitFile(`./${m[2].slice(PACKAGE.length + 1)}`, files))
   }
   return out
 }
 
 const pascal = (id: string) => id.replace(/(^|[-_\s]+)([a-z0-9])/gi, (_, __, c: string) => c.toUpperCase())
-const EXTENSION: Record<Flavor, string> = { solid: "tsx", svelte: "svelte" }
 
 /** The example's file name: `SwitchExample.tsx`, `install.sh`. */
-export function exampleName(section: string, n: number, kind: ReturnType<typeof snippetKind>, flavor: Flavor) {
+export function exampleName(section: string, n: number, kind: ReturnType<typeof snippetKind>) {
   const suffix = n > 1 ? `${n}` : ""
-  if (kind === "sfc" || kind === "fragment") return `${pascal(section || "docs")}Example${suffix}.${EXTENSION[flavor]}`
+  if (kind === "sfc" || kind === "fragment") return `${pascal(section || "docs")}Example${suffix}.tsx`
   return `${section || "example"}${suffix ? `-${suffix}` : ""}.${kind}`
 }
 
 /** Where a preview sits and what it shows: its section id, its place among
  * the section's previews, the section's title and line, its URL, and the
- * docs' install steps per framework. */
+ * docs' install steps. */
 export interface SourceContext {
   section: string
   n: number
   title: string
   description: string
   url: string
-  install: Record<Flavor, string>
+  install: string
 }
 
 export interface PromptContext {
@@ -140,39 +135,24 @@ export interface PromptContext {
   description: string
   url: string
   install: string
-  flavor: Flavor
   styling: string
 }
 
-const STYLE_NOTES: Record<Flavor, Record<string, string>> = {
-  solid: {
-    tailwind: "Tailwind v4 utilities, as in the example; the kit's tokens (`theme.css`) are plain custom properties",
-    css: "plain CSS, in the stylesheet the example imports; the kit's components read the tokens in `theme.css`",
-    modules:
-      "CSS Modules, in the `.module.css` the example imports as `styles`; the kit's components read the tokens in `theme.css`",
-    stylex:
-      "StyleX (`@stylexjs/stylex`, compiled by its bundler plugin) for the example's own elements: `{...stylex.props(…)}` on an element, the class it gives (`stylex.props(…).className`) as a kit component's `class`; the kit's components keep their own classes and read the tokens in `theme.css`",
-  },
-  svelte: {
-    tailwind: "Tailwind v4 utilities, as in the example; the kit's tokens (`theme.css`) are plain custom properties",
-    css: "plain CSS, in the example's own `<style>` block; the kit's components read the tokens in `theme.css`",
-    stylex:
-      "StyleX (`@stylexjs/stylex`, compiled by its bundler plugin) for the example's own elements; the kit's components keep their own classes and read the tokens in `theme.css`",
-  },
+const STYLE_NOTES: Record<string, string> = {
+  tailwind: "Tailwind v4 utilities, as in the example; the kit's tokens (`theme.css`) are plain custom properties",
+  css: "plain CSS, in the stylesheet the example imports; the kit's components read the tokens in `theme.css`",
+  modules:
+    "CSS Modules, in the `.module.css` the example imports as `styles`; the kit's components read the tokens in `theme.css`",
+  stylex:
+    "StyleX (`@stylexjs/stylex`, compiled by its bundler plugin) for the example's own elements: `{...stylex.props(…)}` on an element, the class it gives (`stylex.props(…).className`) as a kit component's `class`; the kit's components keep their own classes and read the tokens in `theme.css`",
 }
 /** Where a system without Tailwind gets the kit's own classes. */
 const NO_TAILWIND = ". Without Tailwind, link the compiled kit stylesheet: https://dither-ui.com/kit/dither-kit.css"
-const STACK: Record<Flavor, string> = {
-  solid: "SolidJS (a `.tsx` component, signals)",
-  svelte: 'Svelte 5 (runes, `<script lang="ts">`)',
-}
-
 /** prompt.md: the files handed to a coding agent, what to build, with
  * what, and how to check it against the live preview. */
 export function promptFor(ctx: PromptContext, files: SourceFile[]): string {
   const example = files.find((f) => f.role === "example")
   const kit = files.filter((f) => f.role === "kit")
-  const notes = STYLE_NOTES[ctx.flavor]
   const lines = [
     `# ${ctx.title}`,
     "",
@@ -182,8 +162,8 @@ export function promptFor(ctx: PromptContext, files: SourceFile[]): string {
     "",
     "## Build it",
     "",
-    `- Stack: ${STACK[ctx.flavor]} with TypeScript, and dither-kit (MIT) copied into the project — the kit is source you own, not a package.`,
-    `- Styling: ${notes[ctx.styling] ?? notes.tailwind}${NO_TAILWIND}`,
+    `- Stack: SolidJS (a \`.tsx\` component, signals) with TypeScript, and dither-kit (MIT) copied into the project — the kit is source you own, not a package.`,
+    `- Styling: ${STYLE_NOTES[ctx.styling] ?? STYLE_NOTES.tailwind}${NO_TAILWIND}`,
     kit.length
       ? `- Uses: ${kit.map((f) => `\`${f.name}\` (\`${f.path}\`)`).join(", ")} — the kit's own source, included here so you read the real props, slots and defaults.`
       : "",

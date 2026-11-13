@@ -5,8 +5,7 @@
 // runs there: the plates keep their clear band for the brand (`plateField`
 // in `plate.ts`), and the close keeps the install's column clear and runs
 // hot along its flat foot, where the footer rises into it through one tab
-// (`closeField`). One painter on the kit's own noise, shared byte for byte
-// with the Svelte landing (tests/svelte-site-copies.spec.ts).
+// (`closeField`). One painter on the kit's own noise.
 import { fbm } from "@dither-kit/engine/noise"
 import type { Rgb } from "@dither-kit/engine/palette"
 import type { RasterBuffer } from "@dither-kit/engine/raster"

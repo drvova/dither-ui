@@ -28,9 +28,9 @@ holds what is framework free (see `src/AGENTS.md`).
   kind (`snippetKind`) and a fragment completed into a whole file in the
   authoring notation (`asSfc`), which the translators then read.
 - `solid-site/src/widgets/source/model/files.ts` — pure: re-exports the
-  above, and what reads a kit's files: the kit index as export → file
+  above, and what reads the kit's files: the kit index as export → file
   (`kitIndex`, `loadKitIndex`), `resolveKitFile`, the kit files an example
-  imports per framework (`kitFilesOf`), file names (`exampleName`),
+  imports (`kitFilesOf`), file names (`exampleName`),
   `prompt.md` (`promptFor`).
 - `solid-site/src/widgets/source/model/compile.ts` — pure but for one
   fetch: Solid's own compiler (`@babel/standalone` with
@@ -60,30 +60,30 @@ holds what is framework free (see `src/AGENTS.md`).
 
 - Mounted by `pages/docs/DemoCard.tsx` (lazy, on the Code tab's first open,
   then kept so edits survive the Preview tab) with the authored snippet,
-  `docsFiles` as `translate`, the framework, the styling system and the
+  `docsFiles` as `translate`, the styling system and the
   card's `SourceContext` (section, place, title, line, URL, install steps).
-- Files: the example (`<Section>Example.tsx|.svelte`, from a fragment or
+- Files: the example (`<Section>Example.tsx`, from a fragment or
   the docs' short form of a `<script setup>` block over loose markup,
   completed with its imports (what it imports already kept as written)
-  and translated into the reader's framework and styling system;
+  and translated into Solid in the reader's styling system;
   non-component snippets keep their language: `.sh`, `.ts`, `.css`), the
-  stylesheet a Solid file imports on CSS or CSS Modules, the kit's own
+  stylesheet it imports on CSS or CSS Modules, the kit's own
   source for each kit export it imports, the kit's tokens
   (`engine/theme.css`) and `prompt.md`. Kit files are the repo's, served
-  by the build at `kit/src/<solid|svelte>/` with a recursive `files.json`
-  listing (`kitSources`, `solid-site/kit-sources.ts`; which files count is
-  one rule, `src/shared/lib/kit-sources.ts`) — never a copy kept by hand.
-  The Solid kit is served as its files import each other (`solid/`,
-  `engine/`, `tailwind/`); `KIT_ENTRY` names each kit's public entry,
+  by the build under `KIT_SRC` (`kit/src/solid/`) with a recursive `files.json`
+  listing (`kitSources`, `solid-site/kit-sources.ts`; the path and which
+  files count are one rule, `src/shared/lib/kit-sources.ts`) — never a copy kept by hand.
+  The kit is served as its files import each other (`solid/`,
+  `engine/`, `tailwind/`); `KIT_ENTRY` names its public entry,
   `kitIndex` maps its exports to files relative to it, and
   `resolveKitFile` resolves a kit import against its importer's folder,
   across those folders. Zip paths mirror the install: the example and
-  prompt at the root, kit files under `dither-kit/` (`dither-kit-svelte/`)
+  prompt at the root, kit files under `dither-kit/`
   in their folders.
-- Edits are kept per file (the example's per framework and styling
+- Edits are kept per file (the example's per styling
   system); a tab marks an edited file; Revert restores the original.
-- Run (Solid, in any styling system: Tailwind, CSS, CSS Modules, and
-  StyleX through `model/stylex.ts`; Svelte says why not): an example that
+- Run (in any styling system: Tailwind, CSS, CSS Modules, and
+  StyleX through `model/stylex.ts`): an example that
   edits only itself links to the page's kit (the very modules the docs run
   on). Once a kit file is edited, or the example imports a kit file by its
   path, the example links to a kit evaluated from its source — the edits
@@ -104,21 +104,22 @@ holds what is framework free (see `src/AGENTS.md`).
   zip read back entry by entry (CRC-32 included), the StyleX runtime
   (atomic classes, last style wins, conditions after plain rules,
   variables, keyframes, fallbacks).
-- `solid-site/tests/site/source.spec.tsx` (Vitest): the kits' served
-  sources, the kit index, a fragment completed into a Solid file, kit
-  files per framework, names and the prompt; type syntax cut, JSX compiled
+- `solid-site/tests/site/source.spec.tsx` (Vitest): the kit's served
+  sources, the kit index, a fragment completed into a Solid file, the kit
+  files an example imports, names and the prompt; type syntax cut, JSX compiled
   against Solid's runtime and a syntax error located, linking (re-exports,
   live exports), scoped tokens, CSS Modules; every file of the Solid kit
   compiles and every name it imports from a package is provided; every
   docs snippet's Solid file compiles in every styling system; the reader's
-  framework and styling choice; a DemoCard opened to its files, an example
+  styling choice (and Solid for a reader who once stored another
+  framework); a DemoCard opened to its files, an example
   edited and run and the demo restored, the example run as plain CSS, CSS
-  Modules and StyleX, Svelte's files shown with why they do not run, the
+  Modules and StyleX, the
   tabs by keyboard and a revert.
 - Browser walk (`npm run dev` in `solid-site/`): `/docs/switch` and
   `/docs/button` — tabs by keyboard, edit and Run, a kit file edited
   (`DitherSwitch.tsx`), tokens edited (`theme.css`), CSS, CSS Modules and
-  StyleX runs, the Svelte refusal, the zip (`unzip -t`), copy;
+  StyleX runs, the zip (`unzip -t`), copy;
   `/docs/area` — the `…` sketch located, data filled in, `Area.tsx` edited
   and the chart drawn; a 390px phone and light theme.
 

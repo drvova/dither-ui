@@ -79,7 +79,6 @@ define.fmt({
     "solid-site/scripts/og-shell.html",
     ".scratch/**",
     ".claude/**",
-    "**/*.svelte",
     "solid-site/.output/**",
     "solid-site/.nitro/**",
   ],

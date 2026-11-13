@@ -70,7 +70,7 @@ describe("StyleX as its compiler takes it", () => {
   const create = async (tokens: string) => {
     const names = new Names()
     names.claim("box", compileUtilities(tokens.split(" "), true, await kit))
-    return stylexText(names.all, "")
+    return stylexText(names.all)
   }
 
   it("puts a pseudo-element at the top, with its own properties", async () => {
@@ -234,40 +234,6 @@ const styles = stylex.create({
     const sx = restyle(code, "stylex", "vue")
     expect(sx).toContain(`<DitherBadge v-bind="stylex.attrs(styles.badge)" :class="classFor(item)" />`)
     expect(restyle(code, "css", "vue")).toContain(`<DitherBadge class="badge" :class="classFor(item)" />`)
-  })
-
-  it("speaks Svelte: a plain style block, spread attrs, class expressions", () => {
-    const svelte = `<script lang="ts">
-  import { DitherSwitch } from "@dither-kit-svelte"
-
-  let bloom = $state(true)
-</script>
-
-<label class="flex items-center gap-4">
-  <span class={bloom ? 'text-foreground' : 'text-muted-foreground'}>Bloom</span>
-  <DitherSwitch bind:value={bloom} />
-</label>`
-    const css = restyle(svelte, "css", "svelte")
-    expect(css).toContain(`<label class="label">`)
-    expect(css).toContain(`<span class={bloom ? 'textForeground' : 'textMutedForeground'}>Bloom</span>`)
-    expect(css).toContain("</label>\n\n<style>\n.label {")
-    expect(restyle(svelte, "modules", "svelte")).toBe(css)
-    const sx = restyle(svelte, "stylex", "svelte")
-    expect(sx).toContain(`  import { DitherSwitch } from "@dither-kit-svelte"
-  import * as stylex from "@stylexjs/stylex"
-
-  let bloom = $state(true)
-
-  const styles = stylex.create({
-    label: { display: "flex", alignItems: "center", gap: "1rem" },
-    textForeground: { color: "var(--foreground)" },
-    textMutedForeground: { color: "var(--muted-foreground)" },
-  })
-</script>`)
-    expect(sx).toContain(`<label {...stylex.attrs(styles.label)}>`)
-    expect(sx).toContain(
-      `<span {...stylex.attrs(bloom ? styles.textForeground : styles.textMutedForeground)}>Bloom</span>`,
-    )
   })
 
   it("gives a fragment what it needs: styles appended, StyleX lines prepended", () => {

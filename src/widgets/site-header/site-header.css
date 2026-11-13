@@ -1,5 +1,4 @@
-/* The site header's look, one stylesheet for both sites (the Svelte landing
-   carries this file byte for byte): the capsule, its keys and the menu
+/* The site header's look: the capsule, its keys and the menu
    sheet of tone bands (`menu.ts` holds the bands' fills and the seam). */
 /* The header's lines, named so a sheet's text can stand on them: the gutter
    the capsule floats in, its width and its inner padding. A sheet's words

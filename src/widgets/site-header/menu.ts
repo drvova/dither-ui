@@ -1,5 +1,4 @@
-// The header's menu under lg, one table for both sites (the Svelte landing
-// carries this file byte for byte): a sheet of filled bands, one per link,
+// The header's menu under lg: a sheet of filled bands, one per link,
 // each a step of the ink toward the ground, the studio key at the foot in the
 // signal. Where two bands meet, the lower climbs into the upper through the
 // kit's Bayer matrix, so the sheet reads as one print's tone steps; the key

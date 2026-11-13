@@ -3,8 +3,8 @@
 // what it imports, the kit's tokens and a prompt for a coding agent — each
 // one a tab, editable, with Revert, Copy, Download (all of them, zipped) and
 // Run, which compiles the edits in the page and hands the result to the
-// preview. The kit files are the repo's, served by the build at
-// `kit/src/<solid|svelte>/`.
+// preview. The kit files are the repo's, served by the build under
+// `KIT_SRC`.
 import {
   createEffect,
   createMemo,
@@ -20,6 +20,7 @@ import {
 } from "solid-js"
 import { copyText } from "@dither-kit"
 import { download, zip } from "@/shared/lib/files"
+import { KIT_SRC } from "@/shared/lib/kit-sources"
 import type { Sheet } from "@/shared/lib/restyle-rewrite"
 import { assetPath, modKey } from "~/shared/lib"
 import { play } from "~/shared/lib/sound"
@@ -28,7 +29,6 @@ import type { Problem } from "./model/compile"
 import {
   asSfc,
   exampleName,
-  type Flavor,
   KIT_ENTRY,
   KIT_FOLDER,
   kitFilesOf,
@@ -44,10 +44,9 @@ import "./SourcePanel.css"
 export type SourcePanelProps = {
   /** The snippet as authored (Vue's notation, Tailwind). */
   code: string
-  /** The authored snippet → the reader's framework and styling system: the
+  /** The authored snippet → Solid in the reader's styling system: the
    * file, and the stylesheet it imports (named after `name`) when it has one. */
   translate: (vue: string, name?: string) => { code: string; sheet: Sheet | null }
-  flavor: Flavor
   styling: string
   context: SourceContext
   onRun?: (result: RunResult) => void
@@ -91,48 +90,38 @@ export default function SourcePanel(props: SourcePanelProps) {
     return hit
   }
 
-  // The kit the reader takes: their framework's.
-  const kits = tracked<KitMeta>()
+  // The kit's file list and index: what a fragment imports, and the files
+  // behind it.
+  const [kit, setKit] = createSignal<KitMeta>()
   const [failed, setFailed] = createSignal("")
-  async function loadKit(flavor: Flavor): Promise<KitMeta> {
-    const have = kits.get(flavor)
-    if (have) return have
-    const at = KIT_ENTRY[flavor]
-    const [list, entry] = await Promise.all([
-      fetchText(`kit/src/${flavor}/files.json`),
-      fetchText(`kit/src/${flavor}/${at}`),
-    ])
-    const files = JSON.parse(list) as string[]
-    // the entry, and the files it re-exports whole (the engine's API)
-    const index = await loadKitIndex(
-      (file) => (file === at ? Promise.resolve(entry) : fetchText(`kit/src/${flavor}/${file}`)),
-      files,
-      at,
-    )
-    const meta = { files, index }
-    kits.set(flavor, meta)
-    return meta
+  let loading: Promise<KitMeta> | undefined
+  function loadKit(): Promise<KitMeta> {
+    loading ??= (async () => {
+      const [list, entry] = await Promise.all([fetchText(`${KIT_SRC}files.json`), fetchText(`${KIT_SRC}${KIT_ENTRY}`)])
+      const files = JSON.parse(list) as string[]
+      // the entry, and the files it re-exports whole (the engine's API)
+      const index = await loadKitIndex(
+        (file) => (file === KIT_ENTRY ? Promise.resolve(entry) : fetchText(`${KIT_SRC}${file}`)),
+        files,
+        KIT_ENTRY,
+      )
+      const meta = { files, index }
+      setKit(meta)
+      return meta
+    })()
+    loading.catch(() => (loading = undefined))
+    return loading
   }
-  // The Solid kit's index names what a fragment imports, in either framework.
-  createEffect(
-    on(
-      () => props.flavor,
-      (f) =>
-        Promise.all([loadKit("solid"), loadKit(f)]).catch((e: Error) =>
-          setFailed(`Couldn't load the kit's file list (${e.message}).`),
-        ),
-    ),
-  )
+  onMount(() => loadKit().catch((e: Error) => setFailed(`Couldn't load the kit's file list (${e.message}).`)))
 
   // ---- the files ---------------------------------------------------------------
 
   const kind = createMemo(() => snippetKind(props.code))
   const files = createMemo<SourceFile[]>(() => {
-    const flavor = props.flavor
     const markup = kind() === "sfc" || kind() === "fragment"
-    const solid = kits.get("solid")
-    const names = solid && new Set(solid.index.keys())
-    const name = exampleName(props.context.section, props.context.n, kind(), flavor)
+    const have = kit()
+    const names = have && new Set(have.index.keys())
+    const name = exampleName(props.context.section, props.context.n, kind())
     const made = !markup
       ? props.translate(props.code)
       : names
@@ -142,53 +131,44 @@ export default function SourcePanel(props: SourcePanelProps) {
     const example: SourceFile = {
       path: name,
       name,
-      lang: markup ? (flavor === "solid" ? "tsx" : flavor) : (kind() as SourceFile["lang"]),
+      lang: markup ? "tsx" : (kind() as SourceFile["lang"]),
       role: "example",
       text,
     }
-    // the stylesheet a Solid file imports (CSS, CSS Modules) is a file beside it
+    // the stylesheet the example imports (CSS, CSS Modules) is a file beside it
     const styles: SourceFile[] = made?.sheet
       ? [{ path: made.sheet.file, name: made.sheet.file, lang: "css", role: "styles", text: made.sheet.text }]
       : []
-    const kit = kits.get(flavor)
     const used: SourceFile[] =
-      kit && text
-        ? kitFilesOf(text, flavor, kit.index, kit.files).map((f) => ({
-            path: `${KIT_FOLDER[flavor]}/${f}`,
+      have && text
+        ? kitFilesOf(text, have.index, have.files).map((f) => ({
+            path: `${KIT_FOLDER}/${f}`,
             name: f.split("/").pop()!,
-            lang: f.endsWith(".tsx") ? "tsx" : f.endsWith(".svelte") ? "svelte" : "ts",
+            lang: f.endsWith(".tsx") ? "tsx" : "ts",
             role: "kit",
-            src: `kit/src/${flavor}/${f}`,
+            src: `${KIT_SRC}${f}`,
           }))
         : []
     const tokens: SourceFile = {
-      path: flavor === "solid" ? "dither-kit/engine/theme.css" : "theme.css",
+      path: `${KIT_FOLDER}/engine/theme.css`,
       name: "theme.css",
       lang: "css",
       role: "tokens",
-      src: "kit/src/solid/engine/theme.css",
+      src: `${KIT_SRC}engine/theme.css`,
     }
     const prompt: SourceFile = { path: "prompt.md", name: "prompt.md", lang: "md", role: "prompt" }
     const all = [example, ...styles, ...used, tokens, prompt]
-    prompt.text = promptFor(
-      {
-        ...props.context,
-        install: props.context.install[flavor],
-        flavor,
-        styling: props.styling,
-      },
-      all,
-    )
+    prompt.text = promptFor({ ...props.context, styling: props.styling }, all)
     return all
   })
 
   // Originals (generated, or fetched once) and the reader's edits, kept per
-  // file — the example's (and its stylesheet's) per framework and styling
+  // file — the example's (and its stylesheet's) per styling
   // system, since each is a different file.
   const originals = tracked<string>()
   const edits = tracked<string>()
   const keyOf = (f: SourceFile) =>
-    f.role === "example" || f.role === "styles" ? `${f.role}:${props.flavor}:${props.styling}` : (f.src ?? f.path)
+    f.role === "example" || f.role === "styles" ? `${f.role}:${props.styling}` : (f.src ?? f.path)
   const originalOf = (f: SourceFile) => f.text ?? (f.src ? originals.get(f.src) : undefined)
   const textOf = (f: SourceFile) => edits.get(keyOf(f)) ?? originalOf(f) ?? ""
   const dirty = (f: SourceFile) => edits.has(keyOf(f)) && edits.get(keyOf(f)) !== originalOf(f)
@@ -299,12 +279,11 @@ export default function SourcePanel(props: SourcePanelProps) {
     say(`Downloaded ${archive()}`)
   }
 
-  // Run: the Solid flavor, in any styling system (its stylesheet scoped to
+  // Run: the example, in any styling system (its stylesheet scoped to
   // the preview or read as a module, StyleX through its run-time stand-in,
   // `@/widgets/source/model/stylex`).
   const runnable = createMemo(() => {
     if (kind() !== "sfc" && kind() !== "fragment") return "Nothing to render: this example isn't a component."
-    if (props.flavor !== "solid") return "The preview runs the Solid kit; switch the framework to Solid to run."
     return ""
   })
   const [problems, setProblems] = createSignal<Problem[]>([])
@@ -319,7 +298,7 @@ export default function SourcePanel(props: SourcePanelProps) {
     setProblems([])
     const example = files()[0]
     try {
-      const [{ run }, kit] = await Promise.all([import("./model/run"), loadKit("solid")])
+      const [{ run }, meta] = await Promise.all([import("./model/run"), loadKit()])
       const edited = (role: SourceFile["role"]) => files().filter((f) => f.role === role && dirty(f))
       const tokens = edited("tokens")[0]
       const sheet = files().find((f) => f.role === "styles")
@@ -327,11 +306,11 @@ export default function SourcePanel(props: SourcePanelProps) {
         scope: `${props.context.section}:${props.context.n}`,
         example: { path: example.path, text: textOf(example) },
         sheet: sheet && { file: sheet.path, text: textOf(sheet) },
-        kit: edited("kit").map((f) => ({ file: f.src!.replace("kit/src/solid/", ""), text: textOf(f) })),
+        kit: edited("kit").map((f) => ({ file: f.src!.slice(KIT_SRC.length), text: textOf(f) })),
         tokens: tokens ? textOf(tokens) : undefined,
-        index: kit.index,
-        files: kit.files,
-        source: (f) => fetchText(`kit/src/solid/${f}`),
+        index: meta.index,
+        files: meta.files,
+        source: (f) => fetchText(`${KIT_SRC}${f}`),
       })
       props.onRun?.(result)
       say(`Ran ${example.name} in the preview`)
