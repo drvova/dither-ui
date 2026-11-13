@@ -4,6 +4,7 @@
 
 import { resolveEasing, resolveTexture, prefersReducedMotion } from "./dither-paint"
 import { distToPolygonEdge, pointInPolygon, polarX, polarY } from "./polar"
+import { radarFill } from "./chart-fill"
 import type { Box, PolarChartContextValue } from "./chart-types"
 import { setOrBlendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
 import { directedTime, isDirected, onSeek } from "./clock"
@@ -53,8 +54,7 @@ export function startRadarLoop({
   let lastDelay = state.current.animationDelay
   let intensity = 0
   let needsFill = true
-  let lastPaintSig = ""
-  let lastBloomSig = ""
+  let lastFill = ""
   let lastSelected: string | null | undefined = Symbol() as never
   let lastHover: number | null | undefined = Symbol() as never
 
@@ -194,17 +194,9 @@ export function startRadarLoop({
       needsFill = true
     }
 
-    const paintSig = `${s.outerRadius}|${s.falloff}|${s.dimOpacity}|${s.configKeys
-      .map((k) => [k, s.config[k]?.color, s.variantOf(k)])
-      .map((v) => JSON.stringify(v))
-      .join(",")}`
-    const bloomSig = `${s.bloom}|${s.bloomOnHover}|${s.isMouseInChart}`
-    if (paintSig !== lastPaintSig) {
-      lastPaintSig = paintSig
-      needsFill = true
-    }
-    if (bloomSig !== lastBloomSig) {
-      lastBloomSig = bloomSig
+    const fill = radarFill(s)
+    if (fill !== lastFill) {
+      lastFill = fill
       needsFill = true
     }
 

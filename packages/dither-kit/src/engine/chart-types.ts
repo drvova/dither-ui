@@ -168,7 +168,6 @@ export type PolarChartContextValue = {
   startAngle: number // degrees clockwise from 12 o'clock (pie)
   rings: number // concentric frame rings (radar)
   revision: number
-  variantRevision: number
   bloom: BloomInput
   bloomOnHover: boolean
   precompiled: string | undefined

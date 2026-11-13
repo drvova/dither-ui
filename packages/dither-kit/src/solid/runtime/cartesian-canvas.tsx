@@ -2,6 +2,7 @@
 // starts the framework-free paint loop (`engine/cartesian-loop.ts`).
 
 import { createEffect, createMemo, type JSX, on, onCleanup, onMount, Show } from "solid-js"
+import { seriesFill } from "../../engine/chart-fill"
 import { startCartesianLoop, type Star, type Surface } from "../../engine/cartesian-loop"
 import type { Box, ChartContextValue } from "../../engine/chart-types"
 import {
@@ -190,14 +191,11 @@ export function CartesianCanvas() {
       () => [
         targets(),
         ctx.revision,
-        ctx.configKeys.map((key) => [key, ctx.config[key]?.color]),
-        ctx.seriesSpecs,
+        seriesFill(ctx),
         ctx.selectedDataKey,
         ctx.focusDataKey,
         ctx.hoverIndex,
         ctx.markerIndex,
-        ctx.isMouseInChart,
-        ctx.hovered,
         ctx.animate,
         ctx.animationDuration,
         ctx.animationDelay,
@@ -207,9 +205,6 @@ export function CartesianCanvas() {
         ctx.sparkleDensity,
         ctx.sparkleSpeed,
         ctx.hoverStrength,
-        ctx.dimOpacity,
-        ctx.bloom,
-        ctx.bloomOnHover,
         ctx.crosshair,
       ],
       () => loop?.wake(),

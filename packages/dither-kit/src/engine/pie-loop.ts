@@ -4,6 +4,7 @@
 
 import { resolveEasing, resolveTexture, prefersReducedMotion } from "./dither-paint"
 import { sliceAtAngle } from "./polar"
+import { pieFill } from "./chart-fill"
 import type { Box, PolarChartContextValue } from "./chart-types"
 import { setOrBlendRasterPixel, clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
 import { directedTime, isDirected, onSeek } from "./clock"
@@ -57,8 +58,7 @@ export function startPieLoop({
   let intensity = 0
   let popEase = 0
   let needsFill = true
-  let lastPaintSig = ""
-  let lastBloomSig = ""
+  let lastFill = ""
   let lastSelected: string | null | undefined = Symbol() as never
   let lastHover: number | null | undefined = Symbol() as never
 
@@ -179,17 +179,9 @@ export function startPieLoop({
       needsFill = true
     }
 
-    const paintSig = `${s.innerRadius}|${s.outerRadius}|${s.rimWidth}|${s.popOut}|${s.dimOpacity}|${s.pie
-      .map((sl) => [sl.name, sl.start, sl.end, s.config[sl.name]?.color, s.variantOf(sl.name)])
-      .map((v) => JSON.stringify(v))
-      .join(",")}`
-    const bloomSig = `${s.bloom}|${s.bloomOnHover}|${s.isMouseInChart}`
-    if (paintSig !== lastPaintSig) {
-      lastPaintSig = paintSig
-      needsFill = true
-    }
-    if (bloomSig !== lastBloomSig) {
-      lastBloomSig = bloomSig
+    const fill = pieFill(s)
+    if (fill !== lastFill) {
+      lastFill = fill
       needsFill = true
     }
 

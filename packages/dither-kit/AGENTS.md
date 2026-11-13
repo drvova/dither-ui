@@ -42,7 +42,8 @@ generated twin. Inside the kit every import is relative
   palette, pixel, raster, the painters and backgrounds' renderers, the
   chart paint loops (`cartesian-loop.ts`, `bar-loop.ts`, `pie-loop.ts`,
   `radar-loop.ts`: `startCartesianLoop`, `startBarLoop`, `startPieLoop`,
-  `startRadarLoop`) and the chart family's types (`chart-types.ts`),
+  `startRadarLoop`), the one rule for when a chart's held fill is stale
+  (`chart-fill.ts`) and the chart family's types (`chart-types.ts`),
   timing, sequence, clock, wipe, keyframes, score, parsers and GL engines,
   `copy-text.ts`, `theme.css`, `theme.ts` and `base.css` (the scoped
   box-model base every layer assumes). It imports only `d3-*` and itself,
@@ -188,7 +189,13 @@ generated twin. Inside the kit every import is relative
   `useDitherMatrix(() => seed)` reads the screen a `DitherScreen` around
   it provides (`ScreenContext`; Bayer without one), seeded as ever;
   the charts' contexts expose the same as `matrixOf(variant)`
-  (`useVariantMatrix`, `resolveMatrix` when no screen is around); a fill
+  (`useVariantMatrix`, `resolveMatrix` when no screen is around). A
+  screen that changes reprints a chart through `engine/chart-fill.ts`:
+  `seriesFill`, `pieFill` and `radarFill` name everything a family's
+  fill is printed from, each series' matrix among it; a loop reprints
+  when that differs from the fill it holds, and the family's canvas
+  reads the same function in its wake list, so a new input to the fill
+  is added there once. A fill
   that carries a label (badge, toggle, button) keeps Bayer through
   `useLabelMatrix`, because a hatch under type breaks its letters.
   `precompile.ts` takes a `screen` option for surfaces that raster
@@ -1010,7 +1017,10 @@ generated twin. Inside the kit every import is relative
 - Print screens: `tests/screens.spec.ts` (each screen a permutation, the
   seeded jitter equal to Bayer's) and the `DitherScreen` cases of
   `tests/solid/carried.spec.tsx` and `tests/solid/kit.spec.tsx`
-  (a `DitherScreen` reaching a surface); the poster: `tests/poster.spec.ts`.
+  (a `DitherScreen` reaching a surface), `tests/chart-screen.spec.ts` (each
+  chart loop reprints on a new matrix and sleeps on the same one) and the
+  `DitherScreen` cases of `tests/solid/charts.spec.tsx`; the poster:
+  `tests/poster.spec.ts`.
 - Painting at memory speed: `tests/paint-limits.spec.ts` pins `cellCanvas`
   to the fillRect pixel and `fbm`'s cache to the plain sum.
 - Benchmarks, in `benches/`, run by hand and never part of a build or a

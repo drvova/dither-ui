@@ -2,6 +2,7 @@
 // through `state.current`. A binding's canvas (`solid/runtime/bar-canvas.tsx`)
 // mounts the canvases and starts it.
 
+import { seriesFill } from "./chart-fill"
 import type { Box, ChartContextValue } from "./chart-types"
 import { clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
 import { clamp01, resolveEasing, paintColumn, prefersReducedMotion } from "./dither-paint"
@@ -98,8 +99,7 @@ export function startBarLoop({
   let lastDuration = state.current.animationDuration
   let lastDelay = state.current.animationDelay
   let needsFill = true
-  let lastPaintSig = ""
-  let lastBloomSig = ""
+  let lastFill = ""
   let lastSelected: string | null | undefined = Symbol() as never
   let lastHover: number | null | undefined = Symbol() as never
   // Directed (clock.ts): no frames are requested; `draw(ms)` paints the
@@ -154,14 +154,9 @@ export function startBarLoop({
       needsFill = true
     } else intensity = itTarget
 
-    const paintSig = `${s.stackType}|${s.dimOpacity}|${JSON.stringify(s.configKeys.map((k) => [k, s.config[k]?.color, s.seriesSpecs[k]]))}`
-    const bloomSig = `${s.bloom}|${s.bloomOnHover}|${s.isMouseInChart}|${s.hovered}`
-    if (paintSig !== lastPaintSig) {
-      lastPaintSig = paintSig
-      needsFill = true
-    }
-    if (bloomSig !== lastBloomSig) {
-      lastBloomSig = bloomSig
+    const fill = seriesFill(s)
+    if (fill !== lastFill) {
+      lastFill = fill
       needsFill = true
     }
 

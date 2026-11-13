@@ -3,6 +3,7 @@
 
 import { createEffect, createMemo, type JSX, on, onCleanup, onMount, Show } from "solid-js"
 import { type Bars, startBarLoop } from "../../engine/bar-loop"
+import { seriesFill } from "../../engine/chart-fill"
 import type { Box, ChartContextValue } from "../../engine/chart-types"
 import { backingSize, bloomLayerStyle } from "../../engine/dither-paint"
 import { useChart } from "./chart-context"
@@ -80,22 +81,16 @@ export function BarCanvas() {
       () => [
         targets(),
         ctx.revision,
-        ctx.configKeys.map((key) => [key, ctx.config[key]?.color]),
-        ctx.seriesSpecs,
+        seriesFill(ctx),
         ctx.selectedDataKey,
         ctx.focusDataKey,
         ctx.hoverIndex,
-        ctx.isMouseInChart,
-        ctx.hovered,
         ctx.animate,
         ctx.animationDuration,
         ctx.animationDelay,
         ctx.easing,
         ctx.hoverLift,
         ctx.hoverStrength,
-        ctx.dimOpacity,
-        ctx.bloom,
-        ctx.bloomOnHover,
       ],
       () => loop?.wake(),
       { defer: true },

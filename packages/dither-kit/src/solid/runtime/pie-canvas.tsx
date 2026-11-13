@@ -2,6 +2,7 @@
 // starts the framework-free paint loop (`engine/pie-loop.ts`).
 
 import { createEffect, createMemo, type JSX, on, onCleanup, onMount, Show } from "solid-js"
+import { pieFill } from "../../engine/chart-fill"
 import type { Box, PolarChartContextValue } from "../../engine/chart-types"
 import { backingSize, bloomLayerStyle } from "../../engine/dither-paint"
 import { startPieLoop } from "../../engine/pie-loop"
@@ -56,27 +57,17 @@ export function PieCanvas() {
   createEffect(
     on(
       () => [
-        ctx.pie,
         ctx.revision,
-        ctx.variantRevision,
-        ctx.configKeys.map((key) => [key, ctx.config[key]?.color]),
+        pieFill(ctx),
         ctx.selectedDataKey,
         ctx.focusDataKey,
         ctx.hoverIndex,
-        ctx.isMouseInChart,
         ctx.animate,
         ctx.animationDuration,
         ctx.animationDelay,
         ctx.easing,
         ctx.hoverLift,
         ctx.hoverStrength,
-        ctx.dimOpacity,
-        ctx.innerRadius,
-        ctx.outerRadius,
-        ctx.popOut,
-        ctx.rimWidth,
-        ctx.bloom,
-        ctx.bloomOnHover,
       ],
       () => loop?.wake(),
       { defer: true },

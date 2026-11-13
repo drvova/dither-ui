@@ -2,6 +2,7 @@
 // through `state.current`. A binding's canvas (`solid/runtime/cartesian-canvas.tsx`)
 // mounts the canvases and starts it.
 
+import { seriesFill } from "./chart-fill"
 import type { Box, ChartContextValue } from "./chart-types"
 import {
   resolveEasing,
@@ -134,8 +135,7 @@ export function startCartesianLoop({
   let entranceReported = !lastAnimate
   let intensity = 0
   let needsFill = true
-  let lastPaintSig = ""
-  let lastBloomSig = ""
+  let lastFill = ""
   let lastSelected: string | null | undefined = Symbol() as never
   let lastMarker: number | null | undefined = Symbol() as never
   let lastCrosshair: boolean | undefined
@@ -226,15 +226,9 @@ export function startCartesianLoop({
     const winkPeriod = 100 / Math.max(0.1, s.sparkleSpeed)
     const winkTick = isDirected() ? Math.floor(now / winkPeriod) : tick + 1
     const winkDue = sparkleMotion && (isDirected() ? winkTick !== tick : now - last >= winkPeriod)
-    const paintSig = `${s.stackType}|${s.dimOpacity}|${JSON.stringify(s.configKeys.map((k) => [k, s.config[k]?.color, s.seriesSpecs[k]]))}`
-    const bloomSig = `${s.bloom}|${s.bloomOnHover}|${s.isMouseInChart}|${s.hovered}`
-    const sigChanged = paintSig !== lastPaintSig
-    if (sigChanged) {
-      lastPaintSig = paintSig
-      needsFill = true
-    }
-    if (bloomSig !== lastBloomSig) {
-      lastBloomSig = bloomSig
+    const fill = seriesFill(s)
+    if (fill !== lastFill) {
+      lastFill = fill
       needsFill = true
     }
     if (marker !== lastMarker || s.crosshair !== lastCrosshair) {
@@ -242,7 +236,7 @@ export function startCartesianLoop({
       lastCrosshair = s.crosshair
       needsFill = true
     }
-    if (!(moving || settling || (sparkleMotion && winkDue) || progChanged || sigChanged || needsFill)) {
+    if (!(moving || settling || (sparkleMotion && winkDue) || progChanged || needsFill)) {
       // Nothing new to paint this frame, but an entrance still under way
       // (its delay, or two frames on one timestamp) must keep the loop
       // alive, or it stops part drawn until a hover wakes it.

@@ -2,6 +2,7 @@
 // starts the framework-free paint loop (`engine/radar-loop.ts`).
 
 import { createEffect, createMemo, type JSX, on, onCleanup, onMount, Show } from "solid-js"
+import { radarFill } from "../../engine/chart-fill"
 import type { Box, PolarChartContextValue } from "../../engine/chart-types"
 import { backingSize, bloomLayerStyle } from "../../engine/dither-paint"
 import { startRadarLoop } from "../../engine/radar-loop"
@@ -58,23 +59,16 @@ export function RadarCanvas() {
       () => [
         ctx.radar,
         ctx.revision,
-        ctx.variantRevision,
-        ctx.configKeys.map((key) => [key, ctx.config[key]?.color]),
+        radarFill(ctx),
         ctx.selectedDataKey,
         ctx.focusDataKey,
         ctx.hoverIndex,
-        ctx.isMouseInChart,
         ctx.animate,
         ctx.animationDuration,
         ctx.animationDelay,
         ctx.easing,
         ctx.hoverLift,
         ctx.hoverStrength,
-        ctx.dimOpacity,
-        ctx.outerRadius,
-        ctx.falloff,
-        ctx.bloom,
-        ctx.bloomOnHover,
       ],
       () => loop?.wake(),
       { defer: true },
