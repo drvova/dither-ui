@@ -1,16 +1,10 @@
-// The brand as cells: the mark, and the lockup it leads with the pixel
+// The brand as cells: the mark (`shared/ui/brand-mark.ts`), and the lockup it leads with the pixel
 // wordmark, and its moment, `choreograph`, pure: cells in, a path per cell
 // out, in one of five moves, so each place the brand stands (the hero, the
 // plates, the footer) forms it its own way. `BrandGather` plays it.
 import { xorshift32 } from "dither-kit/engine/pixel.ts"
+import { MARK_CELLS } from "@/shared/ui/brand-mark"
 import { layoutPixelText, PIXEL_ROWS } from "./pixel-type"
-
-/** The brand mark as the cells of a 7x7 grid: the diamond within three
- * steps of its centre, the centre its ember core. The header draws it;
- * the lockup leads with it. */
-export const MARK_CELLS = Array.from({ length: 49 }, (_, i) => ({ x: i % 7, y: Math.floor(i / 7) }))
-  .filter((c) => Math.abs(c.x - 3) + Math.abs(c.y - 3) <= 3)
-  .map((c) => ({ ...c, core: c.x === 3 && c.y === 3 }))
 
 const WORD = layoutPixelText("DITHER-UI")
 const GAP = 3

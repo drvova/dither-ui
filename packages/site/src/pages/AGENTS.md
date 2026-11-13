@@ -442,8 +442,10 @@ in the page's folder.
   `MODEL_FORMATS` order, named by `MODEL_NAMES`, a `Record` keyed by the
   kit's own type, each after an ember cell; then GLSL).
 - The brand's moment (`brand.ts` + `BrandGather.tsx`, decorative): the
-  brand as `LOCKUP`, `MARK_CELLS` (the diamond's 25 cells around its ember
-  core, which the header draws too), three clear columns, then
+  brand as `LOCKUP`, the mark's `MARK_CELLS` (the diamond's 25 cells
+  around its ember core, ONE table in `shared/ui/brand-mark.ts` that the
+  header, the install icons and the share cards' brand read too), three
+  clear columns, then
   "DITHER-UI" in the pixel face, 4px cells seven tall, as spans, each
   knowing its glyph (the mark 0, the letters from 1). Its parent places
   and positions it; its FIELD is its nearest positioned ancestor, and the

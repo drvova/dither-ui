@@ -7,16 +7,8 @@ import { llmsTxt, ROUTE_CARDS } from "../src/pages/docs/crawler-files"
 import { DOCS_ROOT, docsMeta } from "../src/pages/docs/seo"
 import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS, WORKS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
-import {
-  choreograph,
-  LOCKUP,
-  LOCKUP_SIZE,
-  MARK_CELLS,
-  MOMENT,
-  MOVES,
-  type Scene,
-  STAGINGS,
-} from "../src/pages/landing/brand"
+import { choreograph, LOCKUP, LOCKUP_SIZE, MOMENT, MOVES, type Scene, STAGINGS } from "../src/pages/landing/brand"
+import { MARK_CELLS } from "../src/shared/ui/brand-mark"
 import { GROUND, PLATES, sceneOf, STOCK } from "../src/pages/landing/plate"
 import { ROAD } from "../src/pages/landing/road"
 

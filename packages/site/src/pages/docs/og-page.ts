@@ -8,6 +8,7 @@
 // plugin's manifest), routes from ROUTE_CARDS.
 import "@/shared/fonts/display.css"
 import { encodeGif } from "@/shared/lib/gif"
+import { MARK_CELLS } from "@/shared/ui/brand-mark"
 import { ROUTE_CARDS } from "./crawler-files"
 import { ogInks, ogPrint } from "./og-art"
 import {
@@ -110,14 +111,14 @@ function cardOf(id: string, seed = 0, inv = false): Sheet {
 
 type Ink = (typeof OG_INK)["night" | "day"]
 
-/** The brand top left, as the site's header sets it: the kit's 7x7
- * diamond (its core the ember) and the name. */
+/** The brand top left, as the site's header sets it: the mark's cells
+ * (its core the ember), 3px each, and the name. */
 function brand(ink: Ink) {
   const { x, y } = OG_BRAND
-  ctx.fillStyle = ink.ink
-  ;[1, 3, 5, 7, 5, 3, 1].forEach((w, row) => ctx.fillRect(x + (7 - w) * 1.5, y + row * 3, w * 3, 3))
-  ctx.fillStyle = OG_EMBER
-  ctx.fillRect(x + 9, y + 9, 3, 3)
+  for (const c of MARK_CELLS) {
+    ctx.fillStyle = c.core ? OG_EMBER : ink.ink
+    ctx.fillRect(x + c.x * 3, y + c.y * 3, 3, 3)
+  }
   ctx.fillStyle = ink.ink
   ctx.font = `500 21px ${MONO}`
   ctx.fillText("dither-ui", x + 33, y + 17)
