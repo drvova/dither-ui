@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/SplitText.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/SplitText.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, For, mergeProps } from "solid-js"
 import { cn, type StyleProp } from "./lib"
-import "dither-kit/solid/SplitText.css"
+import "@dither-ui/kit/solid/SplitText.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

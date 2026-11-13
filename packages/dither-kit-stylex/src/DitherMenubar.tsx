@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/DitherMenubar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherMenubar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createSignal, For, on, onCleanup, onMount, Show } from "solid-js"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/DitherMenubar.css"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/DitherMenubar.css"
 import { cn } from "./lib"
 
 import * as stylex from "@stylexjs/stylex"

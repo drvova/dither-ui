@@ -7,7 +7,7 @@
  *   3. paintColumn into RasterBuffer
  *   4. JSON.stringify paintSig (per-frame overhead)
  *
- * Run: npm run bench -w dither-kit
+ * Run: npm run bench -w @dither-ui/kit
  *      (node --import ./benches/resolve-ts.mts benches/node-bench.mts)
  */
 

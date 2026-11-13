@@ -1,6 +1,6 @@
 import { createSignal, type JSX, splitProps } from "solid-js"
-import { copyText } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { copyText } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { play } from "../lib/sound"
 
 type Own = { code: string; class?: string }

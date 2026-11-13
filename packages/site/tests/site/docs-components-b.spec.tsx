@@ -15,7 +15,7 @@ import OverlayDocs from "../../src/pages/docs/components/OverlayDocs"
 import SelectionDocs from "../../src/pages/docs/components/SelectionDocs"
 import StructureDocs from "../../src/pages/docs/components/StructureDocs"
 import SurfaceDocs from "../../src/pages/docs/components/SurfaceDocs"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 const PACKS: { name: string; Pack: () => JSX.Element; nav: readonly { id: string; label: string }[] }[] = [
   { name: "NavigationDocs", Pack: NavigationDocs, nav: NAVIGATION_NAV },

@@ -1,4 +1,4 @@
-import { DitherField } from "dither-kit"
+import { DitherField } from "@dither-ui/kit"
 import { type JSX, Show } from "solid-js"
 
 /** A text field inside the DitherField that carries its visible label (the

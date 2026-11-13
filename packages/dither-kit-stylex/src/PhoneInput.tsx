@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/PhoneInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/PhoneInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { mergeProps, splitProps } from "solid-js"
 import { type StyleProp } from "./lib"

@@ -1,11 +1,11 @@
-// Generated from dither-kit/solid/CenterMorphModal.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/CenterMorphModal.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, type JSX, mergeProps, on, onCleanup } from "solid-js"
 import { Portal } from "solid-js/web"
 import { CONTROL_BUTTON } from "./control"
 import { cn, type StyleProp } from "./lib"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/CenterMorphModal.css"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/CenterMorphModal.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

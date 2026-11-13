@@ -1,5 +1,12 @@
 import { For, Show } from "solid-js"
-import { cssColor, DitherAvatar, DitherButton, DitherGradient, type ButtonVariant, type DitherColor } from "dither-kit"
+import {
+  cssColor,
+  DitherAvatar,
+  DitherButton,
+  DitherGradient,
+  type ButtonVariant,
+  type DitherColor,
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 
 const TIERS: {

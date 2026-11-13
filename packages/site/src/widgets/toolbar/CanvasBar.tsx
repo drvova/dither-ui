@@ -1,7 +1,7 @@
 import { createMemo, createSignal, Index } from "solid-js"
-import { DitherIcon, type IconName } from "dither-kit"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { DitherIcon, type IconName } from "@dither-ui/kit"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { exportArtboardPng } from "@/features/export-image"
 import {
   actualSize,

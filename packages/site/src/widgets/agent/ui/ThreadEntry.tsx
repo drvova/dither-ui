@@ -1,5 +1,5 @@
 import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js"
-import { DitherIcon } from "dither-kit"
+import { DitherIcon } from "@dither-ui/kit"
 import { type Entry, secondsOf } from "../model/thread"
 import Prose from "./Prose"
 import "./ThreadEntry.css"

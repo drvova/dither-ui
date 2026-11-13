@@ -1,4 +1,4 @@
-import { cssColor, DitherIcon } from "dither-kit"
+import { cssColor, DitherIcon } from "@dither-ui/kit"
 import { createMemo, createRenderEffect, For, Index, Show } from "solid-js"
 import { addRow, addSeries, importCsv, LABEL_KEY, removeRow, renamePieSlice } from "@/entities/chart"
 import { familyOf } from "@/shared/config"

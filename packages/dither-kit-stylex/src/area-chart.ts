@@ -1,6 +1,6 @@
-// Generated from dither-kit/solid/area-chart.ts by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/area-chart.ts by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { CartesianCanvas } from "dither-kit/solid/runtime/cartesian-canvas.tsx"
+import { CartesianCanvas } from "@dither-ui/kit/solid/runtime/cartesian-canvas.tsx"
 import { defineCartesianChart } from "./cartesian-root"
 
 /** Composable dither **area** chart. Compose `<Area>`, `<Grid>`, axes, … inside. */

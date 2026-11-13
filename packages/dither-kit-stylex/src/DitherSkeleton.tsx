@@ -1,12 +1,12 @@
-// Generated from dither-kit/solid/DitherSkeleton.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherSkeleton.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { onCleanup, onMount } from "solid-js"
-import { directedTime, isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import { BAYER4, fillOf, pixelPrefersReducedMotion, xorshift32 } from "dither-kit/engine/pixel.ts"
-import { cellCanvas } from "dither-kit/engine/raster.ts"
+import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import { BAYER4, fillOf, pixelPrefersReducedMotion, xorshift32 } from "@dither-ui/kit/engine/pixel.ts"
+import { cellCanvas } from "@dither-ui/kit/engine/raster.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
-import { createCanvasVisibility } from "dither-kit/solid/runtime/visibility.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
+import { createCanvasVisibility } from "@dither-ui/kit/solid/runtime/visibility.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

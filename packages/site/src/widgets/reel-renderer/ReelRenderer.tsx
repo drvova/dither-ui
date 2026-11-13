@@ -11,7 +11,7 @@
 // frame that the same camera arithmetic places, and a chapter band sits
 // under the stage once any clip sets a chapter. Under reduced motion the
 // camera holds its first key and callouts appear drawn.
-import { directedTime, DitherReveal, isDirected, onSeek } from "dither-kit"
+import { directedTime, DitherReveal, isDirected, onSeek } from "@dither-ui/kit"
 import {
   createContext,
   createEffect,

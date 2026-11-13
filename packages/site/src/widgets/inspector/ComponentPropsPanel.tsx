@@ -1,6 +1,6 @@
 import { For, Match, Show, Switch } from "solid-js"
 import type { ComponentEntry, PropSpec } from "@/entities/widget"
-import { colorToHex } from "dither-kit"
+import { colorToHex } from "@dither-ui/kit"
 import { breakable, safeUrl } from "@/shared/lib"
 import { ColorField, NumberField, Segmented, Toggle } from "@/shared/ui"
 

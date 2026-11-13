@@ -10,7 +10,7 @@
 // frames (and rAF) only happen when it captures one — a readiness promise
 // that waited for a frame would wait forever. Every surface paints its
 // moment synchronously on seek.
-import { directedTime, directFromHyperframes, isDirected, release, seek } from "dither-kit"
+import { directedTime, directFromHyperframes, isDirected, release, seek } from "@dither-ui/kit"
 import { createComponent } from "solid-js"
 import { render } from "solid-js/web"
 import "@/app.css"

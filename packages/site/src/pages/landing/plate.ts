@@ -3,7 +3,7 @@
 // of it. Each plate is a sheet of the heat thinning from its top edge to a
 // clear band and rising from it to the foot, the brand (`brand.ts`)
 // standing in the band.
-import type { PixelColor, ScreenKind } from "dither-kit"
+import type { PixelColor, ScreenKind } from "@dither-ui/kit"
 import type { Move, Scene } from "./brand"
 import { plateau, type HeatField, type HeatGrain } from "./heat"
 

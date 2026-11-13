@@ -4,10 +4,10 @@
 // same state gives the same bytes, and whole and still it is the model as
 // it was. The landing's lockup is built of exactly the cells it has.
 import { describe, expect, it } from "rstack/test"
-import { createAssembly } from "dither-kit/engine/assemble.ts"
-import { parseWorld } from "dither-kit/engine/models.ts"
-import { BAYER4 } from "dither-kit/engine/pixel.ts"
-import { createRasterBuffer } from "dither-kit/engine/raster.ts"
+import { createAssembly } from "@dither-ui/kit/engine/assemble.ts"
+import { parseWorld } from "@dither-ui/kit/engine/models.ts"
+import { BAYER4 } from "@dither-ui/kit/engine/pixel.ts"
+import { createRasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import {
   cameraOf,
   createWorldTarget,
@@ -16,7 +16,7 @@ import {
   type World,
   type WorldStyle,
   type WorldView,
-} from "dither-kit/engine/world.ts"
+} from "@dither-ui/kit/engine/world.ts"
 import {
   BUILD_CELLS,
   BUILD_HEAT,
@@ -26,7 +26,7 @@ import {
   lockupModel,
   stageAt,
 } from "../src/pages/landing/build"
-import { fillOf } from "dither-kit/engine/pixel.ts"
+import { fillOf } from "@dither-ui/kit/engine/pixel.ts"
 
 /** Three cubes stacked, apart: three pieces, low to high. */
 function stack(): World {

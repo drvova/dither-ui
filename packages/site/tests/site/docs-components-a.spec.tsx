@@ -16,11 +16,11 @@ import FieldDocs from "../../src/pages/docs/components/FieldDocs"
 import FormDocs from "../../src/pages/docs/components/FormDocs"
 import LayoutDocs from "../../src/pages/docs/components/LayoutDocs"
 import MediaDocs from "../../src/pages/docs/components/MediaDocs"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 // No GPU in jsdom: a shader says so, a world keeps to its CPU engine.
-vi.mock("dither-kit/engine/gl.ts", async (original) => ({
-  ...(await original<typeof import("dither-kit/engine/gl.ts")>()),
+vi.mock("@dither-ui/kit/engine/gl.ts", async (original) => ({
+  ...(await original<typeof import("@dither-ui/kit/engine/gl.ts")>()),
   createGl: () => null,
 }))
 

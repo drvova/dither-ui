@@ -1,6 +1,6 @@
 import { For, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { focusFirstMenuItem, menuKeydown } from "@/shared/lib/menu"
 
 export type MenuItem = {

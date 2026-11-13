@@ -20,7 +20,7 @@ import QuickStart from "../../src/pages/docs/overview/QuickStart"
 import PrimitivesDocs from "../../src/pages/docs/primitives/PrimitivesDocs"
 import TextDocs from "../../src/pages/docs/text/TextDocs"
 import TypographyDocs from "../../src/pages/docs/typography/TypographyDocs"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 let w: ReturnType<typeof world>
 beforeEach(() => {
@@ -196,7 +196,7 @@ describe("the primitives demos", () => {
   })
 
   it("lay out every glyph of the icon set under its name", async () => {
-    const { ICON_NAMES } = await import("dither-kit")
+    const { ICON_NAMES } = await import("@dither-ui/kit")
     const docs = await family(PrimitivesDocs)
     await docs.show()
     const section = docs.section("icon")

@@ -1,15 +1,15 @@
 // A share card's art: the kit's poster, printed by the kit's own engine
-// (`dither-kit/engine/poster.ts`, what the hero's `DitherPoster` runs) at
+// (`@dither-ui/kit/engine/poster.ts`, what the hero's `DitherPoster` runs) at
 // the card's print size, cell for cell. A card's seed picks the poster's
 // composition and its printer's screen. Over the loop the diamond swells
 // over the whole sheet and recedes (the poster's own rule, every ramp
 // turned over inside the mark, at the scale of the sheet), and the screen
 // slides inside it as the hero's print does.
-import { fillOf, SCREEN_KINDS, type ScreenKind } from "dither-kit/engine/pixel.ts"
-import type { Rgb } from "dither-kit/engine/palette.ts"
-import { paintPoster, posterLayout } from "dither-kit/engine/poster.ts"
-import { createRasterBuffer, type RasterBuffer } from "dither-kit/engine/raster.ts"
-import { spring } from "dither-kit/engine/spring.ts"
+import { fillOf, SCREEN_KINDS, type ScreenKind } from "@dither-ui/kit/engine/pixel.ts"
+import type { Rgb } from "@dither-ui/kit/engine/palette.ts"
+import { paintPoster, posterLayout } from "@dither-ui/kit/engine/poster.ts"
+import { createRasterBuffer, type RasterBuffer } from "@dither-ui/kit/engine/raster.ts"
+import { spring } from "@dither-ui/kit/engine/spring.ts"
 import { OG_BEATS, OG_DRIFT, OG_PRINT, OG_PRINT_INKS, type OgCard } from "./og-card"
 
 /** The printer's screen a card prints through, picked by its seed (the

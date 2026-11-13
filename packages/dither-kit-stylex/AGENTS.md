@@ -2,20 +2,20 @@
 
 ## Purpose
 
-The kit's components in StyleX: the Solid layer of `dither-kit`, GENERATED
+The kit's components in StyleX: the Solid layer of `@dither-ui/kit`, GENERATED
 file for file, so an app that styles with StyleX runs the same components
 with no Tailwind. Paths here are from this package's root.
 
 ## Ownership
 
 - `src/`: one generated file per component and module of the kit's Solid
-  layer (`dither-kit/solid/`), the index among them, plus
+  layer (`@dither-ui/kit/solid/`), the index among them, plus
   `runtime/chart-layer.tsx` (the one runtime file that writes classes) and
-  `control.ts` (from `dither-kit/tailwind/control.ts`). Only `src/lib.ts`
+  `control.ts` (from `@dither-ui/kit/tailwind/control.ts`). Only `src/lib.ts`
   (`cn` over `stylex.props`, `StyleProp`) is written by hand.
 - `tests/stylex-layer-solid.spec.ts`: writes the source and fails on any
   drift.
-- Does not own the generator (`restyle/stylex-layer`,
+- Does not own the generator (`@dither-ui/restyle/stylex-layer`,
   `packages/restyle/AGENTS.md`) or what the Solid source must keep to so
   it can be carried (`packages/dither-kit/AGENTS.md`).
 
@@ -31,13 +31,13 @@ with no Tailwind. Paths here are from this package's root.
   components hand each other styles through it.
 - The engine, the Solid layer's runtime and the components' stylesheets
   are the kit's, imported by its name and never copied
-  (`dither-kit/engine/<file>.ts`, `dither-kit/solid/runtime/<file>`,
-  `dither-kit/solid/<Name>.css`).
-- Depends on `dither-kit` (and `@stylexjs/stylex`, `solid-js` as peers).
-  `restyle` is a development dependency, for the spec alone: no file of
+  (`@dither-ui/kit/engine/<file>.ts`, `@dither-ui/kit/solid/runtime/<file>`,
+  `@dither-ui/kit/solid/<Name>.css`).
+- Depends on `@dither-ui/kit` (and `@stylexjs/stylex`, `solid-js` as peers).
+  `@dither-ui/restyle` is a development dependency, for the spec alone: no file of
   `src/` imports it (`tests/workspace.spec.ts` at the root).
 - A reader who copies folders instead of installing takes this `src/`
-  beside the kit's, aliases `@dither-kit` to it and `dither-kit` to their
+  beside the kit's, aliases `@dither-kit` to it and `@dither-ui/kit` to their
   copy of the kit (`README.md`).
 
 ## Work Guidance

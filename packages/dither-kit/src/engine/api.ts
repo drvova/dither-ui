@@ -1,6 +1,6 @@
 // The engine's public API: every framework-free name the kit hands a
 // consumer. A layer's `index.ts` (`solid/`, and its generated StyleX twin,
-// the `dither-kit-stylex` package) re-exports this whole file and adds its
+// the `@dither-ui/kit-stylex` package) re-exports this whole file and adds its
 // own components, so neither lists the engine twice.
 
 export type { DitherRenderMode, PrecompiledDither } from "./precompile"

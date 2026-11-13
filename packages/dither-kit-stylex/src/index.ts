@@ -1,9 +1,9 @@
-// Generated from dither-kit/solid/index.ts by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/index.ts by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 // The Solid kit's public API: every component, the engine's own exports
 // and the hooks an app composes with.
 
-export * from "dither-kit/engine/api.ts"
+export * from "@dither-ui/kit/engine/api.ts"
 export { default as DitherButton, type ButtonVariant, type DitherButtonProps } from "./DitherButton"
 export { default as DitherAurora, type AuroraParams, type AuroraProps, paintAurora } from "./Aurora"
 export { default as DitherHeatTrail, type HeatTrailProps, type TrailParams, paintTrail } from "./HeatTrail"
@@ -17,8 +17,8 @@ export {
   type PosterTile,
 } from "./DitherPoster"
 export { default as DitherScreen, type DitherScreenProps } from "./DitherScreen"
-export { useDitherMatrix, useLabelMatrix, useScreen } from "dither-kit/solid/runtime/screen.ts"
-export { surfaceOf, type DitherSurface } from "dither-kit/solid/runtime/surface.ts"
+export { useDitherMatrix, useLabelMatrix, useScreen } from "@dither-ui/kit/solid/runtime/screen.ts"
+export { surfaceOf, type DitherSurface } from "@dither-ui/kit/solid/runtime/surface.ts"
 export { cn } from "./lib"
 export {
   default as DitherFloatingLines,
@@ -365,7 +365,7 @@ export type {
   Margins,
   SeriesKind,
   StrokeVariant,
-} from "dither-kit/solid/runtime/chart-context.ts"
+} from "@dither-ui/kit/solid/runtime/chart-context.ts"
 export { default as DitherBlobCursor, type BlobCursorProps } from "./BlobCursor"
 export { default as DitherCalendar, type CalendarProps } from "./Calendar"
 export { default as DitherClickOutside, type ClickOutsideProps } from "./ClickOutside"
@@ -435,4 +435,4 @@ export { default as DitherSignaturePad, type SignaturePadProps } from "./Signatu
 export { default as DitherSplashCursor, type SplashCursorProps } from "./SplashCursor"
 export { default as DitherSplitText, type SplitTextProps } from "./SplitText"
 export { default as DitherTargetCursor, type TargetCursorProps } from "./TargetCursor"
-export { toast } from "dither-kit/solid/runtime/toast.ts"
+export { toast } from "@dither-ui/kit/solid/runtime/toast.ts"

@@ -1,5 +1,5 @@
 {
-  "name": "restyle",
+  "name": "@dither-ui/restyle",
   "version": "0.1.0",
   "private": true,
   "description": "Writes Tailwind-classed code in a reader's styling system: a scoped stylesheet, CSS Modules or StyleX, and generates the kit's StyleX layer.",
@@ -10,9 +10,9 @@
     "./stylex-layer": "./src/stylex-layer-solid.ts"
   },
   "dependencies": {
+    "@dither-ui/kit": "file:../dither-kit",
     "@tailwindcss/node": "^4.3.3",
     "@tailwindcss/oxide": "^4.3.3",
-    "dither-kit": "*",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.6.3"
   },

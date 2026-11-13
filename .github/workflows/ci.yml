@@ -35,7 +35,7 @@ jobs:
       - name: Unit tests
         run: npx rs test
       - name: Kit component tests
-        run: npm test -w dither-kit
+        run: npm test -w @dither-ui/kit
 
   # The site: its component specs, the static build, and the specs again
   # over the built site.
@@ -54,9 +54,9 @@ jobs:
       - run: npm ci
       # the sandbox spec runs in the runner's Chromium
       - name: Component tests
-        run: npm test -w site
+        run: npm test -w @dither-ui/site
       # the build ends by drawing the share cards in the runner's Chromium
       - name: Static build
         run: npm run build
       - name: Tests over the built site
-        run: npm test -w site
+        run: npm test -w @dither-ui/site

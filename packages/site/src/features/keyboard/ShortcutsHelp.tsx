@@ -1,5 +1,5 @@
-import { DitherFocusScope, DitherIcon } from "dither-kit"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
+import { DitherFocusScope, DitherIcon } from "@dither-ui/kit"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
 import { createSignal, For, onCleanup, onMount } from "solid-js"
 import "./ShortcutsHelp.css"
 

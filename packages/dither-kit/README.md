@@ -1,4 +1,4 @@
-# dither-kit
+# @dither-ui/kit
 
 Dithered UI toolkit for Solid: composable ordered-dither **charts** (area,
 line, bar, pie, radar) on one tiny canvas engine, plus generative **avatars**,
@@ -12,7 +12,7 @@ painters, chart and field contexts, the clock, `theme.css` and `theme.ts`),
 `solid/` holds the SolidJS components styled with Tailwind classes, the
 package's main entry (`src/solid/index.ts`), and `tailwind/` what the
 Tailwind layer shares (the class helpers and `kit.css`). The same components
-in StyleX are a package of their own, `dither-kit-stylex`, generated from
+in StyleX are a package of their own, `@dither-ui/kit-stylex`, generated from
 these: a StyleX app takes it beside this one, compiles it with its StyleX
 plugin, loads `engine/theme.css` and `engine/base.css`, and passes its own
 styles to any component as `xstyle`. To copy the kit instead of installing
@@ -31,7 +31,7 @@ Requirements for the Tailwind layer:
   `engine/theme.ts` (`applyTheme`, `themeCss`, `themeVars`) sets the tokens from JS.
 
 ```ts
-import { AreaChart, Area, Grid, XAxis, YAxis, Legend, Tooltip } from "dither-kit"
+import { AreaChart, Area, Grid, XAxis, YAxis, Legend, Tooltip } from "@dither-ui/kit"
 ```
 
 ```tsx

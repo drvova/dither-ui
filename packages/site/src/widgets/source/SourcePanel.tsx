@@ -18,10 +18,10 @@ import {
   Show,
   Switch,
 } from "solid-js"
-import { copyText } from "dither-kit"
+import { copyText } from "@dither-ui/kit"
 import { download, zip } from "@/shared/lib/files"
 import { KIT_SRC } from "@/shared/lib/kit-sources"
-import type { Sheet } from "restyle"
+import type { Sheet } from "@dither-ui/restyle"
 import { assetPath, modKey } from "@/shared/lib"
 import { play } from "@/shared/lib/sound"
 import Editor, { type EditorApi } from "./Editor"

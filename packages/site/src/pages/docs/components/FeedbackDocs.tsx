@@ -1,5 +1,5 @@
 import { createSignal, For, Index } from "solid-js"
-import { DitherBadge, DitherButton, DitherSeparator, DitherSkeleton, DitherSpinner } from "dither-kit"
+import { DitherBadge, DitherButton, DitherSeparator, DitherSkeleton, DitherSpinner } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 

@@ -1,10 +1,10 @@
-// Generated from dither-kit/solid/DitherTextarea.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherTextarea.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, type JSX, mergeProps, splitProps } from "solid-js"
-import { cssColor } from "dither-kit/engine/palette.ts"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
 import { CONTROL } from "./control"
 import { cn, type StyleProp } from "./lib"
-import { useField } from "dither-kit/solid/runtime/field.ts"
+import { useField } from "@dither-ui/kit/solid/runtime/field.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

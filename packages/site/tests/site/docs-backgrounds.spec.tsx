@@ -5,11 +5,11 @@
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { BACKGROUNDS_NAV } from "@/pages/docs/backgrounds/backgrounds-nav"
-import { SCREEN_KINDS } from "dither-kit"
+import { SCREEN_KINDS } from "@dither-ui/kit"
 import BackgroundsDocs from "../../src/pages/docs/backgrounds/BackgroundsDocs"
 import PosterSection from "../../src/pages/docs/backgrounds/PosterSection"
 import ScreensSection from "../../src/pages/docs/utils/ScreensSection"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 let w: ReturnType<typeof world>
 beforeEach(() => {

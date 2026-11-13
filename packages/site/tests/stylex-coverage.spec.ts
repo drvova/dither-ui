@@ -8,7 +8,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "rstack/test"
-import { restyle } from "restyle"
+import { restyle } from "@dither-ui/restyle"
 import { toSolidCode } from "../src/pages/docs/solid"
 
 const OWN_CLASSES = new Set(["dither-kit", "cta", "cq-card", "cq-grid", "readout", "cell"])

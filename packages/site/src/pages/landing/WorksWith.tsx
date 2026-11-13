@@ -4,7 +4,7 @@
 // besides) and their files (every model format the kit reads, named in the
 // kit's order).
 import { For } from "solid-js"
-import { MODEL_FORMATS } from "dither-kit/engine/models.ts"
+import { MODEL_FORMATS } from "@dither-ui/kit/engine/models.ts"
 import { HARNESSES, MODEL_NAMES, WORKS } from "@/pages/landing/facts"
 import { rise, routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark"

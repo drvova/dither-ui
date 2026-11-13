@@ -11,7 +11,7 @@ import {
   Show,
   Suspense,
 } from "solid-js"
-import { DitherClipboard, DitherIcon, DitherPoster } from "dither-kit"
+import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-ui/kit"
 import { firstVisitTour, GUIDE_SEEN_KEY, type GuideStop } from "@/pages/studio/guide"
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { readJson, writeJson } from "@/shared/lib/storage"

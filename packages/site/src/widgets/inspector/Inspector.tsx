@@ -1,6 +1,6 @@
 import { createMemo, createSignal, For, type JSX, Match, Show, Switch } from "solid-js"
-import { colorToHex, DitherIcon, patternFromImage, type VariantInput } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { colorToHex, DitherIcon, patternFromImage, type VariantInput } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import type { ChartModel } from "@/entities/chart"
 import {
   addCell,

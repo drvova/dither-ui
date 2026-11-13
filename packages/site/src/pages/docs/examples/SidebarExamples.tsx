@@ -14,7 +14,7 @@ import {
   DitherSidebarSub,
   DitherSlider,
   DitherTooltip,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 
 const CAT_COUNTS: Record<string, number> = { Prints: 125, Frames: 89, Zines: 34, Stickers: 67 }

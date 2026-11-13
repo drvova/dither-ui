@@ -14,7 +14,7 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 /** The stylesheet's entry, found as the kit's package exports it. */
-const ENTRY = createRequire(import.meta.url).resolve("dither-kit/tailwind/kit.css")
+const ENTRY = createRequire(import.meta.url).resolve("@dither-ui/kit/tailwind/kit.css")
 
 /** The compiled stylesheet, minified unless asked otherwise. */
 export async function buildKitCss({ minify = true } = {}) {

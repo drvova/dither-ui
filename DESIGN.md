@@ -67,7 +67,7 @@ Rules:
 
 ### The kit's swatches
 
-The kit's own colours (`dither-kit/engine/palette.ts`, mirrored as
+The kit's own colours (`@dither-ui/kit/engine/palette.ts`, mirrored as
 `--swatch-*`), bright on dark: green `rgb(40, 210, 110)`, blue
 `rgb(53, 143, 243)`, purple `rgb(150, 110, 255)`, pink `rgb(240, 90, 190)`,
 orange (the ember) `rgb(255, 150, 50)`, grey `rgb(92, 92, 100)`. Their
@@ -293,12 +293,12 @@ Smoothness is part of the look, so these are design rules too:
 
 | Part | Source |
 |---|---|
-| Kit tokens (both themes) | `dither-kit/engine/theme.css` |
+| Kit tokens (both themes) | `@dither-ui/kit/engine/theme.css` |
 | Site materials, chrome, motion | `packages/site/src/app/styles.css` |
 | The landing's print | `packages/site/src/pages/landing/chapters.css`, `packages/site/src/pages/landing/LandingPage.tsx` |
 | The docs' materials | `packages/site/src/pages/docs/` |
-| Motion curves | `dither-kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `dither-kit/engine/spring.ts` |
-| Print screens | `dither-kit/engine/pixel.ts` (`SCREENS`) |
+| Motion curves | `@dither-ui/kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `@dither-ui/kit/engine/spring.ts` |
+| Print screens | `@dither-ui/kit/engine/pixel.ts` (`SCREENS`) |
 | The heat and the plates | `packages/site/src/pages/landing/heat.ts`, `plate.ts` |
 | The display face | `packages/site/src/shared/fonts/` |
 | Studio audience and principles | `.impeccable.md` |

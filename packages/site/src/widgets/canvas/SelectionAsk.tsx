@@ -1,4 +1,4 @@
-import { DitherIcon } from "dither-kit"
+import { DitherIcon } from "@dither-ui/kit"
 import { createMemo, createSignal, Show } from "solid-js"
 import { editor } from "@/entities/editor"
 import { askAgent, handoff } from "@/features/agent/handoff"

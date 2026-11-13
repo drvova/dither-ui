@@ -30,7 +30,7 @@ import {
   type DotVariant,
   type GradientDirection,
   type PixelBloom,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import { Meta } from "@solidjs/meta"
 import { useNavigate } from "@solidjs/router"
 import { createEffect, createMemo, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"

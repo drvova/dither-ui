@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/DitherSeparator.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherSeparator.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, mergeProps, on, onCleanup, onMount } from "solid-js"
-import { BAYER4, fillOf } from "dither-kit/engine/pixel.ts"
-import { cellCanvas } from "dither-kit/engine/raster.ts"
+import { BAYER4, fillOf } from "@dither-ui/kit/engine/pixel.ts"
+import { cellCanvas } from "@dither-ui/kit/engine/raster.ts"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"
 

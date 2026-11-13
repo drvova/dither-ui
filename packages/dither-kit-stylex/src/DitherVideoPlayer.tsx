@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/DitherVideoPlayer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherVideoPlayer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, mergeProps, onMount, Show } from "solid-js"
-import type { PixelColor } from "dither-kit/engine/pixel.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { CONTROL_BUTTON } from "./control"
 import { cn, type StyleProp } from "./lib"
 import DitherSlider from "./DitherSlider"

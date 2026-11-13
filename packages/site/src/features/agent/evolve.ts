@@ -6,7 +6,7 @@
 // normalizer every untrusted document takes, so a variant can never carry a
 // value the inspector could not have produced. Same parent + seed → the
 // same generation, forever.
-import { mulberry32 } from "dither-kit/engine"
+import { mulberry32 } from "@dither-ui/kit/engine"
 import { type Artboard, normalizeArtboard } from "@/entities/artboard"
 import type { ChartModel } from "@/entities/chart"
 import { componentEntry, type PropSpec, type WidgetModel } from "@/entities/widget"

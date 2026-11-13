@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "dither-kit/engine/theme.css";
+@import "@dither-ui/kit/engine/theme.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -502,7 +502,7 @@
   --destructive: var(--swatch-orange);
   /* Motion is the glide everywhere (the user's call): full speed from the
      first frame, a long soft settle, never past its mark (the kit's
-     "glide" easing, `GLIDE_BEZIER` in dither-kit/engine/dither-paint.ts,
+     "glide" easing, `GLIDE_BEZIER` in @dither-ui/kit/engine/dither-paint.ts,
      held to it by tests/motion.spec.ts). */
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
   --cut: 16px;

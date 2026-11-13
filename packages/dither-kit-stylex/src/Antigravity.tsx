@@ -1,9 +1,9 @@
-// Generated from dither-kit/solid/Antigravity.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/Antigravity.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type JSX, mergeProps, onCleanup, onMount } from "solid-js"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
-import { createInviewLoop } from "dither-kit/solid/runtime/in-view.ts"
+import { createInviewLoop } from "@dither-ui/kit/solid/runtime/in-view.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

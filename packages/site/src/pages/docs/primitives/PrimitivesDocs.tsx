@@ -17,10 +17,10 @@ import {
   DitherSvg,
   DitherText,
   DitherVisuallyHidden,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import { assetPath } from "@/shared/lib"
-import { DitherIcon, DitherIconSet } from "dither-kit"
-import { ICON_NAMES } from "dither-kit"
+import { DitherIcon, DitherIconSet } from "@dither-ui/kit"
+import { ICON_NAMES } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 

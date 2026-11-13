@@ -6,7 +6,7 @@
 // DOM only to read the preview and to measure its own overlay.
 import { createEffect, createSignal, on } from "solid-js"
 import { createMutable } from "solid-js/store"
-import { BAYER8, copyText, isDirected, release } from "dither-kit"
+import { BAYER8, copyText, isDirected, release } from "@dither-ui/kit"
 import { download } from "@/shared/lib/files"
 import { encodeGif } from "@/shared/lib/gif"
 import { play } from "@/shared/lib/sound"

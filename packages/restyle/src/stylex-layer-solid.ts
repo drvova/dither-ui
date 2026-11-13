@@ -1,6 +1,6 @@
-// Node-side only (the `dither-kit-stylex` package's spec): the Solid kit's StyleX
-// layer (the `dither-kit-stylex` package), written from its Tailwind-classed
-// layer (`dither-kit/solid/`) on the class-to-StyleX core
+// Node-side only (the `@dither-ui/kit-stylex` package's spec): the Solid kit's StyleX
+// layer (the `@dither-ui/kit-stylex` package), written from its Tailwind-classed
+// layer (`@dither-ui/kit/solid/`) on the class-to-StyleX core
 // (`stylex-core.ts`). Every class string a Solid file sets (a JSX `class`,
 // a `classList`, a `cn()` argument, a template literal of classes, and the
 // constants, records, memos and functions those reach) becomes a named style
@@ -8,7 +8,7 @@
 // is spread (`{...stylex.props(styles.x)}`), a merged one goes through the
 // layer's `cn`; a component that takes `class` takes `xstyle` too, and kit
 // components hand each other styles through it. Stylesheets and the runtime
-// stay the Solid layer's (imported from `dither-kit/solid/`), save a runtime file
+// stay the Solid layer's (imported from `@dither-ui/kit/solid/`), save a runtime file
 // that writes classes. What it cannot carry it refuses, by file and line:
 // a refused file is not written.
 import ts from "typescript"
@@ -74,7 +74,7 @@ interface Env {
 /** The kit's package: the layer is a package of its own and reads the
  * engine, the Solid layer's runtime and its stylesheets from the kit by
  * name, each file named whole. */
-const KIT = "dither-kit"
+const KIT = "@dither-ui/kit"
 
 /** Where a file's import lands once the file stands in the StyleX layer. */
 function importTarget(spec: string, name: string, env: Env): string | null {

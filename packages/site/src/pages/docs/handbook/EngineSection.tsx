@@ -1,11 +1,11 @@
 /* The engine part by part: each part named once, what it does and how in
    one sentence, and a figure read from the kit's own source, so the index
    cannot drift from the code. Each part links to the section it lives in. */
-import { MODEL_FORMATS } from "dither-kit/engine/models.ts"
-import { PALETTE } from "dither-kit/engine/palette.ts"
-import { SCREENS, SCREEN_KINDS } from "dither-kit/engine/pixel.ts"
-import { SHADER_UNIFORMS } from "dither-kit/engine/shader.ts"
-import { BAYER8 } from "dither-kit/engine/wipe.ts"
+import { MODEL_FORMATS } from "@dither-ui/kit/engine/models.ts"
+import { PALETTE } from "@dither-ui/kit/engine/palette.ts"
+import { SCREENS, SCREEN_KINDS } from "@dither-ui/kit/engine/pixel.ts"
+import { SHADER_UNIFORMS } from "@dither-ui/kit/engine/shader.ts"
+import { BAYER8 } from "@dither-ui/kit/engine/wipe.ts"
 import { For } from "solid-js"
 import { SECTIONS } from "@/pages/docs/groups"
 

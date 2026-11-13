@@ -1,5 +1,5 @@
 {
-  "name": "tasks",
+  "name": "@dither-ui/tasks",
   "version": "0.1.0",
   "private": true,
   "description": "The repository's tasks: the kit's standalone stylesheet, the share cards, the frame renderer and the agent demo recorder.",
@@ -8,9 +8,9 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@dither-ui/kit": "file:../dither-kit",
     "@tailwindcss/node": "^4.3.3",
     "@tailwindcss/oxide": "^4.3.3",
-    "dither-kit": "*",
     "playwright-core": "^1.62.1",
     "tailwindcss": "^4.3.3"
   },

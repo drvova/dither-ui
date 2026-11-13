@@ -1,4 +1,4 @@
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import type { Artboard as ArtboardModel } from "@/entities/artboard"
 import { editor, selectArtboard } from "@/entities/editor"

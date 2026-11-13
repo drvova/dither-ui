@@ -13,8 +13,8 @@ import type {
   ReelModel,
   ReelTransitionKind,
 } from "@/entities/widget"
-import { planSequence, resolveEasing, type ScorePlan } from "dither-kit/engine"
-import type { WipeDirection } from "dither-kit/engine/wipe.ts"
+import { planSequence, resolveEasing, type ScorePlan } from "@dither-ui/kit/engine"
+import type { WipeDirection } from "@dither-ui/kit/engine/wipe.ts"
 
 export type ReelMoment = {
   /** The clip on screen. */

@@ -4,7 +4,7 @@
 // kit's Bayer matrix, so the sheet reads as one print's tone steps; the key
 // that opens it is the same bands in miniature. The sheet arrives as the
 // kit's wipe, a dithered front down the screen.
-import { wipeStyle, type WipeStyle } from "dither-kit/engine/wipe.ts"
+import { wipeStyle, type WipeStyle } from "@dither-ui/kit/engine/wipe.ts"
 
 /** The site's links, in order, what each band says under its name, and
  * the width the capsule shows each from (the menu shows all of them). Each

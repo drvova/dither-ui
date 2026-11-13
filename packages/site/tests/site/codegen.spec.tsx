@@ -18,7 +18,7 @@ import { createComponent, createReel, createWidget } from "@/entities/widget/mod
 import { COMPONENT_REGISTRY, componentEntry } from "@/entities/widget/model/registry"
 import { addCell, createScreen } from "@/entities/widget/model/screen"
 import { CHART_TYPES } from "@/shared/config"
-import { restyle, STYLINGS } from "restyle"
+import { restyle, STYLINGS } from "@dither-ui/restyle"
 import { frameCode, shown } from "../../src/entities/artboard/code"
 import { chartCode } from "../../src/entities/chart/model/codegen"
 import { widgetCode } from "../../src/entities/widget/model/codegen"
@@ -27,7 +27,7 @@ import { registrySchema } from "../../src/features/agent"
 import { type Compile, compiler, evaluate } from "../../src/widgets/source/model/compile"
 import { PACKAGES } from "../../src/widgets/source/model/run"
 import { WidgetRenderer } from "../../src/widgets/widget-renderer"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 const HOSTILE = `x" onClick={alert(1)} y='z' {alert(2)} {{ alert(2) }} </script><script>alert(3)</script><img src=x onerror=alert(5)> &amp; \\" */ \` \${alert(6)} ${String.fromCharCode(0x2028)}`
 const FRAME = { w: 300, h: 200 }

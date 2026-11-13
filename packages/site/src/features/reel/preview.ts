@@ -2,7 +2,7 @@
 // score engine and played once from the top through Web Audio (playback
 // only: the samples are the kit's, the same the video export carries).
 import type { ReelModel } from "@/entities/widget"
-import { scoreCut } from "dither-kit/engine"
+import { scoreCut } from "@dither-ui/kit/engine"
 import { scorePlanOf } from "./reel"
 
 /** The preview's audio, opened in the click that asks for it, or null where

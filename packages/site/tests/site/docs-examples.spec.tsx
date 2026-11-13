@@ -19,7 +19,7 @@ import ProductExamples from "../../src/pages/docs/examples/ProductExamples"
 import SidebarExamples from "../../src/pages/docs/examples/SidebarExamples"
 import StatsExamples from "../../src/pages/docs/examples/StatsExamples"
 import TableExamples from "../../src/pages/docs/examples/TableExamples"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 const PACKS: [string, () => JSX.Element, readonly { id: string; label: string }[]][] = [
   ["AuthExamples", AuthExamples, AUTH_NAV],

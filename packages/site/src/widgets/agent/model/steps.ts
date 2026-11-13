@@ -2,7 +2,7 @@
 // what it touched, a glyph) and the frames it changed, which the changes bar
 // gathers per turn so the user keeps them or puts the canvas back. Tools
 // that only read change nothing.
-import type { IconName } from "dither-kit"
+import type { IconName } from "@dither-ui/kit"
 import { parseDither } from "@/features/agent/dither"
 import { STUDIO_SERVER } from "@/features/agent/tools"
 

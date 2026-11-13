@@ -22,7 +22,7 @@ import {
   renderOgCards,
   servedFile,
   writeAgentRegistry,
-} from "tasks"
+} from "@dither-ui/tasks"
 import { ogPage } from "../../build/og-page"
 
 const root = new URL("../../../..", import.meta.url).pathname

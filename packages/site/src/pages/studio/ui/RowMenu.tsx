@@ -2,7 +2,7 @@
 // item, arrows between items, Escape or a press outside closes it and hands
 // focus back to the key). The row's own actions are its items.
 import { createEffect, createSignal, For, on, onCleanup, Show } from "solid-js"
-import { DitherIcon } from "dither-kit"
+import { DitherIcon } from "@dither-ui/kit"
 import { focusFirstMenuItem, menuKeydown } from "@/shared/lib"
 import "./RowMenu.css"
 

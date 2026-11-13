@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/DitherImage.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherImage.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
-import { kitFromSeed } from "dither-kit/engine/dither-paint.ts"
+import { kitFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
 import {
   DEFAULT_MAX_COLS,
   DEFAULT_MAX_ROWS,
@@ -10,9 +10,9 @@ import {
   STATIC_DEFAULT_MAX_ROWS,
   type DitherRenderMode,
   type PrecompiledDither,
-} from "dither-kit/engine/precompile.ts"
+} from "@dither-ui/kit/engine/precompile.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

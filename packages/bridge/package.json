@@ -1,5 +1,5 @@
 {
-  "name": "bridge",
+  "name": "@dither-ui/bridge",
   "version": "0.1.0",
   "private": true,
   "description": "The local ACP bridge: a zero-dependency relay between a Studio tab and the user's own coding agent.",

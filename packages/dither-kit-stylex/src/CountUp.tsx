@@ -1,9 +1,9 @@
-// Generated from dither-kit/solid/CountUp.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/CountUp.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, mergeProps, onCleanup, onMount } from "solid-js"
-import { directedTime, isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import { formatFixed } from "dither-kit/engine/format-number.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import { formatFixed } from "@dither-ui/kit/engine/format-number.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"
 

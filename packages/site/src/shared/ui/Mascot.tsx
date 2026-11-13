@@ -16,7 +16,7 @@ import {
   onMount,
   splitProps,
 } from "solid-js"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { MASCOT_H, MASCOT_ROTOR_STEPS, MASCOT_W, type MascotPose, mascotCells } from "@/shared/ui/mascot"
 import "./Mascot.css"
 

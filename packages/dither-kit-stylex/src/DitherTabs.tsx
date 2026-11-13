@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherTabs.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherTabs.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import {
   type Accessor,
@@ -15,11 +15,11 @@ import {
   onMount,
   Show,
 } from "solid-js"
-import { kitFromSeed } from "dither-kit/engine/dither-paint.ts"
-import { fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
-import { cellCanvas } from "dither-kit/engine/raster.ts"
+import { kitFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
+import { fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import { cellCanvas } from "@dither-ui/kit/engine/raster.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

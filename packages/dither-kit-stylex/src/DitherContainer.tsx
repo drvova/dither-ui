@@ -1,10 +1,10 @@
-// Generated from dither-kit/solid/DitherContainer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherContainer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, type JSX, mergeProps, onCleanup, onMount } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import { CONTAINER_SCALE, quantize, resolveCq, type CqScale, type CqState } from "dither-kit/engine/containers.ts"
+import { CONTAINER_SCALE, quantize, resolveCq, type CqScale, type CqState } from "@dither-ui/kit/engine/containers.ts"
 import { cn, type StyleProp } from "./lib"
-import "dither-kit/solid/DitherContainer.css"
+import "@dither-ui/kit/solid/DitherContainer.css"
 
 /** What children receive: the resolution plus the measured content box.
  * Each member reads the container as it is now, so a child that reads one

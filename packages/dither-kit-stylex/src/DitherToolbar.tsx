@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherToolbar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherToolbar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type JSX, onMount } from "solid-js"
 import * as stylex from "@stylexjs/stylex"

@@ -1,10 +1,10 @@
 // The kit as the landing states it. Claims are facts:
 // tests/landing-facts.spec.ts recounts each one from the kit, so a kit
 // change that moves one fails until the page says it.
-import { SCREEN_KINDS, SCREENS } from "dither-kit/engine"
-import type { ModelFormat } from "dither-kit/engine/models.ts"
+import { SCREEN_KINDS, SCREENS } from "@dither-ui/kit/engine"
+import type { ModelFormat } from "@dither-ui/kit/engine/models.ts"
 import type { MarkId } from "@/shared/ui/marks"
-import { license } from "dither-kit/package.json"
+import { license } from "@dither-ui/kit/package.json"
 import { SECTION_COUNT } from "./hub"
 
 export const COMPONENT_COUNT = 270

@@ -20,12 +20,12 @@ package's paths are from the repository's root.
   container-query scales, chart roots/contexts, canvas painters, and the
   public component set.
 - Consumers import ONLY what `package.json` `exports` declares: the Solid
-  layer's index (`dither-kit`, `src/solid/index.ts`; a reader who copied
+  layer's index (`@dither-ui/kit`, `src/solid/index.ts`; a reader who copied
   `src/` aliases `@dither-kit` to its `solid/`), the engine's public API
-  where nothing renders (`dither-kit/engine`, `src/engine/api.ts`), and a
+  where nothing renders (`@dither-ui/kit/engine`, `src/engine/api.ts`), and a
   single file by its name, extension included
-  (`dither-kit/engine/<file>`, `dither-kit/solid/<file>`,
-  `dither-kit/tailwind/<file>`). `dither-kit/testing/<file>` is
+  (`@dither-ui/kit/engine/<file>`, `@dither-ui/kit/solid/<file>`,
+  `@dither-ui/kit/tailwind/<file>`). `@dither-ui/kit/testing/<file>` is
   `tests/support/`: the fake browser the component specs of this package
   and of the site run in, never shipped (`files` is `src`).
 - Depends on no package of this workspace (`tests/workspace.spec.ts` at
@@ -105,7 +105,7 @@ generated twin. Inside the kit every import is relative
   registers its texture with the chart; the sweep background is
   `RadarSweep.tsx`, exported as `DitherRadar`;
   `tests/solid/charts.spec.tsx` holds it).
-- The StyleX twin is a package of its own, `dither-kit-stylex`, GENERATED
+- The StyleX twin is a package of its own, `@dither-ui/kit-stylex`, GENERATED
   from `solid/` (`packages/dither-kit-stylex/AGENTS.md`): never edit a
   generated file; edit the Solid file and run
   `npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts`,
@@ -329,14 +329,14 @@ generated twin. Inside the kit every import is relative
   under `.dither-kit` through `:where()` at zero specificity.
   `src/tailwind/kit.css` is the standalone entry: the two files plus
   Tailwind's utilities with `source(none)` and `@source` limited to
-  `dither-kit/tailwind/` and `dither-kit/solid/`, in the
+  `@dither-ui/kit/tailwind/` and `@dither-ui/kit/solid/`, in the
   `dither-kit.theme/base/utilities` layers; `packages/tasks/src/kit-css.mjs`
   (`buildKitCss`, called by the site's post-build; `npm run build:css` writes
   the file alone) compiles it with `@tailwindcss/node` + `oxide` into
   `kit/dither-kit.css` in the site's build (served at `/kit/dither-kit.css`),
   so an app on UnoCSS, vanilla CSS or any CSS-in-JS runs the Solid layer by
   loading one file, wraps the region in `.dither-kit`, and wins every cascade
-  against the kit's layered rules (a StyleX app takes the `dither-kit-stylex`
+  against the kit's layered rules (a StyleX app takes the `@dither-ui/kit-stylex`
   package instead, with `src/engine/theme.css` and `src/engine/base.css`);
   `class` on any component takes any class name (`cn()` merges Tailwind names,
   passes the rest through). `src/engine/theme.ts` sets the tokens from JS:

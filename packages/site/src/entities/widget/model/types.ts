@@ -5,7 +5,7 @@ import type {
   PixelBloomConfig,
   PixelBloomInput,
   PixelColor,
-} from "dither-kit"
+} from "@dither-ui/kit"
 
 export type { PixelBloomConfig, PixelBloomInput, PixelColor }
 

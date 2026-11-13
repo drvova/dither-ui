@@ -1,5 +1,5 @@
-import { DitherIcon } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { DitherIcon } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import { addArtboard, deselect, editor, selectMany } from "@/entities/editor"
 import { handoff } from "@/features/agent/handoff"

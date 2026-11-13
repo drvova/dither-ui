@@ -1,5 +1,5 @@
 import { type Accessor, createSignal, onMount, onCleanup } from "solid-js"
-import { ditherTransition } from "dither-kit/engine/transition.ts"
+import { ditherTransition } from "@dither-ui/kit/engine/transition.ts"
 import { storage } from "@/shared/lib/storage"
 
 const STORAGE_KEY = "dither-theme"

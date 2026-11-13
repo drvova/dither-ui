@@ -7,7 +7,7 @@
 // edge where the plate is narrow, and gathers there once as the plate comes
 // into view, while the tone prints in through the kit's reveal (the lights
 // coming on). Decorative.
-import { DitherReveal, DitherScreen } from "dither-kit"
+import { DitherReveal, DitherScreen } from "@dither-ui/kit"
 import { LOCKUP_SIZE } from "@/pages/landing/brand"
 import { plateField, sceneOf, type Plate as PlateRow } from "@/pages/landing/plate"
 import BrandGather from "./BrandGather"

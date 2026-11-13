@@ -4,7 +4,7 @@
 // first. Its own chunk, fetched as the card nears the viewport: the
 // translator carries the compiled utility map.
 import { createMemo, createSignal, For } from "solid-js"
-import { DitherButton, DitherHeading } from "dither-kit"
+import { DitherButton, DitherHeading } from "@dither-ui/kit"
 import { STYLINGS, STYLING_LABELS, restyle, type Styling } from "@/shared/lib/restyle"
 import "./ExportScene.css"
 

@@ -9,7 +9,7 @@ import { join } from "node:path"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 import { KIT_SRC } from "@/shared/lib/kit-sources"
-import { restyleSolid, STYLINGS } from "restyle"
+import { restyleSolid, STYLINGS } from "@dither-ui/restyle"
 import { kitFiles } from "../../build/kit-sources"
 import DemoCard, { DEMO_FIT } from "../../src/pages/docs/DemoCard"
 import { toSolidCode } from "../../src/pages/docs/solid"
@@ -34,7 +34,7 @@ import {
 } from "../../src/widgets/source/model/files"
 import { PACKAGES } from "../../src/widgets/source/model/run"
 import { asSfc, snippetKind } from "../../src/widgets/source/model/snippet"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 // the build's own listing of the kit (`kitSources` in `../../kit-sources.ts`)
 const SOLID = await kitFiles()

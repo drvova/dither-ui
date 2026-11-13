@@ -1,12 +1,12 @@
-// Generated from dither-kit/solid/DitherGauge.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherGauge.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, For, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
-import { isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import { gaugeAngle, gaugePoint, gaugeTicks, paintGauge } from "dither-kit/engine/gauge.ts"
-import { clamp01, fillOf, pixelPrefersReducedMotion, type PixelColor } from "dither-kit/engine/pixel.ts"
-import { spring } from "dither-kit/engine/spring.ts"
+import { isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import { gaugeAngle, gaugePoint, gaugeTicks, paintGauge } from "@dither-ui/kit/engine/gauge.ts"
+import { clamp01, fillOf, pixelPrefersReducedMotion, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import { spring } from "@dither-ui/kit/engine/spring.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

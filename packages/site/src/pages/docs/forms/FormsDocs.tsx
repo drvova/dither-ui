@@ -29,8 +29,8 @@ import {
   DitherSignaturePad,
   DitherTagInput,
   DitherTransferList,
-} from "dither-kit"
-import { DitherField, DitherInput } from "dither-kit"
+} from "@dither-ui/kit"
+import { DitherField, DitherInput } from "@dither-ui/kit"
 import { createSignal } from "solid-js"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"

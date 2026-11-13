@@ -26,7 +26,7 @@ import StudioGuide from "../../src/pages/studio/ui/StudioGuide"
 import StudioPanel from "../../src/pages/studio/ui/StudioPanel"
 import StudioSidebar from "../../src/pages/studio/ui/StudioSidebar"
 import Studio from "../../src/routes/studio"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 // jsdom lays nothing out, so it has no scrolling to do.
 Element.prototype.scrollIntoView ??= () => {}

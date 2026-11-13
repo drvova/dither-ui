@@ -1,4 +1,4 @@
-import { ICON_NAMES, type PixelColor, SCREEN_KINDS } from "dither-kit/engine"
+import { ICON_NAMES, type PixelColor, SCREEN_KINDS } from "@dither-ui/kit/engine"
 import { safeUrl } from "@/shared/lib/routes"
 
 export type PropSpec =

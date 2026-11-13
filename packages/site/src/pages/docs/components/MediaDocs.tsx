@@ -12,11 +12,11 @@ import {
   sampleWorld,
   type BracketMatch,
   type ChannelInput,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import { launchAt, LAUNCH_S, ROCKET } from "@/pages/docs/components/rocket"
 import { assetPath } from "@/shared/lib/routes"
 import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 

@@ -18,7 +18,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import { editor } from "@/entities/editor"
 
 type Series = ReturnType<typeof activeSeries>[number]

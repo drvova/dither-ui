@@ -14,7 +14,7 @@ import { GROUPS } from "@/pages/docs/groups"
 import { PACKS, type PackName } from "@/pages/docs/packs"
 import { SECTION_IDS } from "@/pages/docs/pages"
 import { docsBreadcrumb, docsMeta } from "@/pages/docs/seo"
-import { STYLING_LABELS } from "restyle"
+import { STYLING_LABELS } from "@dither-ui/restyle"
 import { SHEET_WIPE, bandFill } from "@/widgets/site-header/menu"
 import DocsNav, { docsUrl, NAV_LINK, type PagePart } from "../../src/pages/docs/DocsNav"
 import DocsPage, { DOCS_GROUND } from "../../src/pages/docs/DocsPage"
@@ -23,7 +23,7 @@ import DocsSheet, { SHEET_ID } from "../../src/pages/docs/DocsSheet"
 import OnThisPage from "../../src/pages/docs/OnThisPage"
 import { PACK_COMPONENTS, PACK_LOADERS, preloadOpenPacks } from "../../src/pages/docs/pack-loaders"
 import SectionShare from "../../src/pages/docs/SectionShare"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 const SITE = join(__dirname, "../..")
 const DOCS = join(SITE, "src/pages/docs")

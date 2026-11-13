@@ -4,7 +4,7 @@
 // and the stage's audit, guides and the layout grid (placeable by keyboard),
 // the pens, the selection, the comment threads, and a capture's result.
 import { createEffect, createMemo, createSignal, For, Index, on, onCleanup, Show } from "solid-js"
-import { copyText } from "dither-kit"
+import { copyText } from "@dither-ui/kit"
 import { download } from "@/shared/lib/files"
 import { COLOR_FORMATS, formatColor, grade } from "@/shared/lib/inspect/color"
 import { cssOf, selectorOf } from "@/shared/lib/inspect/measure"

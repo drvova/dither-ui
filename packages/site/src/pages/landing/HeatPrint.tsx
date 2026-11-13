@@ -6,9 +6,9 @@
 // runs, is painted off the main thread (`heat-offload.ts`); a still sheet
 // (a plate, the close held) paints here.
 import { mergeProps, onCleanup, onMount } from "solid-js"
-import { fillOf } from "dither-kit/engine/pixel.ts"
-import { createDitherBackground } from "dither-kit/solid/runtime/surface.ts"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
+import { fillOf } from "@dither-ui/kit/engine/pixel.ts"
+import { createDitherBackground } from "@dither-ui/kit/solid/runtime/surface.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import { CLOSE, CLOSE_GRAIN, closeField, paintHeat, type HeatField, type HeatGrain } from "@/pages/landing/heat"
 import { offloadHeat, spawnHeatWorker } from "@/pages/landing/heat-offload"
 import { RAMP as INKS } from "@/pages/landing/plate"

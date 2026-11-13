@@ -1,5 +1,5 @@
 import { createSignal, Index } from "solid-js"
-import { DitherBreadcrumb, DitherPagination, DitherRating, DitherStepper, DitherTimeline } from "dither-kit"
+import { DitherBreadcrumb, DitherPagination, DitherRating, DitherStepper, DitherTimeline } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 

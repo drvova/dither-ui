@@ -6,8 +6,8 @@
 // at the next paint, so what shows lands on time. The first paint, and any
 // sheet that holds still, paints here at once; without workers every paint
 // does.
-import type { Rgb } from "dither-kit/engine/palette.ts"
-import type { RasterBuffer } from "dither-kit/engine/raster.ts"
+import type { Rgb } from "@dither-ui/kit/engine/palette.ts"
+import type { RasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import { CLOSE, paintHeat } from "./heat"
 import type { HeatAsk, HeatDone } from "./heat-ask"
 

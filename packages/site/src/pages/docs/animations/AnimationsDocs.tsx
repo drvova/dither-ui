@@ -50,9 +50,9 @@ import {
   DitherHoldAction,
   DitherWalletCard,
   DitherNotificationStack,
-} from "dither-kit"
-import { linear, quantize, steps } from "dither-kit"
-import type { StaggerFrom } from "dither-kit"
+} from "@dither-ui/kit"
+import { linear, quantize, steps } from "@dither-ui/kit"
+import type { StaggerFrom } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import TransitionSection from "./TransitionSection"
 import PropsTable, { type PropRow } from "../PropsTable"

@@ -11,7 +11,7 @@
 // when it paints a page it is still parsing (the docs, 1.4 MB, did; 800 kB
 // did not). No imports at runtime: the config loads this file under Node.
 
-import type { DitherTransitionOptions } from "dither-kit"
+import type { DitherTransitionOptions } from "@dither-ui/kit"
 
 const SLOT = "__ditherPageTransition"
 /** The element at the end of every route's body. */

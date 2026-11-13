@@ -1,5 +1,5 @@
 {
-  "name": "site",
+  "name": "@dither-ui/site",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,24 +14,24 @@
   },
   "dependencies": {
     "@babel/standalone": "^7.29.14",
+    "@dither-ui/bridge": "file:../bridge",
+    "@dither-ui/kit": "file:../dither-kit",
+    "@dither-ui/kit-stylex": "file:../dither-kit-stylex",
+    "@dither-ui/restyle": "file:../restyle",
+    "@dither-ui/tasks": "file:../tasks",
     "@solidjs/meta": "^0.29.8",
     "@solidjs/router": "^1.0.3",
     "@solidjs/start": "^2.2.2",
     "babel-preset-solid": "^1.9.19",
-    "bridge": "*",
     "clsx": "^2.1.1",
     "d3-scale": "^4.0.3",
     "d3-shape": "^3.2.1",
-    "dither-kit": "*",
-    "dither-kit-stylex": "*",
     "html-to-image": "^1.11.13",
     "nitro": "^3.0.261103-rc",
-    "restyle": "*",
     "seroval": "^1.8.1",
     "seroval-plugins": "^1.8.0",
     "solid-js": "^1.9.19",
-    "tailwind-merge": "^3.7.0",
-    "tasks": "*"
+    "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
     "@solidjs/testing-library": "^0.8.10",

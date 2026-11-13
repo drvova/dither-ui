@@ -2,7 +2,7 @@
 // wordmark, and its moment, `choreograph`, pure: cells in, a path per cell
 // out, in one of five moves, so each place the brand stands (the hero, the
 // plates, the footer) forms it its own way. `BrandGather` plays it.
-import { xorshift32 } from "dither-kit/engine/pixel.ts"
+import { xorshift32 } from "@dither-ui/kit/engine/pixel.ts"
 import { MARK_CELLS } from "@/shared/ui/brand-mark"
 import { layoutPixelText, PIXEL_ROWS } from "./pixel-type"
 

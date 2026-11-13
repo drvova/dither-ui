@@ -1,5 +1,5 @@
 import { familyOf } from "@/shared/config"
-import type { ChartConfig } from "dither-kit"
+import type { ChartConfig } from "@dither-ui/kit"
 import type { ChartModel, SeriesRow } from "./types"
 
 export const activeSeries = (chart: ChartModel): SeriesRow[] => chart.series.filter((s) => s.on)

@@ -53,7 +53,7 @@ import {
   DitherWaves,
   type DitherColor,
   type FlowDirection,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard, { DEMO_FIT } from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 import PosterSection from "./PosterSection"

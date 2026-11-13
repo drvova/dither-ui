@@ -1,6 +1,6 @@
 import { createMemo, Index } from "solid-js"
 import type { AvatarModel } from "@/entities/widget"
-import { clampGrid, cssColor, seededPattern } from "dither-kit"
+import { clampGrid, cssColor, seededPattern } from "@dither-ui/kit"
 
 export type AvatarDrawGridProps = { avatar: AvatarModel }
 

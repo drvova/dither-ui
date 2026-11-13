@@ -1,9 +1,9 @@
-// Generated from dither-kit/solid/FadeContent.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/FadeContent.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createSignal, type JSX, mergeProps, onCleanup, onMount } from "solid-js"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
-import "dither-kit/solid/FadeContent.css"
+import "@dither-ui/kit/solid/FadeContent.css"
 
 export type FadeContentProps = {
   duration?: number

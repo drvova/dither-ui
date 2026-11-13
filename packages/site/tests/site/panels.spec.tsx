@@ -14,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard/model/factory"
 import { type AvatarModel, componentEntry, createCell, createReel, createRow, createScreen } from "@/entities/widget"
 import { createWidget } from "@/entities/widget/model/factory"
-import { GLIDE_BEZIER } from "dither-kit/engine/dither-paint.ts"
+import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import {
   deselect,
   editor,

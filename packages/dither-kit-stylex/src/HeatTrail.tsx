@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/HeatTrail.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/HeatTrail.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, type JSX, mergeProps, onCleanup, onMount } from "solid-js"
-import { prefersReducedMotion } from "dither-kit/engine/dither-paint.ts"
+import { prefersReducedMotion } from "@dither-ui/kit/engine/dither-paint.ts"
 import {
   coolTrail,
   createTrail,
@@ -11,11 +11,11 @@ import {
   trailLift,
   trailTo,
   type TrailParams,
-} from "dither-kit/engine/heat-trail.ts"
-import { fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
+} from "@dither-ui/kit/engine/heat-trail.ts"
+import { fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
-import { createDitherBackground } from "dither-kit/solid/runtime/surface.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
+import { createDitherBackground } from "@dither-ui/kit/solid/runtime/surface.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

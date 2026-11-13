@@ -1,16 +1,16 @@
-// Generated from dither-kit/solid/polar-root.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/polar-root.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type Component, createMemo, type JSX, mergeProps, splitProps } from "solid-js"
-import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "dither-kit/engine/dither-paint.ts"
-import type { BloomInput, EasingInput } from "dither-kit/engine/dither-paint.ts"
-import { axisAtAngle, sliceAtAngle } from "dither-kit/engine/polar.ts"
-import { precompiledSrc, type PrecompiledDither } from "dither-kit/engine/precompile.ts"
+import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
+import type { BloomInput, EasingInput } from "@dither-ui/kit/engine/dither-paint.ts"
+import { axisAtAngle, sliceAtAngle } from "@dither-ui/kit/engine/polar.ts"
+import { precompiledSrc, type PrecompiledDither } from "@dither-ui/kit/engine/precompile.ts"
 import { cn, type StyleProp } from "./lib"
-import type { ChartConfig, Margins } from "dither-kit/solid/runtime/chart-context.ts"
+import type { ChartConfig, Margins } from "@dither-ui/kit/solid/runtime/chart-context.ts"
 import { ChartLayers } from "./runtime/chart-layer"
-import { CommonChartContext } from "dither-kit/solid/runtime/common-context.ts"
-import { PolarChartContext, usePolarController } from "dither-kit/solid/runtime/polar-context.ts"
-import { useChartDimensions } from "dither-kit/solid/runtime/use-chart-dimensions.ts"
+import { CommonChartContext } from "@dither-ui/kit/solid/runtime/common-context.ts"
+import { PolarChartContext, usePolarController } from "@dither-ui/kit/solid/runtime/polar-context.ts"
+import { useChartDimensions } from "@dither-ui/kit/solid/runtime/use-chart-dimensions.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

@@ -12,7 +12,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { chromium } from "playwright-core"
-import { buildKitCss, findChromium, listen, refineEmbed, renderOgCards, writeAgentRegistry } from "tasks"
+import { buildKitCss, findChromium, listen, refineEmbed, renderOgCards, writeAgentRegistry } from "@dither-ui/tasks"
 import { ROUTE_CARDS, sectionsManifest } from "../src/pages/docs/crawler-files.ts"
 import { buildOgPage } from "./og-page.ts"
 

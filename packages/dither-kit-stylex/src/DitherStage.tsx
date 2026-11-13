@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherStage.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherStage.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 // A stage: one size query container, one clock. Layers inside run keyframes
 // in the stage's units — "20cqw" is a fifth of this box whatever its size —
@@ -18,13 +18,13 @@ import {
   onMount,
 } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import { directedTime, isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import type { CqBox } from "dither-kit/engine/keyframes.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
-import { frameIndex } from "dither-kit/engine/timing.ts"
+import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import type { CqBox } from "@dither-ui/kit/engine/keyframes.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
+import { frameIndex } from "@dither-ui/kit/engine/timing.ts"
 import { cn, type StyleProp } from "./lib"
-import { createInviewLoop } from "dither-kit/solid/runtime/in-view.ts"
-import "dither-kit/solid/DitherStage.css"
+import { createInviewLoop } from "@dither-ui/kit/solid/runtime/in-view.ts"
+import "@dither-ui/kit/solid/DitherStage.css"
 
 /** What layers read from their stage: the moment, the measured box, and
  * whether motion is reduced (every layer then sits at its settled end). */

@@ -7,9 +7,9 @@
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "rstack/test"
-import { GLIDE_BEZIER, glide, resolveEasing } from "dither-kit/engine/dither-paint.ts"
-import { SPRING_BEZIER, spring, springLinear } from "dither-kit/engine/spring.ts"
-import { cubicBezier } from "dither-kit/engine/dither-paint.ts"
+import { GLIDE_BEZIER, glide, resolveEasing } from "@dither-ui/kit/engine/dither-paint.ts"
+import { SPRING_BEZIER, spring, springLinear } from "@dither-ui/kit/engine/spring.ts"
+import { cubicBezier } from "@dither-ui/kit/engine/dither-paint.ts"
 import { SHEET_WIPE } from "../src/widgets/site-header/menu"
 
 const root = new URL("../../..", import.meta.url).pathname

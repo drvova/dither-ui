@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/CartesianSeries.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/CartesianSeries.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, type JSX, mergeProps, onCleanup, Show } from "solid-js"
 import {
@@ -6,8 +6,8 @@ import {
   type StrokeVariant,
   useChartPart,
   type VariantInput,
-} from "dither-kit/solid/runtime/chart-context.ts"
-import { SeriesContext } from "dither-kit/solid/runtime/series-context.ts"
+} from "@dither-ui/kit/solid/runtime/chart-context.ts"
+import { SeriesContext } from "@dither-ui/kit/solid/runtime/series-context.ts"
 
 export type CartesianSeriesProps = {
   part: string

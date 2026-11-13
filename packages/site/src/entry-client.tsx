@@ -1,6 +1,6 @@
 // @refresh reload
 import { mount, StartClient } from "@solidjs/start/client"
-import { ditherViewTransition } from "dither-kit/engine/transition.ts"
+import { ditherViewTransition } from "@dither-ui/kit/engine/transition.ts"
 import { pageTransitionOptions, takePageTransition } from "@/app/page-reveal"
 import { appPathname, isLanding, routePath } from "@/shared/lib/routes"
 import { legacyAddress } from "@/shared/lib/legacy"

@@ -1,6 +1,6 @@
 import { createSignal, For } from "solid-js"
 import { createStore } from "solid-js/store"
-import { DitherCheckbox, DitherProgress, DitherSlider, DitherSwitch } from "dither-kit"
+import { DitherCheckbox, DitherProgress, DitherSlider, DitherSwitch } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 

@@ -5,7 +5,7 @@
 // never indexed: a crawler that follows a stale link keeps nothing.
 import { Meta } from "@solidjs/meta"
 import { onMount } from "solid-js"
-import { DitherHeatTrail } from "dither-kit"
+import { DitherHeatTrail } from "@dither-ui/kit"
 import "@/shared/fonts/display.css"
 import "@/pages/landing/chapters.css"
 import { TRAIL } from "@/pages/landing/plate"

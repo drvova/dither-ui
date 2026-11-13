@@ -2,8 +2,8 @@
 // and a fireball that give off light, a climb, a fireball that swells only
 // at the burst, and the launch's one clock: whole until the top, apart after.
 import { describe, expect, it } from "rstack/test"
-import { parseWorld } from "dither-kit/engine/models.ts"
-import { nodeMatrices } from "dither-kit/engine/world.ts"
+import { parseWorld } from "@dither-ui/kit/engine/models.ts"
+import { nodeMatrices } from "@dither-ui/kit/engine/world.ts"
 import { CLIMB_S, launchAt, LAUNCH_S, ROCKET } from "@/pages/docs/components/rocket"
 
 const world = parseWorld(ROCKET, "vrml")

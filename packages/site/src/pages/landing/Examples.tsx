@@ -30,7 +30,7 @@ import {
   type ButtonVariant,
   type DitherColor,
   type ScreenKind,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import { COMPONENT_COUNT } from "@/pages/landing/facts"
 import { BENTO, staggers } from "@/pages/landing/hub"
 import { spotlight } from "@/pages/landing/spotlight"
@@ -43,9 +43,9 @@ import "./Examples.css"
 // The heavy cards are their own chunks, fetched as the card nears the
 // viewport: the shader's WebGL engine, the translator's utility map, the
 // fluid's canvas engine.
-const DitherShader = lazy(() => import("dither-kit/solid/DitherShader.tsx"))
+const DitherShader = lazy(() => import("@dither-ui/kit/solid/DitherShader.tsx"))
 const ExportScene = lazy(() => import("./ExportScene"))
-const DitherFerrofluid = lazy(() => import("dither-kit/solid/Ferrofluid.tsx"))
+const DitherFerrofluid = lazy(() => import("@dither-ui/kit/solid/Ferrofluid.tsx"))
 const LAZY = new Set(["shader", "styling", "ferrofluid"])
 // Cards whose art runs to the card's edges.
 const FLUSH = new Set(["world", "print-screens", "silk", "shader", "ferrofluid", "styling"])

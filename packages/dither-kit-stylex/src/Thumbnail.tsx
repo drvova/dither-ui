@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/Thumbnail.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/Thumbnail.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type JSX, mergeProps, splitProps } from "solid-js"
 import { cn, type StyleProp } from "./lib"
-import "dither-kit/solid/Thumbnail.css"
+import "@dither-ui/kit/solid/Thumbnail.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

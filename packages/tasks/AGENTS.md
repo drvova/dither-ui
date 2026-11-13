@@ -9,7 +9,7 @@ by the site's post-build. Paths here are from this package's root.
 ## Ownership
 
 - `src/kit-css.mjs` (types in `kit-css.d.mts`): `buildKitCss()` compiles
-  the kit's standalone stylesheet from `dither-kit/tailwind/kit.css` with
+  the kit's standalone stylesheet from `@dither-ui/kit/tailwind/kit.css` with
   Tailwind's compiler and scanner, the kit's folders the only sources. Run
   alone it writes the file it is given (`npm run build:css` at the root
   writes `kit/dither-kit.css` into the site's build).
@@ -26,7 +26,7 @@ by the site's post-build. Paths here are from this package's root.
 
 ## Local Contracts
 
-- Depends on `dither-kit` only, for the stylesheet's entry, found through
+- Depends on `@dither-ui/kit` only, for the stylesheet's entry, found through
   the kit's `exports`. It never imports the site: the site's post-build
   imports this package and hands it the folder and the browser to work in
   (`tests/workspace.spec.ts` at the root).

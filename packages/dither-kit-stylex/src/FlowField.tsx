@@ -1,13 +1,13 @@
-// Generated from dither-kit/solid/FlowField.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/FlowField.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, type JSX, mergeProps, Show } from "solid-js"
-import { paintFlowField, fadeRasterAlpha, type FlowFieldParams } from "dither-kit/engine/flow-field.ts"
-import { hexToRgb } from "dither-kit/engine/palette.ts"
-import { clamp01 } from "dither-kit/engine/pixel.ts"
-import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "dither-kit/engine/precompile.ts"
+import { paintFlowField, fadeRasterAlpha, type FlowFieldParams } from "@dither-ui/kit/engine/flow-field.ts"
+import { hexToRgb } from "@dither-ui/kit/engine/palette.ts"
+import { clamp01 } from "@dither-ui/kit/engine/pixel.ts"
+import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "@dither-ui/kit/engine/precompile.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
-import { createDitherBackground } from "dither-kit/solid/runtime/surface.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
+import { createDitherBackground } from "@dither-ui/kit/solid/runtime/surface.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

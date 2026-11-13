@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import { ANIMATIONS_NAV } from "@/pages/docs/animations/animations-nav"
 import AnimationsDocs from "../../src/pages/docs/animations/AnimationsDocs"
 import TransitionSection from "../../src/pages/docs/animations/TransitionSection"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 const SOLID = join(__dirname, "../../src/pages/docs/animations")
 const read = (dir: string, file: string) => readFileSync(join(dir, file), "utf8")

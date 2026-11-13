@@ -1,6 +1,6 @@
 import { createMemo, For, Index, type JSX, splitProps } from "solid-js"
-import type { BezierPoints } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import type { BezierPoints } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 
 type Own = { modelValue: BezierPoints; class?: string; onUpdateModelValue?: (value: BezierPoints) => void }
 export type BezierEditorProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>

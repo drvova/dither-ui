@@ -1,7 +1,7 @@
 import { createMemo, createSignal, For, Match, onCleanup, onMount, Show, Switch, untrack } from "solid-js"
 import { createMutable, unwrap } from "solid-js/store"
 import { Portal } from "solid-js/web"
-import { copyText, DitherIcon, type IconName } from "dither-kit"
+import { copyText, DitherIcon, type IconName } from "@dither-ui/kit"
 import { artboardPng } from "@/features/export-image"
 import { isMark } from "@/shared/ui/marks"
 import {

@@ -5,7 +5,7 @@
 import { cleanup, render } from "@solidjs/testing-library"
 import { createRoot, createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { isDirected } from "dither-kit"
+import { isDirected } from "@dither-ui/kit"
 import { DEFAULT_SETTINGS } from "@/widgets/workbench/model/settings"
 import { TOGGLES, TOOLS } from "@/widgets/workbench/model/tools"
 import { Workbench, type WorkbenchApi } from "../../src/widgets/workbench"

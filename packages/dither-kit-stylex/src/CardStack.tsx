@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/CardStack.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/CardStack.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, For, type JSX, mergeProps } from "solid-js"
-import { project, rubberband, velocityFrom, type VelocitySample } from "dither-kit/engine/gesture.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { project, rubberband, velocityFrom, type VelocitySample } from "@dither-ui/kit/engine/gesture.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"
 

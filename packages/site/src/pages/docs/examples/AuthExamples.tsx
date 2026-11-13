@@ -1,6 +1,6 @@
 import { createSignal, For, Show } from "solid-js"
 import { createMutable } from "solid-js/store"
-import { DitherButton, DitherGradient } from "dither-kit"
+import { DitherButton, DitherGradient } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 
 const PLANS = ["Free", "Pro", "Scale"] as const

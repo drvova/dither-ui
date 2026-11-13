@@ -1,5 +1,5 @@
 import { createSignal, For } from "solid-js"
-import { DitherIcon, DitherPoster, SCREEN_KINDS, type ScreenKind } from "dither-kit"
+import { DitherIcon, DitherPoster, SCREEN_KINDS, type ScreenKind } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 

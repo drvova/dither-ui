@@ -14,7 +14,7 @@ import { FRAME_GAP } from "@/entities/editor/model/free"
 import { componentEntry, createCell, createRow, createScreen } from "@/entities/widget"
 import { evolveArtboard, mutateProps } from "@/features/agent/evolve"
 import { reelDuration } from "@/features/reel"
-import { directedTime, isDirected, release } from "dither-kit/engine/clock.ts"
+import { directedTime, isDirected, release } from "@dither-ui/kit/engine/clock.ts"
 import {
   actualSize,
   addArtboard,

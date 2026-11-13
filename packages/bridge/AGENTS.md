@@ -26,7 +26,7 @@
   `crypto`, `readline`); no npm package, no build step. `package.json`
   declares none and depends on no package of this workspace
   (`tests/workspace.spec.ts` at the root); it exports the one file as
-  `bridge/dither-bridge.mjs`, which is how the site's build finds it.
+  `@dither-ui/bridge/dither-bridge.mjs`, which is how the site's build finds it.
 - The site serves this file as it is (the `siteFiles` plugin,
   `packages/site/build/site-files.ts`, at `BRIDGE_FILE`), so it must keep
   running as a

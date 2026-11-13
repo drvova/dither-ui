@@ -1,5 +1,5 @@
 import { For, Show } from "solid-js"
-import { DitherIcon } from "dither-kit"
+import { DitherIcon } from "@dither-ui/kit"
 import { type Attachment, chipOf } from "@/widgets/agent/model/compose"
 import "./Attached.css"
 

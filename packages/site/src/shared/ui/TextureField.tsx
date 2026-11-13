@@ -1,6 +1,6 @@
 import { createMemo, For, type JSX, Show, splitProps } from "solid-js"
-import { resolveTexture, type TextureConfig, type VariantInput } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { resolveTexture, type TextureConfig, type VariantInput } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { VARIANTS } from "@/shared/config"
 import Segmented from "./Segmented"
 import Toggle from "./Toggle"

@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/GradientText.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/GradientText.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, type JSX, mergeProps } from "solid-js"
 import { cn, type StyleProp } from "./lib"
-import "dither-kit/solid/GradientText.css"
+import "@dither-ui/kit/solid/GradientText.css"
 
 export type GradientTextProps = {
   colors?: string[]

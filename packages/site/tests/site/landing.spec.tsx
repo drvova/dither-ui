@@ -6,7 +6,7 @@ import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { MetaProvider } from "@solidjs/meta"
 import { createRoot, createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { MODEL_FORMATS } from "dither-kit/engine/models.ts"
+import { MODEL_FORMATS } from "@dither-ui/kit/engine/models.ts"
 import { LOCKUP, LOCKUP_SIZE, STAGINGS } from "@/pages/landing/brand"
 import { BUILD_CELLS } from "@/pages/landing/build"
 import { COMPONENT_COUNT, HARNESSES, MODEL_NAMES, RUNTIME_DEPS, SPECS, WORKS } from "@/pages/landing/facts"
@@ -19,7 +19,7 @@ import { ASK, DEPLOYS, DOES, STEPS } from "@/pages/landing/story"
 import { TOTAL } from "@/pages/landing/stat"
 import { RISE } from "@/shared/lib/rise"
 import { RISE_LIVE } from "@/shared/lib/rise-wait"
-import { STYLING_LABELS } from "restyle"
+import { STYLING_LABELS } from "@dither-ui/restyle"
 import { rise } from "../../src/shared/lib"
 import { LandingPage, MissingPage } from "../../src/pages/landing"
 import AgentStory from "../../src/pages/landing/AgentStory"
@@ -38,13 +38,13 @@ import Showcase from "../../src/pages/landing/Showcase"
 import TrailerDialog from "../../src/pages/landing/TrailerDialog"
 import WorksWith from "../../src/pages/landing/WorksWith"
 import { useDrive } from "../../src/pages/landing/drive"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 // Every reveal the bento makes, as the props it was handed: its delay is
 // not in the page, so the stagger is read here.
 const reveals = vi.hoisted(() => [] as { class?: string; delay?: number }[])
-vi.mock("dither-kit/solid/DitherReveal.tsx", async (original) => {
-  const real = await original<typeof import("dither-kit/solid/DitherReveal.tsx")>()
+vi.mock("@dither-ui/kit/solid/DitherReveal.tsx", async (original) => {
+  const real = await original<typeof import("@dither-ui/kit/solid/DitherReveal.tsx")>()
   return {
     ...real,
     default: (props: Parameters<typeof real.default>[0]) => {

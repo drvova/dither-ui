@@ -7,7 +7,7 @@
 // when the reader does: the surface holds still a beat after the last
 // scroll or pointer move. Reduced motion gets the lockup whole and still.
 import { createSignal, onCleanup, onMount } from "solid-js"
-import { DitherWorld } from "dither-kit"
+import { DitherWorld } from "@dither-ui/kit"
 import { BUILD_CELLS, BUILD_HEAT, lockupModel, stageAt } from "@/pages/landing/build"
 import "./BrandBuild.css"
 

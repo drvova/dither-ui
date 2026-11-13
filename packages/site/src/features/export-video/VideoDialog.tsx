@@ -1,5 +1,5 @@
-import { copyText, DitherFocusScope, DitherIcon } from "dither-kit"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
+import { copyText, DitherFocusScope, DitherIcon } from "@dither-ui/kit"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
 import { createEffect, createSignal, For, on, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { DEFAULT_VIDEO, type VideoOptions } from "@/features/export-video/composition"

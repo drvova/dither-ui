@@ -24,7 +24,7 @@ import {
   DitherRelativeTime,
   DitherSelectableText,
   DitherTruncate,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 

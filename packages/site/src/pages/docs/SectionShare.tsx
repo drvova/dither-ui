@@ -5,7 +5,7 @@
 // README, an issue or a post. The card loads only once the disclosure is
 // open; where no build drew it (dev) the image hides itself.
 import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from "solid-js"
-import { copyText, DitherIcon } from "dither-kit"
+import { copyText, DitherIcon } from "@dither-ui/kit"
 import { docsMeta, SITE_URL } from "@/pages/docs/seo"
 import { assetPath } from "@/shared/lib"
 import { play } from "@/shared/lib/sound"

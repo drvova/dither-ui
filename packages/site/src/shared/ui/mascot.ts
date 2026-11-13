@@ -20,7 +20,7 @@ const CX = 5
 const CY = 7
 const R = 5
 
-/** The kit's Bayer thresholds (dither-kit/engine/pixel.ts BAYER4), ranks
+/** The kit's Bayer thresholds (@dither-ui/kit/engine/pixel.ts BAYER4), ranks
  * 0..15. */
 const BAYER = [
   [0, 8, 2, 10],

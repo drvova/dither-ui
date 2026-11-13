@@ -1,13 +1,13 @@
-// Generated from dither-kit/solid/WalletCard.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/WalletCard.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, For, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
-import { copyText } from "dither-kit/engine/copy-text.ts"
-import { cssColor } from "dither-kit/engine/palette.ts"
-import type { PixelColor } from "dither-kit/engine/pixel.ts"
+import { copyText } from "@dither-ui/kit/engine/copy-text.ts"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { CONTROL_BUTTON } from "./control"
 import { cn, type StyleProp } from "./lib"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/WalletCard.css"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/WalletCard.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

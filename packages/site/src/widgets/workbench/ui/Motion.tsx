@@ -3,7 +3,7 @@
 // runs on: hold it at a moment, step frame by frame, release it. The clock
 // is page-wide (every preview on the page holds with it), and says so.
 import { createSignal, For, Index, onCleanup, onMount, Show } from "solid-js"
-import { directedTime, isDirected, release, seek } from "dither-kit"
+import { directedTime, isDirected, release, seek } from "@dither-ui/kit"
 import { labelOf } from "@/shared/lib/inspect/measure"
 import { ICONS } from "@/widgets/workbench/model/tools"
 import { useBench } from "../context"

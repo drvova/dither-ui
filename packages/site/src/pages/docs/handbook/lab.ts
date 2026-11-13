@@ -3,13 +3,13 @@
 // few milliseconds. The Verification section runs them in the reader's
 // browser; CI runs the same checks in Node (tests/lab.spec.ts), and each
 // names the spec that holds its claim in depth.
-import { resolveSample, sampleKeyframes, type KeyframeTrack } from "dither-kit/engine/keyframes.ts"
-import { MODEL_FORMATS, type ModelFormat, parseWorld } from "dither-kit/engine/models.ts"
-import { BAYER4, fnv1a, SCREEN_KINDS, SCREENS } from "dither-kit/engine/pixel.ts"
-import { paintPoster, posterLayout, type PosterParams } from "dither-kit/engine/poster.ts"
-import { createRasterBuffer } from "dither-kit/engine/raster.ts"
-import { BAYER8, wipeStyle } from "dither-kit/engine/wipe.ts"
-import { paintWorld, type WorldStyle, type WorldView } from "dither-kit/engine/world.ts"
+import { resolveSample, sampleKeyframes, type KeyframeTrack } from "@dither-ui/kit/engine/keyframes.ts"
+import { MODEL_FORMATS, type ModelFormat, parseWorld } from "@dither-ui/kit/engine/models.ts"
+import { BAYER4, fnv1a, SCREEN_KINDS, SCREENS } from "@dither-ui/kit/engine/pixel.ts"
+import { paintPoster, posterLayout, type PosterParams } from "@dither-ui/kit/engine/poster.ts"
+import { createRasterBuffer } from "@dither-ui/kit/engine/raster.ts"
+import { BAYER8, wipeStyle } from "@dither-ui/kit/engine/wipe.ts"
+import { paintWorld, type WorldStyle, type WorldView } from "@dither-ui/kit/engine/world.ts"
 import { luminance, parseColor } from "@/shared/lib/inspect/color"
 
 export type Reading = { holds: boolean; figure: string }

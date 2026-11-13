@@ -1,6 +1,6 @@
 import { createMemo, createSignal, For, Show } from "solid-js"
-import { createInviewLoop } from "dither-kit/solid/runtime/in-view.ts"
-import type { ScopeWave } from "dither-kit/engine/scope.ts"
+import { createInviewLoop } from "@dither-ui/kit/solid/runtime/in-view.ts"
+import type { ScopeWave } from "@dither-ui/kit/engine/scope.ts"
 import { FRAME_WINDOW, readFrames } from "@/pages/docs/components/frames"
 import {
   cssColor,
@@ -25,7 +25,7 @@ import {
   DitherToggleGroup,
   DitherToolbar,
   toast,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 

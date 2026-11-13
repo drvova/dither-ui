@@ -1,5 +1,5 @@
 import { createEffect, createMemo, createSignal, For, Index, Match, on, Show, Switch } from "solid-js"
-import { DitherIcon } from "dither-kit"
+import { DitherIcon } from "@dither-ui/kit"
 import type { Queued } from "@/widgets/agent/model/compose"
 import Mascot from "@/shared/ui/Mascot"
 import type { Changed } from "../model/steps"

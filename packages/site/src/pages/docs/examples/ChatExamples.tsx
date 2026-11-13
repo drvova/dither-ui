@@ -1,6 +1,6 @@
 import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from "solid-js"
 import { createMutable } from "solid-js/store"
-import { DitherAvatar, DitherBadge, DitherButton, DitherInput } from "dither-kit"
+import { DitherAvatar, DitherBadge, DitherButton, DitherInput } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 
 type Msg = { from: "me" | "them"; text: string; at: string }

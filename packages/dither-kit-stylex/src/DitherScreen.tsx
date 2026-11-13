@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/DitherScreen.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherScreen.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import type { ParentProps } from "solid-js"
-import type { ScreenKind } from "dither-kit/engine/pixel.ts"
-import { ScreenContext } from "dither-kit/solid/runtime/screen.ts"
+import type { ScreenKind } from "@dither-ui/kit/engine/pixel.ts"
+import { ScreenContext } from "@dither-ui/kit/solid/runtime/screen.ts"
 
 export type DitherScreenProps = ParentProps<{ screen?: ScreenKind }>
 

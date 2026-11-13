@@ -1,12 +1,12 @@
-// Generated from dither-kit/solid/DitherToggle.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherToggle.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, type JSX, mergeProps, on, onCleanup, onMount, splitProps } from "solid-js"
-import { kitFromSeed } from "dither-kit/engine/dither-paint.ts"
-import { darkInkOnDark, LABEL_COVERAGE, type Rgb } from "dither-kit/engine/palette.ts"
-import { BAYER4, clamp01, fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
-import { createRasterBuffer, putRasterBuffer } from "dither-kit/engine/raster.ts"
+import { kitFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
+import { darkInkOnDark, LABEL_COVERAGE, type Rgb } from "@dither-ui/kit/engine/palette.ts"
+import { BAYER4, clamp01, fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import { createRasterBuffer, putRasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import { cn, type StyleProp } from "./lib"
-import { useLabelMatrix } from "dither-kit/solid/runtime/screen.ts"
+import { useLabelMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

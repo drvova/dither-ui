@@ -18,7 +18,7 @@
 // props through the registry's `sanitizeComponentProps`, screens and
 // charts through `normalizeArtboard`. Nothing here evaluates anything: an
 // agent can only produce documents the inspector could have produced.
-import { directedTime, isDirected, release, seek } from "dither-kit"
+import { directedTime, isDirected, release, seek } from "@dither-ui/kit"
 import { type Artboard, type ArtboardKind, createArtboard, normalizeArtboard } from "@/entities/artboard"
 import { createChart, createSeriesRow, LABEL_KEY } from "@/entities/chart"
 import {

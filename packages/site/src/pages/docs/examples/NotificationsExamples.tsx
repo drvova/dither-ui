@@ -1,6 +1,6 @@
 import { createMemo, createSignal, For, Show } from "solid-js"
 import { createMutable } from "solid-js/store"
-import { DitherAvatar, DitherBadge, DitherTabs } from "dither-kit"
+import { DitherAvatar, DitherBadge, DitherTabs } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 
 type Notice = {

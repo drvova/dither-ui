@@ -3,10 +3,10 @@
 // across visits. The stored choice is read on first use in a browser, never
 // while rendering on a server.
 import { createSignal } from "solid-js"
-import { isStyling, type Styling } from "restyle"
+import { isStyling, type Styling } from "@dither-ui/restyle"
 import { storage } from "@/shared/lib/storage"
 
-export * from "restyle"
+export * from "@dither-ui/restyle"
 
 const STORAGE_KEY = "dither-styling"
 const [chosen, setChosen] = createSignal<Styling>("tailwind")

@@ -1,5 +1,5 @@
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
-import { DitherAlertDialog, DitherAvatar, DitherIcon } from "dither-kit"
+import { DitherAlertDialog, DitherAvatar, DitherIcon } from "@dither-ui/kit"
 import {
   agoOf,
   chatGroups,

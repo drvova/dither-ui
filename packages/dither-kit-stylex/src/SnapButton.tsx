@@ -1,10 +1,10 @@
-// Generated from dither-kit/solid/SnapButton.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/SnapButton.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, type JSX, mergeProps, onMount, Show, splitProps } from "solid-js"
-import { rubberband } from "dither-kit/engine/gesture.ts"
-import { cssColor } from "dither-kit/engine/palette.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
-import type { PixelColor } from "dither-kit/engine/pixel.ts"
+import { rubberband } from "@dither-ui/kit/engine/gesture.ts"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { CONTROL_BUTTON } from "./control"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"

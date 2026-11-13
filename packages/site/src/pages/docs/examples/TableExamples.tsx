@@ -1,5 +1,5 @@
 import { createMemo, createSignal, For, Show } from "solid-js"
-import { DitherButton, DitherCheckbox, DitherInput, DitherPagination } from "dither-kit"
+import { DitherButton, DitherCheckbox, DitherInput, DitherPagination } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 
 type Member = { name: string; email: string; role: string; status: "active" | "away" | "offline"; joined: string }

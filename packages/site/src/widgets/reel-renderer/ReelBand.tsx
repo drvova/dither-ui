@@ -2,8 +2,8 @@
 // row's figure first, in the foreground, its words muted). A new chapter
 // comes in over the one before through the kit's ordered-dither dissolve.
 // The band is a size container: its type scales with the reel's frame.
-import { DitherReveal } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { DitherReveal } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { createMemo, For, Index, Show } from "solid-js"
 import type { ReelChapter } from "@/entities/widget"
 import type { ChapterState } from "@/features/reel"

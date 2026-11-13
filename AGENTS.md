@@ -89,20 +89,29 @@ Default section order:
   files in `public/`), `packages/tasks/` (the repository's tasks: the kit
   stylesheet, the share cards, the frame renderer, the agent demo
   recorder), `packages/bridge/` and `packages/discord/`.
-- Dependencies point one way: `dither-kit` depends on no package here;
-  `restyle` and `tasks` on `dither-kit`; `dither-kit-stylex` on
-  `dither-kit` (and on `restyle` for the spec that generates it, never in
-  its source); `site` on those four and on `bridge`; `bridge` and
-  `discord` on nothing here. A package imports another by its name, only
-  what that package's `exports` declare, and only when its own manifest
-  declares the dependency; no relative path leaves a package.
+- Dependencies point one way: `@dither-ui/kit` depends on no package here;
+  `@dither-ui/restyle` and `@dither-ui/tasks` on `@dither-ui/kit`;
+  `@dither-ui/kit-stylex` on `@dither-ui/kit` (and on `@dither-ui/restyle`
+  for the spec that generates it, never in its source); `@dither-ui/site`
+  on those four and on `@dither-ui/bridge`; `@dither-ui/bridge` and
+  `@dither-ui/discord` on nothing here. A package imports another by its
+  name, only what that package's `exports` declare, and only when its own
+  manifest declares the dependency; no relative path leaves a package.
+- Every package is named under the `@dither-ui/` scope, whatever its
+  folder (`packages/dither-kit` is `@dither-ui/kit`, `dither-kit-stylex`
+  `@dither-ui/kit-stylex`, the rest their folder's name): the bare names
+  (`dither-kit`, `tasks`, `@dither-ui/restyle`, `site`, `bridge`, `discord`) are
+  other people's packages on the npm registry, so none is ever written as
+  a dependency or an import. A manifest takes a package of the workspace
+  as `file:../<folder>` (npm has no `workspace:` protocol), which no
+  install can answer from the registry. Nothing here is published.
   `tests/workspace.spec.ts` reads every import of every package and fails
   on one that breaks this: a module that needs something above it is in
   the wrong package.
-- A kit file is named as the kit exports it: `dither-kit/engine/<file>`,
-  `dither-kit/solid/<file>` and `dither-kit/tailwind/<file>` are the files
-  of `packages/dither-kit/src/`, extension included; `dither-kit` alone is
-  the Solid layer's index and `dither-kit/engine` the engine's public API
+- A kit file is named as the kit exports it: `@dither-ui/kit/engine/<file>`,
+  `@dither-ui/kit/solid/<file>` and `@dither-ui/kit/tailwind/<file>` are the files
+  of `packages/dither-kit/src/`, extension included; `@dither-ui/kit` alone is
+  the Solid layer's index and `@dither-ui/kit/engine` the engine's public API
   (`engine/api.ts`), which is what a framework-free module imports values
   from.
 - Stack: SolidJS and SolidStart 2 (on Vite, Nitro's `static` preset, every
@@ -124,7 +133,7 @@ Default section order:
   program: the root `tsconfig.json` includes every package's source,
   specs, build files and benches, the root's config and specs included.
   Config files load under Node's own TypeScript, so a module one imports
-  at run time (`restyle/utility-map`, `crawler-files.ts` and its graph:
+  at run time (`@dither-ui/restyle/utility-map`, `crawler-files.ts` and its graph:
   `groups.ts`, `seo.ts`, the `*-nav.ts` packs) writes relative imports
   WITH `.ts`. `packages/dither-kit/benches/` holds the kit's
   benchmarks, run by hand, never part of a build
@@ -218,7 +227,7 @@ Default section order:
   Details in `packages/site/src/pages/AGENTS.md`.
 - Page transitions: moving between the site's pages is a cross-document
   view transition the arriving page dithers through the kit's transition
-  engine (`dither-kit/engine/transition.ts`, a band of the signal ink on
+  engine (`@dither-ui/kit/engine/transition.ts`, a band of the signal ink on
   the wipe's front); an inline head script from
   `packages/site/src/app/page-reveal.ts`
   (set in every site page's head by the shell,
@@ -301,47 +310,47 @@ Default section order:
   (`features/export-video`, the `video` selection action, the
   `video.export` command / `export_video` tool) — one self-contained HTML
   file that `npx hyperframes render` turns into a deterministic MP4. The
-  kit's clock (`dither-kit/engine/clock.ts`) makes every animation seekable; the
+  kit's clock (`@dither-ui/kit/engine/clock.ts`) makes every animation seekable; the
   player page `/play/` (`packages/site/src/pages/play`) renders one frame and
   is also built as a single file (`play/player.js` and `player.css`, by
   `packages/site/build/standalone.ts`) that the export inlines. A reel (the
   `reel` widget kind, `reel.add` /
   `add_reel`, the `reel` selection action) plays other frames in order with
-  ordered-dither transitions (`dither-kit/engine/wipe.ts` masks, `DitherReveal`)
+  ordered-dither transitions (`@dither-ui/kit/engine/wipe.ts` masks, `DitherReveal`)
   and exports as one MP4 as long as its cut. A reel whose clips carry
   camera keys, callouts and chapters is a film (`/studio#new/film` builds
   the kit's own, `reel.add` takes them from any agent), with a soundtrack
-  the kit synthesizes from the cut (`dither-kit/engine/score.ts`: a chord per
+  the kit synthesizes from the cut (`@dither-ui/kit/engine/score.ts`: a chord per
   clip, the Bayer motif, a riser and an impact on every cut) that the
   export carries as the composition's audio track. Details in
   `packages/site/src/AGENTS.md` and `packages/dither-kit/AGENTS.md`.
-- Styling systems: the kit is one kit in layers: `dither-kit/engine/`
-  (framework-free, styling-free logic), `dither-kit/solid/` (the components,
-  authored in SolidJS with Tailwind), `dither-kit/tailwind/` (the Tailwind
+- Styling systems: the kit is one kit in layers: `@dither-ui/kit/engine/`
+  (framework-free, styling-free logic), `@dither-ui/kit/solid/` (the components,
+  authored in SolidJS with Tailwind), `@dither-ui/kit/tailwind/` (the Tailwind
   layer's framework-free modules, `lib.ts` and `control.ts`, and the
   standalone stylesheet's entry `kit.css`), and beside it the
-  `dither-kit-stylex` package (`packages/dither-kit-stylex/src/`: the same
+  `@dither-ui/kit-stylex` package (`packages/dither-kit-stylex/src/`: the same
   components in StyleX, GENERATED from the Solid layer by
-  `restyle/stylex-layer`, `packages/restyle/src/stylex-layer-solid.ts`;
+  `@dither-ui/restyle/stylex-layer`, `packages/restyle/src/stylex-layer-solid.ts`;
   after editing a Solid kit file, `npx rs test -u
   packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts` rewrites its
   StyleX twin, and the spec fails on any drift). The tokens live in
-  `dither-kit/engine/theme.css` (plain custom properties the site's
+  `@dither-ui/kit/engine/theme.css` (plain custom properties the site's
   `packages/site/src/app/styles.css` imports under Tailwind); the post-build
   (and `npm run build:css`, `packages/tasks/src/kit-css.mjs`, alone)
-  compiles `dither-kit/tailwind/kit.css` (tokens, the `.dither-kit`-scoped
+  compiles `@dither-ui/kit/tailwind/kit.css` (tokens, the `.dither-kit`-scoped
   base, every utility the kit uses) into `kit/dither-kit.css` in the build,
   so apps on UnoCSS, vanilla CSS or CSS-in-JS run the Solid layer without
   Tailwind; StyleX apps copy the StyleX package beside the kit and alias
-  `@dither-kit` to it; `dither-kit/engine/theme.ts` themes from JS. Details
+  `@dither-kit` to it; `@dither-ui/kit/engine/theme.ts` themes from JS. Details
   in `packages/dither-kit/AGENTS.md` and
   `packages/dither-kit-stylex/AGENTS.md`. What the site writes for a reader
   is Solid (the docs' tables, prose and snippets, the Studio's code export
-  and `code.get`) and comes in their styling system too: the `restyle`
+  and `code.get`) and comes in their styling system too: the `@dither-ui/restyle`
   package (`packages/restyle/src/index.ts`) rewrites a Tailwind-classed
   snippet into a stylesheet the file imports, CSS Modules or StyleX from the
   declarations Tailwind's compiler gives each class
-  (`virtual-dither-utilities`, compiled at build by `restyle/utility-map`
+  (`virtual-dither-utilities`, compiled at build by `@dither-ui/restyle/utility-map`
   from the vocabulary the site names in
   `packages/site/build/utility-sources.ts`: the docs and the entities); the
   docs' styling switch, the Studio's export dialog and `code.get { styling
@@ -350,7 +359,7 @@ Default section order:
 - Print screens: every kit surface thresholds its density through a 4x4
   matrix, the Bayer one unless a `DitherScreen` around it picks a
   printer's screen (`line`, `diagonal`, `dot`, `cross`; `SCREENS` in
-  `dither-kit/engine/pixel.ts`): each surface reads it through one
+  `@dither-ui/kit/engine/pixel.ts`): each surface reads it through one
   function, `useDitherMatrix` (charts through their context's
   `matrixOf`), seeded as ever; a fill that carries a label keeps Bayer.
   `DitherPoster` prints the palette as tone through them: tiles that
@@ -379,14 +388,14 @@ Default section order:
   `.clock`), the `dither-studio:command` event and `clock.seek`, so CDP,
   WebDriver and Playwright drive it in any engine; `npm run frames` renders
   a composition to PNGs/MP4 in Chromium, WebKit or Firefox without CDP.
-- Motion in container units: `dither-kit/engine/keyframes.ts` (lengths as unit
+- Motion in container units: `@dither-ui/kit/engine/keyframes.ts` (lengths as unit
   terms, interpolated with their units kept, resolved to px against a box)
   drives `DitherStage` (a size query container with one kit-clock) and
   `DitherLayer` (keyframes per layer: canvas, SVG or DOM), so a scene
   scales exactly with its parent and exports to video. Docs under
   Animations (`stage`); registry rows with composed demos.
 - 3D + GLSL: the kit renders model files and fragment shaders through the
-  same Bayer raster. `DitherWorld` (`dither-kit/engine/world.ts` engine,
+  same Bayer raster. `DitherWorld` (`@dither-ui/kit/engine/world.ts` engine,
   `models.ts` parsers, `world-gl.ts` GPU engine) loads VRML97 / VRML 1.0
   `.wrl`, X3D, glTF / GLB, OBJ + MTL, STL, PLY and OFF by URL or inline,
   and Gaussian splat captures (`.splat`, a trained capture's `.ply`;
@@ -461,7 +470,7 @@ Default section order:
   subset ships red), all at the root on Node 24 after one `npm ci`:
   `npm run lint`, `npx rs fmt --check`, `npm run typecheck`, `npm test`
   (`rs test`, then the kit's and the site's component specs),
-  `npm run build` (which needs Chromium) and `npm test -w site` again over
+  `npm run build` (which needs Chromium) and `npm test -w @dither-ui/site` again over
   the built site. Visual/stateful changes are also checked in a live
   browser (`npm run dev` or `npm run preview` + screenshots). Format what
   you touch with `rs fmt <paths>`.

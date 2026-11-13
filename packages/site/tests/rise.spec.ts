@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
-import { GLIDE_BEZIER } from "dither-kit/engine/dither-paint.ts"
+import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { RISE, riseDelays } from "../src/shared/lib/rise"
 import { RISE_HEAD_SCRIPT, RISE_LIVE, RISE_WAIT } from "../src/shared/lib/rise-wait"
 

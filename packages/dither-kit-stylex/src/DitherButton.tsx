@@ -1,15 +1,15 @@
-// Generated from dither-kit/solid/DitherButton.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherButton.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, For, type JSX, mergeProps, on, onCleanup, onMount, Show, splitProps } from "solid-js"
-import { kitFromSeed } from "dither-kit/engine/dither-paint.ts"
-import { darkInkOnDark, LABEL_COVERAGE } from "dither-kit/engine/palette.ts"
+import { kitFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
+import { darkInkOnDark, LABEL_COVERAGE } from "@dither-ui/kit/engine/palette.ts"
 import {
   fillOf,
   pixelBloomStyle,
   pixelPrefersReducedMotion,
   type PixelBloomInput,
   type PixelColor,
-} from "dither-kit/engine/pixel.ts"
+} from "@dither-ui/kit/engine/pixel.ts"
 import {
   DEFAULT_MAX_COLS,
   DEFAULT_MAX_ROWS,
@@ -19,8 +19,8 @@ import {
   STATIC_DEFAULT_MAX_ROWS,
   type DitherRenderMode,
   type PrecompiledDither,
-} from "dither-kit/engine/precompile.ts"
-import { putRasterBuffer, type RasterBuffer } from "dither-kit/engine/raster.ts"
+} from "@dither-ui/kit/engine/precompile.ts"
+import { putRasterBuffer, type RasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import { CONTROL_BUTTON } from "./control"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"

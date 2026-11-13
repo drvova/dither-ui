@@ -33,11 +33,11 @@ are from the repository's.
 - One alias, `@/` for this package's `src/` (`build/aliases.ts`, for the
   build and the component specs; the root `tsconfig.json` `paths` says the
   same to the type checker and `rstack.config.ts` to the framework-free
-  specs). Every other package is imported by name: `dither-kit` (the Solid
-  layer), `dither-kit/engine` (the engine's API, what a framework-free
-  module takes values from; a type may come from `dither-kit`),
-  `dither-kit/<layer>/<file>` with its extension, `dither-kit-stylex`,
-  `restyle`, `tasks`. `tests/workspace.spec.ts` at the root holds it.
+  specs). Every other package is imported by name: `@dither-ui/kit` (the Solid
+  layer), `@dither-ui/kit/engine` (the engine's API, what a framework-free
+  module takes values from; a type may come from `@dither-ui/kit`),
+  `@dither-ui/kit/<layer>/<file>` with its extension, `@dither-ui/kit-stylex`,
+  `@dither-ui/restyle`, `@dither-ui/tasks`. `tests/workspace.spec.ts` at the root holds it.
 - One type program, the root's `tsconfig.json`: this package has none of
   its own.
 - One Solid: the workspace installs one `solid-js`, which the kit and the
@@ -91,7 +91,7 @@ are from the repository's.
   notation (a fragment or a short `<script setup>` file), and the Solid
   a reader sees is derived from it, never forked by hand:
   `pages/docs/solid.ts` (`toSolidCode`) translates it,
-  the `restyle` package writes it in the reader's styling
+  the `@dither-ui/restyle` package writes it in the reader's styling
   system (`pages/docs/snippet.ts`: `docsCode`, `docsFiles`). Readers never
   see the authoring notation.
   `widgets/source` shows the files and runs the example in the page
@@ -109,17 +109,17 @@ are from the repository's.
   real compiler). `entities/widget/model/model.ts` is the one reading of
   the shared registry's `vmodel` rows as Solid's prop and callback.
 - Vite plugins, each a file in `build/`: `utilities.ts` (the utility map
-  the rewriter reads, compiled by `restyle/utility-map` from the folders
+  the rewriter reads, compiled by `@dither-ui/restyle/utility-map` from the folders
   `utility-sources.ts` names, which the workspace's `rstack.config.ts`
   reads too), `kit-sources.ts` (the kit's own source at `kit/src/solid/`
-  with `files.json`, read from the `dither-kit` package wherever the
+  with `files.json`, read from the `@dither-ui/kit` package wherever the
   workspace keeps it, by the one rule and the one path, `KIT_SRC`, in
   `@/shared/lib/kit-sources`), `run-compiler.ts` (what the Solid compiler
   needs to load in a browser). Nitro copies `public/` into the build.
   `site-files.ts` emits the crawler files (`sitemap.xml`, `robots.txt`,
   `llms.txt`, `embed/`, `oembed/`, `og/sections.json`), the install files
   (icons, `studio/app.webmanifest`), the mascot capture and the bridge
-  file, each from its builder in `src/` (the bridge as the `bridge`
+  file, each from its builder in `src/` (the bridge as the `@dither-ui/bridge`
   package exports it, as written), served in dev and emitted in a build.
   `standalone.ts` builds the two scripts that stand outside the app as
   nested builds: `sw.js` (the Studio's worker, `@/app/sw`, its install set
@@ -129,11 +129,11 @@ are from the repository's.
 - `npm run build` is `vite build` (into `.output/public`), then
   `build/postbuild.mjs`, which needs Chromium (`CHROME_PATH` or a standard
   path) and fails loudly without it: it compiles `kit/dither-kit.css`
-  (`buildKitCss` of the `tasks` package), builds the share-card renderer
+  (`buildKitCss` of the `@dither-ui/tasks` package), builds the share-card renderer
   (`og/index.html`, `build/og-page.ts` over `build/og-shell.html`), draws
   every card (`og/<id>.png`, `.gif`), rewrites each section's embed with the
   lede its page prints, and writes `agent/registry.json` off the mounted
-  Studio. The drawing code is the `tasks` package's
+  Studio. The drawing code is the `@dither-ui/tasks` package's
   (`packages/tasks/src/cards.ts`). `MADE_AFTER_THE_PAGES` in
   `vite.config.ts` lists the files the crawl must not ask for because the
   post-build makes them.
@@ -151,7 +151,7 @@ are from the repository's.
   `npx rs test` (Rstest: this package's framework-free specs,
   `tests/*.spec.ts`, with every other package's).
 - Here: `npm test` (Vitest: `tests/site/`, in jsdom on Solid's browser
-  build; `dither-kit/testing/world.ts` is the browser a spec runs in;
+  build; `@dither-ui/kit/testing/world.ts` is the browser a spec runs in;
   `tests/site/sandbox.spec.ts` runs in a real Chromium) and
   `npm run build` (the static build and the post-build; a prerender error
   or a failed card fails it). The specs that read the built site

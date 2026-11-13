@@ -8,9 +8,9 @@
 // when it is closed. Sticky is positioned, and z-40 keeps it over a page's
 // main, which isolates its art.
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from "solid-js"
-import { DitherReveal } from "dither-kit"
-import { coverPage } from "dither-kit/engine/cover.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { DitherReveal } from "@dither-ui/kit"
+import { coverPage } from "@dither-ui/kit/engine/cover.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { routePath } from "@/shared/lib/routes"
 import {
   BAND_INK,

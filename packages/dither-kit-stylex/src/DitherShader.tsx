@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/DitherShader.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherShader.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
-import { directedTime, isDirected } from "dither-kit/engine/clock.ts"
+import { directedTime, isDirected } from "@dither-ui/kit/engine/clock.ts"
 import {
   type ChannelInput,
   type Channels,
@@ -13,10 +13,10 @@ import {
   type PendingProgram,
   programReady,
   startProgram,
-} from "dither-kit/engine/gl.ts"
-import { clamp01, fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
-import type { DitherRenderMode } from "dither-kit/engine/precompile.ts"
-import type { RasterBuffer } from "dither-kit/engine/raster.ts"
+} from "@dither-ui/kit/engine/gl.ts"
+import { clamp01, fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import type { DitherRenderMode } from "@dither-ui/kit/engine/precompile.ts"
+import type { RasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import {
   ditherShaderPixels,
   sampleShader,
@@ -24,10 +24,10 @@ import {
   wrapShader,
   type ShaderDither,
   type ShaderProgram,
-} from "dither-kit/engine/shader.ts"
+} from "@dither-ui/kit/engine/shader.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
-import { createDitherBackground, type DitherSurface } from "dither-kit/solid/runtime/surface.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
+import { createDitherBackground, type DitherSurface } from "@dither-ui/kit/solid/runtime/surface.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

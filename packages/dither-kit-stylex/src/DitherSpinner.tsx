@@ -1,11 +1,11 @@
-// Generated from dither-kit/solid/DitherSpinner.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherSpinner.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, type JSX, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
-import { directedTime, isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import { SPINNER_DEFAULT, spinnerFromSeed, type SpinnerParams } from "dither-kit/engine/dither-paint.ts"
-import type { Rgb } from "dither-kit/engine/palette.ts"
-import { BAYER4, fillOf, type PixelColor, pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
-import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "dither-kit/engine/precompile.ts"
+import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import { SPINNER_DEFAULT, spinnerFromSeed, type SpinnerParams } from "@dither-ui/kit/engine/dither-paint.ts"
+import type { Rgb } from "@dither-ui/kit/engine/palette.ts"
+import { BAYER4, fillOf, type PixelColor, pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
+import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "@dither-ui/kit/engine/precompile.ts"
 import {
   cellCanvas,
   setOrBlendRasterPixel,
@@ -13,9 +13,9 @@ import {
   createRasterBuffer,
   putRasterBuffer,
   type RasterBuffer,
-} from "dither-kit/engine/raster.ts"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
-import { createCanvasVisibility } from "dither-kit/solid/runtime/visibility.ts"
+} from "@dither-ui/kit/engine/raster.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
+import { createCanvasVisibility } from "@dither-ui/kit/solid/runtime/visibility.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

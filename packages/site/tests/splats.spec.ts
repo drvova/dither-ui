@@ -5,7 +5,7 @@
 // cells take the colour cube's entry and their luminance, a nearer mesh
 // hides what is behind it, and a view prints the same however it was reached.
 import { describe, expect, it } from "rstack/test"
-import { formatOf, parseWorld } from "dither-kit/engine/models.ts"
+import { formatOf, parseWorld } from "@dither-ui/kit/engine/models.ts"
 import {
   cloudBounds,
   covariance,
@@ -15,8 +15,8 @@ import {
   SH_C0,
   SPLAT_LEVELS,
   SPLAT_PLY_PROPS,
-} from "dither-kit/engine/splats.ts"
-import { createWorldTarget, rasterizeWorld, type WorldStyle } from "dither-kit/engine/world.ts"
+} from "@dither-ui/kit/engine/splats.ts"
+import { createWorldTarget, rasterizeWorld, type WorldStyle } from "@dither-ui/kit/engine/world.ts"
 
 type Splat = { p: number[]; s?: number[]; rgba?: number[]; q?: number[] }
 

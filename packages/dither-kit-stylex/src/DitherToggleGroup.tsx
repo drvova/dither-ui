@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/DitherToggleGroup.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherToggleGroup.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, For, mergeProps, on, onCleanup, onMount } from "solid-js"
-import { darkInkOnDark, LABEL_COVERAGE } from "dither-kit/engine/palette.ts"
-import { fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
+import { darkInkOnDark, LABEL_COVERAGE } from "@dither-ui/kit/engine/palette.ts"
+import { fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import type { Option } from "./DitherSelect"
 import { paintToggleCanvas } from "./DitherToggle"

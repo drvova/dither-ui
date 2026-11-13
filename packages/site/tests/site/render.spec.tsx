@@ -13,7 +13,7 @@ import { componentEntry, createComponent, createWidget } from "@/entities/widget
 import { addCell, createScreen } from "@/entities/widget/model/screen"
 import { CAMERA_MOVES } from "@/features/reel"
 import { audit, nameOf } from "@/shared/lib/inspect/measure"
-import { isDirected, release, seek } from "dither-kit/engine/clock.ts"
+import { isDirected, release, seek } from "@dither-ui/kit/engine/clock.ts"
 import { addArtboard, addReelArtboard, editor, selectArtboard } from "../../src/entities/editor"
 import { handoff } from "../../src/features/agent/handoff"
 import { listenerOf } from "../../src/entities/widget/model/model"
@@ -33,7 +33,7 @@ import ReelClip from "../../src/widgets/reel-renderer/ReelClip"
 import { WidgetRenderer } from "../../src/widgets/widget-renderer"
 import { FieldWrap } from "../../src/widgets/widget-renderer/FieldWrap"
 import ScreenRenderer from "../../src/widgets/widget-renderer/ScreenRenderer"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 let w: ReturnType<typeof world>
 beforeEach(() => {

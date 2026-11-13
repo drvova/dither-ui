@@ -3,7 +3,7 @@
 ## Purpose
 
 The dither-ui.com site (landing, docs) and the studio editor, built on the
-kit (the `dither-kit` package). Feature-Sliced Design (FSD) layering.
+kit (the `@dither-ui/kit` package). Feature-Sliced Design (FSD) layering.
 
 The app's source is this one tree, read through `@/`. A slice holds its
 framework-free modules (models, pure logic, tables, stylesheets, fonts)
@@ -14,8 +14,8 @@ stands on (`widgets/workbench/model/` beside
 (`features/agent/protocol.ts`, `pages/docs/DemoCard.tsx`) is under this
 folder. A framework-free module imports no Solid and touches no DOM at
 load, so the workspace's `rs test` can import it (its specs are
-`../tests/*.spec.ts`); it takes the kit's values from `dither-kit/engine`,
-never from `dither-kit`, whose index is the components. Where a
+`../tests/*.spec.ts`); it takes the kit's values from `@dither-ui/kit/engine`,
+never from `@dither-ui/kit`, whose index is the components. Where a
 framework-free module and its Solid binding would share a name, each has
 its own (`shared/lib/rise.ts` and `shared/lib/rise-ref.ts`,
 `widgets/source/model/snippet.ts` and `widgets/source/model/files.ts`):
@@ -113,7 +113,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   path for the Studio's exports, the workbench and the source panel —
   `words.ts` — `breakable`, a camelCase name with a break point at each hump,
   for display only (the inspector's names) — `restyle.ts` — the reader's
-  choice of styling system, kept across visits, over the `restyle` package (a
+  choice of styling system, kept across visits, over the `@dither-ui/restyle` package (a
   snippet in that system, the node-side utility map and the kit's StyleX
   generator: see `packages/restyle/AGENTS.md`); `kit-sources.ts` — the one
   rule for which kit files the build serves; `gif.ts` — the ONE GIF encoder
@@ -155,7 +155,7 @@ around this tree (entries, routes, the build, how Solid is written) is
 ## Local Contracts
 
 - Layer imports flow downward only: pages → widgets → features → entities →
-  shared. The kit (`dither-kit`) may be imported from any layer; nothing
+  shared. The kit (`@dither-ui/kit`) may be imported from any layer; nothing
   imports back into it.
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`, plus the
   `noindex` player at `/play/`; legacy
@@ -356,12 +356,12 @@ around this tree (entries, routes, the build, how Solid is written) is
   under the code; `tailwind` returns the code untouched. A docs snippet is
   translated from its authoring notation first (`toSolidCode`), so that
   notation never reaches the rewriter. Its data is
-  `virtual-dither-utilities`: `restyle/utility-map` (node-side only: the Vite
+  `virtual-dither-utilities`: `@dither-ui/restyle/utility-map` (node-side only: the Vite
   plugin `build/utilities.ts`, and `rstack.config.ts` for the framework-free
   specs) scans `UTILITY_SOURCES` (`build/utility-sources.ts`: `pages/docs` and
   `entities`) with Tailwind's scanner and compiles every candidate with
   Tailwind's compiler (theme inlined; the kit's `@theme inline` tokens and
-  dark variant read from `dither-kit/tailwind/kit.css`), keeping per class its
+  dark variant read from `@dither-ui/kit/tailwind/kit.css`), keeping per class its
   cascade index, its variant chains and declarations, plus the `@property`
   initials. `compileUtilities(tokens, strict, map)` merges a class list in
   Tailwind's order (so `px-2 p-4` cascades as Tailwind does), resolves every
@@ -369,8 +369,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   Tailwind's `@supports (color: color-mix(...))` guard into its rule (every
   supported browser passes it), simplifies `calc()`s and drops no-op shadows;
   `map` defaults to the docs' vocabulary, and the kit layer generator's spec
-  passes the kit's (`buildUtilityMap(root, ["dither-kit/solid",
-  "dither-kit/tailwind"])`). StyleX comes out as its compiler takes it: a
+  passes the kit's (`buildUtilityMap(root, ["@dither-ui/kit/solid",
+  "@dither-ui/kit/tailwind"])`). StyleX comes out as its compiler takes it: a
   pseudo-element is a top-level key holding its own properties
   (`"::placeholder": { color }`), vendor properties are spelled
   `WebkitLineClamp`. Unknown classes stay classes (the kit stylesheet covers

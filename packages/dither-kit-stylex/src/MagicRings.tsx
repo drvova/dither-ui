@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/MagicRings.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/MagicRings.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, For, type JSX, mergeProps } from "solid-js"
 import { cn, type StyleProp } from "./lib"
-import "dither-kit/solid/MagicRings.css"
+import "@dither-ui/kit/solid/MagicRings.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

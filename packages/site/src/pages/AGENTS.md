@@ -254,7 +254,7 @@ in the page's folder.
   640px, values read from the kit where they can be: the counts, the
   screens, the license; the facts spec holds the rest to the kit's peers,
   matrices and styling systems); `tests/landing-facts.spec.ts` recounts
-  the first from `dither-kit/solid/index.ts` and holds the second to
+  the first from `@dither-ui/kit/solid/index.ts` and holds the second to
   the kit's required `peerDependencies` (a styling layer's optional one
   aside), and the plates' stock to the raised ground's mix; section counts
   come from `hub.ts`. A change that moves one
@@ -815,7 +815,7 @@ in the page's folder.
   every snippet in every styling system).
 - Docs serve any styling system: `docs/snippet.ts` `docsCode()` (and
   `docsFiles()`, the file with its stylesheet for the source panel) is the
-  translation followed by the `restyle` package's rewriter with the reader's
+  translation followed by the `@dither-ui/restyle` package's rewriter with the reader's
   `styling` (header switch at lg+, per-card chips). Every DemoCard code tab
   and Handbook block goes through it, so a snippet idiom the rewriter mangles
   gets a rule in `packages/restyle/src/index.ts` + a

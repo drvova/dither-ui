@@ -1,5 +1,5 @@
 import { createSignal, For, onCleanup, onMount } from "solid-js"
-import { DitherIcon, ditherTransition, type WipeDirection } from "dither-kit"
+import { DitherIcon, ditherTransition, type WipeDirection } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 

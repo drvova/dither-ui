@@ -6,7 +6,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import ts from "typescript"
 import { describe, expect, it } from "vitest"
-import { restyle, restyleSolid, STYLINGS } from "restyle"
+import { restyle, restyleSolid, STYLINGS } from "@dither-ui/restyle"
 import { asSfc, snippetKind } from "@/widgets/source/model/snippet"
 import { toSolidCode } from "../../src/pages/docs/solid"
 

@@ -7,7 +7,7 @@
 // Guide: https://rstack.rs/guide/configuration
 import { resolve } from "node:path"
 import { define } from "rstack"
-import { utilityMap } from "restyle/utility-map"
+import { utilityMap } from "@dither-ui/restyle/utility-map"
 import { UTILITY_SOURCES } from "./packages/site/build/utility-sources.ts"
 
 const root = import.meta.dirname

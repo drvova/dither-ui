@@ -4,7 +4,7 @@
 // element that holds them; the words come from the site's `RiseWords`. Under
 // reduced motion everything stands where it is. What the prerendered bytes
 // show before the app runs waits in `rise-wait.ts`. Framework-free.
-import { GLIDE_BEZIER } from "dither-kit/engine/dither-paint.ts"
+import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { RISE_LIVE } from "./rise-wait"
 
 export const RISE = {

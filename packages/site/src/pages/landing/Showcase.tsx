@@ -1,5 +1,5 @@
 import { createSignal, For } from "solid-js"
-import { DitherIcon, DitherPoster, DitherReveal } from "dither-kit"
+import { DitherIcon, DitherPoster, DitherReveal } from "@dither-ui/kit"
 import { STAGINGS } from "@/pages/landing/brand"
 import { COMPONENT_COUNT, MATRIX, WORKS } from "@/pages/landing/facts"
 import { INKS } from "@/pages/landing/plate"

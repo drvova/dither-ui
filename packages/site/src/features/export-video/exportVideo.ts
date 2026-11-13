@@ -4,7 +4,7 @@
 import type { Artboard } from "@/entities/artboard"
 import { editor } from "../../entities/editor"
 import { reelDuration, scorePlanOf } from "@/features/reel"
-import { scoreCut, wavBytes } from "dither-kit"
+import { scoreCut, wavBytes } from "@dither-ui/kit"
 import { bytesToBase64, toBase64Url } from "@/shared/lib/base64"
 import { assetPath, routePath } from "@/shared/lib/routes"
 import { download } from "@/shared/lib/files"

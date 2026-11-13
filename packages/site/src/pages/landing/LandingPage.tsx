@@ -19,7 +19,7 @@ import {
   DitherScreen,
   type PixelColor,
   type ScreenKind,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import "@/shared/fonts/display.css"
 import "@/pages/landing/chapters.css"
 import { STAGINGS } from "@/pages/landing/brand"
@@ -104,7 +104,7 @@ const INSIDE: {
 
 // The footer's ground (`road.ts`), loaded with it: its own chunk, fetched
 // once the page has mounted, never rendered on a server.
-const DitherShader = lazy(() => import("dither-kit/solid/DitherShader.tsx"))
+const DitherShader = lazy(() => import("@dither-ui/kit/solid/DitherShader.tsx"))
 
 // One row of the wordmark's screen below its ink's top: the first rows are
 // hairlines, so the wheels stand where the letters read solid.

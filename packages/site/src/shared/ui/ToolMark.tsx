@@ -3,7 +3,7 @@
 // barrel: the barrel would pull every shared component (and its CSS) into
 // the landing's first load.
 import { For, type JSX, mergeProps, splitProps } from "solid-js"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { MARKS, type MarkId } from "@/shared/ui/marks"
 import "./ToolMark.css"
 

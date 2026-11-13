@@ -21,7 +21,7 @@ import {
   DitherSwitch,
   DitherText,
   Sparkline,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import { ASK, DAYS, DEPLOYS, DOES, lineState, PARTS, RENDER, STEPS } from "@/pages/landing/story"
 import "./AgentStory.css"
 

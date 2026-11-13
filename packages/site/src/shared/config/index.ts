@@ -1,4 +1,4 @@
-import type { AreaVariant, BloomLevel, DitherColor, EasingName, GradientDirection, StackType } from "dither-kit"
+import type { AreaVariant, BloomLevel, DitherColor, EasingName, GradientDirection, StackType } from "@dither-ui/kit"
 
 export type ChartType = "area" | "line" | "bar" | "pie" | "radar"
 export type Family = "cartesian" | "pie" | "radar"

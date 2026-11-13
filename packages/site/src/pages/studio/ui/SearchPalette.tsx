@@ -3,7 +3,7 @@
 // frames and the actions to start something. Arrows move, Enter opens,
 // Escape or a press outside closes, and focus goes back where it was.
 import { createEffect, createMemo, createSignal, For, on, Show } from "solid-js"
-import { DitherIcon, type IconName } from "dither-kit"
+import { DitherIcon, type IconName } from "@dither-ui/kit"
 import { editor, frame, selectArtboard } from "@/entities/editor"
 import { chats, chatsOf, newChat, openChat, openProject } from "@/features/agent/chats"
 import { activeProjectId, createProject, projects, switchProject } from "@/features/persistence"

@@ -1,11 +1,11 @@
-// Generated from dither-kit/solid/CurvedLoop.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/CurvedLoop.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createUniqueId, mergeProps, onCleanup, onMount } from "solid-js"
-import { directedTime, isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
-import { createInviewLoop } from "dither-kit/solid/runtime/in-view.ts"
-import "dither-kit/solid/CurvedLoop.css"
+import { createInviewLoop } from "@dither-ui/kit/solid/runtime/in-view.ts"
+import "@dither-ui/kit/solid/CurvedLoop.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

@@ -10,19 +10,19 @@ twin the same way. Paths here are from this package's root.
 
 ## Ownership
 
-- `src/index.ts`: the rewriter, the package's entry (`restyle`), framework
+- `src/index.ts`: the rewriter, the package's entry (`@dither-ui/restyle`), framework
   free and safe in a browser. It reads and writes Solid only (JSX `class`
   and `style`): `restyleSolid(code, system, name)` gives the code and the
   stylesheet it imports, `restyle(code, system)` the two as one text. Also
   `compileUtilities`, `Names`, `stylexText`, the styling
   systems and their labels, and the `UtilityMap` type.
-- `src/utility-map.ts` (`restyle/utility-map`), Node only:
+- `src/utility-map.ts` (`@dither-ui/restyle/utility-map`), Node only:
   `buildUtilityMap(dirs)` scans the folders a caller names and compiles
   every class candidate, and `utilityMap(sources)` is the Rsbuild plugin
   that hands the result to a build as the virtual module
   `virtual-dither-utilities` (the site's Vite plugin wraps the same
   builder).
-- `src/stylex-layer-solid.ts` (`restyle/stylex-layer`), Node only: the
+- `src/stylex-layer-solid.ts` (`@dither-ui/restyle/stylex-layer`), Node only: the
   generator of the kit's StyleX twin, over `src/stylex-core.ts` (the
   class-to-StyleX core, internal).
 - `src/utilities.d.ts`: the type of the virtual module.
@@ -35,8 +35,8 @@ twin the same way. Paths here are from this package's root.
 - The docs' authoring notation never reaches this package: the site
   translates a snippet to Solid first (`toSolidCode`), then restyles it.
 
-- Depends on `dither-kit` only, for one file: the kit's token mapping and
-  dark variant are read from `dither-kit/tailwind/kit.css`, found through
+- Depends on `@dither-ui/kit` only, for one file: the kit's token mapping and
+  dark variant are read from `@dither-ui/kit/tailwind/kit.css`, found through
   the kit's `exports` (one source of truth). It never names the site or
   the StyleX twin (`tests/workspace.spec.ts` at the root).
 - Three entries, not one: the rewriter runs in the page, while the utility
@@ -52,7 +52,7 @@ twin the same way. Paths here are from this package's root.
   an app themes through.
 - The generator refuses what it cannot carry, by file and line, and writes
   no file for it. A generated file names the kit's files as the kit
-  exports them (`dither-kit/engine/<file>`, `dither-kit/solid/<file>`).
+  exports them (`@dither-ui/kit/engine/<file>`, `@dither-ui/kit/solid/<file>`).
 
 ## Work Guidance
 

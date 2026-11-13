@@ -1,6 +1,6 @@
 import { createEffect, createMemo, createSignal, For, type JSX, on, Show, splitProps } from "solid-js"
-import { colorToHex, cssColor, type DitherColor, hexToHsv, hsvToHex } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { colorToHex, cssColor, type DitherColor, hexToHsv, hsvToHex } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { COLORS } from "@/shared/config"
 import "./ColorField.css"
 

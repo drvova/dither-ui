@@ -11,7 +11,7 @@ import {
 } from "@/entities/widget"
 import { BLOOMS, CHART_TYPES, type ChartType, EASING_NAMES, STACKS } from "@/shared/config"
 import { safeUrl } from "@/shared/lib/routes"
-import type { BloomConfig, BloomLevel, TextureConfig, VariantInput } from "dither-kit"
+import type { BloomConfig, BloomLevel, TextureConfig, VariantInput } from "@dither-ui/kit"
 import type { Artboard } from "./types"
 
 /**

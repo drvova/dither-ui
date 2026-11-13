@@ -4,7 +4,7 @@
    the section comes into view (at once without IntersectionObserver) and
    again on demand, one per task so a cold first run never holds a frame;
    the results copy as a Markdown table for an issue. */
-import { copyText, DitherIcon } from "dither-kit"
+import { copyText, DitherIcon } from "@dither-ui/kit"
 import { createMemo, createSignal, For, Match, onCleanup, onMount, Show, Switch } from "solid-js"
 import { CHECKS, type Check, engineOf, type Reading } from "@/pages/docs/handbook/lab"
 import { REPO_URL } from "@/pages/docs/seo"

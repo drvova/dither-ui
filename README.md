@@ -77,9 +77,9 @@ npm i d3-scale d3-shape clsx tailwind-merge
 
 On StyleX, copy the StyleX folder beside the kit
 (`npx degit drvova/dither-ui/packages/dither-kit-stylex/src src/dither-kit-stylex`),
-alias `"@dither-kit"` to `./src/dither-kit-stylex` and `"dither-kit"` to
-`./src/dither-kit` (the StyleX files read the engine from the kit by that
-name), install `@stylexjs/stylex` (with your bundler's StyleX plugin) in place
+alias `"@dither-kit"` to `./src/dither-kit-stylex` and `"@dither-ui/kit"` to
+`./src/dither-kit` (the StyleX files read the engine from the kit by its
+package name), install `@stylexjs/stylex` (with your bundler's StyleX plugin) in place
 of `clsx` and `tailwind-merge`, and load `engine/theme.css` and
 `engine/base.css`. Every
 component that takes `class` also takes `xstyle`: your StyleX styles, merged
@@ -303,7 +303,7 @@ The kit applies several main-thread optimizations that benefit every consumer:
   state and requests a RAF immediately.
 
 Kit-level benchmarks on the Solid components, in a real DOM
-(`npm run bench:browser -w dither-kit`, Solid's production build, 3 warmups +
+(`npm run bench:browser -w @dither-ui/kit`, Solid's production build, 3 warmups +
 5 batches × 3 runs, the mean, as the median of five such passes). Measured
 2026-11-13 on a cloud container (4 cores of an Intel Xeon at 2.30 GHz, 16 GB),
 headless Chromium 141 rendering in software (SwiftShader, no GPU):
@@ -338,7 +338,7 @@ The kit carries two benchmarks, both run by hand and neither part of a build.
 The figures below were measured 2026-11-13 on the same cloud container (4
 cores of an Intel Xeon at 2.30 GHz), Node 24.22.3.
 
-`npm run bench -w dither-kit` times the engine's hot paths in Node, 3 warmups
+`npm run bench -w @dither-ui/kit` times the engine's hot paths in Node, 3 warmups
 then 20 batches a path. The median batch, as the median of seven runs:
 
 | Hot path | Median |
@@ -350,7 +350,7 @@ then 20 batches a path. The median batch, as the median of seven runs:
 | `paintColumn` × 520 columns, a 520×200 chart frame | 1.24 ms |
 | `setOrBlendRasterPixel` × 64,000 (`blendRasterPixel`: 0.91 ms) | 0.86 ms |
 
-`npm run bench:browser -w dither-kit` runs the painters in headless Chromium
+`npm run bench:browser -w @dither-ui/kit` runs the painters in headless Chromium
 141 (software rendering, SwiftShader): 3 warmups, then 6 measured batches × 2
 repetitions. Gradient samples run at 960×600 CSS px with 2 px cells and
 compare the legacy per-cell `fillRect` painter with RGBA generation plus one
@@ -440,7 +440,10 @@ The repository is one npm workspace. Each package has its own manifest, source
 and tests, and dependencies point one way: the kit depends on nothing here, the
 site on everything it shows. A package imports another by name, never by a path
 out of its folder; `tests/workspace.spec.ts` fails the build on an import that
-goes the wrong way. The site follows Feature-Sliced Design: imports only point
+goes the wrong way. Every package is named under the `@dither-ui/` scope (the
+kit is `@dither-ui/kit`) and taken from its folder (`file:../<folder>`), since
+the bare names (`dither-kit`, `tasks`, `site` and the rest) belong to other
+people's packages on the npm registry; none of these is published there. The site follows Feature-Sliced Design: imports only point
 down (app, pages, widgets, features, entities, shared). It is SolidStart on
 Vite, prerendered to static files (`vite`, `vitest`); the root runs the Rstack
 CLI (`rs`) with one config, `rstack.config.ts`: Rstest, Rslint and the

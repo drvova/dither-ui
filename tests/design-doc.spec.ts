@@ -3,8 +3,8 @@
 // it is, so the doc cannot drift: a design change touches both.
 import { readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
-import { GLIDE_BEZIER } from "dither-kit/engine/dither-paint.ts"
-import { FRAME_BUDGET_MS } from "dither-kit/engine/frame-budget.ts"
+import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
+import { FRAME_BUDGET_MS } from "@dither-ui/kit/engine/frame-budget.ts"
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 const doc = read("DESIGN.md")
