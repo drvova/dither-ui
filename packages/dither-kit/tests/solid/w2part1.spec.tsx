@@ -606,13 +606,15 @@ describe("DitherTransferList", () => {
 })
 
 describe("DitherTrueFocus", () => {
-  it("names itself by its text and brings one word into focus at a time", () => {
-    fakeTimers()
+  it("names itself by its text and brings one word into focus at a time, on the kit clock", async () => {
     render(() => <TrueFocus text="one two" interval={500} blur={4} />)
     const words = [...screen.getByLabelText("one two").children] as HTMLElement[]
     expect(words.map((x) => x.textContent)).toEqual(["one", "two"])
     expect(words.map((x) => x.style.filter)).toEqual(["blur(0)", "blur(4px)"])
-    vi.advanceTimersByTime(500)
+    w.show()
+    await w.run(0, 450)
+    expect(words.map((x) => x.style.filter)).toEqual(["blur(0)", "blur(4px)"])
+    await w.run(500, 500)
     expect(words.map((x) => x.style.filter)).toEqual(["blur(4px)", "blur(0)"])
   })
 })

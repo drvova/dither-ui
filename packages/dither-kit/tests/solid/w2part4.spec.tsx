@@ -54,7 +54,7 @@ const focusOpener = () => {
 }
 
 describe("DitherAntigravity", () => {
-  it("holds its content and draws its motes once in view, until it leaves", async () => {
+  it("holds its content, draws its motes, and moves them on the kit clock in view until it leaves", async () => {
     const arc = vi.fn()
     HTMLCanvasElement.prototype.getContext = (() => ({
       clearRect() {},
@@ -65,12 +65,15 @@ describe("DitherAntigravity", () => {
     const { getByText, container, unmount } = render(() => <Antigravity count={5}>Floating</Antigravity>)
     expect(getByText("Floating")).toBeTruthy()
     expect(container.querySelector("canvas")?.getAttribute("aria-hidden")).toBe("true")
+    expect(arc).toHaveBeenCalledTimes(5) // the moment at mount
     w.show()
-    await w.frame(16)
+    await w.frame(0)
     expect(arc).toHaveBeenCalledTimes(5)
+    await w.frame(16)
+    expect(arc).toHaveBeenCalledTimes(10)
     unmount()
     await w.frame(32)
-    expect(arc).toHaveBeenCalledTimes(5)
+    expect(arc).toHaveBeenCalledTimes(10)
   })
 })
 
@@ -532,24 +535,25 @@ describe("DitherPluralText", () => {
 })
 
 describe("DitherRotatingText", () => {
-  it("shows its first word, then turns to the next once the first has left", async () => {
-    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] })
+  it("shows its first word, then turns to the next on the kit clock once the first has left", async () => {
     const { container, unmount } = render(() => <RotatingText texts={["one", "two"]} interval={500} />)
     expect(container.textContent).toBe("one")
-    vi.advanceTimersByTime(500)
+    w.show()
+    await w.run(0, 450)
     expect(container.textContent).toBe("one")
-    await w.frame(16)
+    await w.frame(500) // the word turns: the first leaves
+    expect(container.textContent).toBe("one")
+    await w.frame(516)
     await settle()
     expect(container.textContent).toBe("two")
     unmount()
-    expect(vi.getTimerCount()).toBe(0)
   })
 
-  it("stands still on a single word", () => {
-    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] })
+  it("stands still on a single word", async () => {
     const { container } = render(() => <RotatingText texts={["only"]} />)
+    w.show()
+    await w.run(0, 3000, 100)
     expect(container.textContent).toBe("only")
-    expect(vi.getTimerCount()).toBe(0)
   })
 })
 

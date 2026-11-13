@@ -712,32 +712,32 @@ describe("ShinyText", () => {
 })
 
 describe("TextType", () => {
-  it("types its first line, deletes it, then types the next", () => {
-    vi.useFakeTimers()
+  it("types its first line, deletes it, then types the next, on the kit clock", async () => {
     const { container } = render(() => (
       <TextType texts={["Hi", "Yo"]} typingSpeed={10} deletingSpeed={10} pause={100} />
     ))
     const [typed, caret] = [...container.firstElementChild!.children]
     expect(caret.getAttribute("aria-hidden")).toBe("true")
     expect(typed.textContent).toBe("")
-    vi.advanceTimersByTime(300)
-    expect(typed.textContent).toBe("H")
-    vi.advanceTimersByTime(10)
-    expect(typed.textContent).toBe("Hi")
-    vi.advanceTimersByTime(10 + 100 + 10 + 10)
+    w.show()
+    await w.run(0, 290, 10)
     expect(typed.textContent).toBe("")
-    vi.advanceTimersByTime(10 + 220 + 10)
+    await w.frame(300)
+    expect(typed.textContent).toBe("H")
+    await w.frame(310)
+    expect(typed.textContent).toBe("Hi")
+    await w.run(320, 440, 10)
+    expect(typed.textContent).toBe("")
+    await w.run(450, 680, 10)
     expect(typed.textContent).toBe("Yo")
   })
 
-  it("stops after its last line without a loop, and stops typing when it leaves", () => {
-    vi.useFakeTimers()
+  it("stops after its last line without a loop, and stops typing when it leaves", async () => {
     const { container, unmount } = render(() => <TextType texts={["Hi"]} loop={false} cursor={false} />)
-    vi.advanceTimersByTime(5000)
+    w.show()
+    await w.run(0, 5000, 100)
     expect(container.textContent).toBe("Hi")
-    expect(vi.getTimerCount()).toBe(0)
     unmount()
-    render(() => <TextType />).unmount()
-    expect(vi.getTimerCount()).toBe(0)
+    expect(w.queued()).toBe(0)
   })
 })

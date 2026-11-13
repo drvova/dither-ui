@@ -2,11 +2,23 @@
 // hand-stepped browser: frames the spec flushes, a clock it sets, observers
 // it fires.
 import { cleanup, render } from "@solidjs/testing-library"
-import { createSignal } from "solid-js"
+import { createSignal, type JSX } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { DitherContainer, DitherLayer, DitherReveal, DitherSequence, DitherStage } from "../../src/solid"
+import {
+  DitherAntigravity,
+  DitherContainer,
+  DitherLayer,
+  DitherReveal,
+  DitherRotatingText,
+  DitherScrollVelocity,
+  DitherSequence,
+  DitherStage,
+  DitherTextType,
+  DitherTrueFocus,
+} from "../../src/solid"
 import { release, seek } from "../../src/engine/clock"
 import type { CqState } from "../../src/engine/containers"
+import { paintOf, recordPaint } from "../support/paint"
 
 /** Manual rAF: each flush runs the currently queued frames at time `t`. */
 let queue = new Map<number, FrameRequestCallback>()
@@ -531,4 +543,47 @@ describe("DitherStage and DitherLayer", () => {
     expect(layerOf(container).style.transform).toBe("translate(10cqw, 0px)")
     expect(layerOf(container).getAttribute("data-layer")).toBe("active")
   })
+})
+
+describe("the cadence pieces on the kit clock", () => {
+  // Each turns, types, drifts or rises on the kit clock: directed, what it
+  // shows is the moment's, the same however the moment was reached.
+  const pieces: [string, () => JSX.Element][] = [
+    ["DitherRotatingText", () => <DitherRotatingText texts={["a", "b", "c"]} interval={500} />],
+    ["DitherTrueFocus", () => <DitherTrueFocus text="one two three" interval={500} />],
+    [
+      "DitherTextType",
+      () => <DitherTextType texts={["Hello", "World"]} typingSpeed={100} deletingSpeed={100} pause={200} />,
+    ],
+    ["DitherScrollVelocity", () => <DitherScrollVelocity text="drift" />],
+    ["DitherAntigravity", () => <DitherAntigravity count={6}>Up</DitherAntigravity>],
+  ]
+  let undoPaint: () => void
+  beforeEach(() => {
+    undoPaint = recordPaint()
+    vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(400)
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({ width: 200, height: 100 } as DOMRect)
+  })
+  afterEach(() => undoPaint())
+  const shows = (host: HTMLElement) => [host.innerHTML, ...[...host.querySelectorAll("canvas")].map(paintOf)].join("\n")
+
+  it.for(pieces)(
+    "%s shows the moment it is seeked to, again on the way back, and asks no frames",
+    async ([, piece]) => {
+      const { container } = render(piece)
+      await settle()
+      seek(1000)
+      await settle()
+      const at1000 = shows(container)
+      seek(1800)
+      await settle()
+      expect(shows(container)).not.toBe(at1000)
+      seek(1000)
+      await settle()
+      expect(shows(container)).toBe(at1000)
+      expect(queue.size).toBe(0)
+      release() // the run goes on
+      expect(queue.size).toBeGreaterThan(0)
+    },
+  )
 })

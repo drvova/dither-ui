@@ -164,8 +164,9 @@ are from the repository's.
   `tests/site/stylex-layer.spec.tsx`, `tests/site/paint-law.spec.tsx`: the
   kit's paint law over every component row of the registry, each input
   changed in place against a fresh mount at one directed moment, a
-  failure named `<Component>.<input>`; a row whose two copies differ with
-  nothing changed is skipped with the reason printed). The kit's component specs are the
+  failure named `<Component>.<input>`; two copies that differ with
+  nothing changed fail as `<Component>.<none>`: a timer the kit clock
+  does not drive). The kit's component specs are the
   kit's (`packages/dither-kit/tests/solid/`).
 
 ## Child DOX Index

@@ -72,7 +72,9 @@ generated twin. Inside the kit every import is relative
   component), `screen.ts` (the print screen as context: `useScreen`,
   `useDitherMatrix`, `useLabelMatrix`, `useVariantMatrix`),
   `visibility.ts` and `in-view.ts` (the loop gates: `createCanvasVisibility`,
-  `createInviewLoop`), `field.ts` (a field's ids and error for the control
+  `createInviewLoop`), `kit-time.ts` (`createKitTime`: the kit clock's
+  moment as a signal for a component that changes on a cadence; see the
+  clock bullet), `field.ts` (a field's ids and error for the control
   inside it), `toast.ts` (the toast store), `presence.tsx`
   (`<Presence when name>`: an element enters and leaves through six class
   names, `<name>-enter-from` / `-enter-active` / `-enter-to` and the three
@@ -249,8 +251,22 @@ generated twin. Inside the kit every import is relative
   `Sequence` samples its plan at the moment; spinner, skeleton, progress,
   avatar, `CountUp` and `CurvedLoop` are pure functions of the moment;
   `DecryptedText` runs its reveal at 60 frames per second of the moment with
-  a hashed glyph instead of `Math.random`. Pointer-driven motion (hover
-  lifts, cursors, `HoldAction`) stays free: a renderer has no input. CSS
+  a hashed glyph instead of `Math.random`. A component that changes on a
+  cadence reads the moment from `src/solid/runtime/kit-time.ts`
+  (`createKitTime(host, reduced)`: the run's own ms, advanced by frames
+  while in view, a step at most 100ms, at 0 under reduced motion unless
+  `"run"`; the directed moment, no frames, while directed; on release the
+  run goes on from where it stood) and derives what it shows from it,
+  never a `setInterval` or `setTimeout` chain: `RotatingText` (a word an
+  `interval`; directed, the moment's word stands without its crossfade),
+  `TrueFocus` (a word in focus an `interval`), `TextType` (`typedAt`: the
+  lead, letters typed, the hold, letters deleted, the gap, line by line),
+  `Antigravity` (`moteAt`: hashed motes rising, drifting and swaying in
+  closed form, coming back under the box at a hashed place each lap) and
+  `ScrollVelocity`'s drift (`baseSpeed` px a second of the moment; the
+  scroll's push is the reader's hand, added free-running only). Pointer-
+  and scroll-driven motion (hover lifts, cursors, `HoldAction`) stays free:
+  a renderer has no input. CSS
   keyframe and transition motion is not the clock's — HyperFrames seeks it
   itself through WAAPI. `directFromHyperframes()` takes direction from
   HyperFrames' `hf-seek` events (`detail.time` seconds): the contract the
@@ -874,8 +890,9 @@ generated twin. Inside the kit every import is relative
   (400px rootMargin, eager fallback when the observer or element is missing) —
   never pull the source at mount when the frame is offscreen.
 - Loop visibility contract: self-scheduling rAF loops in the text/animation
-  family (CurvedLoop, ScrollVelocity, TextCursor, TextPressure,
-  VariableProximity, GhostCursor, BlobCursor, Antigravity) run through
+  family (CurvedLoop, TextCursor, TextPressure, VariableProximity,
+  GhostCursor, BlobCursor; and through `createKitTime` RotatingText,
+  TrueFocus, TextType, ScrollVelocity, Antigravity) run through
   `src/solid/runtime/in-view.ts` (`createInviewLoop`) — `start` only on the
   first IntersectionObserver hit,
   `stop` when the host leaves, `start` idempotent, never an optimistic start
@@ -1014,7 +1031,8 @@ generated twin. Inside the kit every import is relative
 
 - A new time-driven surface subscribes to the clock: paint the moment on
   seek, request no frames while directed, resume on release, and show what
-  its inputs and that moment give (the paint law).
+  its inputs and that moment give (the paint law). One that changes on a
+  cadence takes its moment from `createKitTime`, never a timer.
 
 ## Verification
 

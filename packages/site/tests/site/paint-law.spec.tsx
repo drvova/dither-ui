@@ -15,8 +15,9 @@
 // spec (a boolean flipped, a number halfway to its bound, the next option,
 // another colour, a list reversed, a text that reads as a value from
 // `TEXT_SAMPLES`), then the surroundings: the print screen, the theme and
-// the box. A row is left out by one rule, printed: its two copies differ
-// with nothing changed (it runs on a timer the kit clock does not drive).
+// the box. First of all nothing: two copies that differ with nothing
+// changed fail as `<Component>.<none>` (it runs on a timer the kit clock
+// does not drive).
 import { render } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { createMutable } from "solid-js/store"
@@ -182,8 +183,9 @@ function secondValue(spec: PropSpec): unknown {
 type Surroundings = { screen: ScreenKind; size: Size; dark: boolean }
 type Input = { name: string; apply: (widget: ComponentModel, around: Surroundings) => void }
 
-/** Every input of a row: its props, then what stands around it. */
+/** Every input of a row: nothing, its props, then what stands around it. */
 const inputsOf = (entry: ComponentEntry): Input[] => [
+  { name: "<none>", apply: () => {} },
   ...entry.props.map((spec): Input => ({
     name: spec.key,
     apply: (widget) => void (widget.props[spec.key] = secondValue(spec)),
@@ -196,7 +198,6 @@ const inputsOf = (entry: ComponentEntry): Input[] => [
       void (around.size = { w: Math.round(around.size.w * 1.5), h: Math.round(around.size.h * 1.25) }),
   },
 ]
-const UNCHANGED: Input = { name: "<none>", apply: () => {} }
 
 /** Attributes that name another element. */
 const REFS = new Set([
@@ -297,9 +298,9 @@ async function differs(entry: ComponentEntry, input: Input): Promise<string | nu
 }
 
 describe("the paint law: changed in place, a component paints what a fresh mount paints", () => {
-  it.for(COMPONENT_REGISTRY.map((entry) => [entry.is, entry] as const))("%s", async ([, entry], { skip }) => {
-    if (await differs(entry, UNCHANGED))
-      return skip("two copies differ with nothing changed: it runs on a timer the kit clock does not drive")
+  // A row mounts two copies of the Studio's renderer per input: an
+  // integration-scale budget, as the reel renderer's.
+  it.for(COMPONENT_REGISTRY.map((entry) => [entry.is, entry] as const))("%s", { timeout: 30000 }, async ([, entry]) => {
     const failures: string[] = []
     for (const input of inputsOf(entry)) {
       const how = await differs(entry, input)

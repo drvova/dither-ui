@@ -1,8 +1,9 @@
 // Generated from @dither-ui/kit/solid/TrueFocus.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createMemo, createSignal, For, mergeProps, onCleanup, onMount } from "solid-js"
+import { createMemo, For, mergeProps } from "solid-js"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
+import { createKitTime } from "@dither-ui/kit/solid/runtime/kit-time.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -26,23 +27,18 @@ export type TrueFocusProps = {
 export default function TrueFocus(raw: TrueFocusProps) {
   const props = mergeProps({ text: "True focus mode", interval: 1400, blur: 5 }, raw)
 
+  let host: HTMLSpanElement | undefined
   const words = createMemo(() => props.text.split(/\s+/).filter(Boolean))
-  const [active, setActive] = createSignal(0)
-  let timer = 0
-
-  onMount(() => {
-    if (pixelPrefersReducedMotion() || words().length < 2) return
-    timer = window.setInterval(
-      () => {
-        setActive((active() + 1) % words().length)
-      },
-      Math.max(300, props.interval),
-    )
-  })
-  onCleanup(() => clearInterval(timer))
+  // The word in focus: the next one every `interval` of the kit clock.
+  const { time } = createKitTime(() => host)
+  const active = createMemo(() =>
+    pixelPrefersReducedMotion() || words().length < 2
+      ? 0
+      : Math.floor(time() / Math.max(300, props.interval)) % words().length,
+  )
 
   return (
-    <span class={cn(styles.row, props.xstyle, props.class)} aria-label={props.text}>
+    <span ref={(el) => (host = el)} class={cn(styles.row, props.xstyle, props.class)} aria-label={props.text}>
       <For each={words()}>
         {(w, i) => (
           <span
