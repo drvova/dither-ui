@@ -60,8 +60,8 @@ export default function DemoCard(props: DemoCardProps) {
   // Mount the heavy slot (canvases, charts, whole demo trees) only as the card
   // approaches the viewport — and latch: once revealed it stays, so interaction
   // state inside a demo never resets on scroll. Falls back to always-on without
-  // IntersectionObserver (jsdom included), keeping tests and ancient engines on
-  // the old behaviour. The preview frame keeps min-h-[280px], so the box exists
+  // IntersectionObserver (jsdom included), so tests and ancient engines mount
+  // at once. The preview frame keeps min-h-[280px], so the box exists
   // from first paint and below-fold growth never shifts visible content.
   const [revealed, setRevealed] = createSignal(false)
 

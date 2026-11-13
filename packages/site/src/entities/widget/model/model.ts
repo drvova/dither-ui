@@ -1,12 +1,12 @@
 // A registry component's model, as Solid binds it. The registry
 // (`@/entities/widget/model/registry`, framework free) names a
-// model the Vue way (`vmodel`: a default, and a prop and an event where they
+// model by its event (`vmodel`: a default, and a prop and an event where they
 // are not `modelValue` and `update:modelValue`); this is the one place that
 // reading becomes a prop and an `on<Event>` callback, for the canvas, the
 // code export and the agent's registry alike.
 import type { ComponentEntry } from "@/entities/widget/model/registry"
 
-/** The prop a Vue event's listener is in Solid: `update:modelValue` is
+/** The callback prop an event's listener is: `update:modelValue` is
  * `onUpdateModelValue`, `close` is `onClose`. */
 export const listenerOf = (event: string): string =>
   `on${event
@@ -33,8 +33,8 @@ export function modelOf(entry: ComponentEntry | undefined): ModelBinding | null 
   return { default: m.def, prop: m.prop ?? "modelValue", on: listenerOf(event), carries: event.startsWith("update:") }
 }
 
-/** The kit components whose children are a function of their scope (what a
- * Vue scoped slot is in Solid): a frame's slot text reaches them as one, on
+/** The kit components whose children are a function of their scope: a
+ * frame's slot text reaches them as one, on
  * the canvas and in the code export. Held to the kit's own prop types by
  * `tests/site/codegen.spec.tsx`. */
 export const SCOPED_CHILDREN: ReadonlySet<string> = new Set([

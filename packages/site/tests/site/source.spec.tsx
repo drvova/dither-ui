@@ -1,9 +1,7 @@
-// The docs previews' source panel on Solid: the files a preview is made of,
+// The docs previews' source panel: the files a preview is made of,
 // the compiler and the linker behind Run, the kit's served sources, and a
-// DemoCard opened to its files, edited and run. The earlier Vue site's
-// `tests/source.spec.ts`, case for case where the behaviour is this site's
-// too (the zip, the sounds and the StyleX runtime are the earlier Vue site's own
-// modules, held there).
+// DemoCard opened to its files, edited and run. The zip, the sounds and the
+// StyleX runtime are framework-free modules, held by `tests/source.spec.ts`.
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"

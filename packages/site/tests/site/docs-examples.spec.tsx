@@ -1,5 +1,5 @@
 // The docs' Examples packs (auth, chat, notifications, product, sidebar,
-// stats, table) on Solid: every section of each pack's nav in order under
+// stats, table): every section of each pack's nav in order under
 // its label, each preview mounting its demo once it nears the view, and
 // the demos' own state driving what they show.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
@@ -193,7 +193,7 @@ describe("ChatExamples", () => {
     const bubbles = () => [...card.querySelectorAll(".max-w-\\[80\\%\\] > p")]
     const chips = [...card.querySelectorAll('[aria-label="Suggestions"] button')]
     expect(chips.length).toBeGreaterThan(0)
-    // the Vue template's leading space, kept under pre-wrap
+    // the space before the text, shown under pre-wrap
     expect(bubbles()[0].textContent).toMatch(/^ Hi, ask me/)
     fireEvent.click(chips[0])
     expect(words(bubbles()[1].textContent)).toBe(words(chips[0].textContent))

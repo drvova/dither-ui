@@ -50,7 +50,7 @@ export default function RowMenu(props: { label: string; actions: RowAction[] }) 
         title={props.label}
         aria-haspopup="menu"
         aria-expanded={open()}
-        // heard on the key itself, so the press stops here (Vue's `.stop`)
+        // heard on the key itself, so the press stops here
         on:click={(e) => {
           e.stopPropagation()
           setOpen(!open())

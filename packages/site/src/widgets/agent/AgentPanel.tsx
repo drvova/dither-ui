@@ -107,11 +107,11 @@ type Editing = { at: number; turn: number; was: string; restore: boolean; restor
 const isPlan = (e: Entry): e is PlanEntry => e.kind === "plan"
 const isAssistant = (e: Entry): e is TextEntry => e.kind === "assistant"
 
-/** After this turn's writes have landed (what Vue's `nextTick` was here). */
+/** After this turn's writes have landed. */
 const nextTick = (then: () => void) => queueMicrotask(then)
 
 export default function AgentPanel(props: AgentPanelProps) {
-  /** What Vue's `watch` over a getter was: `changed` some time after the
+  /** A watcher over a getter: `changed` some time after the
    * value it returns has changed (with `deep`, anything under it), once for
    * every write of a turn, never for the first read. */
   function watching<T>(source: () => T, changed: (value: T) => void, opts: { deep?: boolean } = {}) {

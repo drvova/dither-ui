@@ -1,10 +1,6 @@
-// What the Studio draws with, on Solid: the chart, widget, screen and reel
-// renderers, the canvas with its frames and the ask at the selection, the
-// data editor, and the player page with its mount. The first half is this
-// port's own (a render or behaviour spec for each component the earlier Vue site had
-// none for, and what Solid needs kept that Vue gave for free); the second
-// carries the earlier Vue site's specs for these components, assertion for
-// assertion.
+// What the Studio draws with: the chart, widget, screen and reel renderers,
+// the canvas with its frames and the ask at the selection, the data editor,
+// and the player page with its mount.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard/model/factory"
@@ -62,7 +58,7 @@ afterEach(() => {
 const press = (type: string, init: PointerEventInit = {}) =>
   new PointerEvent(type, { bubbles: true, cancelable: true, button: 0, pointerId: 1, ...init })
 
-/** A frame on the canvas, as the editor holds it (its mutable twin). */
+/** A frame on the canvas, as the editor holds it (the store's own proxy). */
 function frame(kind: Parameters<typeof createArtboard>[0], x = 10, y = 20) {
   editor.artboards = [...editor.artboards, createArtboard(kind, x, y)]
   return editor.artboards[editor.artboards.length - 1]
@@ -127,7 +123,7 @@ describe("the widget renderer", () => {
     expect(getByRole("switch").getAttribute("aria-checked")).toBe("false")
   })
 
-  it("names a Vue event's listener the way the Solid kit takes it", () => {
+  it("names an event's listener as the callback prop the kit takes", () => {
     expect(listenerOf("update:modelValue")).toBe("onUpdateModelValue")
     expect(listenerOf("update:page")).toBe("onUpdatePage")
     expect(listenerOf("close")).toBe("onClose")
@@ -637,8 +633,6 @@ describe("the player", () => {
     expect(() => mountPlayer()).toThrow("#dither-stage")
   })
 })
-
-// The earlier Vue site's specs for these components, carried.
 
 describe("artboard surface drag", () => {
   it("moves from passive space but leaves controls interactive", () => {

@@ -1,5 +1,5 @@
-// The docs' component packs Feedback, Field, Form, Layout and Media on
-// Solid: every section of each pack's nav in order under its label (its
+// The docs' component packs Feedback, Field, Form, Layout and Media:
+// every section of each pack's nav in order under its label (its
 // tables' words: `docs-api.spec.ts`), each preview mounting its demo once
 // it nears the view, and the demos' own state driving what they show.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"

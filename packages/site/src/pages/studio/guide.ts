@@ -44,6 +44,6 @@ export function placeGuide(part: Box, guide: Size, view: Size, end = false): { x
   return { x: clamp(x, view.width - guide.width), y: clamp(y, view.height - guide.height) }
 }
 
-/** Automation (the prerender, recordings, browser tests) never sees the
+/** Automation (the post-build, recordings, browser tests) never sees the
  * tour on its own: it would print into the page's snapshot. */
 export const firstVisitTour = (seen: unknown) => seen !== true && !navigator.webdriver

@@ -1,12 +1,9 @@
-// The Studio's page on Solid (`src/pages/studio/`, `src/routes/studio.tsx`),
-// held to what its Vue twin did. Carried from the earlier Vue site's
-// `tests/studio-columns.spec.ts` (the side columns, a deleted project's
-// chats), `tests/studio-shell.spec.ts` (a row's menu, the search; the
-// page's own keys are in `state.spec.tsx`) and `tests/studio-guide.spec.ts`
-// (the tour; where it hovers and the first visit are framework-free and
-// stay with the framework-free specs), assertion for assertion; then this port's
-// own: the panel's tabs, the sidebar, what the page brings in as it mounts
-// and the head the route gives it.
+// The Studio's page (`src/pages/studio/`, `src/routes/studio.tsx`): the
+// side columns and a deleted project's chats, a row's menu and the search
+// (the page's own keys are in `state.spec.tsx`), the tour (where it hovers
+// and the first visit are held by the framework-free specs), the panel's
+// tabs, the sidebar, what the page brings in as it mounts and the head the
+// route gives it.
 import { MetaProvider } from "@solidjs/meta"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
@@ -31,8 +28,7 @@ import { world } from "@dither-ui/kit/testing/world.ts"
 // jsdom lays nothing out, so it has no scrolling to do.
 Element.prototype.scrollIntoView ??= () => {}
 
-/** What Vue's `nextTick` was to the Vue specs: the watchers of this turn, and
- * what they queued, have run. */
+/** The watchers of this turn, and what they queued, have run. */
 const tick = async () => {
   for (let i = 0; i < 6; i++) await Promise.resolve()
 }
@@ -240,8 +236,8 @@ describe("the route's head", () => {
     await tick()
     expect(document.title).toBe(ROUTE_TITLES.studio)
     expect(document.documentElement.dataset.page).toBe("studio")
-    // the app's own tags of the one table the Vue build injected from (the
-    // icons are the shell's, on every page)
+    // the app's own tags, from the install surface's table (the icons are
+    // the shell's, on every page)
     for (const t of APP_HEAD) {
       const el = head(
         t.tag === "link" ? `link[rel="${t.attrs.rel}"][href="/${t.attrs.href}"]` : `meta[name="${t.attrs.name}"]`,

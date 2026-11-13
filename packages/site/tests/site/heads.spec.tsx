@@ -1,11 +1,9 @@
 // What the build writes beside the pages and what each page's head says:
 // the crawler files, the share cards' embeds and the install surface the
-// `siteFiles` plugin emits, the one head table (held tag for tag to the Vue
-// site's HTML entries until the cutover), the shell every page is rendered
-// into, the root's `data-page` marker and the old hash links. Carried from
-// the earlier Vue site's `tests/crawler-files.spec.ts`, `tests/install.spec.ts`,
-// `tests/titles.spec.ts` and `tests/first-paint.spec.ts`; the builders'
-// own rules stay pinned there.
+// `siteFiles` plugin emits, the one head table, the shell every page is
+// rendered into, the root's `data-page` marker and the old hash links. The
+// builders' own rules are pinned by the framework-free specs beside this
+// folder (`crawler-files`, `install`, `titles`, `first-paint`).
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { MetaProvider } from "@solidjs/meta"
@@ -225,7 +223,7 @@ describe("the files the build writes beside the pages", async () => {
     expect(read(SITE, "vite.config.ts")).toMatch(/plugins: \[[^\]]*siteFiles\(\)/)
   })
 
-  it("are the crawler files the Vue build emits, from the same builders", () => {
+  it("are the crawler files, written by their builders", () => {
     expect(emitted["sitemap.xml"]).toBe(sitemapXml())
     expect(emitted["robots.txt"]).toBe(robotsTxt())
     expect(emitted["llms.txt"]).toBe(llmsTxt())
@@ -302,7 +300,7 @@ describe("the files the build writes beside the pages", async () => {
 describe("the shell and the routes", () => {
   const shell = read(SITE, "src/entry-server.tsx")
 
-  it("carries, on the site's pages only, what the Vue build injected into each", () => {
+  it("carries its head scripts and markers on the site's pages only", () => {
     for (const piece of [
       "data-page={page ?? undefined}",
       "<script innerHTML={PAGE_REVEAL_SCRIPT} />",

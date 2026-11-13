@@ -1,5 +1,4 @@
-// The shader's first costs, carried from the kit's earlier component specs
-// when they went: its program compiles in the background (asking how a
+// The shader's first costs: its program compiles in the background (asking how a
 // compile went waited on the GPU driver, the largest main-thread stall left
 // on the landing), and its context is made at idle as it nears the screen,
 // never as its first frame on screen.

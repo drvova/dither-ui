@@ -1,5 +1,5 @@
 // The docs' forms, primitives, typography and text families, the Quick
-// start and the handbook's Engine and Verification sections on Solid: each
+// start and the handbook's Engine and Verification sections: each
 // family's sections in its nav's order under their headings, each preview
 // holding its demo once it nears the viewport, and what the demos and the
 // sections do under a hand.

@@ -13,7 +13,7 @@ import "./WidgetRenderer.css"
 type Kind = WidgetModel["kind"]
 type Of<K extends Kind> = Extract<WidgetModel, { kind: K }>
 
-/** What a Vue `:key` did: the surface made anew whenever `by` changes. */
+/** The surface made anew whenever `by` changes. */
 function Keyed(props: { by: string; children: () => JSX.Element }) {
   return <For each={[props.by]}>{() => props.children()}</For>
 }

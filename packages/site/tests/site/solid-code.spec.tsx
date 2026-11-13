@@ -1,7 +1,8 @@
-// The docs' snippets as Solid: the Vue → Solid translation (`toSolidCode`, one case
-// per construct the snippets use), the same file in each styling system
-// (`restyle` for Solid), and a sweep: every snippet the docs carry, as the
-// file the source panel shows, parses as TSX in all four systems.
+// The docs' snippets as Solid: the translation out of the notation they
+// are authored in (`toSolidCode`, one case per construct the snippets use),
+// the same file in each styling system (`restyle` for Solid), and a sweep:
+// every snippet the docs carry, as the file the source panel shows, parses
+// as TSX in all four systems.
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import ts from "typescript"
@@ -154,7 +155,7 @@ const [range, setRange] = createSignal<[number, number]>([25, 75])
 </div>`)
   })
 
-  it("keeps the kit's names and its toast import (the Solid kit exports the Vue kit's)", () => {
+  it("keeps the kit's names and its toast import", () => {
     expect(
       toSolidCode(`<script setup>
 import { DitherToaster, toast } from "@dither-kit"

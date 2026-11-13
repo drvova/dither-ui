@@ -1,6 +1,5 @@
-// Shared seed palette for the dither chart family. Mirrors the seeds in
-// `dither-chart.tsx` so a series rendered through the composable engine reads
-// with the exact same fill / line / star hues as the legacy sparkline.
+// Shared seed palette for the dither chart family: every chart and the
+// sparkline read a series' fill, line and star hues from the same seed.
 
 export type Rgb = [number, number, number]
 

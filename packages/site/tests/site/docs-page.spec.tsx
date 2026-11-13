@@ -1,8 +1,7 @@
-// The docs' page on Solid: the shell around the sections (the rail, the
+// The docs' page: the shell around the sections (the rail, the
 // sheet, "On this page", Share), one section per page by its route, the
 // packs as chunks of their own and the ones kept, the page's head, and the
-// routes' wiring. Carried from the earlier Vue site's `tests/docs-packs.spec.ts`,
-// `tests/docs-rail.spec.ts` and `tests/docs-sheet.spec.ts`.
+// routes' wiring.
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { MetaProvider } from "@solidjs/meta"
@@ -476,7 +475,7 @@ describe("the docs' page", () => {
       crumbType: document.getElementById("docs-breadcrumb")?.getAttribute("type"),
     })
     // The docs' own address says in a preview what the head table says of
-    // it (the earlier Vue site's entry page, word for word); a section, its meta.
+    // it; a section, its meta.
     const front = (key: string) =>
       pageTags("docs").flatMap((t) =>
         t.tag === "meta" && (t.attrs.property ?? t.attrs.name) === key ? [t.attrs.content] : [],
@@ -604,8 +603,6 @@ describe("the docs' routes", () => {
     expect(config).toContain('import { GROUPS } from "./src/pages/docs/groups.ts"')
     expect(config).toContain('["/docs", ...GROUPS.flatMap((g) => g.items.map((i) => `/docs/${i.id}`))]')
     expect(config).toContain('routes: ["/", MISSING_PAGE, PLAYER_ROUTE, ...DOCS_PAGES]')
-    // the crawl no longer steps around the docs
-    expect(/NOT_YET_PORTED = \[[^\]]*"\/docs"/.test(config)).toBe(false)
     for (const id of ids) expect(id).toMatch(/^[\w-]+$/)
   })
 })

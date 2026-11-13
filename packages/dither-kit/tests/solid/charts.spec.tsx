@@ -1,7 +1,6 @@
-// The chart family in Solid, held to what its Vue twins did: every kind
-// paints its canvas, the parts land in the root's layers, the legend and
-// tooltip read whichever root they sit in, and a part outside its root
-// says so in the words the Vue kit used.
+// The chart family: every kind paints its canvas, the parts land in the
+// root's layers, the legend and tooltip read whichever root they sit in,
+// and a part outside its root says which root it belongs in.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createSignal, type JSX } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -384,7 +383,7 @@ describe("a part outside its chart root", () => {
     }
     return null
   }
-  it("says where it belongs, in the Vue kit's words", () => {
+  it("says which root it belongs in", () => {
     expect(thrown(() => <Grid />)).toBe("<Grid /> must be used within a chart root.")
     expect(thrown(() => <XAxis />)).toBe("<XAxis /> must be used within a chart root.")
     expect(thrown(() => <YAxis />)).toBe("<YAxis /> must be used within a chart root.")

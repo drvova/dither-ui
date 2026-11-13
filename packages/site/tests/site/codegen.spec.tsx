@@ -1,12 +1,9 @@
-// The code the Studio writes for a frame, on Solid: a `.tsx` component on the
+// The code the Studio writes for a frame: a `.tsx` component on the
 // kit's Solid layer, in the reader's styling system. It goes into the
 // reader's project (the export dialog, `code.get`, the `get_code` tool), and
 // a frame's values come from files, links and agents: whatever a value
 // holds, the file stays a component Solid's own compiler reads, whose values
-// are data. Carried from the earlier Vue site's `tests/codegen-escape.spec.ts`, the
-// `widgetCode` and `chartCode` cases of `tests/widget-model.spec.ts` and
-// `tests/chart-model.spec.ts`, the export case of `tests/field-label.spec.ts`
-// and the export half of `tests/stylex-coverage.spec.ts`.
+// are data.
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { cleanup, render } from "@solidjs/testing-library"

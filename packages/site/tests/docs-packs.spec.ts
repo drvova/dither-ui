@@ -7,13 +7,12 @@ import { describe, expect, it } from "rstack/test"
 import { PACKS, PACKS_KEPT, packOpen, type PackName, visitPack } from "@/pages/docs/packs"
 
 describe("docs section packs", () => {
-  it("mounts a pack once one of its sections is opened, or all for the prerender", () => {
+  it("mounts a pack once one of its sections is opened", () => {
     const name: PackName = "BackgroundsDocs"
     const first = PACKS[name][0].id
-    expect(packOpen(name, [], false)).toBe(false)
-    expect(packOpen(name, visitPack([], "getting-started"), false)).toBe(false)
-    expect(packOpen(name, visitPack([], first), false)).toBe(true)
-    expect(packOpen(name, [], true)).toBe(true)
+    expect(packOpen(name, [])).toBe(false)
+    expect(packOpen(name, visitPack([], "getting-started"))).toBe(false)
+    expect(packOpen(name, visitPack([], first))).toBe(true)
   })
 
   it("keeps the last packs read mounted, never the whole docs", () => {

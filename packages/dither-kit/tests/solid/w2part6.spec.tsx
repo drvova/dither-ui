@@ -1,7 +1,7 @@
-// The Solid kit's text, navigation and small canvas pieces, held to what
-// their Vue twins did: each renders its content under the role and name a
-// reader finds it by, reports a change through its callback, keeps its
-// keyboard path, and paints its canvas where it has one.
+// The kit's text, navigation and small canvas pieces: each renders its
+// content under the role and name a reader finds it by, reports a change
+// through its callback, keeps its keyboard path, and paints its canvas
+// where it has one.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"

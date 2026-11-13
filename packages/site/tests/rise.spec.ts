@@ -2,7 +2,7 @@
 // The rise: a headline's words come up one after another on the glide, then
 // what stands with it; the prerendered bytes wait for it (the head script)
 // and let go by themselves if the app never comes; reduced motion stands
-// everything where it is. Every riser on the landing stands inside a `v-rise`.
+// everything where it is. Every riser on the landing stands inside an element that takes `rise` as its ref.
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"

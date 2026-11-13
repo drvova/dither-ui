@@ -100,7 +100,7 @@ export function CartesianCanvas() {
     ctx.configKeys.forEach((key, k) => {
       for (let i = 0; i < per; i++) {
         // Seed-derived position and phase when a master seed exists;
-        // otherwise the legacy linear hash (unchanged behavior).
+        // otherwise a linear hash of the series and the sparkle.
         if (ctx.seed !== undefined) {
           const rand = mulberry32(ctx.seed ^ (k * 7919 + i * 31 + 0x5bd1e995))
           out.push({

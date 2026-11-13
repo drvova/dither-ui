@@ -2,8 +2,7 @@
 // The post-build's pure parts (`build/postbuild.mjs`, on the `tasks` package): the Chromium it
 // draws with, the server it draws from, the renderer page it builds, what a
 // section's embed says, the cards' cache marker, the registry's file, and
-// the kit's standalone stylesheet (the earlier Vue site's `tests/kit-css.spec.ts`,
-// held here for the Solid layer). The browser's parts are held by the build
+// the kit's standalone stylesheet. The browser's parts are held by the build
 // itself, which fails when a card or the registry does.
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -101,7 +100,7 @@ describe("the renderer page", () => {
     expect(builder).toContain("../src/pages/docs/og-page.ts")
   })
 
-  it("is framework free, so the Solid build takes it as it is", () => {
+  it("is framework free", () => {
     for (const file of ["og-page.ts", "og-card.ts", "og-art.ts"])
       expect(read(`packages/site/src/pages/docs/${file}`)).not.toMatch(/from "(vue|solid-js)[/"]|\.vue"/)
   })

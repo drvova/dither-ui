@@ -1,4 +1,4 @@
-// The Solid kit's first components, held to what their Vue twins did: each
+// The kit's surfaces, avatar and button: each
 // prints through the shared engine, follows its props, and lets go of what
 // it listened to when it leaves.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"

@@ -70,7 +70,7 @@ describe("resolveTexture", () => {
     expect(resolveTexture("hatched").hatch).toBe(4)
   })
   it("solid outbids every threshold shift (density 2)", () => {
-    // density 2 preserves the old always-lit solid branch even under
+    // density 2 keeps the solid variant always lit even under
     // stacked (+0.2) and sparse (-0.28) bias shifts. BAYER max ~0.97.
     expect(resolveTexture("solid").density).toBe(2)
   })

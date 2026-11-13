@@ -754,7 +754,7 @@ export default function DocsPage(props: DocsPageProps) {
     const id = shown()
     return !id || packOf(id) ? before : [...before.filter((k) => k !== id), id].slice(-PACKS_KEPT)
   }, [])
-  const mounted = (name: PackName) => packOpen(name, kept(), false)
+  const mounted = (name: PackName) => packOpen(name, kept())
   const opened = (id: string) => keptOwn().includes(id)
   createEffect(
     on([shown, arrived], ([id]) => {
@@ -1086,7 +1086,7 @@ export default function DocsPage(props: DocsPageProps) {
               <DemoCard code={SNIPPETS.seeds}>
                 <div class="grid gap-5">
                   <div class="h-52">
-                    {/* a new seed is a new chart, as the Vue chart was keyed */}
+                    {/* a new seed is a new chart */}
                     <For each={[masterSeed()]}>
                       {(seed) => (
                         <AreaChart
@@ -1208,7 +1208,7 @@ export default function DocsPage(props: DocsPageProps) {
               </p>
               <div class="mt-4 rounded-lg border border-border/60 p-4">
                 <div class="h-44">
-                  {/* a new seed is a new chart, as the Vue chart was keyed */}
+                  {/* a new seed is a new chart */}
                   <For each={[effectSeed()]}>
                     {(seed) => (
                       <LineChart data={effectData} config={effectConfig} effect={seed} interactive={false}>
@@ -1731,7 +1731,7 @@ export default function DocsPage(props: DocsPageProps) {
                     innerRadius={0.55}
                     replayToken={galleryReplay.pie}
                   >
-                    {/* the Vue page passed `is-clickable` here too: Pie takes none (the legend isolates) */}
+                    {/* Pie takes no `isClickable`: the legend isolates */}
                     <Pie variant={picked.pie} />
                     <Legend align="center" isClickable={true} />
                   </PieChart>

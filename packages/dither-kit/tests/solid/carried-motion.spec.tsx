@@ -1,7 +1,6 @@
-// The kit's motion pieces on a hand-stepped browser: frames the spec
-// flushes, a clock it sets, observers it fires. Carried from the kit's
-// earlier component specs when they went (container, reveal, sequence,
-// stage): each case is the behaviour those held, on the Solid components.
+// The kit's motion pieces (container, reveal, sequence, stage) on a
+// hand-stepped browser: frames the spec flushes, a clock it sets, observers
+// it fires.
 import { cleanup, render } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"

@@ -8,8 +8,7 @@ import { xorshift32 } from "./pixel"
 import { setOrBlendRasterPixel, type RasterBuffer } from "./raster"
 import { spring } from "./spring"
 
-// 4×4 ordered (Bayer) matrix, normalized to 0–1 thresholds — the exact matrix
-// the legacy chart dithers with.
+// 4×4 ordered (Bayer) matrix, normalized to 0–1 thresholds.
 export const BAYER = [
   [0, 8, 2, 10],
   [12, 4, 14, 6],
@@ -78,8 +77,7 @@ const TEXTURE_PRESET: Record<AreaVariant, Required<TextureConfig>> = {
     alphaRange: 0.7,
     intensityLift: 0.22,
   },
-  // density 2: outbids every threshold shift (stacked/sparse) — always lit,
-  // exactly like the old hard-coded solid branch.
+  // density 2: outbids every threshold shift (stacked/sparse) — always lit.
   solid: {
     ramp: 1,
     density: 2,
@@ -443,7 +441,7 @@ export type PaintOpts = {
 //   make sure it looks good on both light and dark mode.
 //
 // So every pixel is the series' single `fill` colour and we vary only its alpha.
-// The old lighter `line` / near-white `star` shades were dropped: a shade that
+// No lighter `line` or near-white `star` shade is painted: a shade that
 // pops on a dark background reads as a jarring bright speck on a light one, while
 // the same colour at a lower opacity simply blends into whatever sits behind it.
 

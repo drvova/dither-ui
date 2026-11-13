@@ -48,7 +48,7 @@ export function createArtboard(kind: ArtboardKind, x = 0, y = 0): Artboard {
 
 /** Deep clone for duplicate and paste, standing where its source stands
  * (the editor places copies on free canvas). JSON round-trip (not structuredClone) because the
- * source chart is a Vue reactive Proxy, which structuredClone can't clone; the
+ * source chart is the store's proxy, which structuredClone can't clone; the
  * model is pure JSON-serializable data so this is exact. */
 export function cloneArtboard(src: Artboard): Artboard {
   const chart = JSON.parse(JSON.stringify(src.chart)) as Artboard["chart"]

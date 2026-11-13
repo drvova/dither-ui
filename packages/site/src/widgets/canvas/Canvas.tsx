@@ -194,7 +194,7 @@ export default function Canvas(props: { ref?: (api: CanvasApi) => void }) {
       </Show>
     </div>
   )
-  // Handed over before the page mounts, as a component's ref was in Vue.
+  // Handed over before the page mounts.
   if (host && world) props.ref?.({ host, world })
   return view
 }

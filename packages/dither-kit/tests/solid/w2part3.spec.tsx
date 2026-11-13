@@ -1,6 +1,5 @@
-// The Solid kit's second wave, third sheet: text that arrives, the menus,
-// the slider and what is built on it, and the small layout pieces. Each is
-// held to what its Vue twin did: what it renders and names, what it reports
+// Text that arrives, the menus, the slider and what is built on it, and
+// the small layout pieces: what each renders and names, what it reports
 // through its callbacks, and the keys it answers.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"

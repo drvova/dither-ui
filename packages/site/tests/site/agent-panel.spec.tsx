@@ -1,11 +1,7 @@
-// The agent panel on Solid (`src/widgets/agent/`), held to what its Vue twin
-// did: the panel mounted as the Studio mounts it, before any bridge (its
+// The agent panel (`src/widgets/agent/`): the panel mounted as the Studio mounts it, before any bridge (its
 // setup in order, the field's keys, the chat it shows), the composer's
 // chips, quotes, edits and settings, the thread's entries and the trays
-// over the input, and the two model modules copied for the store's sake.
-// Carried from the earlier Vue site's `tests/agent-panel.spec.ts`,
-// `tests/agent-compose.spec.ts` and `tests/agent-composer.spec.ts`,
-// assertion for assertion, then this port's own.
+// over the input, and the composer's model modules.
 import { readFileSync } from "node:fs"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
@@ -45,8 +41,7 @@ function keep(entries: Entry[]) {
   openProject("p1")
   saveThread("p1", chats.active, { entries, usage: { input: 0, output: 0 } }, true)
 }
-/** What Vue's `nextTick` was to the Vue specs: the watchers of this turn, and
- * what they queued, have run. */
+/** The watchers of this turn, and what they queued, have run. */
 const tick = async () => {
   for (let i = 0; i < 4; i++) await Promise.resolve()
 }
@@ -102,7 +97,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-describe("the agent panel (carried from tests/agent-panel.spec.ts)", () => {
+describe("the agent panel", () => {
   it("mounts cleanly and brings back the project's draft and thread", async () => {
     const error = vi.spyOn(console, "error")
     keep([{ kind: "user", text: "A sign-in screen", turn: 1 }])
@@ -293,7 +288,7 @@ describe("the agent panel (carried from tests/agent-panel.spec.ts)", () => {
   })
 })
 
-describe("the composer (carried from tests/agent-compose.spec.ts)", () => {
+describe("the composer", () => {
   const lines = (n: number) => Array.from({ length: n }, (_, i) => `line ${i}`).join("\n")
   const replied = () =>
     keep([
@@ -458,7 +453,7 @@ describe("the composer (carried from tests/agent-compose.spec.ts)", () => {
 })
 
 describe("the composer's model", () => {
-  describe("a tool call as a step (carried from tests/agent-composer.spec.ts)", () => {
+  describe("a tool call as a step", () => {
     it("names every Studio tool, with a glyph the kit draws", () => {
       for (const { def: t } of STUDIO_TOOLS) {
         expect(STEPS[t.name], t.name).toBeDefined()
@@ -517,7 +512,7 @@ describe("the composer's model", () => {
     })
   })
 
-  describe("the thread's readings (carried from tests/agent-composer.spec.ts)", () => {
+  describe("the thread's readings", () => {
     const ok = (data: unknown) => ({ ok: true as const, data })
     const step = (name: string, turn: number, data: unknown = { id: `${name}-${turn}`, name }) =>
       toolEntry(name, {}, ok(data), turn)

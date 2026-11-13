@@ -1,4 +1,4 @@
-// The docs' component packs on Solid, second half (`src/pages/docs/components/`:
+// The docs' component packs, second half (`src/pages/docs/components/`:
 // Navigation, Overlay, Selection, Structure, Surface): each pack's sections
 // against the nav table the rail, the search and the crawler read, each
 // preview mounting its demo once in view, and the demos' own state.

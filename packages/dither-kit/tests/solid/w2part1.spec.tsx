@@ -1,6 +1,6 @@
-// The Solid kit's controls and text, first sheet of the second wave: each
-// renders what it names, reports a change through its callback, answers the
-// keyboard its Vue twin answered, and paints its canvas where it has one.
+// The kit's controls and text, from CardStack on: each renders what it
+// names, reports a change through its callback, answers its keys, and
+// paints its canvas where it has one.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"

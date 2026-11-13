@@ -157,10 +157,10 @@ export default function DitherImage(raw: DitherImageProps) {
         ro = new ResizeObserver(paint)
         if (wrap) ro.observe(wrap)
       }
-      // Fetch the source only as the frame approaches the viewport: the eager
-      // load pulled a multi-hundred-KB sheet at mount on pages where the image
-      // sits far below the fold. Falls back to the old eager load when the
-      // observer is unavailable or the element never mounts.
+      // Fetch the source only as the frame approaches the viewport: an eager
+      // load pulls a multi-hundred-KB sheet at mount on pages where the image
+      // sits far below the fold. Loads eagerly when the observer is
+      // unavailable or the element never mounts.
       if (typeof IntersectionObserver !== "undefined" && wrap) {
         io = new IntersectionObserver(
           (entries) => {

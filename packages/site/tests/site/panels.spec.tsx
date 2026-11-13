@@ -1,10 +1,6 @@
-// The Studio's panels on Solid: the inspector (with its avatar grid, its
-// spec-driven component rows and the reel's cut), the layer tree, the title
-// bar and the canvas's bar, held to what their Vue twins did. The canvas
-// bar's and the name column's cases carry the earlier Vue site's specs
-// (`tests/canvas-bar.spec.ts`, `tests/inspector-names.spec.ts`), assertion
-// for assertion; the rest is this port's own, a render and behaviour spec
-// for each panel the earlier Vue site had none for.
+// The Studio's panels: the inspector (with its avatar grid, its spec-driven
+// component rows and the reel's cut), the layer tree, the title bar and the
+// canvas's bar, each rendered and driven.
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"

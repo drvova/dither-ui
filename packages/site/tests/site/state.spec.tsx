@@ -1,10 +1,6 @@
-// The Studio's state core on Solid: the editor store, its history and
-// persistence, the agent's protocol, tools and chats, the canvas's gestures
-// and keys, and the three dialogs, held to what their Vue twins did. The
-// first half is this port's own (what a mutable Solid store must keep that
-// Vue's gave for free, and the modules the earlier Vue site had no spec for); the
-// second carries the earlier Vue site's specs for these modules, assertion for
-// assertion.
+// The Studio's state core: the editor store, its history and persistence,
+// the agent's protocol, tools and chats, the canvas's gestures and keys,
+// and the three dialogs.
 import { readFileSync } from "node:fs"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createEffect, createRoot, createSignal } from "solid-js"
@@ -186,8 +182,8 @@ vi.mock("../../src/shared/ui", () => ({
   ),
 }))
 
-// What the specs share: the stores are module singletons, so each carried
-// spec starts from the state its Vue twin's own file started from.
+// What the specs share: the stores are module singletons, so each group
+// starts from a fresh state.
 function fresh() {
   stopHistory()
   stopAutosave()
@@ -210,7 +206,7 @@ function fresh() {
   handoff.asks = []
   resetHistory()
 }
-/** The microtask a watcher's callback waits for (Vue's `nextTick` there). */
+/** The microtask a watcher's callback waits for. */
 const tick = () => new Promise<void>((resolve) => queueMicrotask(resolve))
 /** A command's answer, where the spec has already held that it is one. */
 const dataOf = (r: CommandResult): unknown => (r.ok ? r.data : undefined)
@@ -222,7 +218,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-describe("the editor store on Solid", () => {
+describe("the editor store", () => {
   beforeEach(fresh)
 
   it("hands back the store's own frame, so a write after an insert reaches every reader", () => {
@@ -333,7 +329,7 @@ describe("the editor store on Solid", () => {
   })
 })
 
-describe("watch, Vue's timing over a Solid store", () => {
+describe("watch, once a turn over a mutable store", () => {
   beforeEach(fresh)
 
   it("calls back once, a microtask after the writes of one turn, never for the first read", async () => {
@@ -1018,8 +1014,6 @@ describe("ExportDialog", () => {
 describe("the agent's own inserts", () => {
   beforeEach(fresh)
 
-  // Carried from tests/reel.spec.ts (the rest of it holds the reel's
-  // timeline and renderer, which are not this slice's).
   it("builds the kit's frames into a film with chapters and a score, its frames in a row under it", () => {
     const id = addLaunchFilm()
     const film = editor.artboards.find((a) => a.id === id)
@@ -1051,7 +1045,7 @@ describe("the agent's own inserts", () => {
   })
 })
 
-describe("carried from tests/editor-placement.spec.ts", () => {
+describe("placing frames", () => {
   beforeAll(fresh)
 
   type B = { x: number; y: number; w: number; h: number }
@@ -1141,7 +1135,7 @@ describe("carried from tests/editor-placement.spec.ts", () => {
   })
 })
 
-describe("carried from tests/editor-selection.spec.ts", () => {
+describe("moving the selection", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -1163,7 +1157,7 @@ describe("carried from tests/editor-selection.spec.ts", () => {
   })
 })
 
-describe("carried from tests/editor-series.spec.ts", () => {
+describe("deleting a series", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -1196,7 +1190,7 @@ describe("carried from tests/editor-series.spec.ts", () => {
 // viewport, whichever object it is (loading a document, switching a project
 // or centring a fresh frame replaces it); the bar, the keys and the agent
 // zoom and fit through the same functions; Inspect reads at 100% and holds.
-describe("carried from tests/pan-zoom.spec.ts", () => {
+describe("the viewport", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -1276,7 +1270,7 @@ describe("carried from tests/pan-zoom.spec.ts", () => {
 // (removed when the turn made it, back when the turn removed it), the rest
 // of the canvas as it stands, as one undoable step; each row's Undo and
 // Keep, and the row that puts an undone frame back.
-describe("carried from tests/frame-undo.spec.ts", () => {
+describe("undoing a turn's frames", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -1322,7 +1316,7 @@ describe("carried from tests/frame-undo.spec.ts", () => {
   })
 })
 
-describe("carried from tests/components/projects.spec.ts", () => {
+describe("projects", () => {
   beforeAll(fresh)
 
   // The persistence module is a singleton over the editor singleton — these run
@@ -1437,7 +1431,7 @@ describe("carried from tests/components/projects.spec.ts", () => {
   })
 })
 
-describe("carried from tests/components/persistence-autosave.spec.ts", () => {
+describe("autosave", () => {
   beforeAll(fresh)
 
   afterEach(() => {
@@ -1468,7 +1462,7 @@ describe("carried from tests/components/persistence-autosave.spec.ts", () => {
 
 // A project's chats with the agent: the list the Studio's sidebar shows, the
 // chat open in the panel, and each chat's thread.
-describe("carried from tests/agent-chats.spec.ts", () => {
+describe("the agent's chats", () => {
   beforeAll(fresh)
 
   type E = { kind: string; text?: string }
@@ -1689,7 +1683,7 @@ describe("carried from tests/agent-chats.spec.ts", () => {
 // the kit components that do), runs it, or builds one when none fits; a
 // built tool is kept, found first next time, and runs only once the user
 // says so.
-describe("carried from tests/agent-dither.spec.ts", () => {
+describe("the dither tool", () => {
   beforeAll(fresh)
 
   const ok = (data: unknown) => ({ ok: true as const, data })
@@ -1822,7 +1816,7 @@ describe("carried from tests/agent-dither.spec.ts", () => {
   })
 })
 
-describe("carried from tests/agent-protocol.spec.ts", () => {
+describe("the agent's protocol", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -2187,7 +2181,7 @@ describe("carried from tests/agent-protocol.spec.ts", () => {
   })
 })
 
-describe("carried from tests/agent-tools.spec.ts", () => {
+describe("the agent's tools", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -2453,7 +2447,7 @@ describe("carried from tests/agent-tools.spec.ts", () => {
   })
 })
 
-describe("carried from tests/agent-evolve.spec.ts", () => {
+describe("evolving a frame", () => {
   beforeAll(fresh)
 
   describe("evolve", () => {

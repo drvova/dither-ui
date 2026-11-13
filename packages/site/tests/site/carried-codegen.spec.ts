@@ -1,6 +1,4 @@
-// The Studio's code export for a screen, a registry component and a reel,
-// carried from the earlier registry and screen specs when the Vue code
-// generators they held went: the same cases, on what the Studio writes now.
+// The Studio's code export for a screen, a registry component and a reel.
 import { describe, expect, it } from "vitest"
 import { createArtboard, normalizeArtboard } from "@/entities/artboard"
 import { addCell, addScreenRow, componentEntry, createComponent, createScreen } from "@/entities/widget"

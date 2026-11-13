@@ -1,4 +1,4 @@
-// The docs' Animations pack on Solid: every section of the pack's nav under
+// The docs' Animations pack: every section of the pack's nav under
 // its heading, each preview mounting its demo once in view, and the demos'
 // own controls.
 import { readFileSync } from "node:fs"

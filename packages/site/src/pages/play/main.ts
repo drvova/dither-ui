@@ -1,7 +1,7 @@
 // The player page's mount — for both the site's `/play/` page and the
 // single-file bundle an exported HyperFrames composition carries inline.
-// What the Vue entry did as it loaded is one call here, `mountPlayer`, so
-// the module can be read on a server.
+// Nothing runs as the module loads: mounting is one call, `mountPlayer`,
+// so the module can be read on a server.
 //
 // HyperFrames' runtime dispatches `hf-seek` for every frame it captures and
 // waits on `window.__hf.buildReady` before the first one. The hold here is

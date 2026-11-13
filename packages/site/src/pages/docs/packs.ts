@@ -5,8 +5,7 @@
 // page nothing until asked for (measured: mounting every pack put 27k nodes
 // on a section's page, about 85 per section, for the one on screen), and a
 // long read never holds them all (measured: every section opened in one tab
-// kept 62k nodes and 461 canvases mounted). The prerender asks for all of
-// them (`ALL_SECTIONS_PARAM`).
+// kept 62k nodes and 461 canvases mounted).
 import { AUTH_NAV } from "./examples/auth-nav.ts"
 import { CHAT_NAV } from "./examples/chat-nav.ts"
 import { NOTIFICATIONS_NAV } from "./examples/notifications-nav.ts"
@@ -60,10 +59,6 @@ export const PACKS = {
 
 export type PackName = keyof typeof PACKS
 
-/** The query that mounts every pack at once (`/docs?all-sections`): the
- * prerender's, which lifts each section into its own page. */
-export const ALL_SECTIONS_PARAM = "all-sections"
-
 /** How many packs stay mounted: the one on screen and the last ones read
  * before it. */
 export const PACKS_KEPT = 3
@@ -86,6 +81,5 @@ export function visitPack(kept: readonly PackName[], id: string): readonly PackN
   return [...kept.filter((k) => k !== name), name].slice(-PACKS_KEPT)
 }
 
-/** Whether a pack is mounted: it is among the packs kept, or every pack is
- * asked for. */
-export const packOpen = (name: PackName, kept: readonly PackName[], all: boolean): boolean => all || kept.includes(name)
+/** Whether a pack is mounted: it is among the packs kept. */
+export const packOpen = (name: PackName, kept: readonly PackName[]): boolean => kept.includes(name)

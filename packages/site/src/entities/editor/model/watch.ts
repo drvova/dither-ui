@@ -1,9 +1,9 @@
-// What Vue's `watch` was to the Studio's stores: a callback some time after
-// what a getter reads has changed, never as it changes. The stores are
-// mutable (`createMutable`), and Solid runs an effect as each write lands;
-// history, autosave and the agent's mirror were written for Vue's timing
-// (every write of one turn seen once, after the code that made them has
-// finished), and their echo guards depend on it. So the callback waits for
+// A watcher over the Studio's stores: a callback some time after what a
+// getter reads has changed, never as it changes. The stores are mutable
+// (`createMutable`), and Solid runs an effect as each write lands; history,
+// autosave and the agent's mirror need every write of one turn seen once,
+// after the code that made them has finished, and their echo guards depend
+// on it. So the callback waits for
 // the microtask after the first change, and runs once for all of them.
 import { createEffect, createRoot } from "solid-js"
 import { isServer } from "solid-js/web"

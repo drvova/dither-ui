@@ -1,8 +1,7 @@
 // The editor store, the Studio's single source of truth. A mutable store
-// (`createMutable`), so it reads and writes as the earlier Vue site's `reactive`
-// one did: `editor.viewport.x += 4` is a write every reader hears. Solid
-// runs its effects as each write lands, where Vue waited for the turn to
-// end, so every action that writes more than once is one `batch`: no reader
+// (`createMutable`), so it reads and writes as a plain object:
+// `editor.viewport.x += 4` is a write every reader hears. Solid runs its
+// effects as each write lands, so every action that writes more than once is one `batch`: no reader
 // sees a selection that names a frame already gone. A frame handed back by
 // an insert is the store's own (the proxy), never the object passed in:
 // a write to the bare object would reach no reader.
@@ -42,7 +41,7 @@ export const editor = createMutable({
 selectArtboard(editor.artboards[0].id)
 
 // --- getters ---------------------------------------------------------------
-/** A derived value read as `.value`, as the Vue store's `computed` was: a
+/** A derived value read as `.value`: a
  * memo that outlives every component (a server render reads it straight). */
 function computed<T>(read: () => T): { readonly value: T } {
   const memo = isServer ? read : createRoot(() => createMemo(read))

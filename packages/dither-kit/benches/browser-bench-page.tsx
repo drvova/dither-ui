@@ -1,7 +1,6 @@
 /**
  * The page the browser benchmark runs (`browser-bench.mts` bundles it and
- * opens it in Chromium). Two measurements, each the one the kit's earlier
- * benchmark page made, on the Solid components:
+ * opens it in Chromium). Two measurements:
  *
  *   mounts    a real component mounted in the DOM. Compute is mount to the
  *             next microtask (Solid renders and runs `onMount` in the call);

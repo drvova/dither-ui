@@ -1,7 +1,7 @@
-// The Solid kit's text effects, sidebar, small controls and layout pieces,
-// held to what their Vue twins did: each renders its content under its role
-// and name, a control reports through its callback, a keyboard path works,
-// and a surface paints once it is in view.
+// The kit's text effects, sidebar, small controls and layout pieces: each
+// renders its content under its role and name, a control reports through
+// its callback, a keyboard path works, and a surface paints once it is in
+// view.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"

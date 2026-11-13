@@ -1,6 +1,6 @@
-// The backgrounds from LightRays to PixelSnow, held to what their Vue twins
-// did: each paints its canvas once in view, gives way to a precompiled image,
-// and the three that follow the pointer hand their painter where it is.
+// The backgrounds from LightRays to PixelSnow: each paints its canvas once
+// in view, gives way to a precompiled image, and the three that follow the
+// pointer hand their painter where it is.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import LightRays from "../../src/solid/LightRays"

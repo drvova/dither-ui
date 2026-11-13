@@ -640,7 +640,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 300, h: 80 },
     props: [
-      text("text", "solid-site/src/pages/docs/typography/TypographyDocs.tsx"),
+      text("text", "packages/site/src/pages/docs/typography/TypographyDocs.tsx"),
       number("head", 8, 2, 24),
       number("tail", 6, 2, 24),
       bool("title", true),

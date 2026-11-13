@@ -1,5 +1,4 @@
-// Behaviour the Studio's earlier module specs held that no other spec here
-// did, carried over when those specs went: what the composer reads out of
+// Behaviour no other spec here holds: what the composer reads out of
 // the harness's updates and its slash commands, the follow-ups it offers,
 // the bridge's setup line, the navigation's sticking heads, and a field's
 // value set through the protocol.

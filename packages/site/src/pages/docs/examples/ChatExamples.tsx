@@ -490,7 +490,7 @@ export default function ChatExamples() {
                       class={`max-w-[80%] rounded-lg border px-2.5 py-1.5 ${m.role === "user" ? "border-accent/40 bg-accent/10" : "border-border/60 bg-card/40"}`}
                     >
                       <p class="text-[11px] leading-relaxed whitespace-pre-wrap text-foreground">
-                        {/* the leading space is the Vue page's: its template's own, kept under pre-wrap */} {m.text}
+                        {/* the space before the text shows under pre-wrap */} {m.text}
                         <Show when={aiStreaming() && i() === aiMessages.length - 1}>
                           <span class="animate-pulse motion-reduce:animate-none" aria-hidden="true">
                             ▍

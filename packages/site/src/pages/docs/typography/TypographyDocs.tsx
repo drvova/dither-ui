@@ -61,7 +61,7 @@ const SNIPPET_LINE_CLAMP = `<DitherLineClamp :lines="2">
   Long body copy that stops after two lines with an ellipsis…
 </DitherLineClamp>`
 
-const SNIPPET_MIDDLE_ELLIPSIS = `<DitherMiddleEllipsis text="solid-site/src/pages/docs/typography/TypographyDocs.tsx" />`
+const SNIPPET_MIDDLE_ELLIPSIS = `<DitherMiddleEllipsis text="packages/site/src/pages/docs/typography/TypographyDocs.tsx" />`
 
 const SNIPPET_ELLIPSIS_TOOLTIP = `<DitherEllipsisTooltip>Full sentence that only shows a tooltip when it actually clips…</DitherEllipsisTooltip>`
 
@@ -367,7 +367,7 @@ export default function TypographyDocs() {
           <div class="grid gap-2 text-[12px]">
             <DitherMiddleEllipsis
               class="font-mono"
-              text="solid-site/src/pages/docs/typography/TypographyDocs.tsx"
+              text="packages/site/src/pages/docs/typography/TypographyDocs.tsx"
               head={14}
               tail={10}
             />

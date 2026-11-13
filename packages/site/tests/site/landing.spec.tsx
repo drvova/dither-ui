@@ -1,5 +1,4 @@
-// The landing in Solid (`src/pages/landing/`), held to what its Vue twins
-// did: the brand's moment and its replay, the rise of every head, the bento
+// The landing (`src/pages/landing/`): the brand's moment and its replay, the rise of every head, the bento
 // and its one moving layer, the agent's story, the install's one gesture,
 // the art that moves only on cue, and a mount that reads no layout.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"

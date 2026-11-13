@@ -268,7 +268,8 @@ describe("an import between packages", () => {
   })
 })
 
-// The kit and the site were Vue's before they were Solid's.
+// The kit is SolidJS only. The docs' snippets are authored in Vue's template
+// notation, and that notation is all of Vue here.
 describe("no Vue", () => {
   it("is imported by any package, anywhere", () => {
     const offenders = IMPORTS.filter(

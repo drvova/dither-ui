@@ -4,7 +4,7 @@
 // maskable) and the head that points at them, all drawn from the brand
 // mark's own cells (`shared/ui/brand-mark.ts`) on the landing's obsidian,
 // never hand-drawn. The build emits every file here
-// (`solid-site/site-files.ts`); the shell and the Studio's route render the
+// (`build/site-files.ts`); the shell and the Studio's route render the
 // head tags. Node-side only: the build's config loads it under Node's own
 // TypeScript, so its imports carry `.ts`.
 import { deflateSync } from "node:zlib"

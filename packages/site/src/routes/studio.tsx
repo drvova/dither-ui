@@ -1,4 +1,4 @@
-// The Studio, and what the Vue app's shell did for it: its head, the app's
+// The Studio, and what only its page carries: its head, the app's
 // manifest and iOS's app tags (the install surface's own table; the icons
 // are the shell's), the browser chrome's colour in the theme the reader
 // picked, and the service worker's registration.

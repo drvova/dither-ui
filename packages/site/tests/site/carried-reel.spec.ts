@@ -1,6 +1,6 @@
-// The reel's cut and the film through the store and the protocol, carried
-// from the Studio's earlier reel spec when it went (its timeline, camera and
-// score cases stay with the framework-free specs beside this folder).
+// The reel's cut and the film through the store and the protocol (its
+// timeline, camera and score are held by the framework-free specs beside
+// this folder).
 import { beforeEach, describe, expect, it } from "vitest"
 import { widgetCode } from "@/entities/widget/model/codegen"
 import { addArtboard, addReelArtboard, editor, removeArtboard } from "@/entities/editor"

@@ -1,6 +1,6 @@
-// Controls, overlays, text and widgets of the Solid kit, held to what their
-// Vue twins did: each shows its content under its role and name, reports a
-// change through its callback, and keeps its keyboard and focus rules.
+// Controls, overlays, text and widgets of the kit: each shows its content
+// under its role and name, reports a change through its callback, and
+// keeps its keyboard and focus rules.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
