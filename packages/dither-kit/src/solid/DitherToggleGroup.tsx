@@ -1,5 +1,5 @@
 import { createEffect, createMemo, For, mergeProps, on, onCleanup, onMount } from "solid-js"
-import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
+import { labelFill } from "../engine/label-fill"
 import { fillOf, type PixelColor } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 import type { Option } from "./DitherSelect"
@@ -18,7 +18,7 @@ export default function DitherToggleGroup(raw: DitherToggleGroupProps) {
   const props = mergeProps({ type: "single" as const, color: "blue" as PixelColor }, raw)
 
   // A bright fill takes black ink: white on it would sink under AA.
-  const darkInk = createMemo(() => darkInkOnDark(fillOf(props.color), LABEL_COVERAGE.gradient))
+  const darkInk = createMemo(() => labelFill(fillOf(props.color), "gradient", "straight").darkInk)
 
   let root: HTMLDivElement | undefined
   const btns: HTMLButtonElement[] = []

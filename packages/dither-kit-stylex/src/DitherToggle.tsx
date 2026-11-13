@@ -2,9 +2,10 @@
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, type JSX, mergeProps, on, onCleanup, onMount, splitProps } from "solid-js"
 import { kitFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
-import { darkInkOnDark, LABEL_COVERAGE, type Rgb } from "@dither-ui/kit/engine/palette.ts"
-import { BAYER4, clamp01, fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
-import { createRasterBuffer, putRasterBuffer } from "@dither-ui/kit/engine/raster.ts"
+import { labelFill, renderLabelFill } from "@dither-ui/kit/engine/label-fill.ts"
+import type { Rgb } from "@dither-ui/kit/engine/palette.ts"
+import { BAYER4, fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import { putRasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import { cn, type StyleProp } from "./lib"
 import { useLabelMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import * as stylex from "@stylexjs/stylex"
@@ -44,12 +45,11 @@ const styles = stylex.create({
 
 const CELL = 2
 
-/** DitherBadge's rest gradient fill behind the pressed label — sized from the
- * host button and edged with the 1px brighter lines, the hue laid over the
- * page with the density as alpha (a pastel on light, a glow on dark), so
- * the theme's own ink reads on it. Shared with
- * DitherToggleGroup. Uses RasterBuffer for bulk pixel writes instead of
- * per-pixel fillRect (10-20x faster for typical toggle sizes). */
+/** DitherBadge's rest gradient fill behind the pressed label (the engine's
+ * `renderLabelFill` at its `labelFill` tone), sized from the host button:
+ * the hue laid over the page with the density as alpha (a pastel on light,
+ * a glow on dark), so the theme's own ink reads on it. Shared with
+ * DitherToggleGroup. */
 export function paintToggleCanvas(
   host: HTMLElement,
   canvas: HTMLCanvasElement,
@@ -63,50 +63,10 @@ export function paintToggleCanvas(
   const rows = Math.max(4, Math.round(box.height / CELL))
   canvas.width = cols
   canvas.height = rows
-  const buf = createRasterBuffer(cols, rows)
-  const { data } = buf
-  const [r, g, b] = fill
-  for (let y = 0; y < rows; y++) {
-    const density = 0.25 + 0.75 * ((y + 0.5) / rows)
-    for (let x = 0; x < cols; x++) {
-      const lit = density > matrix[y & 3][x & 3]
-      const k = 0.3 + density * 0.7
-      const a = clamp01(lit ? k : k * 0.4)
-      const idx = (y * cols + x) * 4
-      data[idx] = r
-      data[idx + 1] = g
-      data[idx + 2] = b
-      data[idx + 3] = (a * 255 + 0.5) | 0
-    }
-  }
-  // Edge lines (top/bottom/left/right) at 50% opacity
-  const edgeA = 0.5
-  const ea = (edgeA * 255 + 0.5) | 0
-  for (let x = 0; x < cols; x++) {
-    let idx = x * 4
-    data[idx] = r
-    data[idx + 1] = g
-    data[idx + 2] = b
-    data[idx + 3] = ea
-    idx = ((rows - 1) * cols + x) * 4
-    data[idx] = r
-    data[idx + 1] = g
-    data[idx + 2] = b
-    data[idx + 3] = ea
-  }
-  for (let y = 0; y < rows; y++) {
-    let idx = y * cols * 4
-    data[idx] = r
-    data[idx + 1] = g
-    data[idx + 2] = b
-    data[idx + 3] = ea
-    idx = (y * cols + cols - 1) * 4
-    data[idx] = r
-    data[idx + 1] = g
-    data[idx + 2] = b
-    data[idx + 3] = ea
-  }
-  putRasterBuffer(ctx, buf)
+  putRasterBuffer(
+    ctx,
+    renderLabelFill(cols, rows, fill, "gradient", labelFill(fill, "gradient", "straight", matrix).tone, matrix),
+  )
 }
 
 type Own = {
@@ -139,7 +99,7 @@ export default function DitherToggle(raw: DitherToggleProps) {
   const color = createMemo<PixelColor>(() => props.color ?? s()?.hue ?? "blue")
   const matrix = useLabelMatrix(() => props.seed)
   // A bright fill takes black ink: white on it would sink under AA.
-  const darkInk = createMemo(() => darkInkOnDark(fillOf(color()), LABEL_COVERAGE.gradient))
+  const darkInk = createMemo(() => labelFill(fillOf(color()), "gradient", "straight", matrix()).darkInk)
 
   let button: HTMLButtonElement | undefined
   let canvas: HTMLCanvasElement | undefined

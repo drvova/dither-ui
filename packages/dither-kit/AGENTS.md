@@ -461,9 +461,12 @@ generated twin. Inside the kit every import is relative
   sets native `container-type: inline-size` + `container-name` (stylesheet
   `@container` route), observes itself via ResizeObserver `contentRect`
   (transform-safe, `use-chart-dimensions` precedent; silent without the
-  observer; an observation is applied on the next frame, the latest
-  winning, never inside the observer's delivery: a new bucket resizes the
-  box it observes, a loop the browser reports on the window; a
+  observer; through `src/engine/size-watch.ts`'s `watchSize`, the one way
+  a kit observer whose report changes layout is applied: on the next
+  frame, the latest winning, never inside the observer's delivery, where a
+  new bucket (or the surface loop's canvas size) resizes the box it
+  observes, a loop the browser reports on the window,
+  `tests/size-watch.spec.ts`; a
   setTimeout(0) `clientWidth` guard fires only if nothing
   reported — never overwrite a real observation with the zero read), and
   publishes `data-cq` (active bucket) + `--cq-w`/`--cq-h` (content-box size,
@@ -748,7 +751,18 @@ generated twin. Inside the kit every import is relative
   back, `readBehind` (WebGL2: the read into a pixel buffer behind a fence,
   collected on a later call once the GPU is done, an earlier draw's
   pixels or null; never a stall; WebGL1 reads at once;
-  `tests/gl-readback.spec.ts`), `dispose`), the program in steps that never
+  `tests/gl-readback.spec.ts`), `dispose`), the context's life: `lost()`
+  from the loss itself (`isContextLost`, before its event), the loss kept
+  for the browser to restore (`webglcontextlost` prevented), `generation()`
+  moving on a restore, after which an engine drops (never deletes) every
+  object it holds and makes them again (the GPU engine, the material pass,
+  `DitherShader`); `dispose` loses the context whole and deletes nothing
+  one by one, and a component lets its context go before its engines (on
+  WebKitGTK an object deleted in a context about to go was another live
+  context's of the same name: the docs' GLSL-material world drew from
+  nothing on its second Run); an engine deletes what it made only on a
+  shared context that lives on (`tests/gl-context.spec.ts`, the context
+  cases of `tests/solid/carried-shader.spec.tsx`), the program in steps that never
   wait on the driver until asked: `startProgram` (both stages and the link
   handed over, no status asked), `programReady` (KHR_parallel_shader_compile's
   completion status; ready where the driver cannot say), `finishProgram`
@@ -840,7 +854,8 @@ generated twin. Inside the kit every import is relative
   cut script time 28% on three 8fps surfaces), and a boundary is consumed
   only by a frame that actually paints. A painting frame reads nothing from
   the page either: the element's box is read once and then only when the
-  ResizeObserver reports (after layout, so free), the canvas's context is
+  ResizeObserver reports (`watchSize`: on the frame after the report, so
+  sizing the canvas never resizes the box inside the delivery), the canvas's context is
   asked for once per element, and the observer's report repaints a held
   surface only where it shows (its first report on observe painted every
   paused surface down the page at load); a surface first painted out of
@@ -987,12 +1002,25 @@ generated twin. Inside the kit every import is relative
   `theme-contrast.spec.ts`
   hold every one; and only `aria-hidden` separators and the wheel picker's masked edge
   rows keep a fade. The light `--swatch-*` inks clear 5:1 on white. A label
-  on a dithered fill (badge, button, toggle, toggle group) takes the ink
-  `darkInkOnDark(fill, LABEL_COVERAGE[variant])` (`src/engine/palette.ts`)
-  picks: pure black on a bright fill (on the solid orange key `#0a0a0a`
-  stops at 4.4:1), the theme's ink otherwise; the button's raster stores
-  its colour pre-scaled by alpha, so it passes coverage². The toggle paints
-  its fill with alpha as the badge does, so a light page sees a pastel.
+  on a dithered fill (badge, button, toggle, toggle group) reads at AA by
+  one rule, `labelFill(fill, variant, storage, matrix)`
+  (`src/engine/label-fill.ts`), which picks the fill's tone and the label's
+  ink together: the fill's cells under the label's line box at every size
+  the kit's labelled fills stand at (`LABEL_SIZES`), read as the page shows
+  them (their mean in linear light over each theme's darkest and lightest
+  ground, `LABEL_GROUNDS`), must give the light theme's ink 4.5:1 and, on
+  the dark grounds, the theme's own ink (as dim as the docs' bone) or black
+  4.5:1, the one that reads better (`darkInk`: pure black on a bright fill);
+  a fill that sits between the inks, too bright for the light ink and too
+  dark for black, prints at the tone nearest the fill as drawn that reaches
+  it, a hundredth at a time either way (the green gradient badge lifts to
+  1.04 and takes black, the grey solid button dims to 0.82). The tone
+  scales every cell's alpha. The badge and the toggle print through
+  `renderLabelFill` (straight alpha: a pastel on light, a glow on dark),
+  the button through `renderDitherButton` (`precompile.ts`, its colour
+  stored scaled by alpha: `"premultiplied"`), both from `labelAlpha`, the
+  one rest formula. `tests/label-fill.spec.ts` measures every colour,
+  variant, seed and size of the three in both themes.
   Every target is 24px or spaced per WCAG 2.5.8: a legend key is a label
   unless clickable, then a button with a 24px hit (`-my-1 py-1`); a slider
   thumb is a 24px box around its 12px mark on a 24px track (`-my-1 h-6`);

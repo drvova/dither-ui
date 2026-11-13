@@ -129,8 +129,9 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
   let problem = ""
   let pixels = new Uint8Array(0)
   let uvPixels = new Uint8Array(0)
-  const buffers = new WeakMap<WorldMesh, Buffers>()
+  let buffers = new WeakMap<WorldMesh, Buffers>()
   const uniforms: Record<string, WebGLUniformLocation | null> = {}
+  let generation = 0
   // WebGL2 draws into its own framebuffer: the target and the uv map side by side.
   let fbo: WebGLFramebuffer | null = null
   let fboTex: (WebGLTexture | null)[] = []
@@ -179,6 +180,15 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
     }
     if (!handle || handle.lost()) return null
     const gl = handle.gl
+    // A restored context holds none of what was made before.
+    if (generation !== handle.generation()) {
+      generation = handle.generation()
+      program = null
+      buffers = new WeakMap()
+      fbo = null
+      fboDepth = null
+      fboTex = []
+    }
     if (!program) {
       if (
         !handle.webgl2 &&
@@ -390,14 +400,17 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
       return true
     },
     dispose() {
-      if (handle) {
+      // Its own context goes whole; on one it shares, what it made goes
+      // while that context lives on (gone with it once it is lost).
+      if (handle && handle !== shared) handle.dispose()
+      else if (handle && !handle.lost()) {
         const gl = handle.gl
         if (program) gl.deleteProgram(program)
         if (fbo) gl.deleteFramebuffer(fbo)
         if (fboDepth) gl.deleteRenderbuffer(fboDepth)
         for (const tex of fboTex) if (tex) gl.deleteTexture(tex)
-        if (handle !== shared) handle.dispose()
       }
+      buffers = new WeakMap()
       fbo = null
       fboDepth = null
       fboTex = []
@@ -450,6 +463,7 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
   let pixels = new Uint8Array(0)
   const palette = new Uint8Array(256 * 4)
   const uniforms: Record<string, WebGLUniformLocation | null> = {}
+  let generation = 0
 
   const texture = (gl: Gl): WebGLTexture | null => {
     const t = gl.createTexture()
@@ -469,6 +483,17 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
     }
     if (!handle || handle.lost()) return null
     const gl = handle.gl
+    // A restored context holds none of what was made before.
+    if (generation !== handle.generation()) {
+      generation = handle.generation()
+      program = null
+      compiled = null
+      quad = null
+      targetTex = null
+      paletteTex = null
+      uvTex = null
+      channels = null
+    }
     if (compiled !== source) {
       if (program) gl.deleteProgram(program)
       program = null
@@ -564,16 +589,24 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
       return pixels
     },
     dispose() {
-      if (handle) {
+      // Its own context goes whole; on one it shares, what it made goes
+      // while that context lives on (gone with it once it is lost).
+      if (handle && handle !== shared) handle.dispose()
+      else if (handle && !handle.lost()) {
         if (program) handle.gl.deleteProgram(program)
         if (targetTex) handle.gl.deleteTexture(targetTex)
         if (paletteTex) handle.gl.deleteTexture(paletteTex)
         if (uvTex) handle.gl.deleteTexture(uvTex)
         channels?.dispose()
         if (quad) handle.gl.deleteBuffer(quad)
-        if (handle !== shared) handle.dispose()
       }
       program = null
+      compiled = null
+      quad = null
+      targetTex = null
+      paletteTex = null
+      uvTex = null
+      channels = null
       handle = null
     },
   }

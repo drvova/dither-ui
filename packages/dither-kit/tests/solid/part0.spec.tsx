@@ -59,6 +59,7 @@ function fakeGl() {
     gl,
     webgl2: true,
     lost: () => false,
+    generation: () => 0,
     size: (width: number, height: number) => (handle.cells = width * height),
     cells: 0,
     read: () => new Uint8Array(handle.cells * 4),

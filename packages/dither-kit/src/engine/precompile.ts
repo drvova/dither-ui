@@ -1,3 +1,4 @@
+import { labelAlpha, labelDensity, labelFill } from "./label-fill"
 import { fillOf, screenMatrix, type PixelColor, type ScreenKind } from "./pixel"
 import type { RasterBuffer } from "./raster"
 import { clearRasterBuffer, createRasterBuffer } from "./raster"
@@ -119,24 +120,22 @@ export function renderDitherButton(options: ButtonRasterOptions, target?: Raster
   const variant = options.variant ?? "gradient"
   const intensity = options.intensity ?? 0
   const matrix = screenMatrix(options.screen ?? "bayer", options.seed)
+  // The tone its label reads at AA on (`labelFill`): the raster stores its
+  // colour scaled by alpha, so the page shows the fill at alpha twice.
+  const { tone } = labelFill(fill, variant, "premultiplied", matrix)
   const buffer = target?.width === cols && target.height === rows ? target : createRasterBuffer(cols, rows)
   clearRasterBuffer(buffer)
   const data = buffer.data
   const w = cols
-  const bias = variant === "dotted" ? 0.12 : 0
   // Precompute fill channels to avoid array dereference in the inner loop.
   const r0 = fill[0],
     g0 = fill[1],
     b0 = fill[2]
 
   for (let y = 0; y < rows; y++) {
-    const density = variant === "gradient" ? 0.25 + 0.75 * ((y + 0.5) / rows) : variant === "dotted" ? 0.5 : 0.75
+    const density = labelDensity(variant, y, rows)
     for (let x = 0; x < cols; x++) {
-      if (variant === "hatched" && ((x + y) & 3) >= 2) continue
-      const lit = variant === "solid" || density > matrix[y & 3][x & 3] - 0.1 * intensity - bias
-      if (variant === "dotted" && !lit) continue
-      const k = (0.3 + density * 0.7) * (1 + 0.22 * intensity)
-      const a = lit ? k : k * 0.4
+      const a = labelAlpha(variant, density, x, y, matrix[y & 3][x & 3], intensity) * tone
       if (a <= 0) continue
       const ac = a > 1 ? 1 : a
       const i = (y * w + x) * 4
@@ -147,7 +146,7 @@ export function renderDitherButton(options: ButtonRasterOptions, target?: Raster
     }
   }
   // Edge outline — inline writes.
-  const edgeAlpha = Math.max(0, Math.min(1, 0.5 + 0.25 * intensity))
+  const edgeAlpha = Math.max(0, Math.min(1, (0.5 + 0.25 * intensity) * tone))
   const ea = (edgeAlpha * 255 + 0.5) | 0
   const er = (r0 * edgeAlpha + 0.5) | 0
   const eg = (g0 * edgeAlpha + 0.5) | 0

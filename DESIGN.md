@@ -191,7 +191,9 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
 - Every kit surface thresholds its density through a 4×4 matrix: Bayer,
   unless a printer's screen is picked (`line`, `diagonal`, `dot`,
   `cross`). A fill that carries a label keeps Bayer, so its letters never
-  break into stripes.
+  break into stripes, and keeps a tone its label reads on at AA: a fill
+  caught between the inks moves the least tone that reaches 4.5:1, its
+  label taking black or the theme's ink (`labelFill`).
 - The cell is the unit. Art is sized in cells, moves in cells and lands
   on whole cells.
 - **The heat**: the landing's recurring material, ink in water printed

@@ -14,6 +14,7 @@ import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "./raster
 import type { DitherRenderMode } from "./precompile"
 import { mayPaint, spend } from "./frame-budget"
 import { frameIndex } from "./timing"
+import { type SizeWatch, watchSize } from "./size-watch"
 import { watchVisibility } from "./visibility"
 
 export type SurfaceLoopOptions = {
@@ -109,7 +110,7 @@ export type SurfaceLoop = {
 export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
   const defer = opts.defer ?? ((fn: () => void) => queueMicrotask(fn))
   let raf = 0
-  let ro: ResizeObserver | null = null
+  let size: SizeWatch | null = null
   let restartToken = 0
   let clock = 0
   let lastPaint = 0
@@ -349,8 +350,11 @@ export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
         paintOnce()
         return
       }
-      if (typeof ResizeObserver !== "undefined") {
-        ro = new ResizeObserver(() => {
+      const wrap = opts.wrap()
+      if (wrap)
+        // Applied on the frame after the report (`watchSize`): measuring
+        // sizes the canvas, which can resize the box it reports.
+        size = watchSize(wrap, () => {
           box = opts.wrap()?.getBoundingClientRect() ?? null
           if (isDirected()) {
             seekTo(directedTime() ?? 0)
@@ -365,9 +369,6 @@ export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
           const c = measure()
           if (c && opts.paused()) draw(c, 0, 1e6)
         })
-        const wrap = opts.wrap()
-        if (wrap) ro.observe(wrap)
-      }
       if (isDirected()) {
         seekTo(directedTime() ?? 0)
         return
@@ -383,8 +384,8 @@ export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
       cancelAnimationFrame(raf)
       raf = 0
     }
-    ro?.disconnect()
-    ro = null
+    size?.stop()
+    size = null
   }
 
   let unseek: (() => void) | null = null
