@@ -10,6 +10,7 @@ import {
   type ScreenKind,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
+import { dataCode } from "../snippet"
 import PropsTable, { type PropRow } from "../PropsTable"
 
 const LABELS: Record<ScreenKind, string> = {
@@ -19,26 +20,40 @@ const LABELS: Record<ScreenKind, string> = {
   dot: "Dot",
   cross: "Cross",
 }
-const ROWS = [12, 18, 15, 24, 21, 30, 27, 36].map((v, i) => ({ i, v, w: v * 0.55 + 4 }))
+const ROWS = [12, 18, 15, 24, 21, 30, 27, 36].map((sessions, i) => ({
+  day: i + 1,
+  sessions,
+  signups: Math.round(sessions * 0.55 + 4),
+}))
 const CHART = {
-  v: { label: "Sessions", color: "blue" as DitherColor },
-  w: { label: "Signups", color: "orange" as DitherColor },
+  sessions: { label: "Sessions", color: "blue" as DitherColor },
+  signups: { label: "Signups", color: "orange" as DitherColor },
 }
 
 const CHIP = "rounded border px-2 py-1 text-[11px]"
 const PICKED = "border-accent bg-accent/80 text-accent-foreground"
 const UNPICKED = "border-border/60 text-muted-foreground hover:bg-accent/40"
 
-const SNIPPET = `<DitherScreen screen="diagonal">
-  <AreaChart :data="rows" :config="config">
-    <Area data-key="sessions" />
-  </AreaChart>
-  <DitherGradient from="purple" />
+const SNIPPET = `${dataCode("rows", ROWS)}
+${dataCode("config", CHART)}
+
+<DitherScreen screen="diagonal">
+  <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+    <AreaChart :data="rows" :config="config" class="h-36">
+      <Area data-key="sessions" />
+      <Area data-key="signups" />
+    </AreaChart>
+    <div class="flex items-center gap-3 sm:flex-col">
+      <DitherAvatar name="print" :size="64" />
+      <div class="relative h-16 w-28 overflow-hidden rounded-md">
+        <DitherGradient from="purple" direction="right" />
+      </div>
+    </div>
+  </div>
 </DitherScreen>
 
-// or the matrices alone, for your own painter
-import { screenMatrix } from "@dither-kit"
-const m = screenMatrix("dot", seed) // 4x4 thresholds: m[y & 3][x & 3]`
+<!-- or the matrices alone, for your own painter: screenMatrix("dot", seed)
+     gives the 4x4 thresholds, read as m[y & 3][x & 3] -->`
 
 const API: PropRow[] = [
   { prop: "screen", type: "'bayer' | 'line' | 'diagonal' | 'dot' | 'cross'", default: "'diagonal'" },
@@ -66,8 +81,8 @@ export default function ScreensSection() {
             <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
               <div class="h-36 rounded-md bg-card p-2">
                 <AreaChart data={ROWS} config={CHART} class="h-full">
-                  <Area dataKey="v" />
-                  <Area dataKey="w" />
+                  <Area dataKey="sessions" />
+                  <Area dataKey="signups" />
                 </AreaChart>
               </div>
               <div class="flex items-center gap-3 sm:flex-col">

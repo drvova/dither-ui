@@ -97,6 +97,13 @@ the Solid-bound modules beside what is framework free (see
   the preview (shown above the source while it runs) until "Restore the
   demo"; its CSS lives in one `<style>` per card; edited tokens apply to
   that preview only.
+- Every example runs as written: it declares every name it reads (its
+  state, its handlers, its data, printed from the demo's own values by
+  `dataCode` in `pages/docs/snippet.ts`), elides nothing, sizes the box a
+  filling surface stands in, and asks only for files the site holds
+  (`public/` or what the build writes beside the pages). What is not a
+  component (a command, a module, a stylesheet) is told apart by
+  `snippetKind`, the rule Run itself reads.
 - A new kit import from a package must be linkable: the spec holds
   `PACKAGES` to every name the kit's files import.
 - Sounds (`shared/lib/sound.ts`): tab and toolbar taps, copy.
@@ -115,7 +122,12 @@ the Solid-bound modules beside what is framework free (see
   compiles and every name it imports from a package is provided; every
   docs snippet's Solid file compiles in every styling system, imports every
   kit component it renders, calls nothing of the site's own, and prints
-  neither its script, a note nor the authoring notation as text; the reader's
+  neither its script, a note nor the authoring notation as text; every
+  card the docs render (read where it stands, its pickers at their first
+  state) runs as written: TypeScript's checker finds no name it leaves
+  unbound over the browser's globals (nor a window name it reads bare,
+  `open` or `name`), no elision, no root-relative address the site does
+  not hold; the reader's
   styling choice (and Solid for a reader who once stored another
   framework); a DemoCard opened to its files, an example
   edited and run and the demo restored, the example run as plain CSS, CSS
@@ -125,8 +137,8 @@ the Solid-bound modules beside what is framework free (see
   `/docs/button` — tabs by keyboard, edit and Run, a kit file edited
   (`DitherSwitch.tsx`), tokens edited (`theme.css`), CSS, CSS Modules and
   StyleX runs, the zip (`unzip -t`), copy;
-  `/docs/area` — the `…` sketch located, data filled in, `Area.tsx` edited
-  and the chart drawn; a 390px phone and light theme.
+  `/docs/area` — `Area.tsx` edited and the chart drawn; a 390px phone and
+  light theme. `npm run walk` Runs every example and counts what stops.
 
 ## Child DOX Index
 

@@ -823,7 +823,11 @@ in the page's folder.
 - `SNIPPETS`/derived code must match what the demo renders — it now
   RUNS in the source panel, so a snippet that leaves out what the demo
   has (a chart's height: the chart snippets carry `class="h-64"`) renders
-  differently there; API tables
+  differently there. Every example runs as written (its state, handlers
+  and data declared, the data printed by `dataCode` from the demo's own
+  values, no elision, only assets the site holds; see
+  `widgets/source/AGENTS.md`); a demo stays inside its card (an overlay
+  demo is `absolute` in its box, never `fixed` over the page); API tables
   mirror actual kit prop defaults — update both when the kit API changes.
   Core form controls share Field-generated IDs, help/error relationships, and
   unified focus/invalid/disabled states; docs examples should show that path.

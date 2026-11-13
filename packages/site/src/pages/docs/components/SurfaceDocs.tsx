@@ -128,49 +128,81 @@ const open = ref(false)
   @cancel="open = false"
 />`
 
-const SNIPPET_DRAWER = `<!-- side drawers swipe-dismiss along their axis;
+const SNIPPET_DRAWER = `const settings = ref(false)
+const sheet = ref(false)
+const sized = ref(false)
+const snap = ref(0.35)
+const account = ref(false)
+const security = ref(false)
+
+<!-- indent: what DitherDrawerIndent holds (your app) scales back while any drawer is open -->
+<DitherDrawerIndent>
+  <div class="flex flex-wrap gap-3">
+    <DitherButton @click="settings = true">Open settings</DitherButton>
+    <DitherButton color="purple" @click="sheet = true">Bottom sheet</DitherButton>
+    <DitherButton color="pink" @click="sized = true">Snap points</DitherButton>
+    <DitherButton color="green" @click="account = true">Nested</DitherButton>
+  </div>
+</DitherDrawerIndent>
+
+<!-- side drawers swipe-dismiss along their axis;
      bottom sheets get a handle and dismiss downward -->
-<DitherDrawer :open="open" side="right" title="Settings" @close="open = false">
-  …
+<DitherDrawer :open="settings" side="right" title="Settings" @close="settings = false">
+  <p class="text-[13px]">Swipe the panel right to dismiss.</p>
 </DitherDrawer>
-<DitherDrawer :open="sheet" side="bottom" title="Notifications" @close="sheet = false" />
+<DitherDrawer :open="sheet" side="bottom" title="Notifications" @close="sheet = false">
+  <p class="text-[13px]">You are all caught up.</p>
+</DitherDrawer>
+
+<!-- snap points: vh fractions or px; flicks can skip points -->
+<DitherDrawer v-model:snap-point="snap" :open="sized" side="bottom" title="Snap points"
+  :snap-points="[0.35, 0.75]" @close="sized = false">
+  <p class="text-[13px]">Resting at {{ Math.round(snap * 100) }}vh.</p>
+</DitherDrawer>
 
 <!-- nesting: a child drawer pushes its parent back automatically -->
-<DitherDrawer :open="account" title="Account" @close="account = false">
-  <DitherDrawer :open="security" title="Security" @close="security = false" />
+<DitherDrawer :open="account" side="right" title="Account" @close="account = false">
+  <DitherButton @click="security = true">Security</DitherButton>
+  <DitherDrawer :open="security" side="right" title="Security" @close="security = false">
+    <p class="text-[13px]">Two-factor sign-in is on.</p>
+  </DitherDrawer>
 </DitherDrawer>
 
 <!-- swipe-to-open from the viewport edge -->
-<DitherSwipeArea side="right" @open="open = true" />
+<DitherSwipeArea side="right" @open="settings = true" />`
 
-<!-- snap points: vh fractions or px; flicks can skip points -->
-<DitherDrawer v-model:snap-point="snap" :open="open" side="bottom"
-  :snap-points="[0.35, 0.75]" @close="open = false" />
+const SNIPPET_SIDEBAR = `const collapsed = ref(false)
+const active = ref("Overview")
+const components = ref(true)
 
-<!-- indent: your app scales back while any drawer is open -->
-<DitherDrawerIndent>
-  <App />
-</DitherDrawerIndent>`
+<div class="flex h-80 overflow-hidden rounded-lg border">
+  <DitherSidebar v-model="collapsed" variant="default" collapse="rail">
+    <template #header>
+      <div class="flex h-8 items-center gap-2 px-2.5 text-[12px]">
+        <span class="size-2.5 shrink-0 rounded-[2px] bg-foreground" />
+        <span v-if="!collapsed">dither-ui</span>
+      </div>
+    </template>
 
-const SNIPPET_SIDEBAR = `<DitherSidebar v-model="collapsed" variant="default" collapse="rail">
-  <template #header>…wordmark…</template>
+    <!-- a group's label folds to a hairline on the rail, a badge to a dot -->
+    <DitherSidebarGroup label="Platform">
+      <DitherSidebarItem label="Overview" :active="active === 'Overview'" @select="active = 'Overview'" />
+      <DitherSidebarItem label="Charts" :badge="12" :active="active === 'Charts'" @select="active = 'Charts'" />
+    </DitherSidebarGroup>
 
-  <DitherSidebarGroup label="Platform">   <!-- label folds to a hairline on the rail -->
-    <DitherSidebarItem label="Overview" :active="active === 'Overview'" />
-    <DitherSidebarItem label="Charts" :badge="12" />  <!-- badge folds to a dot -->
-  </DitherSidebarGroup>
+    <DitherSidebarGroup label="Library">
+      <DitherSidebarSub v-model="components" label="Components">
+        <DitherSidebarItem label="Buttons" :active="active === 'Buttons'" @select="active = 'Buttons'" />
+        <DitherSidebarItem label="Forms" :active="active === 'Forms'" @select="active = 'Forms'" />
+      </DitherSidebarSub>
+    </DitherSidebarGroup>
+  </DitherSidebar>
+  <div class="grid flex-1 place-items-center text-[12px]">{{ active }}</div>
+</div>
 
-  <DitherSidebarGroup label="Library">
-    <DitherSidebarSub v-model="subOpen" label="Components">
-      <DitherSidebarItem label="Buttons" />
-      <DitherSidebarItem label="Forms" />
-    </DitherSidebarSub>
-  </DitherSidebarGroup>
-</DitherSidebar>
-
-<!-- variant: default | floating | inset | washed (dither gradient chrome)
-     collapse: rail | hide | none; side: left | right
-     density: default | compact; toggle={false} keeps a permanent rail -->`
+<!-- variant: default, floating, inset or washed (dither gradient chrome);
+     collapse: rail, hide or none; side: left or right;
+     density: default or compact; toggle={false} keeps a permanent rail -->`
 
 const SNIPPET_TOAST = `<script setup>
 import { DitherToaster, toast } from "@dither-kit"

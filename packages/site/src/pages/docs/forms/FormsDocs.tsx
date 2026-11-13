@@ -35,77 +35,178 @@ import { createSignal } from "solid-js"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 
-const SNIPPET_PASSWORD_INPUT = `<DitherField label="Password">
+const SNIPPET_PASSWORD_INPUT = `const pw = ref("correct-horse-battery")
+
+<DitherField label="Password">
   <DitherPasswordInput v-model="pw" placeholder="At least 12 characters" />
 </DitherField>`
 
-const SNIPPET_SEARCH_INPUT = `<DitherSearchInput v-model="q" @clear="resetResults" />`
+const SNIPPET_SEARCH_INPUT = `const q = ref("dither")
+const results = ref<string[]>(["DitherButton", "DitherImage"])
 
-const SNIPPET_EMAIL_INPUT = `<DitherEmailInput v-model="email" />`
+<DitherSearchInput v-model="q" @clear="results = []" />`
 
-const SNIPPET_PHONE_INPUT = `<DitherPhoneInput v-model="phone" />`
+const SNIPPET_EMAIL_INPUT = `const email = ref("")
 
-const SNIPPET_CURRENCY_INPUT = `<DitherCurrencyInput v-model="amount" prefix="$" />`
+<DitherEmailInput v-model="email" />`
 
-const SNIPPET_SCRUB_INPUT = `<DitherScrubInput v-model="opacity" :min="0" :max="100" :step="1" />`
+const SNIPPET_PHONE_INPUT = `const phone = ref("(415) 555-2671")
 
-const SNIPPET_HOTKEY_INPUT = `<DitherHotkeyInput v-model="binding" />`
+<DitherPhoneInput v-model="phone" />`
 
-const SNIPPET_CODE_INPUT = `<DitherCodeInput v-model="snippet" @submit="run" :rows="8" />`
+const SNIPPET_CURRENCY_INPUT = `const amount = ref("1234567.5")
 
-const SNIPPET_INPUT_GROUP = `<DitherInputGroup>
+<DitherCurrencyInput v-model="amount" prefix="$" />`
+
+const SNIPPET_SCRUB_INPUT = `const opacity = ref(64)
+
+<DitherField label="Opacity" description="Drag the grip, or focus it and use the arrows">
+  <DitherScrubInput v-model="opacity" :min="0" :max="100" :step="1" />
+</DitherField>`
+
+const SNIPPET_HOTKEY_INPUT = `const binding = ref("Ctrl+Shift+K")
+
+<DitherField label="Command palette" description="Click the field, then press the combo">
+  <DitherHotkeyInput v-model="binding" />
+</DitherField>`
+
+const SNIPPET_CODE_INPUT = `const snippet = ref("const dither = bayer(4)")
+const submitted = ref("")
+
+<DitherCodeInput v-model="snippet" @submit="submitted = snippet" :rows="4" />`
+
+const SNIPPET_INPUT_GROUP = `const host = ref("dither-ui.com")
+
+<DitherInputGroup>
   <template #prefix>https://</template>
   <DitherInput v-model="host" aria-label="Site address" class="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" />
   <template #suffix>/docs</template>
 </DitherInputGroup>`
 
-const SNIPPET_INLINE_EDIT = `<DitherInlineEdit v-model="name" @save="persist" />`
+const SNIPPET_INLINE_EDIT = `const name = ref("bogdan")
 
-const SNIPPET_TAG_INPUT = `<DitherTagInput v-model="tags" :max="8" placeholder="Add tag…" />`
+function persist(next: string) {
+  localStorage.setItem("display-name", next)
+}
 
-const SNIPPET_CHOICE_CHIPS = `<DitherChoiceChips v-model="size" label="Size" :options="['S', 'M', 'L', 'XL']" />
-<DitherChoiceChips v-model="tags" multiple :options="['bug', 'feat', 'docs']" />`
+<DitherField label="Display name" description="Click the value to edit it">
+  <DitherInlineEdit v-model="name" @save="persist" />
+</DitherField>`
 
-const SNIPPET_CHECKBOX_CARD = `<DitherCheckboxCard v-model="on"
+const SNIPPET_TAG_INPUT = `const tags = ref(["solid", "dither"])
+
+<DitherTagInput v-model="tags" :max="8" placeholder="Add tag…" />`
+
+const SNIPPET_CHOICE_CHIPS = `const size = ref("M")
+const labels = ref(["bug"])
+
+<DitherChoiceChips v-model="size" label="Size" :options="['S', 'M', 'L', 'XL']" />
+<DitherChoiceChips v-model="labels" multiple :options="['bug', 'feat', 'docs']" />`
+
+const SNIPPET_CHECKBOX_CARD = `const telemetry = ref(true)
+
+<DitherCheckboxCard v-model="telemetry"
   label="Telemetry"
   description="Anonymous usage stats help pick the next components" />`
 
-const SNIPPET_KEY_VALUE_INPUT = `<DitherKeyValueInput v-model="headers" />`
+const SNIPPET_KEY_VALUE_INPUT = `const headers = ref([
+  { key: "Content-Type", value: "application/json" },
+  { key: "X-Client", value: "dither-ui" },
+])
 
-const SNIPPET_MENTION_INPUT = `<DitherMentionInput v-model="body" :options="handles" @mention="notify" />`
+<DitherKeyValueInput v-model="headers" />`
 
-const SNIPPET_FILE_INPUT = `<DitherFileInput v-model="picked" multiple accept="image/*" />`
+const SNIPPET_MENTION_INPUT = `const body = ref("cc @da")
+const handles = ["dana", "darius", "daniela", "sam"]
+const notified = ref<string[]>([])
 
-const SNIPPET_LIST_BOX = `<DitherListBox v-model="city" :options="['Kyoto', 'Seoul', 'Taipei']" aria-label="City" @select="go" />`
+<DitherMentionInput v-model="body" :options="handles" :rows="3"
+  @mention="(handle) => (notified = [...notified, handle])" />`
 
-const SNIPPET_MULTI_SELECT = `<DitherMultiSelect v-model="tags" :options="ALL_TAGS" @search="filter" />`
+const SNIPPET_FILE_INPUT = `const picked = ref<File[]>([])
 
-const SNIPPET_CASCADE_SELECT = `<DitherCascadeSelect v-model="region" :tree="TREE"
+<DitherFileInput v-model="picked" multiple accept="image/*" />`
+
+const SNIPPET_LIST_BOX = `const city = ref("Seoul")
+
+<DitherListBox :value="city" @update:model-value="(next) => (city = next)"
+  :options="['Kyoto', 'Seoul', 'Taipei', 'Osaka', 'Busan']" aria-label="City" />`
+
+const SNIPPET_MULTI_SELECT = `const ALL_TAGS = ["solid", "dither", "canvas", "tokens", "ssr"]
+const tags = ref(["solid", "dither"])
+
+<DitherMultiSelect :value="tags" @update:model-value="(next) => (tags = next)" :options="ALL_TAGS" />`
+
+const SNIPPET_CASCADE_SELECT = `const TREE = [
+  {
+    value: "Japan",
+    children: [
+      { value: "Kansai", children: [{ value: "Kyoto" }, { value: "Osaka" }] },
+      { value: "Kanto", children: [{ value: "Tokyo" }, { value: "Yokohama" }] },
+    ],
+  },
+  { value: "Korea", children: [{ value: "Seoul Region", children: [{ value: "Seoul" }, { value: "Incheon" }] }] },
+]
+const region = ref(["Japan", "Kansai"])
+
+<DitherCascadeSelect :value="region" @update:model-value="(next) => (region = next)" :tree="TREE"
   :placeholders="['Country', 'Region', 'City']" />`
 
-const SNIPPET_TRANSFER_LIST = `<DitherTransferList v-model="roles" :source="ALL_ROLES"
+const SNIPPET_TRANSFER_LIST = `const ALL_ROLES = ["admin", "editor", "viewer", "billing", "support"]
+const roles = ref(["admin"])
+
+<DitherTransferList :value="roles" @update:model-value="(next) => (roles = next)" :source="ALL_ROLES"
   source-label="Roles" target-label="Assigned" />`
 
-const SNIPPET_LANGUAGE_SELECT = `<DitherLanguageSelect v-model="locale" include-default />`
+const SNIPPET_LANGUAGE_SELECT = `const locale = ref("ja")
 
-const SNIPPET_ICON_PICKER = `<DitherIconPicker v-model="glyph" @update:model-value="save" />`
+<DitherLanguageSelect v-model="locale" include-default />`
 
-const SNIPPET_FONT_PICKER = `<DitherFontPicker v-model="font" />`
+const SNIPPET_ICON_PICKER = `const glyph = ref("Check")
 
-const SNIPPET_CALENDAR = `<DitherCalendar v-model="day" :max="today" />`
+<DitherIconPicker v-model="glyph" />`
 
-const SNIPPET_DATE_PICKER = `<DitherDatePicker v-model="due" min="2026-01-01" />`
+const SNIPPET_FONT_PICKER = `const font = ref("'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace")
 
-const SNIPPET_MONTH_PICKER = `<DitherMonthPicker v-model="month" />`
+<DitherFontPicker v-model="font" />`
 
-const SNIPPET_COLOR_SWATCH = `<DitherColorSwatch v-for="c in palette" :key="c" :color="c"
-  :selected="c === active" @select="active = c" />`
+const SNIPPET_CALENDAR = `const day = ref("2026-10-07")
 
-const SNIPPET_COLOR_PICKER = `<DitherColorPicker v-model="tint" />`
+<DitherCalendar v-model="day" max="2026-12-31" />`
 
-const SNIPPET_KNOB = `<DitherKnob v-model="gain" :min="0" :max="100" :step="1" />`
+const SNIPPET_DATE_PICKER = `const due = ref("2026-10-07")
 
-const SNIPPET_SIGNATURE_PAD = `<DitherSignaturePad v-model="sig" @change="save" :height="180" />`
+<DitherDatePicker v-model="due" min="2026-01-01" />`
+
+const SNIPPET_MONTH_PICKER = `const month = ref("2026-10")
+
+<DitherMonthPicker v-model="month" />`
+
+const SNIPPET_COLOR_SWATCH = `const palette = [
+  { color: "#5227FF", label: "Iris" },
+  { color: "#7CFF67", label: "Mint" },
+  { color: "#FFB454", label: "Amber" },
+  { color: "#FF5C7A", label: "Rose" },
+  { color: "#4CC2FF", label: "Sky" },
+]
+const active = ref("#5227FF")
+
+<div class="flex gap-2">
+  <DitherColorSwatch v-for="c in palette" :key="c.color" :color="c.color" :label="c.label"
+    :selected="c.color === active" @select="active = c.color" />
+</div>`
+
+const SNIPPET_COLOR_PICKER = `const tint = ref("#5227FF")
+
+<DitherColorPicker v-model="tint" />`
+
+const SNIPPET_KNOB = `const gain = ref(64)
+
+<DitherKnob v-model="gain" :min="0" :max="100" :step="1" />`
+
+const SNIPPET_SIGNATURE_PAD = `const sig = ref("")
+
+<DitherSignaturePad v-model="sig" :height="140" />`
 
 const API: Record<string, PropRow[]> = {
   passwordInput: [

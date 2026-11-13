@@ -1,6 +1,7 @@
 import { createMemo, createSignal, For, Show } from "solid-js"
 import { DitherButton, DitherCheckbox, DitherInput, DitherPagination } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
+import { dataCode } from "../snippet"
 
 type Member = { name: string; email: string; role: string; status: "active" | "away" | "offline"; joined: string }
 
@@ -12,31 +13,98 @@ const STATUS: Record<Member["status"], { color: "green" | "orange" | "grey"; lab
   offline: { color: "grey", label: "Offline" },
 }
 
-const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
+const MEMBERS: Member[] = [
+  { name: "Ada Byte", email: "ada@acme.io", role: "Engineering", status: "active", joined: "2023-01-14" },
+  { name: "Rei Toma", email: "rei@acme.io", role: "Design", status: "active", joined: "2023-03-02" },
+  { name: "Juno Bit", email: "juno@acme.io", role: "Product", status: "away", joined: "2022-11-20" },
+  { name: "Mika Dot", email: "mika@acme.io", role: "Engineering", status: "offline", joined: "2024-02-08" },
+  { name: "Kai Raster", email: "kai@acme.io", role: "Support", status: "active", joined: "2023-07-19" },
+  { name: "Ivy Pixel", email: "ivy@acme.io", role: "Marketing", status: "away", joined: "2022-05-30" },
+  { name: "Sol Bayer", email: "sol@acme.io", role: "Engineering", status: "active", joined: "2024-06-11" },
+  { name: "Nia Grid", email: "nia@acme.io", role: "Finance", status: "offline", joined: "2023-09-25" },
+  { name: "Rio Halftone", email: "rio@acme.io", role: "Design", status: "active", joined: "2024-01-03" },
+]
 
-<div class="overflow-x-auto">
-  <table class="w-full text-left">
+const SNIPPET = `${dataCode("start", MEMBERS)}
+const STATUS: Record<string, { color: string; label: string }> = {
+  active: { color: "green", label: "Active" },
+  away: { color: "orange", label: "Away" },
+  offline: { color: "grey", label: "Offline" },
+}
+const PAGE_SIZE = ${PAGE_SIZE}
+
+const members = ref(start)
+const query = ref("")
+const sortKey = ref<"name" | "joined">("joined")
+const sortDir = ref(-1)
+const page = ref(1)
+const selected = ref(new Set<string>())
+
+function sortBy(key: "name" | "joined") {
+  if (sortKey.value === key) sortDir.value = -sortDir.value
+  else (sortKey.value = key, sortDir.value = 1)
+}
+const filtered = computed(() => {
+  const q = query.value.trim().toLowerCase()
+  const rows = members.value.filter((m) => m.name.toLowerCase().includes(q) || m.email.includes(q))
+  return [...rows].sort((a, b) => a[sortKey.value].localeCompare(b[sortKey.value]) * sortDir.value)
+})
+const pages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
+const paged = computed(() => {
+  const p = Math.min(page.value, pages.value)
+  return filtered.value.slice((p - 1) * PAGE_SIZE, p * PAGE_SIZE)
+})
+const allOnPage = computed(() => paged.value.length > 0 && paged.value.every((m) => selected.value.has(m.email)))
+
+function toggleAll() {
+  const next = new Set(selected.value)
+  paged.value.forEach((m) => (allOnPage.value ? next.delete(m.email) : next.add(m.email)))
+  selected.value = next
+}
+function toggleRow(email: string) {
+  const next = new Set(selected.value)
+  if (!next.delete(email)) next.add(email)
+  selected.value = next
+}
+function remove() {
+  members.value = members.value.filter((m) => !selected.value.has(m.email))
+  selected.value = new Set<string>()
+}
+
+<DitherInput v-model="query" placeholder="Filter members…" aria-label="Filter members" />
+
+<!-- the selection toolbar appears while rows are checked -->
+<div v-if="selected.size" class="mt-3 flex items-center justify-between text-[11px]">
+  {{ selected.size }} selected
+  <DitherButton color="red" @click="remove">Remove</DitherButton>
+</div>
+
+<div class="mt-3 overflow-x-auto">
+  <table class="w-full text-left text-[11px]">
     <thead>
       <tr class="border-b">
-        <th><DitherCheckbox :model-value="allOnPage"
+        <th><DitherCheckbox :model-value="allOnPage" aria-label="Select page"
           @update:model-value="toggleAll" /></th>
-        <th aria-sort="ascending">
-          <button @click="sortBy('name')">Name ↑</button>
+        <th :aria-sort="sortKey === 'name' ? (sortDir === 1 ? 'ascending' : 'descending') : 'none'">
+          <button type="button" @click="sortBy('name')">Name</button>
         </th>
         <th>Role</th>
         <th>Status</th>
-        <th><button @click="sortBy('joined')">Joined</button></th>
+        <th :aria-sort="sortKey === 'joined' ? (sortDir === 1 ? 'ascending' : 'descending') : 'none'">
+          <button type="button" @click="sortBy('joined')">Joined</button>
+        </th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="m in paged" :class="selected.has(m.email) && 'bg-card/50'">
-        <td><DitherCheckbox :model-value="selected.has(m.email)"
+      <tr v-for="m in paged" :key="m.email" :class="selected.has(m.email) ? 'bg-card/50' : ''">
+        <td><DitherCheckbox :model-value="selected.has(m.email)" :aria-label="'Select ' + m.name"
           @update:model-value="toggleRow(m.email)" /></td>
-        <td>{{ m.name }} — {{ m.email }}</td>
+        <td>{{ m.name }} <span class="text-muted-foreground">{{ m.email }}</span></td>
         <td>{{ m.role }}</td>
-        <td>   <!-- presence dot from the palette swatch vars -->
-          <span class="size-1.5 rounded-full"
-            :style="{ background: \`var(--swatch-\${STATUS[m.status].color})\` }" />
+        <td>
+          <!-- a presence dot from the palette's swatch variables -->
+          <span class="inline-block size-1.5 rounded-full"
+            :style="{ background: 'var(--swatch-' + STATUS[m.status].color + ')' }" />
           {{ STATUS[m.status].label }}
         </td>
         <td>{{ m.joined }}</td>
@@ -45,26 +113,13 @@ const SNIPPET = `<DitherInput v-model="query" placeholder="Filter members…" />
   </table>
 </div>
 
-<footer class="flex items-center justify-between">
-  {{ rangeLabel }}
+<footer class="mt-3 flex items-center justify-between text-[11px]">
+  {{ filtered.length }} members
   <DitherPagination v-model:page="page" :total="pages" />
-</footer>
-
-<!-- selection toolbar appears while rows are checked:
-     n selected · <DitherButton color="red">Remove</DitherButton> -->`
+</footer>`
 
 export default function TableExamples() {
-  const [members, setMembers] = createSignal<Member[]>([
-    { name: "Ada Byte", email: "ada@acme.io", role: "Engineering", status: "active", joined: "2023-01-14" },
-    { name: "Rei Toma", email: "rei@acme.io", role: "Design", status: "active", joined: "2023-03-02" },
-    { name: "Juno Bit", email: "juno@acme.io", role: "Product", status: "away", joined: "2022-11-20" },
-    { name: "Mika Dot", email: "mika@acme.io", role: "Engineering", status: "offline", joined: "2024-02-08" },
-    { name: "Kai Raster", email: "kai@acme.io", role: "Support", status: "active", joined: "2023-07-19" },
-    { name: "Ivy Pixel", email: "ivy@acme.io", role: "Marketing", status: "away", joined: "2022-05-30" },
-    { name: "Sol Bayer", email: "sol@acme.io", role: "Engineering", status: "active", joined: "2024-06-11" },
-    { name: "Nia Grid", email: "nia@acme.io", role: "Finance", status: "offline", joined: "2023-09-25" },
-    { name: "Rio Halftone", email: "rio@acme.io", role: "Design", status: "active", joined: "2024-01-03" },
-  ])
+  const [members, setMembers] = createSignal<Member[]>(MEMBERS)
 
   const [query, setQuery] = createSignal("")
 

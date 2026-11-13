@@ -2,6 +2,7 @@ import { createMemo, createSignal, For, Show } from "solid-js"
 import { createMutable } from "solid-js/store"
 import { DitherAvatar, DitherBadge, DitherTabs } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
+import { dataCode } from "../snippet"
 
 type Notice = {
   id: number
@@ -14,91 +15,111 @@ type Notice = {
   read: boolean
 }
 
-const SNIPPET = `<div class="w-full max-w-80 rounded-lg border">
-  <header class="flex items-center justify-between border-b p-3">
-    Notifications <DitherBadge v-if="unread" color="green">{{ unread }}</DitherBadge>
-    <button @click="markAll">Mark all read</button>
+const NOTICES: Notice[] = [
+  {
+    id: 1,
+    actor: "Rei Toma",
+    color: "purple",
+    action: "commented on",
+    target: "Palette v3",
+    time: "12m",
+    day: "Today",
+    read: false,
+  },
+  {
+    id: 2,
+    actor: "Kai Raster",
+    color: "green",
+    action: "assigned you",
+    target: "Export bug #214",
+    time: "1h",
+    day: "Today",
+    read: false,
+  },
+  {
+    id: 3,
+    actor: "Nia Grid",
+    color: "blue",
+    action: "approved",
+    target: "Q3 budget",
+    time: "3h",
+    day: "Today",
+    read: true,
+  },
+  {
+    id: 4,
+    actor: "Ivy Pixel",
+    color: "orange",
+    action: "mentioned you in",
+    target: "Launch notes",
+    time: "1d",
+    day: "Earlier",
+    read: false,
+  },
+  {
+    id: 5,
+    actor: "Sol Bayer",
+    color: "green",
+    action: "merged",
+    target: "dither-kit #98",
+    time: "2d",
+    day: "Earlier",
+    read: true,
+  },
+  {
+    id: 6,
+    actor: "Juno Bit",
+    color: "blue",
+    action: "invited you to",
+    target: "Print run review",
+    time: "3d",
+    day: "Earlier",
+    read: true,
+  },
+]
+
+const SNIPPET = `${dataCode("start", NOTICES)}
+const notices = ref(start)
+const tab = ref("All")
+
+const unread = computed(() => notices.value.filter((n) => !n.read).length)
+const shown = computed(() => (tab.value === "Unread" ? notices.value.filter((n) => !n.read) : notices.value))
+const days = computed(() => ["Today", "Earlier"].filter((d) => shown.value.some((n) => n.day === d)))
+const byDay = (day: string) => shown.value.filter((n) => n.day === day)
+
+function read(id: number) {
+  notices.value = notices.value.map((n) => (n.id === id ? { ...n, read: true } : n))
+}
+function markAll() {
+  notices.value = notices.value.map((n) => ({ ...n, read: true }))
+}
+
+<div class="w-full max-w-80 rounded-lg border">
+  <header class="flex items-center justify-between border-b p-3 text-[12px]">
+    <span>Notifications <DitherBadge v-if="unread" color="green">{{ unread }}</DitherBadge></span>
+    <button type="button" class="text-[10px]" :disabled="!unread" @click="markAll">Mark all read</button>
   </header>
 
-  <DitherTabs v-model="tab" :tabs="['All', 'Unread']" variant="segmented" />
+  <DitherTabs v-model="tab" :tabs="['All', 'Unread']" variant="segmented" class="p-2" />
 
-  <section v-for="day in days">
-    <h4>{{ day }}</h4>
-    <button v-for="n in byDay(day)" @click="n.read = true"
-      class="flex w-full items-start gap-2 p-2 text-left">
+  <section v-for="day in days" :key="day">
+    <h4 class="px-3 text-[10px] text-muted-foreground">{{ day }}</h4>
+    <button v-for="n in byDay(day)" :key="n.id" type="button" @click="read(n.id)"
+      class="flex w-full items-start gap-2 p-2 text-left text-[11px]">
       <DitherAvatar :name="n.actor" :size="24" :color="n.color" />
-      <span><b>{{ n.actor }}</b> {{ n.action }} <b>{{ n.target }}</b>
-        <time>{{ n.time }}</time></span>
-      <span v-if="!n.read" class="size-1.5 rounded-full bg-accent" />  <!-- unread dot -->
+      <span class="flex-1"><b>{{ n.actor }}</b> {{ n.action }} <b>{{ n.target }}</b>
+        <time class="block text-[10px]">{{ n.time }}</time></span>
+      <!-- the unread dot -->
+      <span v-if="!n.read" class="size-1.5 rounded-full bg-accent" />
     </button>
   </section>
 
-  <p v-if="!shown.length">All caught up.</p>   <!-- empty state -->
+  <!-- the empty state -->
+  <p v-if="!shown.length" class="p-3 text-[11px]">All caught up.</p>
 </div>`
 
 export default function NotificationsExamples() {
-  const notices = createMutable<Notice[]>([
-    {
-      id: 1,
-      actor: "Rei Toma",
-      color: "purple",
-      action: "commented on",
-      target: "Palette v3",
-      time: "12m",
-      day: "Today",
-      read: false,
-    },
-    {
-      id: 2,
-      actor: "Kai Raster",
-      color: "green",
-      action: "assigned you",
-      target: "Export bug #214",
-      time: "1h",
-      day: "Today",
-      read: false,
-    },
-    {
-      id: 3,
-      actor: "Nia Grid",
-      color: "blue",
-      action: "approved",
-      target: "Q3 budget",
-      time: "3h",
-      day: "Today",
-      read: true,
-    },
-    {
-      id: 4,
-      actor: "Ivy Pixel",
-      color: "orange",
-      action: "mentioned you in",
-      target: "Launch notes",
-      time: "1d",
-      day: "Earlier",
-      read: false,
-    },
-    {
-      id: 5,
-      actor: "Sol Bayer",
-      color: "green",
-      action: "merged",
-      target: "dither-kit #98",
-      time: "2d",
-      day: "Earlier",
-      read: true,
-    },
-    {
-      id: 6,
-      actor: "Juno Bit",
-      color: "blue",
-      action: "invited you to",
-      target: "Print run review",
-      time: "3d",
-      day: "Earlier",
-      read: true,
-    },
-  ])
+  const notices = createMutable<Notice[]>(NOTICES.map((n) => ({ ...n })))
 
   const [tab, setTab] = createSignal("All")
 

@@ -92,7 +92,8 @@ are from the repository's.
   a reader sees is derived from it, never forked by hand:
   `pages/docs/solid.ts` (`toSolidCode`) translates it,
   the `@dither-ui/restyle` package writes it in the reader's styling
-  system (`pages/docs/snippet.ts`: `docsCode`, `docsFiles`). Readers never
+  system (`pages/docs/snippet.ts`: `docsCode`, `docsFiles`; `dataCode`
+  prints an example's data from the demo's own values). Readers never
   see the authoring notation.
   `widgets/source` shows the files and runs the example in the page
   (`src/widgets/source/AGENTS.md`).

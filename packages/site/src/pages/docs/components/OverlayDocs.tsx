@@ -67,11 +67,13 @@ const items = [
   { divider: true },
   { label: "Delete", danger: true },
 ]
+const last = ref("none")
 </script>
 
-<DitherMenu :items="items" @select="(label) => run(label)">
+<DitherMenu :items="items" @select="(label) => (last = label)">
   Actions
-</DitherMenu>`
+</DitherMenu>
+<p class="mt-3 text-[12px] text-muted-foreground">last action: {{ last }}</p>`
 
 const SNIPPET_CONTEXT = `<script setup>
 const items = [
@@ -81,13 +83,15 @@ const items = [
   { divider: true },
   { label: "Delete", danger: true },
 ]
+const last = ref("none")
 </script>
 
-<DitherContextMenu :items="items" @select="(label) => run(label)">
+<DitherContextMenu :items="items" @select="(label) => (last = label)">
   <div class="rounded-lg border border-dashed border-border p-10">
     right-click me
   </div>
-</DitherContextMenu>`
+</DitherContextMenu>
+<p class="mt-3 text-[12px] text-muted-foreground">last action: {{ last }}</p>`
 
 const SNIPPET_MENUBAR = `<script setup>
 const menus = [
@@ -107,9 +111,13 @@ const SNIPPET_TOOLTIP = `<DitherTooltip text="Deploys are frozen until Monday">
 
 const SNIPPET_COMMAND = `<script setup>
 const open = ref(false)
-window.addEventListener("keydown", (e) => {   // the hotkey stays yours
+const ran = ref("nothing yet")
+// the hotkey stays yours
+function hotkey(e: KeyboardEvent) {
   if ((e.metaKey || e.ctrlKey) && e.key === "k") (e.preventDefault(), open.value = !open.value)
-})
+}
+onMounted(() => window.addEventListener("keydown", hotkey))
+onBeforeUnmount(() => window.removeEventListener("keydown", hotkey))
 </script>
 
 <DitherButton @click="open = true">Command (⌘K)</DitherButton>
@@ -120,11 +128,12 @@ window.addEventListener("keydown", (e) => {   // the hotkey stays yours
     { value: 'export', label: 'Export image', group: 'Studio' },
     { value: 'docs', label: 'Open docs', group: 'Navigate' },
   ]"
-  @select="run"
+  @select="(value) => (ran = value)"
   @close="open = false"
 />
+<p class="text-[10px] text-muted-foreground">last ran: {{ ran }}</p>
 
-<!-- type to filter · ↑↓ walk · Enter runs · Escape leaves -->`
+<!-- type to filter, the arrows walk, Enter runs, Escape leaves -->`
 
 const SNIPPET_PREVIEW = `<DitherPreviewCard>
   <template #trigger>

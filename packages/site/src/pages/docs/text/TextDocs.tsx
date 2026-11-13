@@ -161,17 +161,39 @@ const SNIPPETS = {
 </DitherGradientText>`,
   shinyText: `<DitherShinyText>Shimmering headline</DitherShinyText>`,
   glitchText: `<DitherGlitchText text="MALFUNCTION" />`,
-  splitText: `<DitherSplitText text="Split into characters" :replay-token="token" />`,
+  splitText: `const token = ref(0)
+
+<div class="grid place-items-center gap-4">
+  <DitherSplitText text="Split into characters" :replay-token="token" class="text-3xl" />
+  <button type="button" @click="token++">Replay</button>
+</div>`,
   rotatingText: `Built for <DitherRotatingText :texts="['Solid', 'canvas', 'the studio']" />`,
   countUp: `<DitherCountUp :to="1984" /> renders <!-- counts up when scrolled into view -->`,
-  numberFlow: `<DitherNumberFlow :value="metric" />  <!-- digits roll on every change -->
-<DitherNumberFlow :value="price" :decimals="2" :duration="400" />`,
+  numberFlow: `const metric = ref(12480)
+// a live metric: the digits roll on every change
+let timer = 0
+onMounted(() => {
+  timer = window.setInterval(() => (metric.value += Math.round(Math.random() * 900 - 300)), 2400)
+})
+onBeforeUnmount(() => clearInterval(timer))
+
+<div class="text-4xl">$<DitherNumberFlow :value="metric" /></div>`,
   textType: `<DitherTextType :texts="['Charts, dithered.', 'Buttons, dithered.', 'Everything, dithered.']" />`,
   blurText: `<DitherBlurText text="Blur into focus" by="words" />`,
   decryptedText: `<DitherDecryptedText text="ACCESS GRANTED" />`,
   scrambleText: `<DitherScrambleText text="Hover to scramble" />`,
-  shuffle: `<DitherShuffle text="Shuffled into place" :replay-token="token" />`,
-  fallingText: `<DitherFallingText text="Falling into place" :replay-token="token" />`,
+  shuffle: `const token = ref(0)
+
+<div class="grid place-items-center gap-4">
+  <DitherShuffle text="Shuffled into place" :replay-token="token" class="text-3xl" />
+  <button type="button" @click="token++">Replay</button>
+</div>`,
+  fallingText: `const token = ref(0)
+
+<div class="grid place-items-center gap-4">
+  <DitherFallingText text="Falling into place" :replay-token="token" class="text-3xl" />
+  <button type="button" @click="token++">Replay</button>
+</div>`,
   scrollReveal: `<DitherScrollReveal text="These words reveal as you scroll them into view" />`,
   scrollFloat: `<DitherScrollFloat text="Floating up on scroll" />`,
   scrollVelocity: `<DitherScrollVelocity text="DITHER · UI · TOOLKIT · " />`,

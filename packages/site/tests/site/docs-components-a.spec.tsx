@@ -398,6 +398,6 @@ describe("MediaDocs", () => {
     expect(mono.checked).toBe(false)
     fireEvent.click(mono)
     expect(mono.checked).toBe(true)
-    expect(section(container, "video-player").querySelector("[aria-label='Flower sample clip']")).not.toBeNull()
+    expect(section(container, "video-player").querySelector("[aria-label='The dither-ui film']")).not.toBeNull()
   })
 })

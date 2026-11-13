@@ -58,73 +58,150 @@ const API: Record<string, PropRow[]> = {
   ],
 }
 
-const SNIPPET_SHELL = `<DitherShell frame class="h-96">
-  <template #topbar>…brand · search · avatar…</template>
+const SNIPPET_SHELL = `const items = ["Overview", "Deploys", "Data", "Alerts"]
+const active = ref("Overview")
+const stats = [
+  { label: "Requests", value: "84k", color: "blue", trend: [62, 70, 66, 78, 74, 86, 84] },
+  { label: "Errors", value: "0.2%", color: "red", trend: [0.4, 0.3, 0.5, 0.3, 0.2, 0.3, 0.2] },
+  { label: "P95", value: "212ms", color: "green", trend: [260, 240, 251, 230, 222, 218, 212] },
+]
+const log = [
+  { text: "$ deploy --prod", at: "12:01" },
+  { text: "build ok (4.2s)", at: "12:01", level: "success" },
+]
+
+<DitherShell frame class="h-96">
+  <template #topbar>
+    <div class="flex h-10 w-full items-center justify-between px-3 text-[12px]">
+      acme ops
+      <DitherAvatar name="Ada Byte" :size="22" />
+    </div>
+  </template>
   <template #aside>
-    <DitherRail label="Primary">          <!-- items fold to icons -->
-      <DitherTooltip v-for="i in items" :text="i">
+    <!-- items fold to icons -->
+    <DitherRail label="Primary">
+      <DitherTooltip v-for="i in items" :key="i" :text="i">
         <DitherSidebarItem :label="i" :active="active === i" @select="active = i" />
       </DitherTooltip>
     </DitherRail>
   </template>
 
   <DitherCanvas pattern="dots" class="h-full p-4">
-    <DitherGrid :min="140">               <!-- stat cards -->
-      <div v-for="s in stats" class="rounded-md border bg-background/70 p-3">
+    <!-- stat cards -->
+    <DitherGrid :min="130">
+      <div v-for="s in stats" :key="s.label" class="rounded-md border bg-background/70 p-3 text-[12px]">
         {{ s.label }} <b>{{ s.value }}</b>
         <Sparkline :data="s.trend" :color="s.color" class="h-8" />
       </div>
     </DitherGrid>
-    <DitherConsole :lines="log" class="mt-3 h-40" />
+    <DitherConsole :lines="log" title="deploys" class="mt-3 h-36" />
   </DitherCanvas>
 
-  <template #statusbar>…env · status…</template>
+  <template #statusbar>
+    <div class="flex h-7 w-full items-center px-3 text-[10px]">production: all systems normal</div>
+  </template>
 </DitherShell>`
 
-const SNIPPET_RAIL = `<DitherRail label="Primary">
-  <template #header>…glyph…</template>
-  <DitherTooltip v-for="i in items" :text="i.label">   <!-- labels ride tooltips -->
-    <DitherSidebarItem :label="i.label" :badge="i.badge" :color="i.color"
-      :active="active === i.label" @select="active = i.label" />
-  </DitherTooltip>
-  <template #footer><DitherAvatar name="Ada Byte" :size="22" /></template>
-</DitherRail>
+const SNIPPET_RAIL = `const items = [
+  { label: "Home", color: "blue" },
+  { label: "Library", color: "blue", badge: 3 },
+  { label: "Exports", color: "purple" },
+]
+const active = ref("Home")
 
-<!-- provides the sidebar's collapsed context —
-     DitherSidebarItem folds its label with zero extra props -->`
+<!-- the rail provides the sidebar's collapsed context:
+     DitherSidebarItem folds its label with zero extra props -->
+<div class="flex h-72 overflow-hidden rounded-lg border">
+  <DitherRail label="Primary">
+    <template #header>
+      <div class="grid h-8 place-items-center"><span class="size-2.5 rounded-[2px] bg-foreground" /></div>
+    </template>
+    <!-- labels ride tooltips -->
+    <DitherTooltip v-for="i in items" :key="i.label" :text="i.label">
+      <DitherSidebarItem :label="i.label" :badge="i.badge" :color="i.color"
+        :active="active === i.label" @select="active = i.label" />
+    </DitherTooltip>
+    <template #footer><DitherAvatar name="Ada Byte" :size="22" /></template>
+  </DitherRail>
+  <div class="grid flex-1 place-items-center text-[12px]">{{ active }}</div>
+</div>`
 
-const SNIPPET_CONSOLE = `<DitherConsole :lines="lines" title="deploy" class="h-48">
+const SNIPPET_CONSOLE = `const lines = ref([
+  { text: "$ deploy --prod", at: "12:01" },
+  { text: "building 34 routes…", at: "12:01" },
+  { text: "build ok (4.2s)", at: "12:01", level: "success" },
+])
+const deploying = ref(false)
+
+function deploy() {
+  deploying.value = true
+  const steps = [
+    { text: "uploading assets…" },
+    { text: "warn: chunk over 300kB", level: "warn" },
+    { text: "deployed to dither-ui.com", level: "success" },
+  ]
+  steps.forEach((line, i) =>
+    setTimeout(() => {
+      lines.value = [...lines.value, { ...line, at: new Date().toTimeString().slice(0, 5) }]
+      if (i === steps.length - 1) deploying.value = false
+    }, 450 * (i + 1)),
+  )
+}
+
+<!-- lines: strings or { text, level, at }; level tints through the palette
+     (success, warn, error); follow keeps the newest line in view, and the
+     caret blinks (held still under reduced motion) -->
+<DitherConsole :lines="lines" title="deploy" class="h-48">
   <template #actions>
     <DitherButton color="green" @click="deploy" :disabled="deploying">Run</DitherButton>
   </template>
-</DitherConsole>
+</DitherConsole>`
 
-<!-- lines: strings or { text, level, at } —
-     level tints via the palette: success · warn · error.
-     follow keeps the newest line in view; caret blinks (reduced motion: still) -->`
+const SNIPPET_CANVAS = `const pattern = ref("dots")
 
-const SNIPPET_CANVAS = `<DitherCanvas :pattern="pattern" :cell="16" class="h-64 p-6">
-  …artboards, cards, anything…
-</DitherCanvas>
+<button v-for="p in ['dots', 'grid', 'plain']" :key="p" type="button" class="px-2 text-[11px]"
+  :aria-pressed="pattern === p" @click="pattern = p">{{ p }}</button>
 
-<!-- pattern: dots | grid | plain — inked with var(--border), content above -->`
+<!-- inked with var(--border), content floats above -->
+<DitherCanvas :pattern="pattern" :cell="16" class="mt-3 h-56 rounded-lg border p-5">
+  <div class="w-40 rounded-md border bg-background/80 p-3 text-[12px]">
+    Artboard
+    <p class="mt-1">Floats above the field</p>
+  </div>
+</DitherCanvas>`
 
-const SNIPPET_GRID = `<DitherGrid :min="140">          <!-- auto-fit by min card width -->
-  <div v-for="c in cards" class="rounded-md border p-3">{{ c }}</div>
+const SNIPPET_GRID = `const min = ref(140)
+
+<label class="flex items-center gap-2 text-[11px]">
+  min card width
+  <input v-model.number="min" type="range" min="100" max="240" step="10" />
+  {{ min }}px
+</label>
+
+<!-- auto-fit by min card width -->
+<DitherGrid :min="min" class="mt-3">
+  <div v-for="i in 6" :key="i" class="rounded-md border p-3 text-[10px]">Card {{ i }}</div>
 </DitherGrid>
 
-<DitherGrid :cols="3" gap="1rem">  <!-- or a deliberate fixed count -->
-  <div class="col-span-2">wide</div>
-  <div>narrow</div>
+<!-- or a deliberate fixed count -->
+<DitherGrid :cols="3" gap="1rem" class="mt-3">
+  <div class="col-span-2 rounded-md border p-3">wide</div>
+  <div class="rounded-md border p-3">narrow</div>
 </DitherGrid>`
 
-const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 rounded-lg border">
-  <div class="absolute" style="left: 40px; top: 40px">…an artboard…</div>
-  <div class="absolute" style="left: 320px; top: 160px">…another…</div>
-</DitherInfiniteCanvas>
+const SNIPPET_INFINITE = `const zoom = ref(1)
 
-<!-- drag pans · wheel zooms toward the cursor · the dot field
-     rides the same transform, so space feels real -->`
+<!-- drag pans, the wheel zooms toward the cursor, and the dot field
+     rides the same transform, so space feels real -->
+<p class="text-[11px]">drag to pan, wheel to zoom: {{ Math.round(zoom * 100) }}%</p>
+<DitherInfiniteCanvas v-model:zoom="zoom" class="mt-2 h-64 rounded-lg border">
+  <div class="absolute w-40 rounded-md border bg-background/80 p-3 text-[12px]" style="left: 32px; top: 32px">
+    Artboard A
+  </div>
+  <div class="absolute w-40 rounded-md border bg-background/80 p-3 text-[12px]" style="left: 280px; top: 150px">
+    Artboard B
+  </div>
+</DitherInfiniteCanvas>`
 
 const SHELL_STATS = [
   ["Requests", "84k", "blue"],

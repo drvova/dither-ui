@@ -31,7 +31,9 @@ by the site's post-build. Paths here are from this package's root.
   A page's record: what it threw, logged or was refused; in a docs section
   every demo card revealed and every canvas painted (a blank one is given
   a pointer first), each Code tab's files read, each example edited and
-  Run; in the Studio a frame added, selected, changed, undone, redone and
+  Run (every example runs as written: one that stops on a name it never
+  declares, prints an elision, asks for an address the site does not
+  hold or renders no visible box is a finding); in the Studio a frame added, selected, changed, undone, redone and
   search opened. It lists the registry's components no docs example
   renders. Out: `<out>/<engine>.json`, `<engine>.md` and `shots/<engine>/`.
 - `src/walk-drivers.mjs`: what the walk stands on: the static server (a
@@ -59,7 +61,8 @@ by the site's post-build. Paths here are from this package's root.
 - The walk is run by hand, never by a build or the gate. Its checks are
   scripts run in the page, so they hold over WebDriver; it installs no
   browser: `--executable` and `--driver` name the ones a machine has.
-  What a machine without a GPU says (`ENVIRONMENT`) and the refusals a
+  What a machine without a GPU says (`ENVIRONMENT`), a media file the
+  build holds that the engine cannot play, and the refusals a
   page makes by design (`KNOWN_REFUSALS`) are named in `walk.mjs` and
   counted apart; anything else is a finding and the exit code is 1. A step
   over 8s is kept with its page, and a page that stalled and then showed

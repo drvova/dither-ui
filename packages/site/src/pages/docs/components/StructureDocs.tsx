@@ -25,19 +25,28 @@ const VERT_TABS = [
   { value: "Spam", disabled: true },
 ]
 
-const SNIPPET_TABS = `<!-- panels nest inside so they inherit the tab context -->
-<DitherTabs v-model="tab" :tabs="['Overview', 'Metrics', 'Logs']">
-  <DitherTabPanel value="Overview" class="mt-4">…</DitherTabPanel>
-  <DitherTabPanel value="Metrics" class="mt-4">…</DitherTabPanel>
-  <DitherTabPanel value="Logs" class="mt-4">…</DitherTabPanel>
+const SNIPPET_TABS = `const tabs = ["Overview", "Metrics", "Logs"]
+const panels: Record<string, string> = {
+  Overview: "Requests are steady; nothing on fire.",
+  Metrics: "p95 latency 42ms, error rate 0.02%.",
+  Logs: "3 warnings in the last hour, zero errors.",
+}
+const tab = ref("Overview")
+const folder = ref("Inbox")
+
+<!-- panels nest inside so they inherit the tab context -->
+<DitherTabs v-model="tab" :tabs="tabs" color="blue">
+  <DitherTabPanel v-for="t in tabs" :key="t" :value="t" class="mt-4">
+    <p class="text-[12px] text-muted-foreground">{{ panels[t] }}</p>
+  </DitherTabPanel>
 </DitherTabs>
 
 <!-- variant: underline | segmented | washed -->
-<DitherTabs v-model="tab" :tabs="tabs" variant="segmented" />
+<DitherTabs v-model="tab" :tabs="tabs" variant="segmented" class="mt-6" />
 
 <!-- objects add badges and disabled; vertical flips the rail -->
-<DitherTabs v-model="folder" orientation="vertical" variant="washed"
-  :tabs="[{ value: 'Inbox', badge: 12 }, { value: 'Spam', disabled: true }]" />`
+<DitherTabs v-model="folder" orientation="vertical" variant="washed" class="mt-6"
+  :tabs="[{ value: 'Inbox', badge: 12 }, { value: 'Drafts', badge: 2 }, { value: 'Spam', disabled: true }]" />`
 
 const SNIPPET_COLLAPSIBLE = `<script setup>
 const openA = ref(true)

@@ -37,6 +37,7 @@ const opts = reactive({ grid: true, snap: false, rulers: true })
 
 const SNIPPET_SLIDER = `const level = ref(40)
 const range = ref<[number, number]>([25, 75])
+const quality = ref(60)
 
 <!-- single -->
 <DitherSlider v-model="level" label="Level" />

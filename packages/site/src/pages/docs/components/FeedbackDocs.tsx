@@ -33,7 +33,9 @@ const SNIPPET_SPINNER = `<!-- default: a clean rotating arc -->
 <!-- a seed picks the FORM — arc, ring of dots, rotating petals, thin comet -->
 <DitherSpinner :seed="42" :size="28" />
 <DitherSpinner :seed="777" color="green" />
-<DitherSpinner render-mode="static" precompiled="/spinner.png" />`
+
+<!-- static: drawn once, no animation loop; precompiled takes a raster you exported -->
+<DitherSpinner render-mode="static" />`
 const SNIPPET_SEPARATOR = `<p>Charts render on canvas.</p>
 <DitherSeparator class="my-4" />
 <p>Fills threshold the same Bayer matrix.</p>

@@ -98,6 +98,15 @@ const ENVIRONMENT = [
   /setPointerCapture: Invalid pointer id/,
 ]
 
+/** A media element that failed on a file the build holds: a format this
+ * engine does not play (an open Chromium has no H.264), the machine's,
+ * not the page's. `failed` is the recorder's `<tag> <url>`. */
+function unplayable(failed) {
+  const [tag, url = ""] = failed.split(" ")
+  const path = url.replace(/^https?:\/\/[^/]+/, "").split(/[?#]/)[0]
+  return /^(video|audio)$/.test(tag) && path !== "" && existsSync(join(root, decodeURI(path)))
+}
+
 const sections = JSON.parse(readFileSync(join(root, "og/sections.json"), "utf8"))
 const registry = JSON.parse(readFileSync(join(root, "agent/registry.json"), "utf8"))
 
@@ -667,33 +676,46 @@ async function walkPage(session, server, page) {
           const run = await s.run(RUN, { n, settle: 350, patience: 45000 })
           card.run = run
           // what the example asks for and the site does not hold: its own illustrative addresses
+          const failed = await s.run(RECORD_FAILED, null)
+          for (const f of failed.filter(unplayable)) rec.environment.push(`this engine does not play ${f}`)
           const asked = new Set([
             ...server.refused().map((r) => r.url),
-            ...(await s.run(RECORD_FAILED, null)).map((f) => f.split(" ").pop()),
+            ...failed.filter((f) => !unplayable(f)).map((f) => f.split(" ").pop()),
           ])
           const during = s
             .drain()
             .filter(
               (d) => !(d.kind === "response" || d.kind === "requestfailed" || /Failed to load resource/.test(d.text)),
             )
-          if (asked.size) card.run.asked = [...asked].map((u) => u.split(server.origin).join(""))
+          // every example runs as written: an address the site does not hold is a finding
+          if (asked.size) {
+            card.run.asked = [...asked].map((u) => u.split(server.origin).join(""))
+            issue("run", `${name}: asks for ${card.run.asked.join(", ")}, which the site does not hold`)
+          }
           held.refused.push(...before[0])
           held.failed.push(...before[1])
           held.native.push(...before[2], ...during)
           if (run.ran) {
             await unreadCanvases(s, ready.ratio, { n, id: page.id }, run.canvases ?? [], ready)
             const free = run.stopped && freeName(run.stopped, example?.text ?? "")
-            if (free && !KIT.has(free)) card.run.reader = free
-            else if (run.stopped) issue("run", `${name}: ${run.stopped}`)
+            if (free && !KIT.has(free)) {
+              card.run.reader = free
+              issue("run", `${name}: stops on ${free}, a name the example never declares`)
+            } else if (run.stopped) issue("run", `${name}: ${run.stopped}`)
             else if (!run.rendered) issue("run", `${name}: the run rendered nothing`)
-            else if (!run.visible) card.run.unsized = true
+            else if (!run.visible) {
+              card.run.unsized = true
+              issue("run", `${name}: the run rendered no visible box`)
+            }
             for (const c of (run.canvases ?? []).filter(blank))
               issue("run-canvas", `${name}: after Run, a ${c.state} canvas ${c.w}x${c.h} ${c.cls}`)
             if (!run.restored) issue("run", `${name}: the demo was not restored`)
             if (!run.edited) issue("run", `${name}: the edit never marked the file`)
           } else if (run.timeout) issue("run", `${name}: Run never finished (${run.ms}ms)`)
-          else if (sketched(example?.text)) card.run.sketch = true
-          else issue("run", `${name}: ${run.problems.join(" / ")}`)
+          else if (sketched(example?.text)) {
+            card.run.sketch = true
+            issue("run", `${name}: does not compile for an elision it prints`)
+          } else issue("run", `${name}: ${run.problems.join(" / ")}`)
         }
         if (code.opened) await s.run(PREVIEW, { n })
       }
@@ -738,7 +760,9 @@ async function walkPage(session, server, page) {
   }
   const refused = new Set()
   for (const r of [...held.refused, ...server.refused()]) refused.add(`${r.status} ${r.url}`)
-  for (const f of [...held.failed, ...seen.failed]) refused.add(`failed ${strip(f)}`)
+  for (const f of [...held.failed, ...seen.failed])
+    if (unplayable(f)) rec.environment.push(`this engine does not play ${strip(f)}`)
+    else refused.add(`failed ${strip(f)}`)
   for (const n of [...held.native, ...s.drain()]) {
     const text = strip(n.text)
     if (n.kind === "pageerror") {

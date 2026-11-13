@@ -484,6 +484,25 @@ export default function Example() {
 }`)
   })
 
+  it("ends an assignment at its line when a comment stands under it", () => {
+    expect(
+      toSolidCode(`const on = ref(false)
+function go() {
+  on.value = true
+  // a note, not a division
+  on.value = 1 /
+    2
+}
+
+<button @click="go">{{ on }}</button>`),
+    ).toContain(`function go() {
+  setOn(true)
+  // a note, not a division
+  setOn(1 /
+    2)
+}`)
+  })
+
   it("reads a file whose script stands under its markup", () => {
     expect(
       toSolidCode(`<DitherBracket :rounds="rounds" interactive @pick="pick" />
@@ -712,7 +731,10 @@ describe("every docs snippet, as Solid", () => {
   for (const file of DOCS.flatMap(files))
     for (const m of readFileSync(file, "utf8").matchAll(/`((?:[^`\\]|\\.)*)`/g)) {
       if (!/<[A-Za-z]/.test(m[1])) continue
+      let hole = 0
       const code = m[1]
+        // a hole on a line of its own declares the snippet's data; one inside a line is a name
+        .replace(/^\$\{[^}]*\}$/gm, () => `const data${hole++} = [0]`)
         .replace(/\$\{[^}]*\}/g, "x")
         .replace(/\\([\s\S])/g, (_, c: string) => (c === "n" ? "\n" : c))
         .replace(/…/g, "etc")

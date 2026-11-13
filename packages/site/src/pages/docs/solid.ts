@@ -83,9 +83,11 @@ function valueEnd(code: string, from: number, script: boolean): number {
       if (--depth < 0) return i
     } else if (depth === 0 && (c === ";" || c === ",")) return i
     else if (depth === 0 && c === "\n" && script) {
-      // a line that ends on an operator, or a next one that starts with one, goes on
+      // a line that ends on an operator, or a next one that starts with one,
+      // goes on; a comment on the next line is not a division
       const before = code.slice(from, i).trimEnd().slice(-1)
-      const after = code.slice(i).trimStart()[0] ?? ""
+      const next = code.slice(i).trimStart()
+      const after = /^\/[/*]/.test(next) ? "\n" : (next[0] ?? "\n")
       if (!"+-*/%&|?:=<>(,".includes(before) && !".?:+-*/%&|".includes(after)) return i
     }
   }

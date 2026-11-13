@@ -503,55 +503,62 @@ el.style.animationTimingFunction = cssSteps(6, "jump-none") // "steps(6, jump-no
 // driver-level: hold the raster between wall-time frame boundaries
 const idx = frameIndex(elapsedMs, 12)    // same idx → skip the paint entirely`,
   stepTimingAurora: `<!-- the field driver's own knob: stop-motion and fewer uploads -->
-<DitherAurora />                          <!-- smooth, ~30fps paint throttle -->
-<DitherAurora :frame-rate="8" />          <!-- film: paints 8×/s, holds between -->`,
-  sequences: `import { DitherSequence, planSequence, sampleSequence, steps } from "@dither-kit"
+<div class="grid grid-cols-2 gap-3">
+  <!-- smooth, a paint throttle near 30fps -->
+  <div class="h-36"><DitherAurora /></div>
+  <!-- film: paints 8 times a second, holds between -->
+  <div class="h-36"><DitherAurora :frame-rate="8" /></div>
+</div>`,
+  sequences: `import { DitherSequence, steps } from "@dither-kit"
 
-<!-- declarative: children wave in from the center, ping-pong x3, quantized -->
+const key = ref(0)
+const waves = ref(0)
+
+<!-- children wave in from the center, ping-pong three times, quantized; the
+     driver writes --seq-p (0 to 1) and data-seq (before, active or done) on
+     each child, and each child styles itself from them. planSequence and
+     sampleSequence run the same algebra under your own clock -->
 <DitherSequence
   :stagger="0.07" from="center" :duration="0.6"
   :loop="3" yoyo :easing="steps(4)"
-  :restart-key="key" :on-complete="done"
+  :restart-key="key" @complete="waves++"
   class="grid grid-cols-6 gap-2"
 >
-  <div v-for="i in 12" :key="i" class="cell" />
+  <div v-for="i in 12" :key="i" class="h-8 rounded bg-foreground" style="opacity: var(--seq-p, 0)" />
 </DitherSequence>
-// children style themselves:  opacity: var(--seq-p, 0)
-// the driver writes that var + data-seq="before|active|done" per child
-
-// imperative: the same algebra under your own clock
-const plan = planSequence({
-  kind: "stagger", count: 12, stagger: 0.07, from: "center",
-  node: (i) => ({ kind: "track", id: String(i), duration: 0.6, loop: 3, yoyo: true }),
-})
-const samples = sampleSequence(plan, t) // [{ id, index, progress, state }, ...]`,
-  stage: `<DitherStage :duration="8" class="h-56">
+<button type="button" class="mt-3" @click="key++">Replay ({{ waves }} played)</button>`,
+  stage: `<DitherStage :duration="8" class="h-56 rounded-lg border" v-slot="stage">
+  <!-- a canvas layer drifts 12% of the stage, at any size -->
   <DitherLayer :keyframes="[{ x: '-6cqw' }, { x: '6cqw' }]" :duration="8" yoyo loop>
-    <DitherAurora class="h-full" />           <!-- a canvas layer drifts 12% of the stage, at any size -->
+    <DitherAurora :colors="['#1f6fd6', '#9ec5ff', '#ffffff']" class="h-full" />
   </DitherLayer>
+  <!-- SVG parallax -->
   <DitherLayer :keyframes="[{ x: 0 }, { x: '-24cqw' }]" :duration="8" yoyo loop>
-    <svg viewBox="0 0 120 40" preserveAspectRatio="none"><path d="…" /></svg>   <!-- SVG parallax -->
+    <svg viewBox="0 0 148 40" preserveAspectRatio="none" class="absolute bottom-0 h-2/5 w-[124%] fill-[#0b1a3a]">
+      <path d="M0 40 V30 Q14 22 28 30 T56 24 T84 32 T112 22 T140 30 T148 26 V40 Z" />
+    </svg>
   </DitherLayer>
+  <!-- the moon places its keys with at (seconds or a percentage) -->
   <DitherLayer
     :keyframes="[
       { at: 0, x: '80cqw', y: '12cqh', rotate: 0 },
       { at: '50%', easing: 'ease-in-out', rotate: '0.5turn' },
       { x: '20cqw', y: '8cqh', rotate: '1turn' },
     ]"
-    :duration="8" loop origin="0 0"
+    :duration="8" loop origin="0 0" class="size-7"
   >
-    <svg …moon… />
+    <svg viewBox="0 0 24 24" class="size-7 fill-white"><circle cx="12" cy="12" r="10" /></svg>
   </DitherLayer>
-  <DitherLayer v-slot="{ cx, cy }" :keyframes="[{ cx: '10cqw', cy: '70cqh' }, { cx: '90cqw', cy: '40cqh' }]" :duration="4" yoyo loop>
-    <svg :viewBox="…"><circle :cx="cx" :cy="cy" r="4" /></svg>   <!-- the same keys, resolved to px for painters -->
+  <!-- the same keys, resolved to px for painters -->
+  <DitherLayer v-slot="at" :keyframes="[{ cx: '10cqw', cy: '70cqh' }, { cx: '90cqw', cy: '40cqh' }]" :duration="4" yoyo loop>
+    <svg :viewBox="'0 0 ' + Math.max(1, stage.width) + ' ' + Math.max(1, stage.height)" class="size-full">
+      <circle :cx="at.cx" :cy="at.cy" r="4" class="fill-current" />
+    </svg>
   </DitherLayer>
 </DitherStage>
 
-// the engine alone
-import { sampleKeyframes, keyframeTransform, resolveSample } from "@dither-kit"
-const s = sampleKeyframes({ keyframes: [{ x: "10px" }, { x: "50cqw" }], duration: 2 }, 1)
-keyframeTransform(s)                               // "translate(calc(5px + 25cqw), 0px)"
-resolveSample(s, { width: 400, height: 200 }).x    // 105`,
+<!-- the engine alone: sampleKeyframes, keyframeTransform and resolveSample
+     sample the same keys, write the transform and resolve it to px -->`,
   containerQueries: `import { DitherContainer, quantize } from "@dither-kit"
 
 <!-- children read THIS box's width — not the viewport's -->
@@ -581,26 +588,46 @@ resolveSample(s, { width: 400, height: 200 }).x    // 105`,
        .cq-card[data-cq="xs"] .cell { border-color: #d9a441; }
        .cq-card[data-cq="xl"] .cell { border-color: #3f8ff3; } -->`,
   animatedContent: `<DitherAnimatedContent :distance="40" direction="vertical">
-  <YourCard />
+  <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Slides up on view</div>
 </DitherAnimatedContent>`,
   fadeContent: `<DitherFadeContent :blur="true">
-  <YourCard />
+  <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Fades in on view</div>
 </DitherFadeContent>`,
-  gradualBlur: `<DitherGradualBlur position="bottom" :height="96">
-  <ScrollingList />
+  gradualBlur: `<DitherGradualBlur position="bottom" :height="72" :strength="5" class="w-64">
+  <div class="grid gap-1 text-[13px] text-muted-foreground">
+    <p v-for="n in 6" :key="n">Row {{ n }}: content scrolls under the blur band.</p>
+  </div>
 </DitherGradualBlur>`,
   starBorder: `<DitherStarBorder color="#7CFF67">Star border</DitherStarBorder>`,
   electricBorder: `<DitherElectricBorder color="#5227FF">Electric border</DitherElectricBorder>`,
-  glareHover: `<DitherGlareHover><YourCard /></DitherGlareHover>`,
+  glareHover: `<DitherGlareHover>
+  <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Hover me</div>
+</DitherGlareHover>`,
   magnet: `<DitherMagnet :strength="0.4"><button>Magnet</button></DitherMagnet>`,
-  clickSpark: `<DitherClickSpark color="#7CFF67"><YourArea /></DitherClickSpark>`,
-  blobCursor: `<DitherBlobCursor color="#7CFF67" class="h-40"><YourArea /></DitherBlobCursor>`,
-  crosshair: `<DitherCrosshair color="#7CFF67" class="h-40"><YourArea /></DitherCrosshair>`,
-  ghostCursor: `<DitherGhostCursor color="#7CFF67" class="h-40"><YourArea /></DitherGhostCursor>`,
-  splashCursor: `<DitherSplashCursor color="#3DA5FF" class="h-40"><YourArea /></DitherSplashCursor>`,
-  targetCursor: `<DitherTargetCursor color="#7CFF67" class="h-40"><YourArea /></DitherTargetCursor>`,
-  pixelTrail: `<DitherPixelTrail color="#7CFF67" class="h-40"><YourArea /></DitherPixelTrail>`,
-  imageTrail: `<DitherImageTrail class="h-44"><YourArea /></DitherImageTrail>`,
+  clickSpark: `<DitherClickSpark color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
+  Click anywhere here
+</DitherClickSpark>`,
+  blobCursor: `<DitherBlobCursor color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
+  Move your cursor here
+</DitherBlobCursor>`,
+  crosshair: `<DitherCrosshair color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
+  Move your cursor here
+</DitherCrosshair>`,
+  ghostCursor: `<DitherGhostCursor color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
+  Move your cursor here
+</DitherGhostCursor>`,
+  splashCursor: `<DitherSplashCursor color="#3DA5FF" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
+  Move your cursor here
+</DitherSplashCursor>`,
+  targetCursor: `<DitherTargetCursor color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
+  Move your cursor here
+</DitherTargetCursor>`,
+  pixelTrail: `<DitherPixelTrail color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
+  Move your cursor here
+</DitherPixelTrail>`,
+  imageTrail: `<DitherImageTrail class="grid h-44 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
+  Move your cursor here
+</DitherImageTrail>`,
   metaBalls: `<DitherMetaBalls class="h-64" />`,
   metallicPaint: `<DitherMetallicPaint class="h-64" />`,
   noise: `<DitherNoise class="h-64" />`,
@@ -609,86 +636,132 @@ resolveSample(s, { width: 400, height: 200 }).x    // 105`,
   shapeBlur: `<DitherShapeBlur class="h-64" />`,
   strands: `<DitherStrands class="h-64" />`,
   laserFlow: `<DitherLaserFlow class="h-64" />`,
-  antigravity: `<DitherAntigravity class="h-52"><YourContent /></DitherAntigravity>`,
+  antigravity: `<DitherAntigravity class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">Antigravity</DitherAntigravity>`,
   logoLoop: `<DitherLogoLoop :items="['DITHER', 'BAYER', 'CANVAS', 'SOLID', 'PIXELS']" />`,
-  magicRings: `<DitherMagicRings class="h-52"><YourContent /></DitherMagicRings>`,
+  magicRings: `<DitherMagicRings class="h-52 w-full">
+  <span class="grid size-12 place-items-center rounded-full border bg-card text-xs">core</span>
+</DitherMagicRings>`,
   magnetLines: `<DitherMagnetLines class="h-52" />`,
   orbitImages: `<DitherOrbitImages :items="['A', 'B', 'C', 'D', 'E']" />`,
-  pixelTransition: `<DitherPixelTransition><YourCard /></DitherPixelTransition>`,
-  ditherReveal: `<DitherReveal direction="right" :cell="4" :duration="1.4" :restart-key="nonce">
-  <YourCard />
+  pixelTransition: `<DitherPixelTransition color="#181b22" class="grid h-32 w-56 place-items-center rounded-lg border">
+  <span class="text-lg">Revealed</span>
+</DitherPixelTransition>`,
+  ditherReveal: `const nonce = ref(0)
+
+<DitherReveal direction="right" :cell="4" :duration="1.4" :restart-key="nonce" class="h-32 w-56">
+  <div class="grid h-full place-items-center rounded-lg border bg-card text-lg">Revealed</div>
 </DitherReveal>
+<button type="button" class="mt-3" @click="nonce++">Replay</button>
 
-<!-- or drive it from a timeline: the mask is a pure function of progress -->
-<DitherReveal :progress="p"><YourCard /></DitherReveal>
+<!-- or drive it from a timeline: progress (0 to 1) sets the mask, a pure
+     function of it; wipeStyle gives any element the same mask -->`,
+  stickerPeel: `<DitherStickerPeel>
+  <div class="grid h-24 w-40 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Peel me</div>
+</DitherStickerPeel>`,
+  expandTabs: `const tab = ref("home")
 
-// the masks alone, for any element
-import { wipeStyle } from "@dither-kit"
-const m = wipeStyle(0.4, { cell: 4, direction: "down", width: 320, height: 180 })
-el.style.maskImage = m?.image ?? ""`,
-  stickerPeel: `<DitherStickerPeel><YourCard /></DitherStickerPeel>`,
-  expandTabs: `<DitherExpandTabs v-model="tab" :tabs="[
+<DitherExpandTabs v-model="tab" :tabs="[
   { value: 'home', label: 'Home' },
   { value: 'library', label: 'Library', color: 'purple' },
   { value: 'alerts', label: 'Alerts', color: 'red' },
 ]" />  <!-- only the active tab unfolds its label -->`,
-  island: `<DitherIsland v-model="open" label="Deploy running" color="green" live>
+  island: `const expanded = ref(false)
+
+<DitherIsland v-model="expanded" label="Deploy running" color="green" live>
   Build 214, lint ok, bundle 84kB, 3 of 5 steps done.  <!-- unfolds beneath the pill -->
 </DitherIsland>`,
-  cardStack: `<DitherCardStack :items="cards" class="h-44 w-64" v-slot="{ item }">
+  cardStack: `const cards = [
+  { title: "Prints: riso on cream" },
+  { title: "Frames: oak 24×30" },
+  { title: "Zines: issue 04" },
+  { title: "Stickers: die-cut set" },
+]
+const top = ref(0)
+
+<!-- drag horizontally, a flick advances, the deck cycles -->
+<DitherCardStack :items="cards" class="h-40 w-64" @advance="(i) => (top = i)" v-slot="{ item }">
   <article class="h-full rounded-lg border bg-card p-4">{{ item.title }}</article>
-</DitherCardStack>  <!-- drag horizontally · flick advances · cycles -->`,
-  dock: `<DitherDock :items="[
+</DitherCardStack>
+<p class="mt-3 text-center text-[10px]">card {{ top + 1 }} of {{ cards.length }}</p>`,
+  dock: `const picked = ref("none")
+
+<!-- a gaussian magnify around the pointer -->
+<DitherDock :items="[
   { value: 'home', label: 'Home' },
   { value: 'studio', label: 'Studio', color: 'purple' },
   { value: 'docs', label: 'Docs', color: 'green' },
   { value: 'alerts', label: 'Alerts', color: 'red' },
-]" @select="go" />  <!-- gaussian magnify around the pointer -->`,
-  previewRail: `<DitherPreviewRail v-model="dest" :items="[
+]" @select="(value) => (picked = value)" />
+<p class="mt-2 text-[10px]">selected: {{ picked }}</p>`,
+  previewRail: `const dest = ref("inbox")
+
+<!-- ticks pyramid around the pointer, the preview floats beside the rail -->
+<DitherPreviewRail v-model="dest" :items="[
   { value: 'inbox', label: 'Inbox', hint: '12 unread threads', color: 'blue' },
   { value: 'drafts', label: 'Drafts', hint: '2 in progress', color: 'purple' },
   { value: 'planner', label: 'Planner', hint: 'Sprint 14, day 3', color: 'green' },
   { value: 'metrics', label: 'Metrics', hint: 'p95 latency 42ms', color: 'orange' },
   { value: 'settings', label: 'Settings', hint: 'Workspace + theme' },
-]" />  <!-- ticks pyramid around the pointer · preview floats beside the rail -->`,
+]" />`,
   scrollProgress: `<DitherScrollProgress />                    <!-- viewport, fixed top -->
 <DitherScrollProgress attach="parent" color="purple" />  <!-- nearest scrollable parent -->`,
-  snapButton: `<DitherSnapButton :threshold="64" axis="x" color="green" @snap="confirm">
+  snapButton: `const deploys = ref(0)
+
+<!-- a 1:1 drag, rubber-band past the line, the border arms at the threshold;
+     release fires snap, and Enter or Space fires without the pull -->
+<DitherSnapButton :threshold="64" axis="x" color="green" @snap="deploys++">
   Pull to deploy
 </DitherSnapButton>
-<!-- 1:1 drag · rubber-band past the line · border arms at the threshold ·
-     release fires @snap · Enter/Space fires without the pull -->`,
-  gooeyMenu: `<DitherGooeyMenu v-model="open" :items="[
+<p class="text-[10px]">deploys fired: {{ deploys }}</p>`,
+  gooeyMenu: `const expanded = ref(false)
+const picked = ref("none")
+
+<!-- one SVG goo filter fuses the circles while they travel -->
+<DitherGooeyMenu v-model="expanded" :items="[
   { value: 'add', label: 'Add', color: 'green' },
   { value: 'export', label: 'Export', color: 'blue' },
   { value: 'share', label: 'Share', color: 'purple' },
-]" direction="up" @select="run" />
-<!-- one SVG goo filter fuses the circles while they travel -->`,
-  bouncyAccordion: `<DitherBouncyAccordion v-model="panel" :items="[
+]" direction="up" @select="(value) => (picked = value)" />
+<p class="mt-3 text-[10px]">picked: {{ picked }}</p>`,
+  bouncyAccordion: `const panel = ref("overview")
+
+<!-- single-open: a spring overshoot on open, a brisk close -->
+<DitherBouncyAccordion v-model="panel" :items="[
   { value: 'overview', label: 'Overview', hint: 'What shipped this week', icon: '▤',
     content: 'Charts, buttons and backgrounds now share one Bayer engine.' },
   { value: 'activity', label: 'Activity', hint: '3 deploys, 1 rollback', icon: '◷', color: 'green',
     content: 'Build 214 settled after a weighted spring: 8% overshoot, then calm.' },
   { value: 'alerts', label: 'Alerts', hint: 'One flapping check', icon: '◈', color: 'orange',
     content: 'p95 latency wobbled at 04:00 and snapped back on its own.' },
-]" />  <!-- single-open · spring overshoot on open · brisk close -->`,
-  expandingArrow: `<DitherExpandingArrow color="blue" @click="explore">
-  Explore the kit
-</DitherExpandingArrow>  <!-- dotted trail unrolls on hover or focus -->`,
-  slideAction: `<DitherSlideAction label="Slide to deploy" color="green" @confirm="deploy" />
-<!-- 1:1 thumb drag · flick momentum counts · early release springs back ·
-     Enter/Space confirms without the slide -->`,
-  holdAction: `<DitherHoldAction :duration="1200" direction="vertical" color="orange" @complete="purge">
+]" />`,
+  expandingArrow: `<!-- a dotted trail unrolls on hover or focus -->
+<DitherExpandingArrow color="blue">Explore the kit</DitherExpandingArrow>`,
+  slideAction: `const deploys = ref(0)
+
+<!-- a 1:1 thumb drag where flick momentum counts; an early release springs
+     back, and Enter or Space confirms without the slide -->
+<DitherSlideAction label="Slide to deploy" color="green" @confirm="deploys++" />
+<p class="text-[10px]">deploys: {{ deploys }}</p>`,
+  holdAction: `const completed = ref(0)
+
+<!-- a liquid fill with a dotted crest; release early to drain -->
+<DitherHoldAction :duration="1200" direction="vertical" color="orange" @complete="completed++">
   Hold to purge cache
-</DitherHoldAction>  <!-- liquid fill with a dotted crest · release early to drain -->`,
-  walletCard: `<DitherWalletCard v-model="account" :accounts="[
+</DitherHoldAction>
+<p class="text-[10px]">completed: {{ completed }}</p>`,
+  walletCard: `const account = ref("main")
+const last = ref("none")
+
+<!-- the switcher and search morph from their triggers, the digits cascade,
+     privacy masks the balance, copying the address answers with a check -->
+<DitherWalletCard v-model="account" :accounts="[
   { value: 'main', label: 'Main', address: '0x7f3a9c2e14b7d55aa93d', balance: 12480.52, change: 2.4 },
   { value: 'savings', label: 'Savings', address: '0x8b21e0c4a6f9d1327e55', balance: 8210.11, change: -1.1, color: 'purple' },
   { value: 'trading', label: 'Trading', address: '0x91cc4db2e87a30f6b214', balance: 3033.7, change: 0.6, color: 'orange' },
 ]" :recent="['gas fees', 'swap history']" notifications
-  @action="run" @submit="find" @notify="openInbox" class="w-full max-w-80" />
-<!-- switcher + search morph from their triggers (recents listed) · digits
-     cascade · privacy masks to ******* · copy-address gives a ✓ · bell pulses -->`,
+  @action="(name) => (last = name)" @submit="(query) => (last = 'search: ' + query)"
+  @notify="last = 'notifications'" class="w-full max-w-80" />
+<p class="text-[10px]">last: {{ last }}</p>`,
 }
 
 const cardBox =
@@ -753,11 +826,15 @@ export default function AnimationsDocs() {
   const [stackNote, setStackNote] = createSignal("none")
   const [stackVariant, setStackVariant] = createSignal<(typeof STACK_VARIANTS)[number]>("stack")
   const stackSnippet = createMemo(
-    () => `<DitherNotificationStack v-model="pinned"${stackVariant() === "stack" ? "" : ` variant="${stackVariant()}"`} :items="[
+    () => `const pinned = ref(false)
+const last = ref("none")
+
+<DitherNotificationStack v-model="pinned"${stackVariant() === "stack" ? "" : ` variant="${stackVariant()}"`} :items="[
   { id: 'n1', title: 'Deploy finished', body: 'dither-ui shipped to production in 42s', time: '2m', icon: '↑', color: 'green' },
   { id: 'n2', title: 'New comment', body: 'Rei: “the drum snaps beautifully”', time: '16m', icon: '▤', color: 'blue' },
   { id: 'n3', title: 'Build warning', body: 'chunk index.js is 447 kB', time: '1h', icon: '◈', color: 'orange' },
-]" @viewall="openInbox" />
+]" @viewall="last = 'view all'" />
+<p class="text-[10px]">pinned: {{ pinned }}, last: {{ last }}</p>
 <!-- stacked summary → readable list on hover, focus or tap · tap pins ·
      spring fan-out with per-card stagger -->`,
   )

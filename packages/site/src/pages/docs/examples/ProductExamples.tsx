@@ -8,6 +8,7 @@ import {
   type DitherColor,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
+import { dataCode } from "../snippet"
 
 const TIERS: {
   name: string
@@ -57,27 +58,32 @@ const RELEASES = [
   { version: "v0.1.0", title: "First public dither", date: "Jan", tags: [] },
 ]
 
-const SNIPPET_PRICING = `<div class="grid gap-4 sm:grid-cols-3">
-  <div v-for="tier in tiers" class="relative rounded-lg border p-4">
-    <DitherGradient v-if="tier.popular" from="blue" :opacity="0.12" />
-    <span>{{ tier.name }}</span>
-    <b class="tabular-nums">{{ tier.price }}</b><span>/mo</span>
-    <ul>
-      <li v-for="f in tier.features">
+const SNIPPET_PRICING = `${dataCode("tiers", TIERS)}
+
+<div class="grid gap-4 sm:grid-cols-3">
+  <div v-for="tier in tiers" :key="tier.name" class="relative isolate flex flex-col overflow-hidden rounded-lg border p-4">
+    <DitherGradient v-if="tier.popular" from="blue" :opacity="0.12" class="-z-10" />
+    <span class="text-[11px] text-muted-foreground">{{ tier.name }}</span>
+    <b class="mt-2 text-lg tabular-nums">{{ tier.price }}<span class="text-[11px]">/mo</span></b>
+    <span class="text-[10px] text-muted-foreground">{{ tier.blurb }}</span>
+    <ul class="mt-4 grid gap-1.5">
+      <li v-for="f in tier.features" :key="f" class="flex items-center gap-2 text-[11px]">
         <span class="size-1.5 bg-foreground/40" /> {{ f }}
       </li>
     </ul>
-    <DitherButton :variant="tier.variant" :color="tier.color" class="w-full">
-      {{ tier.cta }}
+    <DitherButton :variant="tier.cta.variant" :color="tier.cta.color" class="mt-4 w-full">
+      {{ tier.cta.label }}
     </DitherButton>
   </div>
 </div>`
 
-const SNIPPET_ACTIVITY = `<div class="rounded-lg border">
-  <header>dither-ui activity</header>
-  <div v-for="row in feed" class="flex items-center gap-3 border-t px-4 py-2.5">
+const SNIPPET_ACTIVITY = `${dataCode("feed", FEED)}
+
+<div class="rounded-lg border">
+  <header class="px-4 py-2.5 text-[11px] text-muted-foreground">dither-ui activity</header>
+  <div v-for="row in feed" :key="row.text" class="flex items-center gap-3 border-t px-4 py-2.5 text-[11px]">
     <DitherAvatar :name="row.name" :size="24" :animate="false" />
-    <span><b>{{ row.name }}</b> {{ row.text }}</span>
+    <span class="flex-1"><b>{{ row.name }}</b> {{ row.text }}</span>
     <span
       v-if="row.unread"
       class="size-1.5 rounded-full"
@@ -87,17 +93,20 @@ const SNIPPET_ACTIVITY = `<div class="rounded-lg border">
   </div>
 </div>`
 
-const SNIPPET_CHANGELOG = `<div v-for="(r, i) in releases" class="flex gap-3">
+const SNIPPET_CHANGELOG = `${dataCode("releases", RELEASES)}
+
+<div v-for="(r, i) in releases" :key="r.version" class="flex gap-3">
   <div class="flex flex-col items-center">
     <span
-      class="size-2 rounded-[2px]"
+      class="mt-1 size-2 rounded-[2px] bg-border"
       :style="i === 0 ? { backgroundColor: cssColor('green') } : {}"
     />
-    <span class="w-px flex-1 bg-border/60" />
+    <span v-if="i < releases.length - 1" class="w-px flex-1 bg-border/60" />
   </div>
-  <div>
-    <b>{{ r.version }}</b> {{ r.title }} <time>{{ r.date }}</time>
-    <span v-for="tag in r.tags" class="rounded border px-1.5">{{ tag }}</span>
+  <div class="pb-6">
+    <b class="text-[11px]">{{ r.version }}</b> <time class="text-[10px]">{{ r.date }}</time>
+    <p class="text-[13px]">{{ r.title }}</p>
+    <span v-for="tag in r.tags" :key="tag" class="mr-1.5 rounded border px-1.5 text-[10px]">{{ tag }}</span>
   </div>
 </div>`
 

@@ -60,7 +60,7 @@ import QuickStart from "./overview/QuickStart"
 import { PACK_COMPONENTS } from "./pack-loaders"
 import PropsTable, { type PropRow } from "./PropsTable"
 import SectionShare from "./SectionShare"
-import { docsCode } from "./snippet"
+import { dataCode, docsCode } from "./snippet"
 import ScreensSection from "./utils/ScreensSection"
 import "./DocsPage.css"
 
@@ -113,9 +113,8 @@ const radarRows = [
 // is read from the series it plots: the headline is the last hour, the
 // delta the change across the day (a falling error rate is the good way).
 const trend = (seed: number, drift: number) =>
-  Array.from(
-    { length: 24 },
-    (_, i) => 10 + i * drift + Math.sin(i * 0.8 + seed) * 2 + Math.sin(i * 1.7 + seed * 2) * 1.1,
+  Array.from({ length: 24 }, (_, i) =>
+    Number((10 + i * drift + Math.sin(i * 0.8 + seed) * 2 + Math.sin(i * 1.7 + seed * 2) * 1.1).toFixed(1)),
   )
 type Unit = { pre: string; scale: number; dec: number; suf: string }
 const stat = (label: string, color: DitherColor, data: number[], unit: Unit, lowerIsBetter = false) => {
@@ -140,11 +139,13 @@ const STATS = [
   stat(
     "Error rate",
     "red",
-    trend(3, -0.18).map((v) => v + 8),
+    trend(3, -0.18).map((v) => Number((v + 8).toFixed(1))),
     { pre: "", scale: 0.03, dec: 2, suf: "%" },
     true,
   ),
 ]
+/** The stat cards as an example declares them: what each card prints. */
+const STAT_ROWS = STATS.map(({ label, value, delta, up, color, data }) => ({ label, value, delta, up, color, data }))
 const VARIANTS: AreaVariant[] = ["gradient", "dotted", "hatched", "solid"]
 const DOT_VARIANTS: DotVariant[] = ["border", "colored-border", "filled"]
 
@@ -199,7 +200,7 @@ const SERVICES = [
     uptime: "97.20%",
     ok: false,
     color: "red" as DitherColor,
-    data: trend(7, -0.2).map((v) => v + 8),
+    data: trend(7, -0.2).map((v) => Number((v + 8).toFixed(1))),
   },
 ]
 const wave = Array.from({ length: 20 }, (_, i) => 5 + Math.sin(i * 0.6) * 2.2 + Math.sin(i * 1.4) * 1)
@@ -410,13 +411,18 @@ const effectData = MONTHS.map((month, i) => ({
 const effectConfig = { v: { label: "signal", color: "blue" as DitherColor } }
 
 const SNIPPETS = {
-  seeds: `<!-- one integer is a complete visual personality: -->
-<AreaChart :data="rows" :config="config" :seed="1984">
-  <Area data-key="revenue" :variant="1984" />   <!-- texture  -->
+  seeds: `${dataCode("rows", rows)}
+${dataCode("config", config)}
+
+<!-- one integer is a complete visual personality -->
+<AreaChart :data="rows" :config="config" :seed="1984" class="h-52">
+  <XAxis data-key="month" :max-ticks="6" />
+  <Area data-key="expenses" :variant="1985" />
+  <Area data-key="revenue" :variant="1984" />   <!-- texture -->
 </AreaChart>
-<!-- :seed derives duration, delay, easing, stagger, sparkles and bloom
+<!-- seed derives duration, delay, easing, stagger, sparkles and bloom
      for every prop you leave unset; explicit props always win.
-     Seeds also work per prop: bloom / easing / variant / color(hue). -->
+     Seeds also work per prop: bloom, easing, variant, color (hue). -->
 <DitherButton :bloom="1984">Glow</DitherButton>`,
   styling: `/* the kit reads shadcn-style tokens: theme by overriding them */
 :root {
@@ -445,61 +451,132 @@ const SNIPPETS = {
 <!-- honoured automatically, no opt-in props:
      @media (prefers-reduced-motion: reduce): entrances snap
      @media (prefers-reduced-transparency: reduce): chrome goes solid -->`,
-  dashboard: `<!-- stat cards -->
-<div v-for="s in stats" class="rounded-lg border p-4">
-  <span>{{ s.label }}</span> <b>{{ s.value }}</b>
-  <Sparkline :data="s.trend" :color="s.color" class="h-8" />
+  dashboard: `${dataCode("stats", STAT_ROWS)}
+${dataCode("rows", rows)}
+${dataCode("config", config)}
+${dataCode("share", pieRows)}
+${dataCode("shareConfig", pieConfig)}
+
+<!-- stat cards -->
+<div class="grid gap-4 sm:grid-cols-3">
+  <div v-for="s in stats" :key="s.label" class="rounded-lg border p-4">
+    <div class="text-[11px] text-muted-foreground">{{ s.label }}</div>
+    <span class="text-lg tabular-nums">{{ s.value }}</span>
+    <span class="ml-2 text-[11px]" :style="{ color: cssColor(s.up ? 'green' : 'red') }">{{ s.delta }}</span>
+    <Sparkline :data="s.data" :color="s.color" class="mt-3 h-8 w-full" />
+  </div>
 </div>
 
 <!-- main panel -->
-<AreaChart :data="rows" :config="config" stack-type="stacked">
-  <XAxis data-key="month" /> <Area data-key="expenses" variant="dotted" />
-  <Area data-key="revenue" /> <Tooltip label-key="month" />
-</AreaChart>
-<PieChart :data="share" :config="shareConfig" data-key="value"
-  name-key="name" :inner-radius="0.55"><Pie /></PieChart>`,
-  shell: `<div class="grid grid-cols-[160px_1fr] rounded-lg border">
-  <aside class="border-r p-3">          <!-- sidebar -->
-    brand, nav (active chip), <DitherAvatar /> footer
+<div class="mt-4 grid gap-4 lg:grid-cols-3">
+  <AreaChart :data="rows" :config="config" stack-type="stacked" class="h-44 lg:col-span-2">
+    <XAxis data-key="month" :max-ticks="6" />
+    <Area data-key="expenses" variant="dotted" />
+    <Area data-key="revenue" variant="gradient" />
+    <Tooltip label-key="month" />
+  </AreaChart>
+  <PieChart :data="share" :config="shareConfig" data-key="value" name-key="name" :inner-radius="0.55" class="h-44">
+    <Pie variant="gradient" />
+  </PieChart>
+</div>`,
+  shell: `const nav = ${JSON.stringify(SHELL_NAV).replace(/,/g, ", ")}
+const page = ref("Overview")
+${dataCode("stats", STAT_ROWS)}
+${dataCode("rows", rows)}
+${dataCode("config", config)}
+
+<div class="grid grid-cols-[160px_1fr] overflow-hidden rounded-lg border">
+  <!-- sidebar -->
+  <aside class="flex min-h-[360px] flex-col border-r p-3">
+    <span class="px-2 py-1.5 text-[12px]">dither-ui</span>
+    <nav class="mt-4 grid gap-0.5">
+      <button v-for="item in nav" :key="item" type="button" :aria-pressed="page === item"
+        class="rounded-md px-2 py-1.5 text-left text-[11px]"
+        :class="page === item ? 'bg-card' : 'text-muted-foreground'" @click="page = item">{{ item }}</button>
+    </nav>
+    <div class="mt-auto flex items-center gap-2 px-2 pt-3 text-[11px]">
+      <DitherAvatar name="ada" :size="24" :animate="false" /> ada
+    </div>
   </aside>
-  <div>
-    <header class="border-b px-4">      <!-- topbar -->
-      title and <DitherButton>Export</DitherButton>
+  <div class="flex min-w-0 flex-col">
+    <!-- topbar -->
+    <header class="flex h-10 items-center justify-between border-b px-4 text-[12px]">
+      {{ page }}
+      <DitherButton color="blue" variant="gradient">Export</DitherButton>
     </header>
-    <main class="grid gap-4 p-4">
-      stat cards with <Sparkline />
-      <AreaChart … />                    <!-- main panel -->
+    <main class="grid gap-3 p-4">
+      <div class="grid grid-cols-3 gap-3">
+        <div v-for="s in stats" :key="s.label" class="rounded-md border p-2.5 text-[10px]">
+          {{ s.label }} <b class="text-[13px]">{{ s.value }}</b>
+          <Sparkline :data="s.data" :color="s.color" class="mt-1.5 h-5 w-full" />
+        </div>
+      </div>
+      <!-- main panel -->
+      <AreaChart :data="rows" :config="config" stack-type="stacked" :interactive="false" class="h-36">
+        <Area data-key="expenses" variant="dotted" />
+        <Area data-key="revenue" variant="gradient" />
+      </AreaChart>
     </main>
   </div>
 </div>`,
-  monitoring: `<LineChart :data="rows" :config="config">  <!-- pulse -->
-  <Grid horizontal /> <XAxis data-key="month" />
-  <Line data-key="revenue" /> <Line data-key="expenses" />
-</LineChart>
+  monitoring: `${dataCode("rows", rows)}
+${dataCode("config", config)}
+${dataCode("radarRows", radarRows)}
+${dataCode("radarConfig", radarConfig)}
+${dataCode("services", SERVICES)}
 
-<RadarChart … />                        <!-- sprint health -->
-
-<div v-for="s in services">             <!-- status rows -->
-  <span class="size-1.5 rounded-full" :style="{ backgroundColor: cssColor(s.ok ? 'green' : 'red') }" />
-  {{ s.name }} <Sparkline :data="s.data" :color="s.color" />
-  {{ s.uptime }}
+<div class="grid gap-4 lg:grid-cols-5">
+  <!-- pulse -->
+  <LineChart :data="rows" :config="config" :interactive="false" class="h-44 lg:col-span-3">
+    <Grid horizontal />
+    <XAxis data-key="month" :max-ticks="6" />
+    <Line data-key="revenue" />
+    <Line data-key="expenses" />
+  </LineChart>
+  <!-- sprint health -->
+  <RadarChart :data="radarRows" :config="radarConfig" name-key="axis" class="h-44 lg:col-span-2">
+    <Radar data-key="current" />
+    <Radar data-key="previous" />
+  </RadarChart>
+  <!-- status rows -->
+  <div class="rounded-lg border lg:col-span-5">
+    <div v-for="s in services" :key="s.name" class="flex items-center gap-4 px-4 py-2.5 text-[11px]">
+      <span class="size-1.5 rounded-full" :style="{ backgroundColor: cssColor(s.ok ? 'green' : 'red') }" />
+      <span class="w-28 truncate">{{ s.name }}</span>
+      <Sparkline :data="s.data" :color="s.color" class="h-5 min-w-0 flex-1" />
+      {{ s.uptime }}
+    </div>
+  </div>
 </div>`,
-  team: `<div v-for="m in team" class="flex items-center gap-4">
-  <DitherAvatar :name="m.name" :size="32" />
-  <span>{{ m.name }}</span> <span>{{ m.role }}</span>
+  team: `${dataCode("team", TEAM)}
+
+<div v-for="m in team" :key="m.name" class="flex items-center gap-4 px-4 py-2.5">
+  <DitherAvatar :name="m.name" :size="32" :animate="false" />
+  <span class="text-[11px]">{{ m.name }}</span>
+  <span class="text-[10px] text-muted-foreground">{{ m.role }}</span>
   <Sparkline :data="m.data" :color="m.color" class="h-5 flex-1" />
   <span class="tabular-nums">{{ m.commits }}</span>
 </div>`,
-  usage: `<BarChart :data="usageRows" :config="usageConfig">   <!-- renders/mo -->
-  <XAxis data-key="month" /> <Bar data-key="renders" />
-</BarChart>
+  usage: `${dataCode("usageRows", usageRows)}
+${dataCode("usageConfig", usageConfig)}
+${dataCode("quotaRows", quotaRows)}
+${dataCode("quotaConfig", quotaConfig)}
 
-<PieChart :data="quotaRows" :config="quotaConfig"    <!-- quota donut -->
-  data-key="value" name-key="name" :inner-radius="0.62">
-  <Pie /> <Legend align="center" />
-</PieChart>
-
-<DitherButton color="blue">Upgrade to Pro</DitherButton>`,
+<div class="grid gap-4 sm:grid-cols-5">
+  <!-- renders a month -->
+  <BarChart :data="usageRows" :config="usageConfig" :interactive="false" class="h-40 sm:col-span-3">
+    <XAxis data-key="month" :max-ticks="4" />
+    <Bar data-key="renders" />
+  </BarChart>
+  <div class="flex flex-col sm:col-span-2">
+    <!-- quota donut -->
+    <PieChart :data="quotaRows" :config="quotaConfig" data-key="value" name-key="name" :inner-radius="0.62" class="h-28">
+      <Pie variant="gradient" />
+    </PieChart>
+    <p class="mt-2 text-center text-[11px]">6.8M / 10M renders</p>
+    <DitherButton color="blue" variant="gradient" class="mt-3 w-full">Upgrade</DitherButton>
+  </div>
+</div>`,
   signin: `<div class="relative overflow-hidden rounded-lg border p-8">
   <DitherGradient from="blue" direction="up" :opacity="0.2" />
   <span>dither-ui</span>                    <!-- wordmark -->
@@ -507,11 +584,8 @@ const SNIPPETS = {
   <input type="password" placeholder="••••••••" />
   <DitherButton color="blue" class="w-full">Sign in</DitherButton>
 </div>`,
-  area: `const rows = [{ month: "Jan", revenue: 42, expenses: 31 }, …]
-const config = {
-  revenue:  { label: "Revenue",  color: "blue" },
-  expenses: { label: "Expenses", color: "purple" },
-}
+  area: `${dataCode("rows", rows)}
+${dataCode("config", config)}
 
 <AreaChart class="h-64" :data="rows" :config="config" stack-type="stacked">
   <Grid horizontal />
@@ -522,7 +596,10 @@ const config = {
   <Legend align="right" />
   <Tooltip label-key="month" />
 </AreaChart>`,
-  line: `<LineChart class="h-64" :data="rows" :config="config">
+  line: `${dataCode("rows", rows)}
+${dataCode("config", config)}
+
+<LineChart class="h-64" :data="rows" :config="config">
   <Grid horizontal />
   <XAxis data-key="month" :max-ticks="6" />
   <Line data-key="revenue">
@@ -532,7 +609,10 @@ const config = {
   <Legend align="right" />
   <Tooltip label-key="month" />
 </LineChart>`,
-  bar: `<BarChart class="h-64" :data="trafficRows" :config="trafficConfig">
+  bar: `${dataCode("trafficRows", trafficRows)}
+${dataCode("trafficConfig", trafficConfig)}
+
+<BarChart class="h-64" :data="trafficRows" :config="trafficConfig">
   <Grid horizontal />
   <XAxis data-key="month" />
   <YAxis :tick-count="4" />
@@ -541,12 +621,18 @@ const config = {
   <Legend align="right" />
   <Tooltip label-key="month" />
 </BarChart>`,
-  pie: `<PieChart class="h-64" :data="pieRows" :config="pieConfig"
+  pie: `${dataCode("pieRows", pieRows)}
+${dataCode("pieConfig", pieConfig)}
+
+<PieChart class="h-64" :data="pieRows" :config="pieConfig"
   data-key="value" name-key="name" :inner-radius="0.55">
   <Pie variant="gradient" is-clickable />
   <Legend align="center" />
 </PieChart>`,
-  radar: `<RadarChart class="h-72" :data="radarRows" :config="radarConfig" name-key="axis">
+  radar: `${dataCode("radarRows", radarRows)}
+${dataCode("radarConfig", radarConfig)}
+
+<RadarChart class="h-72" :data="radarRows" :config="radarConfig" name-key="axis">
   <Radar data-key="current" />
   <Radar data-key="previous" />
   <Legend align="center" />
@@ -566,11 +652,15 @@ const last24h = Array.from({ length: 24 }, (_, i) =>
   <Sparkline :data="last24h" color="green" interactive label="Revenue" :hover-lift="false"
     class="mt-3 h-8 w-full" @hover-change="(i) => (hour = i)" />
 </div>`,
-  motion: `const replayToken = ref(0)
+  motion: `${dataCode("rows", trafficRows)}
+${dataCode("config", trafficConfig)}
+const replayToken = ref(0)
 
-<BarChart :data="rows" :config="config"
+<BarChart :data="rows" :config="config" class="h-48"
   :animation-duration="900" :replay-token="replayToken">
-  <Bar data-key="revenue" />
+  <XAxis data-key="month" />
+  <Bar data-key="organic" />
+  <Bar data-key="paid" />
 </BarChart>
 
 <DitherButton @click="replayToken++">Replay</DitherButton>
@@ -585,7 +675,8 @@ const last24h = Array.from({ length: 24 }, (_, i) =>
 <!-- colors, bloom, static raster -->
 <DitherButton color="green" bloom="low">Approve</DitherButton>
 <DitherButton color="red" disabled>Delete</DitherButton>
-<DitherButton render-mode="static" precompiled="/button.png">Saved</DitherButton>`,
+<!-- static: drawn once; precompiled takes a raster you exported -->
+<DitherButton render-mode="static">Saved</DitherButton>`,
   avatar: `<DitherAvatar name="ada" :size="24" />
 <DitherAvatar name="ada" :size="32" />
 <DitherAvatar name="ada" :size="48" />
@@ -594,16 +685,16 @@ const last24h = Array.from({ length: 24 }, (_, i) =>
   <DitherGradient from="blue" to="transparent" direction="up" />
 </div>
 <div class="relative h-24">
-  <DitherGradient render-mode="static" precompiled="/gradient.png" />
+  <DitherGradient render-mode="static" />   <!-- drawn once; precompiled takes a raster you exported -->
 </div>
 <!-- from/to: any DitherColor; direction: up, down, left or right
      cell: px per dither cell; opacity: 0…1
      max-cols / max-rows: backing-resolution caps (default 960×600 live, 320×200 static) -->`,
   image: `<DitherImage src="/sprites.webp" :cell="3" :focus-y="0.62" :fade="72"
   alt="The dither-ui sprite sheet, re-dithered" class="h-64 w-full" />
-<DitherImage precompiled="/sprites-dither.png" alt="The dither-ui sprite sheet" />
-<!-- cell: px per dither cell; fade: dithered edge dissolve
-     focus-y: cover-crop focus (0 top … 1 bottom) -->`,
+<!-- cell: px per dither cell; fade: dithered edge dissolve;
+     focus-y: cover-crop focus (0 top to 1 bottom);
+     precompiled takes an image you dithered ahead of time, drawn as it is -->`,
   palette: `import { cssColor, type DitherColor } from "@dither-kit"
 cssColor("blue") // rgb(53,143,243)`,
 }
@@ -862,7 +953,8 @@ export default function DocsPage(props: DocsPageProps) {
       `<DitherButton color="${btn.color}" variant="${btn.variant}"${btn.bloom === "off" ? "" : ` bloom="${btn.bloom}"`}>
   Deploy
 </DitherButton>
-<DitherButton render-mode="static" precompiled="/button.png">Saved</DitherButton>`,
+<!-- static: drawn once; precompiled takes a raster you exported -->
+<DitherButton render-mode="static">Saved</DitherButton>`,
   )
   const avatarCode = createMemo(
     () => `<DitherAvatar name="${avatarName()}" :size="48" />
@@ -873,7 +965,7 @@ export default function DocsPage(props: DocsPageProps) {
   <DitherGradient from="${grad.from}" to="transparent" direction="${grad.direction}" />
 </div>
 <div class="relative h-24">
-  <DitherGradient render-mode="static" precompiled="/gradient.png" />
+  <DitherGradient render-mode="static" />   <!-- drawn once; precompiled takes a raster you exported -->
 </div>`,
   )
 

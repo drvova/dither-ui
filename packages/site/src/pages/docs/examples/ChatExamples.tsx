@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from
 import { createMutable } from "solid-js/store"
 import { DitherAvatar, DitherBadge, DitherButton, DitherInput } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
+import { dataCode } from "../snippet"
 
 type Msg = { from: "me" | "them"; text: string; at: string }
 
@@ -47,104 +48,248 @@ type ChannelMsg = {
   reactions: { label: string; count: number; mine: boolean }[]
 }
 
-const SNIPPET = `<!-- conversation list -->
-<button v-for="t in threads" :aria-pressed="active === t.id"
-  @click="open(t.id)" class="flex items-center gap-2">
-  <DitherAvatar :name="t.name" :size="24" :color="t.color" />
-  <span>{{ t.name }} — {{ t.messages.at(-1).text }}</span>
-  <DitherBadge v-if="t.unread" color="green">{{ t.unread }}</DitherBadge>
-</button>
+const THREADS: Thread[] = [
+  {
+    id: "rei",
+    name: "Rei Toma",
+    color: "purple",
+    unread: 0,
+    replies: ["On it. Give me ten minutes.", "Pushed. Check the preview link."],
+    messages: [
+      { from: "them", text: "Morning. The new palette landed in staging.", at: "09:12" },
+      { from: "me", text: "Saw it. The green reads much better on dark.", at: "09:14" },
+      { from: "them", text: "Agreed. I still want to tune the orange ramp.", at: "09:15" },
+    ],
+  },
+  {
+    id: "kai",
+    name: "Kai Raster",
+    color: "green",
+    unread: 2,
+    replies: ["Ticket closed. Customer confirmed.", "Done. Anything else today?"],
+    messages: [
+      { from: "them", text: "Two tickets left in the queue.", at: "08:40" },
+      { from: "them", text: "One looks like the export bug again.", at: "08:41" },
+    ],
+  },
+]
 
-<!-- thread -->
-<div v-for="m in active.messages"
-  :class="m.from === 'me' ? 'justify-end' : 'justify-start'" class="flex">
-  <div class="max-w-[75%] rounded-lg border px-2.5 py-1.5"
-    :class="m.from === 'me' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'">
-    {{ m.text }} <span>{{ m.at }}</span>
+const CHANNEL: ChannelMsg[] = [
+  {
+    author: "Rei Toma",
+    color: "purple",
+    text: "Palette v3 is in staging. Poke at the orange ramp.",
+    at: "09:12",
+    reactions: [{ label: "+1", count: 2, mine: false }],
+  },
+  {
+    author: "Rei Toma",
+    color: "purple",
+    text: "Charts pick it up automatically, no prop changes.",
+    at: "09:12",
+    reactions: [],
+  },
+  {
+    author: "Kai Raster",
+    color: "green",
+    text: "Export bug #214 is reproduced. Fix lands today.",
+    at: "09:20",
+    reactions: [{ label: "ship it", count: 1, mine: false }],
+  },
+  { author: "You", color: "blue", text: "I will take the docs pass once both land.", at: "09:24", reactions: [] },
+]
+
+/** A fresh copy of a list the demo mutates, its sample left as the example prints it. */
+const copy = <T,>(list: T[]): T[] => JSON.parse(JSON.stringify(list)) as T[]
+
+const SNIPPET = `${dataCode("start", THREADS)}
+const threads = ref(start)
+const activeId = ref("rei")
+const active = computed(() => threads.value.find((t) => t.id === activeId.value)!)
+const draft = ref("")
+const typing = ref(false)
+
+function pick(id: string) {
+  activeId.value = id
+  threads.value = threads.value.map((t) => (t.id === id ? { ...t, unread: 0 } : t))
+}
+function say(id: string, from: string, text: string) {
+  const at = new Date().toTimeString().slice(0, 5)
+  threads.value = threads.value.map((t) => (t.id === id ? { ...t, messages: [...t.messages, { from, text, at }] } : t))
+}
+function send() {
+  const text = draft.value.trim()
+  if (!text || typing.value) return
+  const t = active.value
+  say(t.id, "me", text)
+  draft.value = ""
+  typing.value = true
+  setTimeout(() => {
+    say(t.id, "them", t.replies[t.messages.length % t.replies.length])
+    typing.value = false
+  }, 1200)
+}
+
+<div class="grid grid-cols-[140px_1fr] rounded-lg border">
+  <!-- conversation list -->
+  <nav class="border-r p-1">
+    <button v-for="t in threads" :key="t.id" type="button" :aria-pressed="activeId === t.id"
+      class="flex w-full items-center gap-2 p-1.5 text-left text-[11px]" @click="pick(t.id)">
+      <DitherAvatar :name="t.name" :size="24" :color="t.color" />
+      <span class="min-w-0 flex-1 truncate">{{ t.name }}</span>
+      <DitherBadge v-if="t.unread" color="green">{{ t.unread }}</DitherBadge>
+    </button>
+  </nav>
+  <div class="flex flex-col p-2">
+    <!-- thread -->
+    <div class="grid flex-1 content-start gap-1.5">
+      <div v-for="m in active.messages" :key="m.at + m.text" class="flex"
+        :class="m.from === 'me' ? 'justify-end' : 'justify-start'">
+        <div class="max-w-[75%] rounded-lg border px-2.5 py-1.5 text-[11px]"
+          :class="m.from === 'me' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'">
+          {{ m.text }} <span class="text-[9px] text-muted-foreground">{{ m.at }}</span>
+        </div>
+      </div>
+      <p v-if="typing" aria-live="polite" class="text-[10px] text-muted-foreground">{{ active.name }} is typing</p>
+    </div>
+    <!-- composer -->
+    <form class="mt-2 flex gap-2" @submit.prevent="send()">
+      <DitherInput v-model="draft" placeholder="Message…" aria-label="Message" />
+      <DitherButton color="green" type="submit">Send</DitherButton>
+    </form>
+  </div>
+</div>`
+
+const SNIPPET_AI = `${dataCode("answers", AI_ANSWERS)}
+const suggestions = Object.keys(answers)
+const messages = ref([{ role: "assistant", text: "Hi, ask me about seeds, theming, or exporting. Or pick a suggestion below." }])
+const draft = ref("")
+const streaming = ref(false)
+let timer = 0
+
+function reply(text: string) {
+  messages.value = [...messages.value.slice(0, -1), { role: "assistant", text }]
+}
+function stop() {
+  clearInterval(timer)
+  streaming.value = false
+}
+function ask(prompt: string) {
+  const text = prompt.trim()
+  if (!text || streaming.value) return
+  const answer = answers[text] ?? ${JSON.stringify(AI_FALLBACK)}
+  messages.value = [...messages.value, { role: "user", text }, { role: "assistant", text: "" }]
+  draft.value = ""
+  streaming.value = true
+  // reduced motion: the reply lands whole instead of streaming
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return (reply(answer), stop())
+  let i = 0
+  timer = window.setInterval(() => {
+    i = Math.min(i + 3, answer.length)
+    reply(answer.slice(0, i))
+    if (i >= answer.length) stop()
+  }, 24)
+}
+onBeforeUnmount(stop)
+
+<div class="grid gap-1.5">
+  <div v-for="(m, i) in messages" :key="i" class="flex" :class="m.role === 'user' ? 'justify-end' : ''">
+    <div class="max-w-[80%] rounded-lg border px-2.5 py-1.5 text-[11px]"
+      :class="m.role === 'user' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'">{{ m.text }}</div>
   </div>
 </div>
-<div v-if="typing" aria-live="polite">…typing dots…</div>
 
-<!-- composer -->
-<form @submit.prevent="send">
-  <DitherInput v-model="draft" placeholder="Message…" />
-  <DitherButton color="green" type="submit">Send</DitherButton>
+<!-- chips ask, a reply streams in, Stop cancels -->
+<div v-if="!streaming" role="group" aria-label="Suggestions" class="mt-2 flex flex-wrap gap-1.5">
+  <button v-for="s in suggestions" :key="s" type="button" class="rounded border px-2 py-0.5 text-[10px]"
+    @click="ask(s)">{{ s }}</button>
+</div>
+<button v-else type="button" class="mt-2 text-[10px]" @click="stop">Stop generating</button>
+
+<form class="mt-2 flex gap-2" @submit.prevent="ask(draft)">
+  <DitherInput v-model="draft" placeholder="Ask about the kit…" aria-label="Ask" />
+  <DitherButton color="purple" type="submit" :disabled="streaming">Ask</DitherButton>
 </form>`
 
-const SNIPPET_AI = `<!-- assistant thread: chips ask, replies stream, stop cancels -->
-<div v-for="m in messages" :class="m.role === 'user' ? 'justify-end' : ''" class="flex">
-  <div :class="m.role === 'user' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'"
-    class="max-w-[80%] rounded-lg border px-2.5 py-1.5">{{ m.text }}</div>
+const SNIPPET_SUPPORT = `${dataCode("replies", SUPPORT_REPLIES)}
+const quickReplies = Object.keys(replies)
+const messages = ref([{ from: "agent", text: "Hi, you have reached dither support. How can I help?" }])
+const typing = ref(false)
+
+function say(from: string, text: string) {
+  messages.value = [...messages.value, { from, text }]
+}
+function ask(text: string) {
+  if (typing.value) return
+  say("me", text)
+  typing.value = true
+  setTimeout(() => {
+    say("agent", replies[text])
+    typing.value = false
+    // a human takes over: a system line opens the ticket
+    if (text === "Talk to a human")
+      setTimeout(() => say("system", "Ticket #4821 opened. Rei joined the conversation."), 900)
+  }, 1100)
+}
+
+<header class="flex items-center gap-1.5 text-[11px]">
+  Support <span class="size-1.5 rounded-full" :style="{ background: 'var(--swatch-green)' }" /> online
+</header>
+
+<div class="mt-2 grid gap-1.5 text-[11px]">
+  <div v-for="(m, i) in messages" :key="i">
+    <!-- the ticket line -->
+    <p v-if="m.from === 'system'" class="text-center text-[10px] text-muted-foreground">{{ m.text }}</p>
+    <div v-else class="flex" :class="m.from === 'me' ? 'justify-end' : ''">
+      <span class="max-w-[80%] rounded-lg border px-2.5 py-1.5">{{ m.text }}</span>
+    </div>
+  </div>
+  <p v-if="typing" class="text-[10px] text-muted-foreground">An agent is typing</p>
 </div>
 
-<div v-if="!streaming" role="group" aria-label="Suggestions">   <!-- chips -->
-  <button v-for="s in suggestions" @click="ask(s)">{{ s }}</button>
-</div>
-<button v-else @click="stop">Stop generating</button>
+<div role="group" aria-label="Quick replies" class="mt-2 flex flex-wrap gap-1.5">
+  <button v-for="q in quickReplies" :key="q" type="button" class="rounded border px-2 py-0.5 text-[10px]"
+    @click="ask(q)">{{ q }}</button>
+</div>`
 
-<form @submit.prevent="ask(draft)">
-  <DitherInput v-model="draft" placeholder="Ask about the kit…" />
-  <DitherButton color="purple" type="submit" :disabled="streaming">Ask</DitherButton>
-</form>
+const SNIPPET_CHANNEL = `${dataCode("start", CHANNEL)}
+const messages = ref(start)
+const draft = ref("")
+// a row by the author above it joins their group: avatar and name print once
+const grouped = (i: number) => i > 0 && messages.value[i - 1].author === messages.value[i].author
 
-<!-- reduced motion: the reply lands whole instead of streaming -->`
+function react(i: number, label: string) {
+  messages.value = messages.value.map((m, k) =>
+    k !== i
+      ? m
+      : { ...m, reactions: m.reactions.map((r) => (r.label !== label ? r : { ...r, mine: !r.mine, count: r.count + (r.mine ? -1 : 1) })) },
+  )
+}
+function post() {
+  const text = draft.value.trim()
+  if (!text) return
+  const at = new Date().toTimeString().slice(0, 5)
+  messages.value = [...messages.value, { author: "You", color: "blue", text, at, reactions: [] }]
+  draft.value = ""
+}
 
-const SNIPPET_SUPPORT = `<!-- support: status header · quick replies · escalation -->
-<header>Support · <span class="size-1.5 rounded-full" :style="{ background: 'var(--swatch-green)' }" /> online</header>
-
-<div v-for="m in messages">
-  <p v-if="m.from === 'system'" class="text-center">{{ m.text }}</p>  <!-- ticket line -->
-  <div v-else :class="m.from === 'me' ? 'justify-end' : ''">{{ m.text }}</div>
-</div>
-<div v-if="typing">…agent typing…</div>
-
-<div role="group" aria-label="Quick replies">
-  <button v-for="q in quickReplies" @click="ask(q)">{{ q }}</button>
-</div>
-<!-- "Talk to a human" answers, then a system line opens the ticket -->`
-
-const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions -->
-<div v-for="(m, i) in messages" class="flex gap-2.5">
+<div v-for="(m, i) in messages" :key="i" class="flex gap-2.5 text-[11px]">
   <DitherAvatar v-if="!grouped(i)" :name="m.author" :size="24" :color="m.color" />
-  <div v-else class="w-6" />                <!-- same author → no avatar -->
+  <div v-else class="w-6" />
   <div>
-    <p v-if="!grouped(i)"><b>{{ m.author }}</b> <time>{{ m.at }}</time></p>
+    <p v-if="!grouped(i)"><b>{{ m.author }}</b> <time class="text-[10px]">{{ m.at }}</time></p>
     <p>{{ m.text }}</p>
-    <button v-for="r in m.reactions" :aria-pressed="r.mine"
-      @click="react(m, r.label)">{{ r.label }} {{ r.count }}</button>
+    <button v-for="r in m.reactions" :key="r.label" type="button" :aria-pressed="r.mine"
+      class="mr-1 rounded border px-1.5 text-[10px]" @click="react(i, r.label)">{{ r.label }} {{ r.count }}</button>
   </div>
 </div>
 
-<form @submit.prevent="post">
-  <DitherInput v-model="draft" placeholder="Message #dither-dev…" />
+<form class="mt-2" @submit.prevent="post()">
+  <DitherInput v-model="draft" placeholder="Message #dither-dev…" aria-label="Message" />
 </form>`
 
 export default function ChatExamples() {
-  const threads = createMutable<Thread[]>([
-    {
-      id: "rei",
-      name: "Rei Toma",
-      color: "purple",
-      unread: 0,
-      replies: ["On it. Give me ten minutes.", "Pushed. Check the preview link."],
-      messages: [
-        { from: "them", text: "Morning. The new palette landed in staging.", at: "09:12" },
-        { from: "me", text: "Saw it. The green reads much better on dark.", at: "09:14" },
-        { from: "them", text: "Agreed. I still want to tune the orange ramp.", at: "09:15" },
-      ],
-    },
-    {
-      id: "kai",
-      name: "Kai Raster",
-      color: "green",
-      unread: 2,
-      replies: ["Ticket closed. Customer confirmed.", "Done. Anything else today?"],
-      messages: [
-        { from: "them", text: "Two tickets left in the queue.", at: "08:40" },
-        { from: "them", text: "One looks like the export bug again.", at: "08:41" },
-      ],
-    },
-  ])
+  const threads = createMutable<Thread[]>(copy(THREADS))
 
   const [activeId, setActiveId] = createSignal("rei")
 
@@ -298,30 +443,7 @@ export default function ChatExamples() {
     }, 1100)
   }
 
-  const channelMessages = createMutable<ChannelMsg[]>([
-    {
-      author: "Rei Toma",
-      color: "purple",
-      text: "Palette v3 is in staging. Poke at the orange ramp.",
-      at: "09:12",
-      reactions: [{ label: "+1", count: 2, mine: false }],
-    },
-    {
-      author: "Rei Toma",
-      color: "purple",
-      text: "Charts pick it up automatically, no prop changes.",
-      at: "09:12",
-      reactions: [],
-    },
-    {
-      author: "Kai Raster",
-      color: "green",
-      text: "Export bug #214 is reproduced. Fix lands today.",
-      at: "09:20",
-      reactions: [{ label: "ship it", count: 1, mine: false }],
-    },
-    { author: "You", color: "blue", text: "I will take the docs pass once both land.", at: "09:24", reactions: [] },
-  ])
+  const channelMessages = createMutable<ChannelMsg[]>(copy(CHANNEL))
 
   const [channelDraft, setChannelDraft] = createSignal("")
 

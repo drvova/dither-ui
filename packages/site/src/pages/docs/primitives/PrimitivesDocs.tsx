@@ -43,11 +43,12 @@ const SNIPPET_DIVIDER = `<p>Charts render on canvas.</p>
   <span class="text-[12px]">Right</span>
 </div>`
 
-const SNIPPET_HIDDEN = `<DitherVisuallyHidden>
-  Extra context that only a screen reader should read.
-</DitherVisuallyHidden>
+const SNIPPET_HIDDEN = `<p>
+  Extra context that only a screen reader should read
+  <DitherVisuallyHidden>(this sentence is announced, not painted)</DitherVisuallyHidden>
+</p>
 
-<!-- focusable: the skip-link pattern — Tab reveals it -->
+<!-- focusable: the skip-link pattern, Tab reveals it -->
 <DitherVisuallyHidden focusable>Skip to content</DitherVisuallyHidden>`
 
 const SNIPPET_SVG = `<!-- decorative by default: aria-hidden -->
@@ -56,7 +57,9 @@ const SNIPPET_SVG = `<!-- decorative by default: aria-hidden -->
 </DitherSvg>
 
 <!-- labeled: promoted to role=img with a name -->
-<DitherSvg viewBox="0 0 24 24" label="Close" class="size-4">…</DitherSvg>`
+<DitherSvg viewBox="0 0 24 24" label="Plus" class="size-8">
+  <path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2.5" />
+</DitherSvg>`
 
 const SNIPPET_IMG = `<!-- loading contract built in; alt is required -->
 <DitherImg src="/sprites.webp" alt="The sprite sheet" class="h-40 w-full object-cover" />`
@@ -78,11 +81,14 @@ const SNIPPET_PORTAL = `<div class="h-24 overflow-hidden rounded-md border p-4">
 <!-- keep it in place (SSR / tests) -->
 <DitherPortal disabled>Inline.</DitherPortal>`
 
-const SNIPPET_OVERLAY = `<!-- decorative dim: clicks pass through -->
-<DitherOverlay dim="medium" />
+const SNIPPET_OVERLAY = `const open = ref(true)
 
-<!-- interactive scrim: catches presses, keeps its slot reachable -->
-<DitherOverlay dim="soft" interactive @click="open = false" />`
+<!-- an overlay covers the screen; absolute positioning keeps it to its box -->
+<div class="relative isolate grid h-40 place-items-center overflow-hidden rounded-md border">
+  <button type="button" @click="open = true">Dim this box</button>
+  <!-- decorative by default; interactive catches presses, so a press closes it -->
+  <DitherOverlay v-if="open" dim="medium" interactive class="absolute" @click="open = false" />
+</div>`
 
 const SNIPPET_MEASURE = `<DitherMeasure class="w-48" @resize="onResize">
   <div class="h-20 rounded border" />
@@ -101,9 +107,11 @@ const SNIPPET_CLIPBOARD = `<DitherClipboard value="npm i d3-scale d3-shape clsx"
   </template>
 </DitherClipboard>`
 
-const SNIPPET_CLICK_OUTSIDE = `<DitherClickOutside :enabled="open" @outside="open = false">
-  <button type="button" @click="open = !open">menu</button>
-  <div v-if="open" class="mt-2 rounded border p-2">…</div>
+const SNIPPET_CLICK_OUTSIDE = `const open = ref(false)
+
+<DitherClickOutside :enabled="open" @outside="open = false">
+  <button type="button" @click="open = !open">{{ open ? "menu open: click anywhere outside" : "open the menu" }}</button>
+  <div v-if="open" class="mt-2 rounded border p-2">Pressing outside closes this.</div>
 </DitherClickOutside>`
 
 const SNIPPET_FOCUS_RING = `<DitherFocusRing class="inline-flex gap-2 p-1">
@@ -111,7 +119,10 @@ const SNIPPET_FOCUS_RING = `<DitherFocusRing class="inline-flex gap-2 p-1">
   <button type="button">Second</button>
 </DitherFocusRing>`
 
-const SNIPPET_FOCUS_SCOPE = `<DitherFocusScope v-if="dialog" @keydown.esc="dialog = false">
+const SNIPPET_FOCUS_SCOPE = `const dialog = ref(false)
+
+<button type="button" @click="dialog = !dialog">{{ dialog ? "close (focus returns to me)" : "open a focus scope" }}</button>
+<DitherFocusScope v-if="dialog" @keydown.esc="dialog = false">
   <h2 tabindex="-1">Confirm</h2>
   <button type="button">Yes</button>
   <button type="button">No</button>
@@ -229,6 +240,7 @@ export default function PrimitivesDocs() {
     setMeasured(size.width + " × " + size.height)
   }
   const [demoMenuOpen, setDemoMenuOpen] = createSignal(false)
+  const [dimmed, setDimmed] = createSignal(true)
   const [scopeOpen, setScopeOpen] = createSignal(false)
 
   return (
@@ -422,11 +434,17 @@ export default function PrimitivesDocs() {
           aria-hidden so its children stay reachable.
         </p>
         <DemoCard code={SNIPPET_OVERLAY}>
-          <div class="grid h-40 place-items-center rounded-md border border-border/60 bg-card/40 text-center">
-            <div class="relative">
-              <span class="text-[12px] text-muted-foreground">content under the dim</span>
-              <DitherOverlay class="!fixed" dim="medium" />
-            </div>
+          <div class="relative isolate grid h-40 place-items-center overflow-hidden rounded-md border border-border/60 bg-card/40">
+            <button
+              class="rounded-md border border-border/60 px-3 py-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              type="button"
+              onClick={() => setDimmed(true)}
+            >
+              Dim this box
+            </button>
+            <Show when={dimmed()}>
+              <DitherOverlay class="absolute" dim="medium" interactive onClick={() => setDimmed(false)} />
+            </Show>
           </div>
         </DemoCard>
         <PropsTable rows={API.overlay} />

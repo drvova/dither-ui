@@ -55,7 +55,11 @@ const SNIPPET_BLOCKQUOTE = `<DitherBlockquote>
 const SNIPPET_HIGHLIGHT = `Matches are <DitherHighlight>highlighted inline</DitherHighlight>
 without breaking the reading flow.`
 
-const SNIPPET_TRUNCATE = `<DitherTruncate title="the very long file name">…</DitherTruncate>`
+const SNIPPET_TRUNCATE = `<div class="w-56">
+  <DitherTruncate title="quarterly-report-final-v3-actually-final.xlsx">
+    quarterly-report-final-v3-actually-final.xlsx
+  </DitherTruncate>
+</div>`
 
 const SNIPPET_LINE_CLAMP = `<DitherLineClamp :lines="2">
   Long body copy that stops after two lines with an ellipsis…
@@ -96,7 +100,9 @@ const SNIPPET_RELATIVE_TIME = `<DitherRelativeTime :date="Date.now() - 90_000" /
 const SNIPPET_DATE_TIME_TEXT = `<DitherDateTimeText date="2026-10-07T15:04:00Z"
   :options="{ timeZone: 'UTC', dateStyle: 'long' }" />`
 
-const SNIPPET_PLURAL_TEXT = `<DitherPluralText :count="n" v-slot="{ count }">
+const SNIPPET_PLURAL_TEXT = `const selected = ref(7)
+
+<DitherPluralText :count="selected" v-slot="{ count }">
   <b>{{ count }}</b> file{{ count === 1 ? "" : "s" }} selected
 </DitherPluralText>`
 

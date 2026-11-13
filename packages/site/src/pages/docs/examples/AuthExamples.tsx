@@ -5,43 +5,59 @@ import DemoCard from "../DemoCard"
 
 const PLANS = ["Free", "Pro", "Scale"] as const
 
-const SNIPPET_SIGNUP = `<div class="relative overflow-hidden rounded-lg border p-7">
-  <DitherGradient from="purple" direction="up" :opacity="0.16" />
-  <span>dither-ui</span>                    <!-- wordmark -->
-  <input name="signup-name" placeholder="Ada Byte" />
-  <input name="signup-email" placeholder="you@dither-ui.com" />
-  <input type="password" placeholder="••••••••" />
-  <div role="group">                        <!-- plan picker -->
-    <button v-for="p in plans" :aria-pressed="plan === p"
-      @click="plan = p">{{ p }}</button>
+const SNIPPET_SIGNUP = `const plans = ["Free", "Pro", "Scale"]
+const plan = ref("Free")
+
+<div class="relative isolate overflow-hidden rounded-lg border p-7">
+  <DitherGradient from="purple" to="transparent" direction="up" :opacity="0.16" class="-z-10" />
+  <span class="text-[12px]">dither-ui</span>
+  <p class="mt-1.5 text-[11px] text-muted-foreground">Create your workspace</p>
+  <div class="mt-5 grid gap-2.5">
+    <input name="signup-name" placeholder="Ada Byte" />
+    <input type="email" name="signup-email" placeholder="you@dither-ui.com" />
+    <input type="password" name="signup-password" placeholder="••••••••" />
+    <div role="group" aria-label="Plan" class="grid grid-cols-3 gap-1">
+      <button v-for="p in plans" :key="p" type="button" :aria-pressed="plan === p"
+        @click="plan = p">{{ p }}</button>
+    </div>
+    <DitherButton color="purple" class="w-full">Create account</DitherButton>
   </div>
-  <DitherButton color="purple" class="w-full">Create account</DitherButton>
 </div>`
 
-const SNIPPET_MAGIC = `<div class="relative overflow-hidden rounded-lg border p-7">
-  <DitherGradient from="green" direction="up" :opacity="0.14" />
-  <span>dither-ui</span>                    <!-- wordmark -->
-  <template v-if="!sent">
-    <input v-model="email" placeholder="you@dither-ui.com" />
+const SNIPPET_MAGIC = `const email = ref("")
+const sent = ref(false)
+
+<div class="relative isolate overflow-hidden rounded-lg border p-7">
+  <DitherGradient from="green" to="transparent" direction="up" :opacity="0.14" class="-z-10" />
+  <span class="text-[12px]">dither-ui</span>
+  <div v-if="!sent" class="mt-5 grid gap-2.5">
+    <input v-model="email" type="email" name="magic-email" placeholder="you@dither-ui.com" />
     <DitherButton color="green" class="w-full" @click="sent = true">
       Send magic link
     </DitherButton>
-  </template>
-  <template v-else>
-    <span>✓</span> Check your inbox — {{ email }}
-    <button @click="sent = false">use a different email</button>
-  </template>
+  </div>
+  <div v-else class="mt-5 text-center">
+    <p class="text-[12px]">Check your inbox</p>
+    <p class="mt-1 text-[11px] text-muted-foreground">We sent a link to {{ email || "your email" }}</p>
+    <button type="button" @click="sent = false">use a different email</button>
+  </div>
 </div>`
 
-const SNIPPET_TWOFACTOR = `<div class="relative overflow-hidden rounded-lg border p-7">
-  <DitherGradient from="blue" direction="up" :opacity="0.14" />
-  <span>dither-ui</span>                    <!-- wordmark -->
-  <div class="flex gap-2">                  <!-- code inputs -->
-    <input v-for="i in 6" maxlength="1" inputmode="numeric"
-      class="w-9 h-11 text-center" @input="focusNext(i)" />
+const SNIPPET_TWOFACTOR = `// a typed digit moves the focus to the next cell
+function next(e: Event) {
+  const cell = e.currentTarget as HTMLInputElement
+  if (cell.value) (cell.nextElementSibling as HTMLInputElement | null)?.focus()
+}
+
+<div class="relative isolate overflow-hidden rounded-lg border p-7">
+  <DitherGradient from="blue" to="transparent" direction="up" :opacity="0.14" class="-z-10" />
+  <span class="text-[12px]">dither-ui</span>
+  <p class="mt-1.5 text-[11px] text-muted-foreground">Enter the code from your authenticator</p>
+  <div class="mt-5 flex justify-between gap-2" role="group" aria-label="Verification code">
+    <input v-for="i in 6" :key="i" maxlength="1" inputmode="numeric" :aria-label="'Digit ' + i"
+      class="h-11 w-9 text-center" @input="next" />
   </div>
-  <DitherButton color="blue" class="w-full">Verify</DitherButton>
-  <button>resend in 24s</button>
+  <DitherButton color="blue" class="mt-3 w-full">Verify</DitherButton>
 </div>`
 
 export default function AuthExamples() {
