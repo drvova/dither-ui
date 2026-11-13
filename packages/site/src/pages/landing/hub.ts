@@ -11,7 +11,7 @@ export const FAMILIES = [
   { title: "Typography", count: 25 },
   { title: "Handbook", count: 7 },
   { title: "Examples", count: 32 },
-  { title: "Components", count: 102 },
+  { title: "Components", count: 103 },
   { title: "Backgrounds", count: 49 },
   { title: "Text", count: 24 },
   { title: "Animations", count: 50 },

@@ -3,7 +3,8 @@
 // the gate:
 //
 //   npm run walk -- --engine chromium|webkit|firefox [--out <folder>] [--root <built site>]
-//     [--jobs 4] [--only <a path as /docs/area/, or text in one; several by commas>] [--run all|family|none] [--light 3]
+//     [--jobs 4] [--only <a path as /docs/area/, or text in one; several by commas>] [--run all|family|none]
+//     [--styles tailwind,css,modules,stylex] [--light all|<n>] [--phone on|off] [--contrast on|off]
 //     [--executable <browser>] [--driver <webdriver server>]
 //
 // Chromium is `CHROME_PATH` or a standard install, through Playwright.
@@ -18,17 +19,23 @@
 // record: what it threw, what it logged as an error or a warning, what it
 // asked for and was refused, and for a docs section every demo card
 // revealed, every canvas in it painted, its Code tab's files read one by
-// one, and its example edited and Run. Sections walk in the dark theme; the
-// first `--light` of each family, and one in eight of the rest, walk again in
-// light. The Studio adds a
-// frame from the library, selects it, changes a property, undoes, redoes
-// and opens search.
+// one, and its example edited and Run in every styling system the docs'
+// switch offers (`--styles`). Sections walk in the dark theme, then again in
+// light (`--light all`; a number walks the first few of each family and one
+// in eight of the rest). The Studio adds a frame from the library, selects
+// it, changes a property, undoes, redoes and opens search. Every page in
+// both themes has the contrast of its text measured where the walk stops
+// (`--contrast`), and every page is walked once more at an iPhone's size
+// (`--phone`): what overflows the window, targets under 24px, fields under
+// 16px, text cut off, a demo spilling out of its card; the Studio there
+// shows its notice (walk-checks.mjs).
 //
 // Out: `<out>/<engine>.json` (every page's record), `<out>/<engine>.md` (the
 // summary) and `<out>/shots/<engine>/` (the sampled and the flagged pages).
 // Exit code 1 when an unexplained finding remains.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
+import { CONTRAST, measureContrast, PHONE } from "./walk-checks.mjs"
 import { coloursIn, decodePng, firefoxDriver, playwrightDriver, serve, sleep, webkitDriver } from "./walk-drivers.mjs"
 
 const args = process.argv.slice(2)
@@ -38,7 +45,7 @@ const flag = (name, fallback) => {
 }
 if (args.includes("--help")) {
   console.error(
-    "usage: npm run walk -- --engine chromium|webkit|firefox [--out <folder>] [--root <built site>] [--jobs 4] [--only <text>] [--run all|family|none] [--light 3] [--executable <browser>] [--driver <webdriver server>]",
+    "usage: npm run walk -- --engine chromium|webkit|firefox [--out <folder>] [--root <built site>] [--jobs 4] [--only <text>] [--run all|family|none] [--styles tailwind,css,modules,stylex] [--light all|<n>] [--phone on|off] [--contrast on|off] [--executable <browser>] [--driver <webdriver server>]",
   )
   process.exit(0)
 }
@@ -48,7 +55,15 @@ const out = resolve(flag("out", "walk-report"))
 const jobs = Math.max(1, Number(flag("jobs", "4")) || 4)
 const only = flag("only", "")
 const runMode = flag("run", "all")
-const lightEach = Number(flag("light", "3"))
+const lightFlag = flag("light", "all")
+const lightEach = lightFlag === "all" ? Infinity : Number(lightFlag) || 0
+const phone = flag("phone", "on") !== "off"
+const contrast = flag("contrast", "on") !== "off"
+/** The docs' styling systems each example is Run in, by the switch's labels. */
+const STYLE_LABELS = { tailwind: "Tailwind", css: "CSS", modules: "Modules", stylex: "StyleX" }
+const styles = flag("styles", Object.keys(STYLE_LABELS).join(",")).split(",").filter(Boolean)
+for (const st of styles)
+  if (!STYLE_LABELS[st]) throw new Error(`unknown styling ${st}: ${Object.keys(STYLE_LABELS).join(", ")}`)
 if (!existsSync(join(root, "og/sections.json"))) {
   console.error(`no built site at ${root}: run \`npm run build\` first`)
   process.exit(1)
@@ -119,19 +134,12 @@ function plan() {
   for (const s of sections) {
     const n = perFamily.get(s.group) ?? 0
     perFamily.set(s.group, n + 1)
-    // the first few of a family, then one in eight of the rest
-    const sample = n < lightEach || (lightEach > 0 && n % 8 === 0)
-    pages.push({
-      kind: "section",
-      path: `/docs/${s.id}/`,
-      id: s.id,
-      group: s.group,
-      theme: "dark",
-      sample,
-      first: n === 0,
-    })
-    if (sample)
-      pages.push({ kind: "section", path: `/docs/${s.id}/`, id: s.id, group: s.group, theme: "light", sample })
+    // screenshots of the first few of a family and one in eight of the rest
+    const sample = n < 3 || n % 8 === 0
+    const light = n < lightEach || (lightEach > 0 && n % 8 === 0)
+    const page = { kind: "section", path: `/docs/${s.id}/`, id: s.id, group: s.group, theme: "dark", sample }
+    pages.push({ ...page, first: n === 0 })
+    if (light) pages.push({ ...page, theme: "light" })
   }
   pages.push(
     { kind: "studio", path: "/studio/", theme: "dark" },
@@ -139,6 +147,10 @@ function plan() {
     { kind: "play", path: "/play/", theme: "dark" },
     { kind: "missing", path: MISSING, theme: "dark" },
   )
+  // every page once more at a phone's size, in the dark
+  if (phone)
+    for (const p of pages.filter((x) => x.theme === "dark"))
+      pages.push({ ...p, device: "phone", sample: p.kind === "section" ? p.first : true })
   const picked = only.split(",").filter(Boolean)
   return picked.length
     ? pages.filter((p) => picked.some((t) => (t.startsWith("/") ? p.path === t : p.path.includes(t))))
@@ -508,7 +520,7 @@ return { surface: surface ? surface.className.split(" ").find((c) => c === "play
 const shots = join(out, "shots", engine)
 mkdirSync(shots, { recursive: true })
 const slug = (page) =>
-  `${page.kind === "section" ? page.id : page.kind}${page.variant ? `-${page.variant}` : ""}-${page.theme}`
+  `${page.kind === "section" ? page.id : page.kind}${page.variant ? `-${page.variant}` : ""}-${page.theme}${page.device ? `-${page.device}` : ""}`
 
 /** The example's own words for what a run cannot do: an elision the reader
  * fills in, or something only their app has. */
@@ -600,13 +612,97 @@ async function unreadCanvases(s, ratio, where, canvases, page) {
   }
 }
 
+/** The docs' styling switch on a card's Code tab set to `arg.label`, and
+ * the example read again once the panel shows it in that system. */
+const STYLE = `
+const W = window.__walk
+const card = document.querySelectorAll("[data-demo-card]")[arg.n]
+const panel = card.querySelector(".source-panel-scope")
+const group = card.querySelector("[aria-label=Styling]")
+if (!panel || !group) return { switched: false, why: "no styling switch" }
+const key = [...group.querySelectorAll("button")].find((b) => b.textContent.trim() === arg.label)
+if (!key) return { switched: false, why: "no " + arg.label + " key" }
+const area = () => panel.querySelector("[role=tabpanel] textarea")
+const first = () => panel.querySelector(".src-tab")
+if (key.getAttribute("aria-pressed") !== "true") {
+  key.click()
+  // the panel writes the files again as the choice turns (an example without classes reads the same)
+  await W.until(() => key.getAttribute("aria-pressed") === "true", 3000)
+  await W.frames(3)
+}
+const t = first()
+if (t && t.getAttribute("aria-selected") !== "true") { t.click(); await W.frames(2) }
+const name = t ? t.dataset.path.split("/").pop() : ""
+await W.until(() => area() && area().getAttribute("aria-label") === name + " source", 4000)
+const run = panel.querySelector(".src-run")
+return { switched: key.getAttribute("aria-pressed") === "true", text: area() ? area().value : "", files: [...panel.querySelectorAll(".src-tab")].map((x) => x.dataset.path.split("/").pop()),
+  runnable: !!run && run.getAttribute("aria-disabled") !== "true" }
+`
+
+/** The Studio at a phone's size: its notice, not the editor. */
+const NOTICE = `
+const W = window.__walk
+const heading = await W.until(() => [...document.querySelectorAll("h1")].find((h) => h.getClientRects().length), 8000)
+await W.sleep(400)
+return { heading: heading ? heading.textContent.trim() : "", editor: !!document.querySelector("[data-artboard-id],aside[aria-label='Properties and layers']"),
+  keys: [...document.querySelectorAll("button,a[href]")].filter((b) => b.getClientRects().length).map((b) => (b.getAttribute("aria-label") || b.textContent).trim()).slice(0, 8) }
+`
+
 const blank = (c) => c.state === "blank" || c.state === "flat"
 
 const STEPS = new Map()
 
+/** A Run's record judged: what stops or renders nothing is a finding, named
+ * for its card and, past Tailwind, its styling system. */
+async function judgeRun(s, ready, page, n, run, text, label, issue) {
+  if (run.ran) {
+    await unreadCanvases(s, ready.ratio, { n, id: page.id }, run.canvases ?? [], ready)
+    const free = run.stopped && freeName(run.stopped, text ?? "")
+    if (free && !KIT.has(free)) {
+      run.reader = free
+      issue("run", `${label}: stops on ${free}, a name the example never declares`)
+    } else if (run.stopped) issue("run", `${label}: ${run.stopped}`)
+    else if (!run.rendered) issue("run", `${label}: the run rendered nothing`)
+    else if (!run.visible) {
+      run.unsized = true
+      issue("run", `${label}: the run rendered no visible box`)
+    }
+    for (const c of (run.canvases ?? []).filter(blank))
+      issue("run-canvas", `${label}: after Run, a ${c.state} canvas ${c.w}x${c.h} ${c.cls}`)
+    if (!run.restored) issue("run", `${label}: the demo was not restored`)
+    if (!run.edited) issue("run", `${label}: the edit never marked the file`)
+  } else if (run.timeout) issue("run", `${label}: Run never finished (${run.ms}ms)`)
+  else if (sketched(text)) {
+    run.sketch = true
+    issue("run", `${label}: does not compile for an elision it prints`)
+  } else issue("run", `${label}: ${run.problems.join(" / ")}`)
+}
+
+/** The text in the window, its contrast measured off a screenshot. */
+async function sampleContrast(s, rec, ready, issue, at) {
+  const samples = await s.run(CONTRAST, { limit: 160 })
+  if (!samples?.length) return
+  const png = decodePng(await s.shot())
+  const { measured, found } = measureContrast(png, samples, png.width / ready.w || ready.ratio)
+  rec.contrast.samples += measured
+  for (const f of found) {
+    if (rec.contrast.seen.has(f)) continue
+    rec.contrast.seen.add(f)
+    issue("contrast", `${at}: ${f}`)
+  }
+}
+
 async function walkPage(session, server, page) {
   const started = Date.now()
-  const rec = { ...page, issues: [], known: [], environment: [], outside: [], slow: [] }
+  const rec = {
+    ...page,
+    issues: [],
+    known: [],
+    environment: [],
+    outside: [],
+    slow: [],
+    contrast: { samples: 0, seen: new Set() },
+  }
   // a step that takes long is kept with its name: a stalled page explains what it then shows
   const s = {
     ...session,
@@ -621,22 +717,30 @@ async function walkPage(session, server, page) {
   }
   const issue = (kind, detail) =>
     ENVIRONMENT.some((e) => e.test(detail)) ? rec.environment.push(detail) : rec.issues.push({ kind, detail })
+  const onPhone = page.device === "phone"
   server.state.theme = page.theme
   server.refused()
   s.drain()
   let url = server.origin + page.path
-  if (page.hash) url += page.hash
+  // a hash after the same page is no navigation: the page reads its hash as it loads
+  if (page.hash) {
+    url += page.hash
+    await s.go("about:blank")
+  }
   await s.go(url)
   const ready = await s.run(READY, { settle: page.kind === "section" ? 500 : 1500 })
   Object.assign(rec, { title: ready.title, w: ready.w, h: ready.h })
+  if (onPhone && ready.w !== 390) rec.environment.push(`the phone's window is ${ready.w}px wide in this engine`)
   // the landing and the missing page are printed in the dark, always; the player takes its theme from its link
   if (
     ready.dark !== (page.theme === "dark") &&
     (page.kind === "section" || page.kind === "studio" || page.kind === "docs")
   )
     issue("theme", `asked for ${page.theme}, the page is ${ready.dark ? "dark" : "light"}`)
-  if (ready.overflow > 1) issue("overflow", `the page is ${ready.overflow}px wider than the window`)
-  const full = page.theme === "dark"
+  if (ready.overflow > 1 && !onPhone) issue("overflow", `the page is ${ready.overflow}px wider than the window`)
+  // the code and its runs are walked once, on the desktop in the dark; contrast in both themes, on the desktop
+  const full = page.theme === "dark" && !onPhone
+  const measure = contrast && !onPhone
   // what the page was refused before each Run, kept apart from what a run's own example asks for
   const held = { refused: [], failed: [], native: [] }
 
@@ -648,6 +752,7 @@ async function walkPage(session, server, page) {
       if (found.text < 40) issue("section", "the section is empty")
       rec.cards = []
       if (page.sample) writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
+      if (measure) await sampleContrast(s, rec, ready, issue, "top")
       const wells = found.cards.map((section, n) => ({ n, section })).filter((w) => w.section)
       if (found.loose) wells.push({ n: -1, section: page.id })
       for (const { n, section } of wells) {
@@ -664,6 +769,7 @@ async function walkPage(session, server, page) {
             issue("canvas", `${name}: a ${c.state} canvas ${c.w}x${c.h} (${c.rect[2]}x${c.rect[3]} css) ${c.cls}`)
         }
         if (page.sample && n === wells[0].n) writeFileSync(join(shots, `${slug(page)}-card.png`), await s.shot())
+        if (measure && n >= 0 && !card.missing) await sampleContrast(s, rec, ready, issue, `${name} in view`)
         if (n < 0 || !full || card.missing) continue
         const code = await s.run(CODE, { n })
         const example = code.files?.[0]
@@ -672,50 +778,51 @@ async function walkPage(session, server, page) {
         for (const problem of codeIssues(code)) issue("code", `${name}: ${problem}`)
         const mayRun = runMode === "all" || (runMode === "family" && page.first && n === 0)
         if (code.opened && mayRun && code.runnable) {
-          const before = [server.refused(), await s.run(RECORD_FAILED, null), s.drain()]
-          const run = await s.run(RUN, { n, settle: 350, patience: 45000 })
-          card.run = run
-          // what the example asks for and the site does not hold: its own illustrative addresses
-          const failed = await s.run(RECORD_FAILED, null)
-          for (const f of failed.filter(unplayable)) rec.environment.push(`this engine does not play ${f}`)
-          const asked = new Set([
-            ...server.refused().map((r) => r.url),
-            ...failed.filter((f) => !unplayable(f)).map((f) => f.split(" ").pop()),
-          ])
-          const during = s
-            .drain()
-            .filter(
-              (d) => !(d.kind === "response" || d.kind === "requestfailed" || /Failed to load resource/.test(d.text)),
-            )
-          // every example runs as written: an address the site does not hold is a finding
-          if (asked.size) {
-            card.run.asked = [...asked].map((u) => u.split(server.origin).join(""))
-            issue("run", `${name}: asks for ${card.run.asked.join(", ")}, which the site does not hold`)
-          }
-          held.refused.push(...before[0])
-          held.failed.push(...before[1])
-          held.native.push(...before[2], ...during)
-          if (run.ran) {
-            await unreadCanvases(s, ready.ratio, { n, id: page.id }, run.canvases ?? [], ready)
-            const free = run.stopped && freeName(run.stopped, example?.text ?? "")
-            if (free && !KIT.has(free)) {
-              card.run.reader = free
-              issue("run", `${name}: stops on ${free}, a name the example never declares`)
-            } else if (run.stopped) issue("run", `${name}: ${run.stopped}`)
-            else if (!run.rendered) issue("run", `${name}: the run rendered nothing`)
-            else if (!run.visible) {
-              card.run.unsized = true
-              issue("run", `${name}: the run rendered no visible box`)
+          card.runs = {}
+          for (const style of styles) {
+            // the example in this styling system, as the docs' switch shows it
+            let text = example?.text
+            if (style !== "tailwind") {
+              const switched = await s.run(STYLE, { n, label: STYLE_LABELS[style] })
+              if (!switched.switched) {
+                issue("run", `${name} (${STYLE_LABELS[style]}): ${switched.why || "the styling switch never turned"}`)
+                continue
+              }
+              if (!switched.runnable) {
+                issue("run", `${name} (${STYLE_LABELS[style]}): Run is offered in Tailwind and not here`)
+                continue
+              }
+              text = switched.text
             }
-            for (const c of (run.canvases ?? []).filter(blank))
-              issue("run-canvas", `${name}: after Run, a ${c.state} canvas ${c.w}x${c.h} ${c.cls}`)
-            if (!run.restored) issue("run", `${name}: the demo was not restored`)
-            if (!run.edited) issue("run", `${name}: the edit never marked the file`)
-          } else if (run.timeout) issue("run", `${name}: Run never finished (${run.ms}ms)`)
-          else if (sketched(example?.text)) {
-            card.run.sketch = true
-            issue("run", `${name}: does not compile for an elision it prints`)
-          } else issue("run", `${name}: ${run.problems.join(" / ")}`)
+            const label = style === "tailwind" ? name : `${name} (${STYLE_LABELS[style]})`
+            const before = [server.refused(), await s.run(RECORD_FAILED, null), s.drain()]
+            const run = await s.run(RUN, { n, settle: 350, patience: 45000 })
+            card.runs[style] = run
+            if (style === "tailwind") card.run = run
+            // what the example asks for and the site does not hold: its own illustrative addresses
+            const failed = await s.run(RECORD_FAILED, null)
+            for (const f of failed.filter(unplayable)) rec.environment.push(`this engine does not play ${f}`)
+            const asked = new Set([
+              ...server.refused().map((r) => r.url),
+              ...failed.filter((f) => !unplayable(f)).map((f) => f.split(" ").pop()),
+            ])
+            const during = s
+              .drain()
+              .filter(
+                (d) => !(d.kind === "response" || d.kind === "requestfailed" || /Failed to load resource/.test(d.text)),
+              )
+            // every example runs as written: an address the site does not hold is a finding
+            if (asked.size) {
+              run.asked = [...asked].map((u) => u.split(server.origin).join(""))
+              issue("run", `${label}: asks for ${run.asked.join(", ")}, which the site does not hold`)
+            }
+            held.refused.push(...before[0])
+            held.failed.push(...before[1])
+            held.native.push(...before[2], ...during)
+            await judgeRun(s, ready, page, n, run, text, label, issue)
+          }
+          // the next card's files are read as authored
+          if (styles.some((st) => st !== "tailwind")) await s.run(STYLE, { n, label: STYLE_LABELS.tailwind })
         }
         if (code.opened) await s.run(PREVIEW, { n })
       }
@@ -727,6 +834,24 @@ async function walkPage(session, server, page) {
     rec.height = read.height
     rec.canvases = read.canvases
     for (const c of read.canvases.filter(blank)) issue("canvas", `a ${c.state} canvas ${c.w}x${c.h} ${c.cls}`)
+    if (measure) {
+      // the page read where a reader stops: a window at a time, top to bottom, at rest
+      const stops = Math.min(16, Math.ceil(read.height / ready.h))
+      for (let i = 0; i < stops; i++) {
+        await s.run(
+          `scrollTo(0, ${Math.round((i * (read.height - ready.h)) / Math.max(1, stops - 1))}); await window.__walk.sleep(1100)`,
+          null,
+        )
+        await sampleContrast(s, rec, ready, issue, `window ${i + 1}`)
+      }
+      await s.run("scrollTo(0, 0)", null)
+    }
+  } else if (page.kind === "studio" && onPhone) {
+    const notice = await s.run(NOTICE, null)
+    rec.notice = notice
+    if (notice.editor) issue("studio", "at a phone's size the editor stands, not the notice")
+    if (!notice.heading) issue("studio", "at a phone's size no notice shows")
+    writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
   } else if (page.kind === "studio") {
     const studio = await s.run(STUDIO, null)
     rec.steps = studio.steps
@@ -735,6 +860,7 @@ async function walkPage(session, server, page) {
     for (const st of studio.steps.filter((x) => !x.ok))
       issue("studio", `${st.name}${st.detail ? `: ${st.detail}` : ""}`)
     for (const c of (studio.canvases ?? []).filter(blank)) issue("canvas", `a ${c.state} canvas ${c.w}x${c.h} ${c.cls}`)
+    if (measure) await sampleContrast(s, rec, ready, issue, "the Studio")
     writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
   } else if (page.kind === "play") {
     const play = await s.run(PLAY, null)
@@ -745,7 +871,23 @@ async function walkPage(session, server, page) {
     if (play.clock !== "object") issue("play", "no window.ditherClock")
     if (page.hash && !play.canvases.some((c) => c.state === "painted"))
       issue("canvas", "the played frame painted no canvas")
+    if (measure) await sampleContrast(s, rec, ready, issue, "the player")
     writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
+  }
+
+  if (onPhone) {
+    // the page at a phone's size, every card revealed above
+    const p = await s.run(PHONE, null)
+    rec.phone = p.counts
+    if (p.overflow > 1)
+      issue(
+        "phone-overflow",
+        `the page is ${p.overflow}px wider than the window${p.wide.length ? `: ${p.wide.join("; ")}` : ""}`,
+      )
+    for (const t of p.targets) issue("phone-target", `${t}, under 24px and crowded`)
+    for (const f of p.fields) issue("phone-field", `${f}: under 16px, so focusing it zooms the page`)
+    for (const c of p.clipped) issue("phone-clipped", c)
+    for (const sp of p.spills) issue("phone-spill", sp)
   }
 
   const seen = await s.run(RECORD, null)
@@ -794,6 +936,7 @@ async function walkPage(session, server, page) {
   }
   if (rec.issues.length && page.kind === "section")
     writeFileSync(join(shots, `${slug(page)}-flagged.png`), await s.shot())
+  rec.contrast = rec.contrast.samples
   rec.ms = Date.now() - started
   return rec
 }
@@ -813,7 +956,22 @@ function playPage(document) {
   }
 }
 
-for (const [name, body] of Object.entries({ READY, CARDS, CARD, CENTRE, CODE, RUN, PREVIEW, SCROLL, STUDIO, PLAY }))
+for (const [name, body] of Object.entries({
+  READY,
+  CARDS,
+  CARD,
+  CENTRE,
+  CODE,
+  RUN,
+  STYLE,
+  PREVIEW,
+  SCROLL,
+  STUDIO,
+  NOTICE,
+  PLAY,
+  PHONE,
+  CONTRAST,
+}))
   STEPS.set(body, name.toLowerCase())
 
 const driver = await openEngine()
@@ -826,9 +984,16 @@ console.error(`${engine}: ${total} pages, ${jobs} at once, from ${root}`)
 
 async function worker() {
   const server = await serve(root)
-  let s = await driver.session()
+  // one window a device, opened when a page first needs it
+  const windows = new Map()
+  const open = async (device) => {
+    if (!windows.has(device)) windows.set(device, await driver.session(device))
+    return windows.get(device)
+  }
   while (queue.length) {
     const page = queue.shift()
+    const device = page.device ?? "desktop"
+    let s = await open(device)
     let rec
     for (let attempt = 0; attempt < 2 && !rec; attempt++) {
       try {
@@ -845,7 +1010,8 @@ async function worker() {
           }
         // a session that died takes a new one
         await s.close().catch(() => {})
-        s = await driver.session()
+        windows.delete(device)
+        s = await open(device)
       }
     }
     // A page that stalled and then showed an empty canvas is walked once more:
@@ -857,12 +1023,17 @@ async function worker() {
       rec.stalled = first
     }
     records.push(rec)
-    if (page.kind === "studio" && page.theme === "dark" && rec.document) queue.push(playPage(rec.document))
+    if (page.kind === "studio" && page.theme === "dark" && rec.document) {
+      queue.push(playPage(rec.document))
+      if (phone) queue.push({ ...playPage(rec.document), device: "phone", sample: true })
+    }
     done++
     const bad = rec.issues.length ? ` ${rec.issues.length} finding(s)` : ""
-    console.error(`[${done}/${total}] ${page.path}${page.hash ? "#doc" : ""} ${page.theme} ${rec.ms ?? "?"}ms${bad}`)
+    console.error(
+      `[${done}/${total}] ${page.path}${page.hash ? "#doc" : ""} ${page.theme}${page.device ? ` ${page.device}` : ""} ${rec.ms ?? "?"}ms${bad}`,
+    )
   }
-  await s.close().catch(() => {})
+  for (const w of windows.values()) await w.close().catch(() => {})
   await server.close()
 }
 await Promise.all(Array.from({ length: Math.min(jobs, queue.length) }, worker))
@@ -871,8 +1042,9 @@ await driver.close()
 
 // ---------------------------------------------------------------- the report
 
-const order = plan().map((p) => `${p.path}|${p.theme}`)
-records.sort((a, b) => order.indexOf(`${a.path}|${a.theme}`) - order.indexOf(`${b.path}|${b.theme}`))
+const key = (p) => `${p.path}|${p.theme}|${p.device ?? ""}`
+const order = plan().map(key)
+records.sort((a, b) => order.indexOf(key(a)) - order.indexOf(key(b)))
 
 // Which registry components a docs example renders: a JSX tag in an
 // example's own file, on a page the walk read.
@@ -894,13 +1066,42 @@ for (const r of records) for (const i of r.issues) kinds[i.kind] = (kinds[i.kind
 const slow = records
   .filter((r) => r.slow?.length)
   .map((r) => `${r.path} (${r.slow.map((x) => `${x.step} ${Math.round(x.ms / 1000)}s`).join(", ")})`)
-const again = records.filter((r) => r.stalled).map((r) => `${r.path} (${r.theme})`)
-const cards = records.filter((r) => r.theme === "dark").flatMap((r) => (r.cards ?? []).filter((c) => c.n >= 0))
+const again = records.filter((r) => r.stalled).map((r) => `${r.path} (${r.theme}${r.device ? `, ${r.device}` : ""})`)
+const desk = records.filter((r) => !r.device)
+const phones = records.filter((r) => r.device === "phone")
+const cards = desk.filter((r) => r.theme === "dark").flatMap((r) => (r.cards ?? []).filter((c) => c.n >= 0))
 const runs = cards.filter((c) => c.run)
+const sum = (list, f) => list.reduce((n, r) => n + (f(r) ?? 0), 0)
+/** Each styling system's runs: how many, how many ran to a rendered result. */
+const byStyle = Object.fromEntries(
+  styles.map((st) => {
+    const these = cards.map((c) => c.runs?.[st]).filter(Boolean)
+    const clean = these.filter((r) => r.ran && !r.stopped && r.rendered && r.visible && !r.reader)
+    return [st, { runs: these.length, ran: these.filter((r) => r.ran).length, rendered: clean.length }]
+  }),
+)
 const totals = {
   pages: records.length,
-  sections: records.filter((r) => r.kind === "section" && r.theme === "dark").length,
-  light: records.filter((r) => r.kind === "section" && r.theme === "light").length,
+  sections: desk.filter((r) => r.kind === "section" && r.theme === "dark").length,
+  light: desk.filter((r) => r.kind === "section" && r.theme === "light").length,
+  phone: {
+    pages: phones.length,
+    targets: sum(phones, (r) => r.phone?.targets),
+    fields: sum(phones, (r) => r.phone?.fields),
+    boxes: sum(phones, (r) => r.phone?.boxes),
+    wells: sum(phones, (r) => r.phone?.wells),
+  },
+  contrast: {
+    dark: sum(
+      desk.filter((r) => r.theme === "dark"),
+      (r) => r.contrast,
+    ),
+    light: sum(
+      desk.filter((r) => r.theme === "light"),
+      (r) => r.contrast,
+    ),
+  },
+  styles: byStyle,
   cards: cards.length,
   canvases: records.reduce(
     (n, r) => n + (r.canvases?.length ?? 0) + (r.cards ?? []).reduce((m, c) => m + (c.canvases?.length ?? 0), 0),
@@ -912,8 +1113,16 @@ const totals = {
   ran: runs.filter((c) => c.run.ran).length,
   sketches: runs.filter((c) => c.run.sketch).length,
   readers: runs.filter((c) => c.run.reader).length,
-  unsized: records.flatMap((r) => (r.cards ?? []).filter((c) => c.run?.unsized).map(() => r.id)),
-  asked: [...new Set(runs.flatMap((c) => c.run.asked ?? []))],
+  unsized: [
+    ...new Set(
+      cards.flatMap((c) =>
+        Object.values(c.runs ?? {})
+          .filter((r) => r.unsized)
+          .map(() => c.section),
+      ),
+    ),
+  ],
+  asked: [...new Set(cards.flatMap((c) => Object.values(c.runs ?? {}).flatMap((r) => r.asked ?? [])))],
   notComponents: cards.filter((c) => c.code?.opened && !c.code.runnable).length,
   bare: [...new Set(records.filter((r) => r.bare).map((r) => r.id))],
   findings: kinds,
@@ -936,8 +1145,13 @@ writeFileSync(join(out, `${engine}.json`), JSON.stringify(report, null, 1))
 const md = [
   `# The walk in ${version}`,
   "",
-  `${totals.pages} pages in ${totals.minutes} min: ${totals.sections} docs sections in dark, ${totals.light} again in light, the landing, the docs index, the Studio, the player and a missing address.`,
+  `${totals.pages} pages in ${totals.minutes} min: ${totals.sections} docs sections in dark, ${totals.light} again in light, the landing, the docs index, the Studio, the player and a missing address; ${totals.phone.pages} of them again at a phone's size.`,
   "",
+  `- at a phone's size: ${totals.phone.targets} targets, ${totals.phone.fields} fields, ${totals.phone.boxes} boxes that hide their overflow and ${totals.phone.wells} demo wells checked`,
+  `- contrast: ${totals.contrast.dark} text runs measured in dark, ${totals.contrast.light} in light`,
+  `- Run by styling system: ${Object.entries(byStyle)
+    .map(([st, v]) => `${STYLE_LABELS[st]} ${v.rendered} of ${v.runs} rendered`)
+    .join(", ")}`,
   `- demo cards: ${totals.cards}; canvases read: ${totals.canvases}`,
   `- Code tabs opened: ${totals.codeTabs} (${totals.files} files read)`,
   `- Run: ${totals.ran} of ${totals.runs} examples compiled and ran, ${totals.ran - totals.readers} of them to a rendered result; ${totals.readers} stopped on a name the example leaves to its reader; ${totals.sketches} did not compile for an elision they print; ${totals.notComponents} are not components (a command, a module, a stylesheet)`,
@@ -962,7 +1176,7 @@ const md = [
     ? records
         .filter((r) => r.issues.length)
         .flatMap((r) => [
-          `- \`${r.path}\` (${r.theme})`,
+          `- \`${r.path}\` (${r.theme}${r.device ? `, ${r.device}` : ""})`,
           ...r.issues.map((i) => `  - ${i.kind}: ${i.detail.replace(/\s+/g, " ").slice(0, 400)}`),
         ])
     : ["None."]),

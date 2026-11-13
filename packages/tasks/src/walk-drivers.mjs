@@ -41,11 +41,12 @@ const TYPES = {
 
 /** The recorder: first script of every page. It keeps what the page throws,
  * what it logs as an error or a warning and every resource that fails to
- * load, sets the theme the walk asked for before the app reads it, and
+ * load, sets the theme the walk asked for (and the docs' styling back to
+ * Tailwind, which a walk's runs switch) before the app reads it, and
  * carries the helpers the walk's page scripts share. */
 const recorder = (theme) => `<script>(function(){
 var W=window.__walk={errors:[],logs:[],failed:[]};
-try{localStorage.setItem("dither-theme",${JSON.stringify(theme)});localStorage.setItem("dither-sounds","off")}catch(e){}
+try{localStorage.setItem("dither-theme",${JSON.stringify(theme)});localStorage.setItem("dither-sounds","off");localStorage.setItem("dither-styling","tailwind")}catch(e){}
 function text(v){try{return v&&v.stack?String(v.stack).split("\\n").slice(0,4).join(" | "):typeof v==="object"?JSON.stringify(v):String(v)}catch(e){return String(v)}}
 addEventListener("error",function(e){
   var t=e.target
@@ -260,7 +261,19 @@ export function coloursIn(png, [x, y, w, h], ratio = 1) {
 
 // ---------------------------------------------------------------- drivers
 
-const VIEW = { width: 1366, height: 900 }
+/** The windows the walk looks through: a desktop, and an iPhone (its size,
+ * touch, its user agent). */
+export const DEVICES = {
+  desktop: { width: 1366, height: 900 },
+  phone: {
+    width: 390,
+    height: 844,
+    ratio: 3,
+    touch: true,
+    agent:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1",
+  },
+}
 
 /** Chromium through Playwright. The browser's own reports (page errors, the
  * console, failed requests) are kept beside the recorder's: `drain()`. */
@@ -269,8 +282,12 @@ export async function playwrightDriver({ executablePath }) {
   const browser = await chromium.launch({ executablePath, args: ["--no-sandbox"] })
   return {
     version: `Chromium ${browser.version()}`,
-    async session() {
-      const context = await browser.newContext({ viewport: VIEW })
+    async session(device = "desktop") {
+      const d = DEVICES[device]
+      const context = await browser.newContext({
+        viewport: { width: d.width, height: d.height },
+        ...(d.touch ? { deviceScaleFactor: d.ratio, isMobile: true, hasTouch: true, userAgent: d.agent } : {}),
+      })
       const page = await context.newPage()
       let seen = []
       page.on("pageerror", (e) => seen.push({ kind: "pageerror", text: String(e.stack || e.message).slice(0, 600) }))
@@ -329,7 +346,9 @@ async function ownDisplay() {
 
 /** A browser behind a W3C WebDriver server: one driver process a session
  * (WebKitWebDriver holds one session at a time). `capabilities` names the
- * browser, told whether it has a display of its own; `command` starts the
+ * browser, told whether it has a display of its own and the device it
+ * stands for (over WebDriver a phone is its window's size and its user
+ * agent: no touch); `command` starts the
  * driver on a port. Where the machine has Xvfb each session's browser gets
  * a display of its own; elsewhere it has the one the walk was started on,
  * if any. */
@@ -337,7 +356,8 @@ export function webDriver({ name, command, capabilities }) {
   const running = []
   return {
     version: name,
-    async session() {
+    async session(device = "desktop") {
+      const view = DEVICES[device]
       const port = await freePort()
       const [bin, ...args] = command(port)
       const screen = XVFB ? await ownDisplay() : null
@@ -366,7 +386,7 @@ export function webDriver({ name, command, capabilities }) {
       let started = null
       for (let i = 0; i < 100 && !started; i++) {
         try {
-          started = await call("POST", "/session", { capabilities: { alwaysMatch: capabilities(!!screen) } })
+          started = await call("POST", "/session", { capabilities: { alwaysMatch: capabilities(!!screen, view) } })
         } catch (e) {
           if (!/fetch failed|ECONNREFUSED/.test(String(e) + String(e.cause))) throw e
           await sleep(100)
@@ -376,7 +396,7 @@ export function webDriver({ name, command, capabilities }) {
       const id = started.sessionId
       const caps = started.capabilities ?? {}
       this.version = `${caps.browserName ?? name} ${caps.browserVersion ?? ""}`.trim()
-      await call("POST", `/session/${id}/window/rect`, { width: VIEW.width, height: VIEW.height + 100 })
+      await call("POST", `/session/${id}/window/rect`, { width: view.width, height: view.height + 100 })
       await call("POST", `/session/${id}/timeouts`, { script: 120000, pageLoad: 120000 })
       return {
         go: (url) => call("POST", `/session/${id}/url`, { url }),
@@ -416,9 +436,12 @@ export function webkitDriver({ driver = "/usr/bin/WebKitWebDriver", binary } = {
   return webDriver({
     name: "WebKitGTK",
     command: (port) => [driver, `--port=${port}`],
-    capabilities: () => ({
+    capabilities: (screen, view) => ({
       browserName: "MiniBrowser",
-      "webkitgtk:browserOptions": { binary: mini, args: ["--automation"] },
+      "webkitgtk:browserOptions": {
+        binary: mini,
+        args: ["--automation", ...(view.agent ? [`--user-agent=${view.agent}`] : [])],
+      },
     }),
   })
 }
@@ -429,11 +452,12 @@ export function firefoxDriver({ driver = "geckodriver", binary } = {}) {
     command: (port) => [driver, "--port", String(port), "--log", "fatal"],
     // Headless Firefox has no GL on a machine without a GPU; on a display
     // Mesa gives it one, so it runs headless only where there is none.
-    capabilities: (screen) => ({
+    capabilities: (screen, view) => ({
       browserName: "firefox",
       "moz:firefoxOptions": {
         ...(binary ? { binary } : {}),
         args: screen || process.env.DISPLAY ? [] : ["-headless"],
+        ...(view.agent ? { prefs: { "general.useragent.override": view.agent } } : {}),
       },
     }),
   })

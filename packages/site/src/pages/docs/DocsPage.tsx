@@ -1063,7 +1063,7 @@ export default function DocsPage(props: DocsPageProps) {
                     <li>
                       <a
                         href={docsUrl(SECTION_IDS[0] ?? "")}
-                        class="-my-1 py-1 transition-colors hover:text-foreground"
+                        class="-my-1 inline-flex min-h-6 items-center transition-colors hover:text-foreground"
                         onClick={to(SECTION_IDS[0] ?? "")}
                       >
                         Docs
@@ -1073,7 +1073,7 @@ export default function DocsPage(props: DocsPageProps) {
                     <li>
                       <a
                         href={docsUrl(group().items[0]?.id ?? "")}
-                        class="-my-1 py-1 transition-colors hover:text-foreground"
+                        class="-my-1 inline-flex min-h-6 items-center transition-colors hover:text-foreground"
                         aria-current={group().items[0]?.id === shown() ? "page" : undefined}
                         onClick={(e) => to(group().items[0]?.id ?? "")(e)}
                       >
@@ -1604,11 +1604,12 @@ export default function DocsPage(props: DocsPageProps) {
                       Sign in
                     </DitherButton>
                   </div>
-                  <p class="mt-4 text-center text-[10px] text-muted-foreground">
+                  {/* the card's foot, where the wash is densest: the full ink */}
+                  <p class="mt-4 text-center text-[10px] text-foreground">
                     No account?{" "}
                     <a
                       href="#/docs/signin"
-                      class="text-foreground/80 underline decoration-border underline-offset-2"
+                      class="underline decoration-border underline-offset-2"
                       onClick={(e) => e.preventDefault()}
                     >
                       Request access
@@ -2121,7 +2122,7 @@ export default function DocsPage(props: DocsPageProps) {
             {/* Layout: shell, rail, console, canvas, grid */}
             <Pack name="LayoutDocs" />
 
-            {/* Media & data: video player, bracket, schedule */}
+            {/* Media & data: thumbnail, video player, bracket, schedule */}
             <Pack name="MediaDocs" />
 
             {/* Fields & forms */}

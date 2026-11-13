@@ -31,7 +31,7 @@ const CHART = {
 }
 
 const CHIP = "rounded border px-2 py-1 text-[11px]"
-const PICKED = "border-accent bg-accent/80 text-accent-foreground"
+const PICKED = "border-accent bg-accent text-accent-foreground"
 const UNPICKED = "border-border/60 text-muted-foreground hover:bg-accent/40"
 
 const SNIPPET = `${dataCode("rows", ROWS)}

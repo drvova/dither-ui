@@ -281,7 +281,9 @@ in the page's folder.
   blue chart; blue or grey); the shader (6, flush;
   the kit's seeded sample, mono blue, a palette ramp or its own colours,
   "New shader" the next seed) and the decrypted text (6, a line that says
-  what it does, never a second slogan); the styling card
+  what it does, never a second slogan; its lines never wrap, so their
+  size follows the card, a size container, and the longest fits from a
+  320px phone's rail up: `tests/landing-fit.spec.ts`); the styling card
   (8, flush, `ExportScene.tsx`: one snippet, an Invoices card, rendered
   live beside its code in the picked system through `restyle`, StyleX
   first; its code wraps inside its panel, never cut mid-token, each line
@@ -862,7 +864,7 @@ in the page's folder.
   entry and reads from the top; back and forward walk them (`popstate`).
   The sidebar, search, the sheet and the pager all open through it. Over
   the section a breadcrumb (the docs, then its group, linking to the
-  group's first section); under it the pager, the sections either side
+  group's first section; each link a 24px target); under it the pager, the sections either side
   in the sidebar's order, each with its group. The section's title is the
   page's headline (1.5rem in the display face) and its lede reads at 14px.
   The sidebar's groups fold (`aria-expanded` keys with a turning chevron;
@@ -992,7 +994,10 @@ in the page's folder.
 - Section packs live in subfolders as self-contained components (sections +
   snippets + local state) with a sibling `*-nav.ts` exporting nav items;
   DocsPage imports both and spreads the nav into the right group.
-  `docs/examples/` = Examples packs, `docs/components/` = component-doc
+  `docs/examples/` = Examples packs (the sidebar pack's app windows,
+  `AppFrame`, keep a desktop's width and scroll in their card on a phone,
+  as the bracket does, rather than crush the page beside the sidebar),
+  `docs/components/` = component-doc
   packs (form/feedback/structure), `docs/backgrounds/` = the full-bleed
   generative canvas surfaces (aurora, faulty-terminal, ferrofluid, ...),
   `docs/text/` = DOM/CSS text animations (gradient/shiny/glitch/split/...),
@@ -1381,7 +1386,10 @@ in the page's folder.
 - The player: ONE Studio frame rendered by the Studio's own renderers
   (`ChartRenderer`, `WidgetRenderer`) at its frame size with no editor
   around it — the page an exported HyperFrames composition carries and the
-  page the Studio opens for a live preview. `source.ts` reads the document
+  page the Studio opens for a live preview. A window narrower than the
+  frame (a preview link opened on a phone) shows it scaled down to fit
+  (`fitScale`, never up), laid out and painted at its own size; a
+  composition's window is the frame, so there it stands at 1. `source.ts` reads the document
   from the composition's embedded `#dither-document` JSON (with
   `data-artboard` / `data-theme` on `#dither-stage`) or else from the hash
   `#doc=<base64url document>&artboard=<id>&theme=<dark|light>`; documents

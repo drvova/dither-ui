@@ -15,7 +15,8 @@
   transform: translateY(-50%);
   z-index: 1;
   font-size: 12px;
-  color: var(--color-muted-foreground, #8a8a99);
+  /* the full ink: the probe sweeps under it in the accent */
+  color: var(--color-foreground);
   pointer-events: none;
 }
 .animations-docs-scope .timing-probe {
@@ -130,7 +131,7 @@
   color: var(--color-muted-foreground, #8a8a99);
 }
 .animations-docs-scope .cq-bucket {
-  color: #3f8ff3;
+  color: var(--swatch-blue);
   font-weight: 600;
 }
 .animations-docs-scope .cq-grid {

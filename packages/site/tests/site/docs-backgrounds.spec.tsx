@@ -148,7 +148,7 @@ describe("PosterSection", () => {
     fireEvent.click(kinds.find((b) => b.textContent?.trim() === "dot")!)
     expect(pressed(section)).toEqual(["dot"])
     expect(kinds.find((b) => b.textContent?.trim() === "dot")!.className).toBe(
-      "rounded border px-2 py-1 text-[11px] border-accent bg-accent/80 text-accent-foreground",
+      "rounded border px-2 py-1 text-[11px] border-accent bg-accent text-accent-foreground",
     )
     expect(kinds[0].className).toBe(
       "rounded border px-2 py-1 text-[11px] border-border/60 text-muted-foreground hover:bg-accent/40",

@@ -1109,7 +1109,8 @@ export default function BackgroundsDocs() {
           finger scrolls instead, nothing prints under reduced motion, and it paints only while something is cooling.
         </p>
         <DemoCard code={trailCode()}>
-          <div class="relative grid h-64 place-items-center overflow-hidden rounded-md border border-border/60 bg-black">
+          {/* a black stage in both themes: its words take the dark theme's inks */}
+          <div class="dark relative grid h-64 place-items-center overflow-hidden rounded-md border border-border/60 bg-black">
             <DitherHeatTrail class="absolute inset-0" cool={TRAIL_COOLS[trail.cool]} size={TRAIL_SIZES[trail.size]} />
             <p class="relative text-[13px] text-muted-foreground">Move a mouse or a pen across here</p>
           </div>

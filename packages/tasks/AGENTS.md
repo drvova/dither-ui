@@ -31,14 +31,45 @@ by the site's post-build. Paths here are from this package's root.
   A page's record: what it threw, logged or was refused; in a docs section
   every demo card revealed and every canvas painted (a blank one is given
   a pointer first), each Code tab's files read, each example edited and
-  Run (every example runs as written: one that stops on a name it never
-  declares, prints an elision, asks for an address the site does not
-  hold or renders no visible box is a finding); in the Studio a frame added, selected, changed, undone, redone and
-  search opened. It lists the registry's components no docs example
-  renders. Out: `<out>/<engine>.json`, `<engine>.md` and `shots/<engine>/`.
+  Run in every styling system the docs' switch offers (`--styles`, all
+  four by default: every example runs as written in each; one that stops
+  on a name it never declares, prints an elision, asks for an address the
+  site does not hold or renders no visible box is a finding); in the
+  Studio a frame added, selected, changed, undone, redone and search
+  opened. Every section walks again in light (`--light all`, or a number
+  for the first few of each family and one in eight of the rest). It
+  lists the registry's components no docs example renders. Flags:
+  `--jobs`, `--only`, `--run`, `--styles`, `--light`, `--phone`,
+  `--contrast`. Out: `<out>/<engine>.json`, `<engine>.md` and
+  `shots/<engine>/`.
+- `src/walk-checks.mjs`: the walk's audits of what a reader sees. `PHONE`
+  (`--phone on`: every page again in the dark at an iPhone's size, 390x844,
+  touch and its user agent in Chromium, the window's size and the agent
+  over WebDriver), with the site's iOS rules (those under `@supports
+  (-webkit-touch-callout: none)`) applied as an iPhone applies them: the
+  page wider than the window, targets under 24px that a 24px circle on
+  each finds crowded (WCAG 2.5.8; a link in a sentence and a native box
+  hit through its label are exempt), fields under 16px, a run of text
+  partly cut by a box that hides its overflow (unless it ellipsizes,
+  clamps, moves or stands on a moved stage such as a panned canvas), a
+  demo spilling out of its card's well; the Studio there shows its
+  notice, not the editor. `CONTRAST` (`--contrast on`,
+  both themes, the desktop): the text in the window where the walk stops
+  (a section's top and each card in view; the long pages a window at a
+  time), each element's ink read from its style and its ground measured
+  off a screenshot (`measureContrast`: the pixels under its text less the
+  glyphs' own, read as their mean in linear light, so an ordered-dither
+  fill counts as the raster it is, as the kit inks its labels for it),
+  held to 4.5:1, 3:1 for large text; text in motion (an animation, or an
+  opacity a script changes while it is read), disabled, hidden from
+  assistive technology, covered (by an element, or by a cover that lets
+  the pointer through) or drawn through transparent glyphs is not
+  sampled.
 - `src/walk-drivers.mjs`: what the walk stands on: the static server (a
-  recorder first in every page's head, the theme set before the app reads
-  it), the one driver shape (`go`, `run`, `shot`, `drain`, `close`) over
+  recorder first in every page's head, the theme set and the docs' styling
+  put back to Tailwind before the app reads them), the devices it looks
+  through (`DEVICES`: the desktop and the phone; a session opens on one),
+  the one driver shape (`go`, `run`, `shot`, `drain`, `close`) over
   Playwright for Chromium and plain W3C WebDriver for WebKit
   (`WebKitWebDriver` + `MiniBrowser`) and
   Firefox (`geckodriver`), each window on an Xvfb display of its own where

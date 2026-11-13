@@ -397,6 +397,17 @@ describe("TableExamples", () => {
 describe("SidebarExamples", () => {
   const current = (root: Element) => texts(root, 'button[aria-current="true"]')
 
+  it("keeps each app window at a desktop's width, the card scrolling to it on a phone", () => {
+    // a phone's walk found the page beside a 224px sidebar crushed and its words cut
+    const { container } = shown(SidebarExamples)
+    const windows = [...container.querySelectorAll<HTMLElement>(".demo-well .flex.h-96.max-w-2xl")]
+    expect(windows.length).toBeGreaterThanOrEqual(9)
+    for (const w of windows) {
+      expect(w.classList.contains("min-w-[36rem]")).toBe(true)
+      expect(w.parentElement!.classList.contains("overflow-x-auto")).toBe(true)
+    }
+  })
+
   it("folds the dashboard to its rail from the topbar and echoes the picked row", () => {
     const { container } = shown(SidebarExamples)
     const card = well(container, "sidebar-dashboard")

@@ -1,8 +1,12 @@
 .play-page-scope {
+  &.play-fit {
+    overflow: hidden;
+  }
   &.play-surface {
     position: relative;
     overflow: hidden;
     box-sizing: border-box;
+    transform-origin: 0 0;
   }
   &.play-empty {
     margin: 0;

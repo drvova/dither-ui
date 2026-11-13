@@ -93,7 +93,7 @@ describe("the Animations pack", () => {
     expect(button("dither-reveal", "Dissolve").getAttribute("aria-pressed")).toBe("true")
     fireEvent.click(button("dither-reveal", "Iris"))
     expect(button("dither-reveal", "Iris").getAttribute("aria-pressed")).toBe("true")
-    expect(button("dither-reveal", "Iris").className).toContain("border-accent bg-accent/80")
+    expect(button("dither-reveal", "Iris").className).toContain("border-accent bg-accent text-accent-foreground")
     expect(button("dither-reveal", "Dissolve").getAttribute("aria-pressed")).toBe("false")
     expect(button("dither-reveal", "Dissolve").className).toContain("border-border/60")
     expect(button("dither-reveal", "Replay")).toBeTruthy()

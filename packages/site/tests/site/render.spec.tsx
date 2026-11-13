@@ -15,7 +15,7 @@ import { handoff } from "../../src/features/agent/handoff"
 import { listenerOf } from "../../src/entities/widget/model/model"
 import { documentSnapshot } from "../../src/features/persistence"
 import { mountPlayer } from "../../src/pages/play/main"
-import PlayPage from "../../src/pages/play/PlayPage"
+import PlayPage, { fitScale } from "../../src/pages/play/PlayPage"
 import { readPlaySource } from "../../src/pages/play/source"
 import { toBase64Url } from "../../src/shared/lib"
 import Artboard from "../../src/widgets/canvas/Artboard"
@@ -572,6 +572,30 @@ describe("the player", () => {
     expect(none.container.querySelector(".play-empty")?.textContent).toBe(
       "No frame to play. Open this page from the Studio's video export.",
     )
+  })
+
+  it("fits a frame wider than the window into it, laid out and painted at its own size", () => {
+    expect([fitScale(520, 390), fitScale(520, 1366), fitScale(520, 520), fitScale(520, 0)]).toEqual([0.75, 1, 1, 1])
+    const a = frame("button")
+    const doc = JSON.parse(JSON.stringify(documentSnapshot()))
+    const root = document.documentElement
+    const narrow = Object.defineProperty(root, "clientWidth", { configurable: true, get: () => a.w / 2 })
+    try {
+      const { container } = render(() => <PlayPage source={{ document: doc, artboardId: a.id, theme: "dark" }} />)
+      const surface = container.querySelector<HTMLElement>(".play-surface")!
+      expect([surface.style.width, surface.style.height, surface.style.transform]).toEqual([
+        `${a.w}px`,
+        `${a.h}px`,
+        "scale(0.5)",
+      ])
+      const fit = surface.parentElement!
+      expect([fit.style.width, fit.style.height]).toEqual([`${a.w / 2}px`, `${a.h / 2}px`])
+    } finally {
+      delete (narrow as { clientWidth?: number }).clientWidth
+    }
+    // a window as wide as the frame (a composition's) shows it as it is
+    const wide = render(() => <PlayPage source={{ document: doc, artboardId: a.id, theme: "dark" }} />)
+    expect(wide.container.querySelector<HTMLElement>(".play-surface")!.style.transform).toBe("")
   })
 
   it("cuts a reel between the frames of its own document, never the editor's", () => {

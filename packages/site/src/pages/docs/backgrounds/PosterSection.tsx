@@ -4,7 +4,7 @@ import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 
 const CHIP = "rounded border px-2 py-1 text-[11px]"
-const PICKED = "border-accent bg-accent/80 text-accent-foreground"
+const PICKED = "border-accent bg-accent text-accent-foreground"
 const UNPICKED = "border-border/60 text-muted-foreground hover:bg-accent/40"
 
 const SNIPPET = `<DitherPoster :seed="7" :inks="['blue', 'orange', '#101214']" class="h-96" />

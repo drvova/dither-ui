@@ -3,7 +3,7 @@
 // the control edge and the focus ring at 3:1 (WCAG 1.4.11). The light
 // theme's bone shells, smoke and pressed fills once took the muted ink, a
 // field's hairline and the pressed ring under their floors.
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync, statSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
 import { contrast, over, parseColor, type RGBA } from "@/shared/lib/inspect/color"
 import { BAND_FLOOR, BAND_INK } from "../src/widgets/site-header/menu"
@@ -123,6 +123,43 @@ describe("theme contrast", () => {
       expect(contrast(ink, page)).toBeLessThan(contrast(colour(t["muted-foreground"]), page))
       expect(contrast(ink, page)).toBeLessThan(5)
     })
+
+  // A picked chip on the accent: its foreground on the full accent, never a
+  // fade of it (white on the light accent at 80% measured 3.86:1 in a walk).
+  it("the accent's foreground stands on the full accent, at 4.5:1 in both themes", () => {
+    for (const t of [LIGHT, DARK])
+      expect(contrast(colour(resolve(t, t["accent-foreground"])), colour(resolve(t, t.accent)))).toBeGreaterThanOrEqual(
+        4.5,
+      )
+    const files = (dir: string): string[] =>
+      readdirSync(dir).flatMap((f) => {
+        const path = `${dir}/${f}`
+        return statSync(path).isDirectory() ? files(path) : /\.tsx?$/.test(f) ? [path] : []
+      })
+    const faded = files(`${root}packages/site/src`).flatMap((f) =>
+      [...readFileSync(f, "utf8").matchAll(/"[^"\n]*text-accent-foreground[^"\n]*"/g)]
+        .filter((m) => /\bbg-accent\/\d+/.test(m[0]))
+        .map((m) => `${f.slice(root.length)}: ${m[0]}`),
+    )
+    expect(faded).toEqual([])
+  })
+
+  // Words the docs' demos print over what moves or what stays dark (a walk
+  // measured each under 4.5:1 in light): the step timing's names over its
+  // sweeping probe take the full ink, the container query's bucket the blue
+  // swatch (each theme's own), the heat trail's black stage the dark inks.
+  it("the docs' demos print their words in inks that hold on their grounds", () => {
+    const animations = readFileSync(`${root}packages/site/src/pages/docs/animations/AnimationsDocs.css`, "utf8")
+    const rule = (selector: string) => animations.slice(animations.indexOf(`${selector} {`)).split("}")[0]
+    expect(rule(".animations-docs-scope .timing-tag")).toMatch(/color: var\(--color-foreground\);/)
+    expect(rule(".animations-docs-scope .cq-bucket")).toMatch(/color: var\(--swatch-blue\);/)
+    for (const t of [LIGHT, DARK])
+      expect(contrast(colour(resolve(t, t["swatch-blue"])), colour(t.background))).toBeGreaterThanOrEqual(4.5)
+    const backgrounds = readFileSync(`${root}packages/site/src/pages/docs/backgrounds/BackgroundsDocs.tsx`, "utf8")
+    expect(backgrounds).toMatch(/<div class="dark [^"]*bg-black">\s*<DitherHeatTrail/)
+    const dark = colour(resolve(DARK, DARK["muted-foreground"]))
+    expect(contrast(dark, colour("#000000"))).toBeGreaterThanOrEqual(4.5)
+  })
 
   it("the pressed ring is the control edge", () => {
     const rule = site.match(/\.ring-on \{([^}]*)\}/)?.[1] ?? ""

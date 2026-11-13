@@ -1,6 +1,8 @@
 // The kit's dialogs, palette, dials, text and small widgets: each renders
 // what it is given, reports through its callbacks, keeps its keyboard
 // paths, and lets go of what it listened to when it leaves.
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -25,7 +27,7 @@ import RotatingText from "../../src/solid/RotatingText"
 import StarBorder from "../../src/solid/StarBorder"
 import Thumbnail from "../../src/solid/Thumbnail"
 import VisuallyHidden from "../../src/solid/VisuallyHidden"
-import WalletCard from "../../src/solid/WalletCard"
+import WalletCard, { CHANGE_TINT } from "../../src/solid/WalletCard"
 import { world } from "../support/world"
 
 let w: ReturnType<typeof world>
@@ -598,6 +600,26 @@ describe("DitherVisuallyHidden", () => {
 })
 
 describe("DitherWalletCard", () => {
+  it("prints its change at 4.5:1 on the pill its own colour tints, in the light theme", () => {
+    // a browser walk measured the green change at 4.35:1 over a 15% tint
+    const css = readFileSync(join(process.cwd(), "src/engine/theme.css"), "utf8")
+    const light = css.slice(0, css.indexOf("\n.dark {"))
+    const hex = (h: string) => h.match(/../g)!.map((v) => parseInt(v, 16))
+    const swatch = (hue: string) =>
+      /--swatch-[a-z]+: rgb\((\d+), (\d+), (\d+)\)/.exec(light.slice(light.indexOf(`--swatch-${hue}:`)))!
+    const lum = (c: number[]) =>
+      c
+        .map((v) => v / 255)
+        .map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+        .reduce((n, v, i) => n + v * [0.2126, 0.7152, 0.0722][i], 0)
+    const card = hex(/--card: #([0-9a-f]{6})/.exec(light)![1])
+    for (const hue of ["green", "red"]) {
+      const ink = swatch(hue).slice(1).map(Number)
+      const ground = card.map((v, i) => v * (1 - CHANGE_TINT) + ink[i] * CHANGE_TINT)
+      expect((lum(ground) + 0.05) / (lum(ink) + 0.05), hue).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
   const ACCOUNTS = [
     { value: "main", label: "Main", address: "0x1234567890abcdef", balance: 1234.5, change: 2.25 },
     { value: "cold", label: "Cold", address: "0xshort", balance: 10, change: -1 },

@@ -138,7 +138,8 @@ the Solid-bound modules beside what is framework free (see
   (`DitherSwitch.tsx`), tokens edited (`theme.css`), CSS, CSS Modules and
   StyleX runs, the zip (`unzip -t`), copy;
   `/docs/area` — `Area.tsx` edited and the chart drawn; a 390px phone and
-  light theme. `npm run walk` Runs every example and counts what stops.
+  light theme. `npm run walk` Runs every example in every styling
+  system and counts what stops.
 
 ## Child DOX Index
 

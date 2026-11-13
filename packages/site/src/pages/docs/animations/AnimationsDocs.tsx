@@ -1329,7 +1329,7 @@ const last = ref("none")
                     type="button"
                     class={`rounded border px-2 py-1 text-[11px] ${
                       revealDirection() === opt[0]
-                        ? "border-accent bg-accent/80 text-accent-foreground"
+                        ? "border-accent bg-accent text-accent-foreground"
                         : "border-border/60 text-muted-foreground hover:bg-accent/40"
                     }`}
                     aria-pressed={revealDirection() === opt[0]}
@@ -1811,7 +1811,7 @@ const last = ref("none")
                 <button
                   class={`rounded border px-2 py-1 text-[11px] ${
                     seqFrom() === opt
-                      ? "border-accent bg-accent/80 text-accent-foreground"
+                      ? "border-accent bg-accent text-accent-foreground"
                       : "border-border/60 text-muted-foreground hover:bg-accent/40"
                   }`}
                   aria-pressed={seqFrom() === opt}
@@ -1824,7 +1824,7 @@ const last = ref("none")
             <button
               class={`rounded border px-2 py-1 text-[11px] ${
                 seqQuant()
-                  ? "border-accent bg-accent/80 text-accent-foreground"
+                  ? "border-accent bg-accent text-accent-foreground"
                   : "border-border/60 text-muted-foreground hover:bg-accent/40"
               }`}
               aria-pressed={seqQuant()}

@@ -167,7 +167,7 @@ const styles = stylex.create({
     paddingBlock: "0.125rem",
     fontSize: "10px",
   },
-  layer2: { position: "absolute", inset: "0px", opacity: "15%" },
+  layer2: { position: "absolute", inset: "0px" },
   row10: { position: "relative", display: "flex", alignItems: "center", gap: "0.25rem" },
   text9: {
     width: "0.25rem",
@@ -350,6 +350,11 @@ const styles = stylex.create({
     transitionDuration: "150ms",
   },
 })
+
+/** The change pill's ground: its own colour at this share over the card,
+ * light enough that the change, printed in that colour, reads at 4.5:1 in
+ * the light theme's deeper swatches. */
+export const CHANGE_TINT = 0.1
 
 export type WalletAccount = {
   value: string
@@ -654,7 +659,11 @@ export default function WalletCard(raw: WalletCardProps) {
             when={hidden()}
             fallback={
               <span {...stylex.props(styles.frame)} style={{ color: changeColor() }}>
-                <span aria-hidden="true" {...stylex.props(styles.layer2)} style={{ background: changeColor() }} />
+                <span
+                  aria-hidden="true"
+                  {...stylex.props(styles.layer2)}
+                  style={{ background: changeColor(), opacity: CHANGE_TINT }}
+                />
                 <span {...stylex.props(styles.row10)}>
                   <span aria-hidden="true" {...stylex.props(styles.text9)} style={{ background: changeColor() }} />
                   {change() < 0 ? "▼" : "▲"} {Math.abs(change()).toFixed(1)}%

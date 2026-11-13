@@ -264,8 +264,9 @@ export default function AuthExamples() {
                 Verify
               </DitherButton>
             </div>
+            {/* the card's foot, where the wash is densest: the full ink */}
             <p class="mt-4 text-center">
-              <button class="text-[10px] text-muted-foreground transition-colors hover:text-foreground" type="button">
+              <button class="text-[10px] text-foreground underline-offset-2 hover:underline" type="button">
                 resend in 24s
               </button>
             </p>

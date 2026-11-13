@@ -390,8 +390,9 @@ Default section order:
   a composition to PNGs/MP4 in Chromium, WebKit or Firefox without CDP, and
   `npm run walk -- --engine chromium|webkit|firefox` walks every page of a
   built site in one engine (every docs section's cards, canvases, Code tab
-  and Run, the Studio's paths, the player), by hand, outside the gate
-  (`packages/tasks/AGENTS.md`).
+  and Run in each styling system, in both themes, the Studio's paths, the
+  player; the contrast of the text as painted; every page again at an
+  iPhone's size), by hand, outside the gate (`packages/tasks/AGENTS.md`).
 - Motion in container units: `@dither-ui/kit/engine/keyframes.ts` (lengths as unit
   terms, interpolated with their units kept, resolved to px against a box)
   drives `DitherStage` (a size query container with one kit-clock) and

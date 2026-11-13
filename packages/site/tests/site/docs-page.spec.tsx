@@ -431,6 +431,8 @@ describe("the docs' page", () => {
       ["Docs", docsUrl(SECTION_IDS[0])],
       ["Components", docsUrl("area")],
     ])
+    // two links a slash apart: each a 24px target (WCAG 2.5.8), which a phone's walk measured at 22px as inline text
+    for (const a of crumbs) expect([...a.classList]).toEqual(expect.arrayContaining(["inline-flex", "min-h-6"]))
     // the search: Ctrl K opens the palette, a pick opens the section
     fireEvent.keyDown(window, { key: "k", ctrlKey: true })
     await settle(1)

@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For, Show } from "solid-js"
+import { createMemo, createSignal, For, type JSX, Show } from "solid-js"
 import { createMutable } from "solid-js/store"
 import {
   DitherAvatar,
@@ -468,6 +468,22 @@ const active = ref("Charts")
   <main class="flex-1 p-4 text-[11px]">{{ active }}</main>
 </div>`
 
+/** An app's window at a desktop's width: a sidebar beside its page needs
+ * the room. Centred while the card holds it; on a phone the card scrolls
+ * to it, as the bracket does, rather than crushing the page beside the
+ * sidebar. */
+function AppFrame(props: { class?: string; children: JSX.Element }) {
+  return (
+    <div class="overflow-x-auto">
+      <div
+        class={`mx-auto flex h-96 min-w-[36rem] max-w-2xl overflow-hidden rounded-lg border border-border/60 ${props.class ?? ""}`}
+      >
+        {props.children}
+      </div>
+    </div>
+  )
+}
+
 export default function SidebarExamples() {
   /* Basic dashboard */
   const [dashCollapsed, setDashCollapsed] = createSignal(false)
@@ -603,7 +619,7 @@ export default function SidebarExamples() {
           and a breadcrumb topbar whose toggle owns the icon rail.
         </p>
         <DemoCard code={SNIPPET_DASHBOARD}>
-          <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
+          <AppFrame>
             <DitherSidebar
               modelValue={dashCollapsed()}
               onUpdateModelValue={setDashCollapsed}
@@ -707,7 +723,7 @@ export default function SidebarExamples() {
               </div>
               <div class="mx-4 mb-4 flex-1 rounded-md border border-dashed border-border/60" aria-hidden="true" />
             </main>
-          </div>
+          </AppFrame>
         </DemoCard>
       </section>
       {/* Admin with profile */}
@@ -718,7 +734,7 @@ export default function SidebarExamples() {
           the footer. The topbar hamburger hides the whole panel; the red badge keeps triage loud.
         </p>
         <DemoCard code={SNIPPET_ADMIN}>
-          <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
+          <AppFrame class="bg-card/20">
             <DitherSidebar
               modelValue={adminHidden()}
               onUpdateModelValue={setAdminHidden}
@@ -829,7 +845,7 @@ export default function SidebarExamples() {
                 </For>
               </div>
             </main>
-          </div>
+          </AppFrame>
         </DemoCard>
       </section>
       {/* E-commerce filters */}
@@ -840,7 +856,7 @@ export default function SidebarExamples() {
           range, and apply/reset pinned to the footer. The topbar echoes the live filter count.
         </p>
         <DemoCard code={SNIPPET_FILTERS}>
-          <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
+          <AppFrame>
             <DitherSidebar
               class="w-60 border-r border-border/60"
               label="Product filters"
@@ -948,7 +964,7 @@ export default function SidebarExamples() {
                 </For>
               </div>
             </main>
-          </div>
+          </AppFrame>
         </DemoCard>
       </section>
       {/* Documentation nav */}
@@ -959,7 +975,7 @@ export default function SidebarExamples() {
           and a help card in the footer. Compact rows, no icon rail: a docs tree needs its labels.
         </p>
         <DemoCard code={SNIPPET_DOCS}>
-          <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
+          <AppFrame class="bg-card/20">
             <DitherSidebar
               class="w-60 border-r border-border/60"
               label="Docs nav"
@@ -1030,7 +1046,7 @@ export default function SidebarExamples() {
                 <div class="h-2 w-5/6 rounded-sm bg-border/50" />
               </div>
             </main>
-          </div>
+          </AppFrame>
         </DemoCard>
       </section>
       {/* Dual layout */}
@@ -1041,7 +1057,7 @@ export default function SidebarExamples() {
           Sidebar pinned to its rail state; the panel is a plain inset Sidebar beside it.
         </p>
         <DemoCard code={SNIPPET_DUAL}>
-          <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
+          <AppFrame>
             <DitherSidebar
               class="border-r-0"
               label="Context rail"
@@ -1095,7 +1111,7 @@ export default function SidebarExamples() {
                 <div class="mt-1 text-[13px] text-foreground">{dualActive()}</div>
               </div>
             </main>
-          </div>
+          </AppFrame>
         </DemoCard>
       </section>
       {/* Personal dashboard */}
@@ -1106,7 +1122,7 @@ export default function SidebarExamples() {
           Everything is live: tick a box and the footer count follows.
         </p>
         <DemoCard code={SNIPPET_PERSONAL}>
-          <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
+          <AppFrame class="bg-card/20">
             <DitherSidebar
               class="w-60 border-r border-border/60"
               label="Personal hub"
@@ -1209,7 +1225,7 @@ export default function SidebarExamples() {
             <main class="grid min-w-0 flex-1 place-items-center text-[12px] text-muted-foreground">
               Stay organized, stay focused
             </main>
-          </div>
+          </AppFrame>
         </DemoCard>
       </section>
       {/* Floating left */}
@@ -1310,7 +1326,7 @@ export default function SidebarExamples() {
           color dots. The topbar button hides the whole panel when the content needs the room.
         </p>
         <DemoCard code={SNIPPET_RIGHT}>
-          <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
+          <AppFrame>
             <main class="flex min-w-0 flex-1 flex-col">
               <div class="flex h-10 items-center justify-between border-b border-border/60 px-3">
                 <span class="text-[12px] text-foreground">July 2026</span>
@@ -1392,7 +1408,7 @@ export default function SidebarExamples() {
                 </For>
               </DitherSidebarGroup>
             </DitherSidebar>
-          </div>
+          </AppFrame>
         </DemoCard>
       </section>
       {/* Team switcher */}
@@ -1403,7 +1419,7 @@ export default function SidebarExamples() {
           badges. Arrow keys walk the menu; Escape returns focus to the trigger.
         </p>
         <DemoCard code={SNIPPET_TEAMS}>
-          <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60">
+          <AppFrame>
             <DitherSidebar
               class="w-60"
               label="Workspace nav"
@@ -1449,7 +1465,7 @@ export default function SidebarExamples() {
                 <div class="mt-1 text-[13px] text-foreground">{teamActive()}</div>
               </div>
             </main>
-          </div>
+          </AppFrame>
         </DemoCard>
       </section>
       {/* File tree */}
@@ -1460,7 +1476,7 @@ export default function SidebarExamples() {
           selected file the header echoes.
         </p>
         <DemoCard code={SNIPPET_TREE}>
-          <div class="mx-auto flex h-96 max-w-2xl overflow-hidden rounded-lg border border-border/60 bg-card/20">
+          <AppFrame class="bg-card/20">
             <DitherSidebar
               class="w-60 border-r border-border/60"
               label="File explorer"
@@ -1578,7 +1594,7 @@ export default function SidebarExamples() {
                 </For>
               </div>
             </main>
-          </div>
+          </AppFrame>
         </DemoCard>
       </section>
       {/* Mobile drawer */}

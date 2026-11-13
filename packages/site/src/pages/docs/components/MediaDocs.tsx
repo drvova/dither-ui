@@ -6,6 +6,7 @@ import {
   DitherButton,
   DitherSchedule,
   DitherShader,
+  DitherThumbnail,
   DitherVideoPlayer,
   DitherWorld,
   sampleShader,
@@ -14,7 +15,7 @@ import {
   type ChannelInput,
 } from "@dither-ui/kit"
 import { launchAt, LAUNCH_S, ROCKET } from "@/pages/docs/components/rocket"
-import { assetPath } from "@/shared/lib/routes"
+import { assetPath, routePath } from "@/shared/lib/routes"
 import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import DemoCard from "../DemoCard"
@@ -63,6 +64,18 @@ const CRT = `void mainImage(out vec4 o, in vec2 fc) {
 const SHADER = sampleShader(3)
 
 const API: Record<string, PropRow[]> = {
+  thumbnail: [
+    { prop: "src", type: "string: the picture, cover-fit to the frame", default: "required" },
+    { prop: "alt", type: "string: the picture's words and the link's name", default: "required" },
+    { prop: "href", type: "string: where the link goes", default: "required" },
+    { prop: "ratio", type: "string: the frame's width over its height, any CSS aspect-ratio", default: '"1.618"' },
+    { prop: "veilCell", type: "number: the Bayer veil's cell in CSS px", default: "4" },
+    {
+      prop: "class",
+      type: "string: the link's classes; every other link attribute reaches it too",
+      default: "undefined",
+    },
+  ],
   video: [
     { prop: "src", type: "string: no src renders an honest empty face", default: "undefined" },
     { prop: "poster", type: "string", default: "undefined" },
@@ -193,6 +206,19 @@ const API: Record<string, PropRow[]> = {
     { prop: "paused / renderMode", type: 'boolean / "live" | "static"', default: 'false / "live"' },
   ],
 }
+
+const SNIPPET_THUMBNAIL = `<!-- a picture that is a link: it rests under a Bayer veil and wakes under a
+     pointer, the picture scaling up a touch inside its frame as the veil goes -->
+<div class="grid gap-4 sm:grid-cols-2">
+  <DitherThumbnail src="/sprites.webp" alt="The sprite sheet, in the Image docs" href="/docs/image" />
+  <DitherThumbnail
+    src="/trailer/poster.webp"
+    alt="The film's poster, in the Video player docs"
+    href="/docs/video-player"
+    ratio="16 / 9"
+    :veil-cell="3"
+  />
+</div>`
 
 const SNIPPET_VIDEO = `<!-- a native <video> under dither chrome: play, a dithered scrubber,
      tabular time, mute and fullscreen; no src is an honest empty face -->
@@ -401,6 +427,33 @@ export default function MediaDocs() {
 
   return (
     <>
+      {/* Thumbnail */}
+      <section id="thumbnail" class="mt-16 scroll-mt-24">
+        <h2 class="text-lg tracking-tight">Thumbnail</h2>
+        <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A picture that is a link. It rests sunk under a Bayer veil and wakes under a pointer: the picture scales up a
+          touch inside its frame as the veil dissolves, and the frame keeps its ratio (phi unless you pick one). The
+          picture's words name the link.
+        </p>
+        <DemoCard code={SNIPPET_THUMBNAIL}>
+          <div class="mx-auto grid max-w-xl gap-4 sm:grid-cols-2">
+            <DitherThumbnail
+              src={assetPath("/sprites.webp")}
+              alt="The sprite sheet, in the Image docs"
+              href={routePath("/docs/image")}
+            />
+            <DitherThumbnail
+              src={assetPath("/trailer/poster.webp")}
+              alt="The film's poster, in the Video player docs"
+              href={routePath("/docs/video-player")}
+              ratio="16 / 9"
+              veilCell={3}
+            />
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.thumbnail} />
+      </section>
+
       {/* Video player */}
       <section id="video-player" class="mt-16 scroll-mt-24">
         <h2 class="text-lg tracking-tight">Video player</h2>

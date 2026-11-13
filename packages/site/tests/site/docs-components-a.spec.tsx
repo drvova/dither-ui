@@ -290,6 +290,20 @@ describe("LayoutDocs", () => {
 })
 
 describe("MediaDocs", () => {
+  it("links each thumbnail to the page its picture names, in the frame it asks for", () => {
+    const { container } = shown(MediaDocs)
+    const links = [...section(container, "thumbnail").querySelectorAll<HTMLAnchorElement>(".demo-well a")]
+    expect(links.map((a) => [a.getAttribute("aria-label"), a.getAttribute("href")])).toEqual([
+      ["The sprite sheet, in the Image docs", "/docs/image"],
+      ["The film's poster, in the Video player docs", "/docs/video-player"],
+    ])
+    expect(links.map((a) => a.getAttribute("style"))).toEqual(["aspect-ratio: 1.618 / 1;", "aspect-ratio: 16 / 9;"])
+    expect(links.map((a) => a.querySelector("img")?.getAttribute("src"))).toEqual([
+      "/sprites.webp",
+      "/trailer/poster.webp",
+    ])
+  })
+
   it("advances a picked winner into the final, and resets", () => {
     const { container } = shown(MediaDocs)
     const well = section(container, "bracket").querySelector(".demo-well")!
