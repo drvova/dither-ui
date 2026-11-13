@@ -5,11 +5,11 @@
 The site (landing, docs, Studio, the player page) on SolidJS and
 SolidStart, standing beside the Vue site (`../src`, `../rstack.config.ts`)
 until the cutover, then taking its place at the repository root (the
-user's call: move fully away from Vue). Every page is ported; what the Vue
-build still makes alone is the build pipeline's part (share cards, the
-sitemap and crawler files, the agent registry, the Studio's service worker,
-manifest and icons, the single-file player bundle). Until those exist here
-it is a staging app: never deployed, and the Vue site stays the live one.
+user's call: move fully away from Vue). Every page is ported and its build
+emits everything the Vue build does, at the same paths. It is still a
+staging app, never deployed: the Pages workflow builds the Vue site until
+the cutover, and what it writes for a reader (the Studio's code export,
+the agent skill, the copy) still says Vue.
 
 ## Ownership
 
@@ -49,9 +49,17 @@ it is a staging app: never deployed, and the Vue site stays the live one.
   `routes/docs/index.tsx` and `routes/docs/[section].tsx` (one docs
   section a page; the prerender list is derived from `GROUPS`, never kept
   by hand; an unknown id renders the missing page), `routes/[...404].tsx`.
-  A route sets its title (`@/shared/config/titles`), its own theme colour
-  and its head through `@solidjs/meta`; the shell (`entry-server.tsx`)
-  names none.
+  `routes/play.tsx` is the player (never indexed, outside the site's
+  shell). A page's head is one table, `pages/docs/heads.ts` (`pageTags`,
+  held tag for tag to the Vue HTML entries by `tests/site/heads.spec.tsx`),
+  rendered by `PageHead`; a route adds only its own theme colour (the
+  Studio also the app's tags, `APP_HEAD`). The shell (`entry-server.tsx`)
+  carries what every site page shares: `data-page` on `<html>` from the
+  request's path, the icons, the display face's preload, the page-reveal
+  and rise scripts, the speculation rules and the `#page-end` marker.
+  `entry-client.tsx` takes the page transition the head script parks, and
+  sends a legacy hash address (`/#/docs/<id>`, `/#/studio…`;
+  `shared/lib/legacy.ts`) to its page before mounting.
 - Layout mirrors the Vue site's FSD layers at the same paths under `src/`
   (`shared`, `entities`, `features`, `widgets`, `pages`): a Vue-bound file's
   twin sits at its path under the same name. A framework-free module of
@@ -84,9 +92,24 @@ it is a staging app: never deployed, and the Vue site stays the live one.
   at `kit/src/<solid|svelte>/` with `files.json`, by the one rule in
   `@/shared/lib/kit-sources`), `run-compiler.ts` (what the Solid compiler
   needs to load in a browser). Nitro copies `../public` into the build.
-- `NOT_YET_PORTED` in `vite.config.ts` lists what the crawl leaves alone
-  because the pipeline does not make it yet; an entry goes when its file
-  is built here.
+  `site-files.ts` emits the crawler files (`sitemap.xml`, `robots.txt`,
+  `llms.txt`, `embed/`, `oembed/`, `og/sections.json`), the install files
+  (icons, `studio/app.webmanifest`), the mascot capture and the bridge
+  file, each from the builder the Vue build calls, byte for byte.
+  `standalone.ts` builds the two scripts that stand outside the app as
+  nested builds: `sw.js` (the Studio's worker, `@/app/sw`, its install set
+  the Studio route's own files from the finished build) and
+  `play/player.js` with its stylesheet (one self-contained file the video
+  export inlines).
+- `npm run build` is `vite build`, then `scripts/postbuild.mjs`, which
+  needs Chromium (`CHROME_PATH` or a standard path) and fails loudly
+  without it: it builds the share-card renderer (`og/index.html`,
+  `scripts/og-page.ts`), draws every card (`og/<id>.png`, `.gif`), writes
+  `agent/registry.json` off the mounted Studio, rewrites each section's
+  embed with the lede its page prints, and compiles `kit/dither-kit.css`.
+  The drawing code is `../scripts/cards.ts`, shared with the Vue prerender.
+  `MADE_AFTER_THE_PAGES` in `vite.config.ts` lists the files the crawl
+  must not ask for because the post-build makes them.
 
 ## Work Guidance
 
@@ -104,8 +127,11 @@ it is a staging app: never deployed, and the Vue site stays the live one.
   `npm test` (Vitest: `tests/*.spec.tsx` for the kit, `tests/site/` for
   the site, in jsdom on Solid's browser build; `tests/world.ts` is the
   browser a spec runs in),
-  `npm run build` (the static build; a prerender error fails it). All on
-  Node 24.
+  `npm run build` (the static build and the post-build; a prerender error
+  or a failed card fails it). All on Node 24. The specs that read the built
+  site (`tests/site/heads.spec.tsx`'s built pages) run only when a build
+  stands, so the gate runs `npm test` again after the build. Offline use
+  and the video export are checked in a browser.
 - The port's contract with the Vue kit is held at the root by
   `../tests/solid-kit.spec.ts`.
 

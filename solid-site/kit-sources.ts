@@ -47,6 +47,8 @@ export function kitSources(): Plugin {
   let base = "/"
   return {
     name: "kit-sources",
+    // before the app's own handler, which would answer a dev request with its 404
+    enforce: "pre",
     // The kits sit beside this app: the dev server may read them.
     config: () => ({ server: { fs: { allow: [at("dither-kit"), at("dither-kit-svelte")] } } }),
     configResolved(config) {

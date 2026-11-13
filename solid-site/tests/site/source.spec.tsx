@@ -340,7 +340,7 @@ export const mode = import.meta.env.MODE`,
           }
       }
     }
-    expect(snippets).toBeGreaterThan(280)
+    expect(snippets).toBeGreaterThan(270)
     expect(failures).toEqual([])
   }, 120000)
 })

@@ -321,7 +321,7 @@ the kit every import is relative (`../engine/pixel`).
   must stay in step) and every other styling system themes by redefining.
   `engine/base.css` is the box-model and form-control base the components assume
   (Tailwind's preflight is the global version the site uses), scoped under
-  `.dither-kit` through `:where()` at zero specificity. `tailwind/kit.css` is
+  `.dither-kit` through `:where()` at zero specificity. `tailwind/kit.css` (which also scans `solid/`, so one stylesheet serves either layer) is
   the standalone entry: the two files plus Tailwind's utilities with
   `source(none)` and `@source` limited to `dither-kit/tailwind/` and
   `dither-kit-svelte/`, in the `dither-kit.theme/base/utilities` layers;

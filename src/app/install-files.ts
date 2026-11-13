@@ -147,14 +147,14 @@ export function installFiles(): Record<string, string | Uint8Array> {
 type HeadTag = { tag: "link" | "meta"; attrs: Record<string, string> }
 
 /** The site's icons, on every route. */
-const ICON_HEAD: HeadTag[] = [
+export const ICON_HEAD: HeadTag[] = [
   { tag: "link", attrs: { rel: "icon", href: "favicon.svg", type: "image/svg+xml" } },
   { tag: "link", attrs: { rel: "icon", href: "favicon.png", sizes: "32x32", type: "image/png" } },
   { tag: "link", attrs: { rel: "apple-touch-icon", href: "apple-touch-icon.png" } },
 ]
 /** The app's: its manifest and what iOS reads to open it from the home
  * screen as an app. */
-const APP_HEAD: HeadTag[] = [
+export const APP_HEAD: HeadTag[] = [
   { tag: "link", attrs: { rel: "manifest", href: MANIFEST } },
   { tag: "meta", attrs: { name: "mobile-web-app-capable", content: "yes" } },
   { tag: "meta", attrs: { name: "apple-mobile-web-app-capable", content: "yes" } },

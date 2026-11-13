@@ -49,6 +49,10 @@ jobs:
       - name: Component tests
         run: npm test
         working-directory: solid-site
+      # the build ends by drawing the share cards in the runner's Chromium
       - name: Static build
         run: npm run build
+        working-directory: solid-site
+      - name: Tests over the built site
+        run: npm test
         working-directory: solid-site

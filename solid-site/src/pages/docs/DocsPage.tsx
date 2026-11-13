@@ -31,26 +31,15 @@ import {
   type GradientDirection,
   type PixelBloom,
 } from "@dither-kit"
-import { Link, Meta, Title, useHead } from "@solidjs/meta"
+import { Meta } from "@solidjs/meta"
 import { useNavigate } from "@solidjs/router"
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  createUniqueId,
-  For,
-  type JSX,
-  on,
-  onCleanup,
-  onMount,
-  Show,
-} from "solid-js"
+import { createEffect, createMemo, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Dynamic } from "solid-js/web"
 import { GROUPS } from "@/pages/docs/groups"
 import { packOf, packOpen, PACKS_KEPT, type PackName, visitPack } from "@/pages/docs/packs"
 import { groupOf, neighbours, sectionOf, SECTION_IDS } from "@/pages/docs/pages"
-import { docsBreadcrumb, docsMeta } from "@/pages/docs/seo"
+import { docsMeta } from "@/pages/docs/seo"
 import "@/shared/fonts/display.css"
 import { version } from "../../../../package.json"
 import { assetPath, modKey, routePath, useTheme } from "~/shared/lib"
@@ -65,6 +54,7 @@ import DocsNav, { docsUrl, type PagePart } from "./DocsNav"
 import DocsSheet, { SHEET_ID } from "./DocsSheet"
 import EngineSection from "./handbook/EngineSection"
 import VerificationSection from "./handbook/VerificationSection"
+import PageHead from "./PageHead"
 import OnThisPage from "./OnThisPage"
 import QuickStart from "./overview/QuickStart"
 import { PACK_COMPONENTS } from "./pack-loaders"
@@ -626,24 +616,6 @@ const commandItems = GROUPS.flatMap((g) => g.items.map((it) => ({ value: it.id, 
 
 const smooth = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth")
 
-/** The section's BreadcrumbList, as structured data in the head. */
-function Breadcrumb(props: { id: string }) {
-  useHead({
-    tag: "script",
-    id: createUniqueId(),
-    setting: { close: true },
-    props: {
-      type: "application/ld+json",
-      id: "docs-breadcrumb",
-      // a `<` never opens a tag inside the script
-      get children() {
-        return docsBreadcrumb(props.id).replace(/</g, "\\u003c")
-      },
-    },
-  })
-  return null
-}
-
 export type DocsPageProps = {
   /** The section this page shows (its route's), or "" for the docs' front,
    * which opens on the first section. */
@@ -837,9 +809,6 @@ export default function DocsPage(props: DocsPageProps) {
     // the reader's own switches, read once in a browser
     restoreSounds()
     restoreDocsFramework()
-    // The route marks the root (`data-page`), which the pages' grounds key on.
-    const root = document.documentElement
-    root.dataset.page = "docs"
     window.addEventListener("keydown", searchHotkey)
     // A legacy link (`#/docs/<id>` on the docs' own address) lands on its
     // section's page, in place of the entry it came by.
@@ -857,7 +826,6 @@ export default function DocsPage(props: DocsPageProps) {
       window.removeEventListener("keydown", searchHotkey)
       window.removeEventListener("hashchange", legacy)
       history.scrollRestoration = restoration
-      if (root.dataset.page === "docs") delete root.dataset.page
     })
   })
 
@@ -946,21 +914,9 @@ export default function DocsPage(props: DocsPageProps) {
 
   return (
     <div class="docs-root min-h-dvh bg-background font-mono text-foreground antialiased">
-      <Title>{meta().title}</Title>
-      <Meta name="description" content={meta().description} />
-      <Link rel="canonical" href={meta().url} />
-      <Meta property="og:type" content={meta().id ? "article" : "website"} />
-      <Meta property="og:title" content={meta().title} />
-      <Meta property="og:description" content={meta().description} />
-      <Meta property="og:url" content={meta().url} />
-      <Meta name="twitter:card" content="summary_large_image" />
-      <Meta name="twitter:title" content={meta().title} />
-      <Meta name="twitter:description" content={meta().description} />
+      <PageHead page="docs" section={meta().id} />
       {/* the page's ground, in the theme the reader picked */}
       <Meta name="theme-color" content={ground() ?? DOCS_GROUND} />
-      <Show when={meta().id}>
-        <Breadcrumb id={meta().id} />
-      </Show>
 
       {/* The site's header, the landing's own: the docs add search and,
           under lg, the key that opens the sections sheet. */}

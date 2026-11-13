@@ -36,6 +36,18 @@ export type Ask = { method: string; mode: string; range: boolean }
  * worker itself. */
 const PASS = /^(trailer|og|embed|oembed|play)\/|^sw\.js$/
 
+/** Where a build puts the files it names by their content, under the site:
+ * the Vue build's `static/`, the Solid build's `_build/assets/`. */
+const HASHED = /^(static|_build\/assets)\//
+
+/** The build's own list of the app's files, as paths under the site: a
+ * build that knows what the app loads after its page (the chunks it imports
+ * as it runs, which the page's HTML never names) defines this constant to
+ * the list as it builds the worker. Undefined in every other build. */
+export const KEEP_DEFINE = "__OFFLINE_KEEP__"
+declare const __OFFLINE_KEEP__: readonly string[] | undefined
+export const buildKeep = (): readonly string[] => (typeof __OFFLINE_KEEP__ === "undefined" ? [] : __OFFLINE_KEEP__)
+
 /** `site` is the site's root: the app's assets live under it, not under
  * the app's own path, and every fetch the app makes reaches the worker. */
 export function strategyFor(url: URL, site: URL, ask: Ask): Strategy {
@@ -44,7 +56,7 @@ export function strategyFor(url: URL, site: URL, ask: Ask): Strategy {
   const path = url.pathname.slice(site.pathname.length)
   if (PASS.test(path)) return "network"
   if (ask.mode === "navigate") return "page"
-  if (path.startsWith("static/")) return "static"
+  if (HASHED.test(path)) return "static"
   return "asset"
 }
 
@@ -55,7 +67,9 @@ export function pageAssets(html: string, page: URL, site: URL): string[] {
   const found = new Set<string>()
   for (const m of html.matchAll(/\s(?:src|href)="([^"]+)"/g)) {
     const url = new URL(m[1].replace(/&amp;/g, "&"), page)
-    if (url.origin === site.origin && url.pathname.startsWith(`${site.pathname}static/`)) found.add(url.href)
+    if (url.origin === site.origin && url.pathname.startsWith(site.pathname)) {
+      if (HASHED.test(url.pathname.slice(site.pathname.length))) found.add(url.href)
+    }
   }
   return [...found]
 }

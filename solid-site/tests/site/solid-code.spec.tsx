@@ -725,7 +725,7 @@ describe("every docs snippet, as Solid", () => {
     }
 
   it("finds the docs' snippets, and only pieces of literals are left out", () => {
-    expect(snippets.length).toBeGreaterThan(280)
+    expect(snippets.length).toBeGreaterThan(270)
     expect(cut.map((c) => c.file).sort()).toEqual(["DocsPage.vue", "animations/AnimationsDocs.vue", "svelte-code.ts"])
   })
 

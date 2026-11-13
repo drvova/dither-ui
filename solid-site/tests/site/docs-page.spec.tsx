@@ -17,6 +17,7 @@ import { docsBreadcrumb, docsMeta } from "@/pages/docs/seo"
 import { SHEET_WIPE, bandFill } from "@/widgets/site-header/menu"
 import DocsNav, { docsUrl, NAV_LINK, type PagePart } from "../../src/pages/docs/DocsNav"
 import DocsPage, { DOCS_GROUND } from "../../src/pages/docs/DocsPage"
+import { pageTags } from "../../src/pages/docs/heads"
 import DocsSheet, { SHEET_ID } from "../../src/pages/docs/DocsSheet"
 import OnThisPage from "../../src/pages/docs/OnThisPage"
 import { PACK_COMPONENTS, PACK_LOADERS, preloadOpenPacks } from "../../src/pages/docs/pack-loaders"
@@ -476,14 +477,20 @@ describe("the docs' page", () => {
       breadcrumb: document.getElementById("docs-breadcrumb")?.textContent,
       crumbType: document.getElementById("docs-breadcrumb")?.getAttribute("type"),
     })
+    // The docs' own address says in a preview what the head table says of
+    // it (the Vue site's entry page, word for word); a section, its meta.
+    const front = (key: string) =>
+      pageTags("docs").flatMap((t) =>
+        t.tag === "meta" && (t.attrs.property ?? t.attrs.name) === key ? [t.attrs.content] : [],
+      )[0]
     const of = (id: string) => {
       const m = docsMeta(id)
       return {
         title: m.title,
         description: m.description,
         canonical: m.url,
-        og: [id ? "article" : "website", m.title, m.description, m.url],
-        x: ["summary_large_image", m.title, m.description],
+        og: [id ? "article" : "website", m.title, id ? m.description : front("og:description"), m.url],
+        x: ["summary_large_image", m.title, id ? m.description : front("twitter:description")],
         breadcrumb: id ? docsBreadcrumb(id) : undefined,
         crumbType: id ? "application/ld+json" : undefined,
       }
@@ -595,7 +602,7 @@ describe("the docs' routes", () => {
     const config = read("vite.config.ts")
     expect(config).toContain('import { GROUPS } from "../src/pages/docs/groups.ts"')
     expect(config).toContain('["/docs", ...GROUPS.flatMap((g) => g.items.map((i) => `/docs/${i.id}`))]')
-    expect(config).toContain('routes: ["/", MISSING_PAGE, ...DOCS_PAGES]')
+    expect(config).toContain('routes: ["/", MISSING_PAGE, PLAYER_ROUTE, ...DOCS_PAGES]')
     // the crawl no longer steps around the docs
     expect(/NOT_YET_PORTED = \[[^\]]*"\/docs"/.test(config)).toBe(false)
     for (const id of ids) expect(id).toMatch(/^[\w-]+$/)

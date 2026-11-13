@@ -11,6 +11,8 @@ import { GROUPS } from "../src/pages/docs/groups.ts"
 import { ALIASES, ONE_SOLID } from "./aliases.ts"
 import { kitSources } from "./kit-sources.ts"
 import { runCompiler } from "./run-compiler.ts"
+import { siteFiles } from "./site-files.ts"
+import { PLAYER_ROUTE, standaloneScripts } from "./standalone.ts"
 import { utilityMap } from "./utilities.ts"
 
 /** The site's public files, shared with the Vue site. */
@@ -24,12 +26,26 @@ const MISSING_PAGE = "/404.html"
 const DOCS_PAGES = ["/docs", ...GROUPS.flatMap((g) => g.items.map((i) => `/docs/${i.id}`))]
 
 /** Routes and build files still made only by the Vue site. */
-const NOT_YET_PORTED = ["/agent/registry.json"]
+const NOT_YET_PORTED: string[] = []
+
+/** Files the pages link to that `scripts/postbuild.mjs` writes once they
+ * stand (it reads the registry off the built Studio): the crawl, which runs
+ * before it, leaves them alone, and that script fails without them. */
+const MADE_AFTER_THE_PAGES = ["/agent/registry.json"]
 
 export default defineConfig({
   base: process.env.BASE_PATH ?? "/",
   publicDir: PUBLIC_FILES,
-  plugins: [solidStart(), nitro(), tailwindcss(), utilityMap(), kitSources(), runCompiler()],
+  plugins: [
+    solidStart(),
+    nitro(),
+    tailwindcss(),
+    utilityMap(),
+    kitSources(),
+    runCompiler(),
+    siteFiles(),
+    standaloneScripts(),
+  ],
   resolve: { alias: ALIASES, dedupe: ONE_SOLID },
   server: { fs: { allow: [".."] } },
   nitro: {
@@ -43,10 +59,10 @@ export default defineConfig({
     prerender: {
       crawlLinks: true,
       failOnError: true,
-      routes: ["/", MISSING_PAGE, ...DOCS_PAGES],
+      routes: ["/", MISSING_PAGE, PLAYER_ROUTE, ...DOCS_PAGES],
       // Pages the landing links to that have not moved over yet: the crawl
       // leaves them alone until their routes exist (then each line goes).
-      ignore: NOT_YET_PORTED,
+      ignore: [...NOT_YET_PORTED, ...MADE_AFTER_THE_PAGES],
     },
     hooks: {
       "prerender:generate"(route) {

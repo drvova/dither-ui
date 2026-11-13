@@ -3,7 +3,7 @@
 // keeps the app's page and its assets at install, answers each request the
 // app makes by its strategy (`offline.ts`), and drops an older version's
 // caches as it takes over.
-import { type CacheKind, cacheName, OFFLINE, pageAssets, strategyFor } from "./offline"
+import { buildKeep, type CacheKind, cacheName, OFFLINE, pageAssets, strategyFor } from "./offline"
 
 // The worker's own globals, typed here: the DOM lib the app compiles
 // against has no ServiceWorkerGlobalScope, and the two libs cannot meet.
@@ -36,9 +36,13 @@ worker.addEventListener("install", (event) => {
       const response = await fetch(scope, { cache: "reload" }).catch(() => null)
       if (response?.ok) {
         await keep("pages", scope.href, response.clone())
-        const assets = pageAssets(await response.text(), scope, site)
+        // What the page names, and what the build says the app loads after it.
+        const assets = new Set([
+          ...pageAssets(await response.text(), scope, site),
+          ...buildKeep().map((path) => new URL(path, site).href),
+        ])
         await Promise.all(
-          assets.map((a) =>
+          [...assets].map((a) =>
             fetch(a)
               .then((r) => keep("static", a, r))
               .catch(() => {}),

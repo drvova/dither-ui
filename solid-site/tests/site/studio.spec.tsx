@@ -11,7 +11,7 @@ import { MetaProvider } from "@solidjs/meta"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { installHead } from "@/app/install-files"
+import { APP_HEAD } from "@/app/install-files"
 import type { GuideStop } from "@/pages/studio/guide"
 import { ROUTE_TITLES } from "@/shared/config/titles"
 import { editor, stopInspecting } from "../../src/entities/editor"
@@ -240,8 +240,9 @@ describe("the route's head", () => {
     await tick()
     expect(document.title).toBe(ROUTE_TITLES.studio)
     expect(document.documentElement.dataset.page).toBe("studio")
-    // every tag of the one table the Vue build injects from, the app's own among them
-    for (const t of installHead("studio/index")) {
+    // the app's own tags of the one table the Vue build injects from (the
+    // icons are the shell's, on every page)
+    for (const t of APP_HEAD) {
       const el = head(
         t.tag === "link" ? `link[rel="${t.attrs.rel}"][href="/${t.attrs.href}"]` : `meta[name="${t.attrs.name}"]`,
       )

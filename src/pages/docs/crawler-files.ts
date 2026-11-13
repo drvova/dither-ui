@@ -1,5 +1,8 @@
 import { GROUPS, SECTIONS } from "./groups.ts"
 import { docsBreadcrumb, docsMeta, REPO_URL, SITE_URL } from "./seo.ts"
+import { sectionTags, type ShareCard, shareTags, tagHtml } from "./share-cards.ts"
+
+export { ROUTE_CARDS, sectionCard, type ShareCard, shareCards } from "./share-cards.ts"
 
 // The crawler-surface files (`dist/sitemap.xml`, `dist/robots.txt`,
 // `dist/llms.txt`) are generated at build time from the same GROUPS/SITE_URL
@@ -86,21 +89,7 @@ export function sectionsManifest(): string {
       const meta = docsMeta(s.id)
       const group = GROUPS.find((g) => g.items.some((i) => i.id === s.id))?.title ?? "Docs"
       const breadcrumb = docsBreadcrumb(s.id)
-      const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
-      const head = [
-        `<title>${esc(meta.title)}</title>`,
-        `<meta name="description" content="${esc(meta.description)}" />`,
-        `<link rel="canonical" href="${meta.url}" />`,
-        `<meta property="og:type" content="article" />`,
-        `<meta property="og:title" content="${esc(meta.title)}" />`,
-        `<meta property="og:description" content="${esc(meta.description)}" />`,
-        `<meta property="og:url" content="${meta.url}" />`,
-        `<meta name="twitter:card" content="summary_large_image" />`,
-        `<meta name="twitter:title" content="${esc(meta.title)}" />`,
-        `<meta name="twitter:description" content="${esc(meta.description)}" />`,
-        shareHead(sectionCard(s.id)),
-        `<script type="application/ld+json">${breadcrumb}</script>`,
-      ].join("\n    ")
+      const head = sectionTags(s.id).map(tagHtml).join("\n    ")
       return { ...meta, group, breadcrumb, head }
     }),
   )
@@ -108,96 +97,8 @@ export function sectionsManifest(): string {
 
 /* ------------------------------ share cards ------------------------------- */
 
-// Every page the site shares has a card: the three routes and each docs
-// section. The build writes each one as `og/<id>.png` (the og:image every
-// link preview can show), `og/<id>.gif` (the same card looping, for what
-// plays an image: Discord, Slack, a README), `embed/<id>.json` (Discord's
-// component embed: the title, the line, the playing card and link buttons,
-// which Discord shows in place of the og preview) and `oembed/<id>.json`
-// (an oEmbed photo of the playing card, which Slack reads first). Copy
-// follows the site's bans: sentence case, no eyebrow, no middle dot or em
-// dash, buttons that name where they go.
-
-export interface ShareCard {
-  id: string
-  url: string
-  title: string
-  /** The page's description, as its og tags carry it. */
-  description: string
-  /** What the card shows, for its image's alt text. */
-  alt: string
-  links: { label: string; url: string }[]
-}
-
-/** The route cards (their art is a print of the kit's poster, home's the
- * hero's own; the first link names the card's key). The ids share `og/`
- * with the section ids, so none may be one (the tests hold this). */
-export const ROUTE_CARDS = [
-  {
-    id: "home",
-    url: `${SITE_URL}/`,
-    title: "dither-ui",
-    line: "A dithered UI toolkit for Vue and Svelte",
-    description:
-      "270 Vue components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed.",
-    links: [
-      { label: "Read the docs", url: `${SITE_URL}/docs` },
-      { label: "Open the studio", url: `${SITE_URL}/studio` },
-      { label: "Source on GitHub", url: REPO_URL },
-    ],
-  },
-  {
-    id: "docs",
-    url: `${SITE_URL}/docs`,
-    title: "Documentation",
-    line: "Every component live, with its source and its API",
-    description:
-      "Explore live Vue examples, API references, component galleries, chart variants, and copy-ready code for dither-ui.",
-    links: [
-      { label: "Read the quick start", url: `${SITE_URL}/docs/getting-started` },
-      { label: "Source on GitHub", url: REPO_URL },
-    ],
-  },
-  {
-    id: "studio",
-    url: `${SITE_URL}/studio`,
-    title: "Studio",
-    line: "Compose screens from the kit, or have your agent do it",
-    description:
-      "Design dithered charts and screens in the browser, export Vue code, images or video, or hand the canvas to your own coding agent.",
-    links: [
-      { label: "Open the studio", url: `${SITE_URL}/studio` },
-      { label: "Read the agent skill", url: `${SITE_URL}/agent/SKILL.md` },
-    ],
-  },
-] as const
-
-export function sectionCard(id: string): ShareCard {
-  const meta = docsMeta(id)
-  return {
-    id,
-    url: meta.url,
-    title: meta.label,
-    description: meta.description,
-    alt: `${meta.label} in the dither-ui docs, beside a dithered print of blue, orange and bone tone fields around the kit's diamond`,
-    links: [
-      { label: "Open the docs", url: meta.url },
-      { label: "Source on GitHub", url: REPO_URL },
-    ],
-  }
-}
-
-export function shareCards(): ShareCard[] {
-  const routes = ROUTE_CARDS.map((r) => ({
-    id: r.id,
-    url: r.url,
-    title: r.title,
-    description: r.description,
-    alt: `${r.title} beside a dithered print of blue, orange and bone tone fields around the kit's diamond`,
-    links: [...r.links],
-  }))
-  return [...routes, ...SECTIONS.map((s) => sectionCard(s.id))]
-}
+// The cards themselves, and the head tags that point at them, are
+// `share-cards.ts` (the pages read those too); here, the files a card ships.
 
 /** Discord's component embed for a card: one Container holding the title
  * and description, the playing card and its links (link buttons only, as
@@ -235,21 +136,10 @@ export function oembed(card: ShareCard): string {
   })
 }
 
-/** The head tags that point a page's previews at its card: the og and X
- * images (the still), Discord's component embed and the oEmbed photo. */
+/** The head tags that point a page's previews at its card, as the section
+ * pages' head carries them. */
 export function shareHead(card: ShareCard): string {
-  const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
-  return [
-    `<meta property="og:image" content="${SITE_URL}/og/${card.id}.png" />`,
-    `<meta property="og:image:type" content="image/png" />`,
-    `<meta property="og:image:width" content="1200" />`,
-    `<meta property="og:image:height" content="630" />`,
-    `<meta property="og:image:alt" content="${esc(card.alt)}" />`,
-    `<meta name="twitter:image" content="${SITE_URL}/og/${card.id}.png" />`,
-    `<meta name="twitter:image:alt" content="${esc(card.alt)}" />`,
-    `<link rel="discord:component-embed" type="application/json" href="${SITE_URL}/embed/${card.id}.json" />`,
-    `<link rel="alternate" type="application/json+oembed" href="${SITE_URL}/oembed/${card.id}.json" title="${esc(card.title)}" />`,
-  ].join("\n    ")
+  return shareTags(card).map(tagHtml).join("\n    ")
 }
 
 /* ------------------------------ sitemap.xml ------------------------------- */

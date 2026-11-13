@@ -1,12 +1,12 @@
 // The landing.
-import { Meta, Title } from "@solidjs/meta"
-import { ROUTE_TITLES } from "@/shared/config/titles"
+import { Meta } from "@solidjs/meta"
+import PageHead from "~/pages/docs/PageHead"
 import { LandingPage } from "~/pages/landing"
 
 export default function Landing() {
   return (
     <>
-      <Title>{ROUTE_TITLES.landing}</Title>
+      <PageHead page="landing" />
       {/* the landing's ground, obsidian, in either theme */}
       <Meta name="theme-color" content="#101214" />
       <LandingPage />

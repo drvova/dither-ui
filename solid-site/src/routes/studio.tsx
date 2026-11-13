@@ -1,22 +1,14 @@
-// The Studio, and what the Vue app's shell did for it: its title, the
-// root's `data-page` marker, the install surface's head (the icons, the
-// app's manifest and iOS's app tags, from the one table the Vue build
-// injects from), the browser chrome's colour in the theme the reader
+// The Studio, and what the Vue app's shell did for it: its head, the app's
+// manifest and iOS's app tags (the install surface's own table; the icons
+// are the shell's), the browser chrome's colour in the theme the reader
 // picked, and the service worker's registration.
-//
-// Not here yet: the files that head points at (the manifest, the icons)
-// and the worker itself (`sw.js`) are made only by the Vue build, so the
-// registration finds nothing on this site until the build pipeline moves.
-import { Link, Meta, Title } from "@solidjs/meta"
+import { Link, Meta } from "@solidjs/meta"
 import { createSignal, For, onCleanup, onMount } from "solid-js"
-import { installHead, STUDIO_GROUND } from "@/app/install-files"
+import { APP_HEAD, STUDIO_GROUND } from "@/app/install-files"
 import { registerOffline } from "@/app/offline"
-import { ROUTE_TITLES } from "@/shared/config/titles"
+import PageHead from "~/pages/docs/PageHead"
 import { StudioPage } from "~/pages/studio"
 import { appPathname, assetPath } from "~/shared/lib"
-
-/** The Studio's entry in the install table. */
-const HEAD = installHead("studio/index")
 
 export default function Studio() {
   // The browser's own chrome wears the page's ground in the theme the
@@ -26,8 +18,6 @@ export default function Studio() {
   const [ground, setGround] = createSignal<string>(STUDIO_GROUND)
   onMount(() => {
     const root = document.documentElement
-    // The route marks the root, which the pages' grounds key on.
-    root.dataset.page = "studio"
     const tint = () => setGround(getComputedStyle(document.body).backgroundColor || STUDIO_GROUND)
     const turned = new MutationObserver(tint)
     turned.observe(root, { attributes: true, attributeFilter: ["class"] })
@@ -38,14 +28,13 @@ export default function Studio() {
     onCleanup(() => {
       turned.disconnect()
       cancelAnimationFrame(frame)
-      if (root.dataset.page === "studio") delete root.dataset.page
     })
   })
   return (
     <>
-      <Title>{ROUTE_TITLES.studio}</Title>
+      <PageHead page="studio" />
       <Meta name="theme-color" content={ground()} />
-      <For each={HEAD}>
+      <For each={APP_HEAD}>
         {(t) =>
           t.tag === "link" ? (
             <Link {...t.attrs} href={assetPath(t.attrs.href)} />

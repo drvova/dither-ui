@@ -110,10 +110,13 @@ Default section order:
   everything else until the cutover decides what remains. Done: the kit
   (every component) and the site's pages (landing, docs, Studio, player),
   with the docs' own tooling (Solid code derived from each snippet, the
-  source panel's Run). Left, in order: the build pipeline on Vite (share
-  cards, crawler files, the agent registry, the service worker and install
-  files, the player bundle, the Pages deploy), what still writes Vue for a
-  reader (the Studio's code export and `code.get`, the StyleX generator,
+  source panel's Run), and the build pipeline (the Solid build emits what
+  the Vue build does at the same paths; the cards, the registry and the
+  kit stylesheet come out byte for byte the same). Shared by both builds:
+  `scripts/cards.ts` (drawing the cards and the registry),
+  `src/pages/docs/share-cards.ts` (the cards and head tags as data),
+  `src/app/offline.ts` (the worker's rules, for either build's asset
+  folder). Left, in order: what still writes Vue for a reader (the Studio's code export and `code.get`, the StyleX generator,
   the agent skill), the copy that says Vue, then the cutover. New work on a part already ported lands
   in both until then.
 - Aliases: `@` → `src/`; `@dither-kit` → the kit's Tailwind layer
@@ -395,8 +398,9 @@ Default section order:
   `npx vue-tsc --noEmit` and `npx rs build` green — the full package.json
   verify set (CI runs it; a remembered subset ships red), plus
   `npm run check` in `dither-kit-svelte/` when the kit is touched, and in
-  `solid-site/` on Node 24 `npm run check`, `npm test` and `npm run build`
-  when the engine, the Solid kit or the Solid site is;
+  `solid-site/` on Node 24 `npm run check`, `npm test`, `npm run build`
+  (which needs Chromium) and `npm test` again over the built site, when
+  the engine, the Solid kit, the Solid site or a module it shares is;
   visual/stateful changes also checked in a live browser (`rs dev` or
   `rs preview` + screenshots). Format what you touch with `rs fmt <paths>`.
 - `npm run build` type-checks, runs `rs build` (two Rsbuild environments in
