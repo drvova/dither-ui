@@ -22,7 +22,10 @@ export const objectLiteral = (o: object): string =>
 
 /** What a JSX attribute string or JSX text may hold as written: no quote,
  * entity, brace, tag, backslash or control character. */
-const PLAIN = /^[^"'`&{}<>\\\u0000-\u001f\u007f\u2028\u2029]*$/
+const MARKS = new Set([...`"'\`&{}<>\\`, "\u007f", "\u2028", "\u2029"])
+const PLAIN = {
+  test: (s: string): boolean => [...s].every((c) => c >= " " && !MARKS.has(c)),
+}
 
 /** A prop as a JSX attribute: plain words as a static string, `true` as the
  * bare name, anything else as an expression of its literal. A string that

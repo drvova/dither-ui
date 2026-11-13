@@ -25,12 +25,11 @@ export default function DitherBracket(raw: DitherBracketProps) {
 
   const accent = createMemo(() => cssColor(props.color))
 
-  const sideClass = (m: BracketMatch, side: "a" | "b") =>
-    cn(
-      "flex h-7 min-w-0 items-center gap-2 px-2.5 text-left text-[11px] transition-colors",
-      m.winner === side ? "text-foreground" : m.winner ? "text-muted-foreground line-through" : "text-muted-foreground",
-      props.interactive && !m.winner && "cursor-pointer hover:bg-card/60 hover:text-foreground",
-    )
+  const sideClass = (m: BracketMatch, side: "a" | "b") => [
+    "flex h-7 min-w-0 items-center gap-2 px-2.5 text-left text-[11px] transition-colors",
+    m.winner === side ? "text-foreground" : m.winner ? "text-muted-foreground line-through" : "text-muted-foreground",
+    props.interactive && !m.winner && "cursor-pointer hover:bg-card/60 hover:text-foreground",
+  ]
 
   const side = (m: BracketMatch, r: number, i: number, which: "a" | "b") => {
     const open = () => props.interactive && !m.winner

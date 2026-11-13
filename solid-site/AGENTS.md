@@ -8,8 +8,8 @@ until the cutover, then taking its place at the repository root (the
 user's call: move fully away from Vue). Every page is ported and its build
 emits everything the Vue build does, at the same paths. It is still a
 staging app, never deployed: the Pages workflow builds the Vue site until
-the cutover, and what it writes for a reader (the Studio's code export,
-the agent skill, the copy) still says Vue.
+the cutover, and the copy both sites share (titles, descriptions, the
+landing's words, the agent skill) still says Vue until then.
 
 ## Ownership
 
@@ -87,6 +87,20 @@ the agent skill, the copy) still says Vue.
   `babel-preset-solid`, loaded only on a reader's first Run, against the
   page's own Solid and kit. Readers choose Solid or Svelte; Svelte has no
   Run, as before.
+- The docs' API tables and prose are written in Solid's words (a row's
+  names are its component's real props; `tests/site/docs-api.spec.ts`
+  type-checks every row against the kit, with its exceptions listed and
+  commented); `PropsTable`'s `svelteRow` derives the Svelte wording.
+- The Studio exports a frame as a Solid component: `entities/widget/model/codegen.ts`
+  and `entities/chart/model/codegen.ts`, through `entities/artboard/code.ts`
+  (`frameCode`: the `.tsx`, and its stylesheet where the styling system has
+  one), used by the export dialog and `code.get` alike. `shared/lib/sfc.ts`
+  is the ONE path a document value takes into generated code (a hostile
+  string stays data; `tests/site/codegen.spec.tsx` proves it against the
+  real compiler). `entities/widget/model/model.ts` is the one reading of
+  the shared registry's `vmodel` rows as Solid's prop and callback; the
+  registry JSON differs from the Vue build's only there (`model` rows) and
+  in `code.get`'s description.
 - Vite plugins, each a file at the package root: `utilities.ts` (the
   utility map the rewriter reads), `kit-sources.ts` (the kits' own source
   at `kit/src/<solid|svelte>/` with `files.json`, by the one rule in

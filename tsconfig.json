@@ -30,5 +30,5 @@
     "dither-kit/**/*.vue",
     "rstack.config.ts"
   ],
-  "exclude": ["dither-kit/solid"]
+  "exclude": ["dither-kit/solid", "dither-kit/solid-stylex"]
 }

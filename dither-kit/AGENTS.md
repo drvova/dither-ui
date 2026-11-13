@@ -110,6 +110,23 @@ the kit every import is relative (`../engine/pixel`).
   takes the caller's is a native `on:` listener, so both run, and so an
   overlay's keys stop at its portal. The root type check leaves `solid/` out
   (`tsconfig.json`); `solid-site`'s checks it.
+- `solid-stylex/` — the Solid layer in StyleX, GENERATED from `solid/` by
+  `src/shared/lib/stylex-layer-solid.ts` (the class-to-StyleX core,
+  `stylex-core.ts`, is the Vue generator's too): never edit a generated
+  file; edit the Solid file and run
+  `npx rs test -u tests/stylex-layer-solid.spec.ts`, which fails on any
+  drift. One `stylex.create` a file; an element's own styles are
+  `{...stylex.props(...)}`, merged ones `class={cn(...)}`; a component that
+  takes `class` takes `xstyle` too. Stylesheets and the runtime are
+  imported from `../solid/`, never copied (`runtime/chart-layer.tsx`, the
+  one runtime file that writes classes, and `control.ts` are generated);
+  only `lib.ts` is written by hand. What the Solid source keeps to, so the
+  generator can carry it: classes in class position (`class`, `classList`
+  as a plain object, `cn()` arguments, and the constants, records and
+  functions those reach), a composition returning classes or lists, never
+  a `cn()` string fed into another list, never `+` or a class glued to an
+  expression in a template literal. The generator refuses anything else by
+  file and line and writes nothing for that file.
 - A module that stops carrying classes moves to `engine/`; a new component
   goes in `tailwind/` and reaches shared logic through `../engine/`.
 - What the generator can carry, so the Tailwind source keeps to it: class

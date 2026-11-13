@@ -1,0 +1,72 @@
+// Generated from ../solid/AsciiText.tsx by src/shared/lib/stylex-layer-solid.ts: edit that
+// file, then npx rs test -u tests/stylex-layer-solid.spec.ts
+import { createEffect, createSignal, mergeProps, on, onMount } from "solid-js"
+import { cn, type StyleProp } from "./lib"
+import "../solid/AsciiText.css"
+import * as stylex from "@stylexjs/stylex"
+
+const styles = stylex.create({
+  pre: { fontFamily: "var(--font-mono)", fontSize: "7px", lineHeight: "0.85" },
+})
+
+export type AsciiTextProps = {
+  text?: string
+  cols?: number
+  class?: string
+  xstyle?: StyleProp
+}
+
+const RAMP = " .:-=+*#%@"
+
+export default function AsciiText(raw: AsciiTextProps) {
+  const props = mergeProps({ text: "DITHER", cols: 64 }, raw)
+  const [art, setArt] = createSignal("")
+
+  // Rasterise the word to an offscreen canvas, then map coverage to an ASCII
+  // ramp — a static, on-brand ASCII render. Client-only (canvas), SSR-safe.
+  function build() {
+    const cvs = document.createElement("canvas")
+    const ctx = cvs.getContext("2d", { willReadFrequently: true })
+    if (!ctx) return
+    const cols = Math.max(8, Math.min(200, Math.round(props.cols)))
+    const fontPx = 80
+    const font = `bold ${fontPx}px ui-monospace, "SFMono-Regular", monospace`
+    ctx.font = font
+    const w = Math.max(1, Math.ceil(ctx.measureText(props.text).width))
+    const h = Math.ceil(fontPx * 1.25)
+    cvs.width = w
+    cvs.height = h
+    ctx.font = font
+    ctx.textBaseline = "middle"
+    ctx.fillStyle = "#fff"
+    ctx.clearRect(0, 0, w, h)
+    ctx.fillText(props.text, 0, h / 2)
+    const cellW = w / cols
+    const rows = Math.max(3, Math.round(h / (cellW * 1.9)))
+    const cellH = h / rows
+    const data = ctx.getImageData(0, 0, w, h).data
+    let out = ""
+    for (let ry = 0; ry < rows; ry++) {
+      let line = ""
+      for (let cx = 0; cx < cols; cx++) {
+        const px = Math.min(w - 1, Math.floor((cx + 0.5) * cellW))
+        const py = Math.min(h - 1, Math.floor((ry + 0.5) * cellH))
+        const a = data[(py * w + px) * 4 + 3] / 255
+        line += RAMP[Math.min(RAMP.length - 1, Math.floor(a * RAMP.length))]
+      }
+      out += `${line}\n`
+    }
+    setArt(out)
+  }
+
+  onMount(() => {
+    build()
+    createEffect(on(() => [props.text, props.cols], build, { defer: true }))
+  })
+
+  return (
+    <pre class={cn([styles.pre, "dither-ascii"], props.xstyle, props.class)} aria-label={props.text}>
+      {art()}
+    </pre>
+  )
+}

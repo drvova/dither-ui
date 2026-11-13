@@ -6,7 +6,8 @@
 
 /** Whether `file`, a path inside a kit's folder with `/` between its parts,
  * is one of that kit's sources. The Solid layer growing beside the Vue kit
- * (`dither-kit/solid/`) is not part of the Vue kit's listing; the Solid
- * site's build lists it from inside that folder. */
+ * (`dither-kit/solid/`, and its StyleX twin `dither-kit/solid-stylex/`) is
+ * not part of the Vue kit's listing; the Solid site's build lists it from
+ * inside that folder. */
 export const isKitSource = (file: string): boolean =>
-  /\.(vue|svelte|tsx?|css)$/.test(file) && !/^(node_modules|solid)\//.test(file)
+  /\.(vue|svelte|tsx?|css)$/.test(file) && !/^(node_modules|solid|solid-stylex)\//.test(file)

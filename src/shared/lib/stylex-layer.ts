@@ -10,7 +10,21 @@
 // The layer's `lib.ts` (its `cn`, `StyleProp`) is written by hand.
 import ts from "typescript"
 import { parse } from "vue/compiler-sfc"
-import { baseName, camel, compileUtilities, Names, stylexText, type UtilityMap } from "./restyle"
+import { baseName, Names, stylexText, type UtilityMap } from "./restyle"
+import {
+  CLASS_TYPE,
+  type Context,
+  convert,
+  type Edit,
+  Script,
+  type Site,
+  splice,
+  TAKES_CLASS,
+  throwing,
+  unwrap,
+  walk,
+  XSTYLE_TYPE,
+} from "./stylex-core"
 
 export interface StylexLayer {
   /** The generated files, by name inside the layer. */
@@ -29,233 +43,6 @@ const header = (name: string) =>
   name.endsWith(".vue")
     ? `<!-- Generated from ../tailwind/${name} by src/shared/lib/stylex-layer.ts: edit that file, then npx rs test -u tests/stylex-layer.spec.ts -->\n`
     : `// Generated from ../tailwind/${name} by src/shared/lib/stylex-layer.ts: edit that\n// file, then npx rs test -u tests/stylex-layer.spec.ts\n`
-
-type Edit = { start: number; end: number; text: string }
-type Site = { node: ts.StringLiteralLike; hint: string }
-
-/** `SIZES` + `sm` → `sizesSm`; `cellBase` stays. */
-const hintOf = (...parts: string[]) =>
-  camel(parts.map((p) => (/^[A-Z0-9_]+$/.test(p) ? p.toLowerCase() : p)).join("-")).replace(/^[A-Z]/, (c) =>
-    c.toLowerCase(),
-  )
-
-const unwrap = (n: ts.Expression): ts.Expression =>
-  ts.isParenthesizedExpression(n) ||
-  ts.isAsExpression(n) ||
-  ts.isSatisfiesExpression(n) ||
-  ts.isNonNullExpression(n) ||
-  ts.isTypeAssertionExpression(n)
-    ? unwrap(n.expression)
-    : n
-
-/** The return expressions of a function body, not of functions inside it. */
-function returnsOf(body: ts.Node, out: ts.Expression[] = []): ts.Expression[] {
-  ts.forEachChild(body, (n) => {
-    if (ts.isFunctionLike(n)) return
-    if (ts.isReturnStatement(n) && n.expression) out.push(n.expression)
-    else returnsOf(n, out)
-  })
-  return out
-}
-
-/** The string literals in class position under `node`: the arms of a
- * ternary, the right of `&&`, both sides of `||` / `??`, array items, a
- * record's values, `cn()` and `computed()` arguments, a function's returns.
- * Identifiers met there (a constant, a record, a computed, a function) are
- * added to `holders`: their declarations hold classes too. */
-function walk(node: ts.Expression, file: string, sites: Site[], holders: Set<string>, hint: string, records: boolean) {
-  const n = unwrap(node)
-  const go = (e: ts.Expression, h = hint) => walk(e, file, sites, holders, h, records)
-  if (ts.isStringLiteralLike(n)) sites.push({ node: n, hint })
-  else if (ts.isTemplateExpression(n))
-    throw new Error(`${file}: a template literal holds classes; write them as an array`)
-  else if (ts.isConditionalExpression(n)) {
-    go(n.whenTrue, "")
-    go(n.whenFalse, "")
-  } else if (ts.isBinaryExpression(n)) {
-    const op = n.operatorToken.kind
-    if (op === ts.SyntaxKind.AmpersandAmpersandToken) go(n.right, "")
-    else if (op === ts.SyntaxKind.BarBarToken || op === ts.SyntaxKind.QuestionQuestionToken) {
-      go(n.left)
-      go(n.right, "")
-    } else if (op === ts.SyntaxKind.PlusToken) throw new Error(`${file}: classes joined with +; write them as an array`)
-  } else if (ts.isArrayLiteralExpression(n)) {
-    for (const e of n.elements) go(ts.isSpreadElement(e) ? e.expression : e)
-  } else if (ts.isObjectLiteralExpression(n)) {
-    for (const p of n.properties) {
-      if (!records) {
-        if (ts.isPropertyAssignment(p) && ts.isStringLiteralLike(p.name))
-          throw new Error(`${file}: a class object with class-name keys; write the classes as \`cond && "..."\``)
-        continue
-      }
-      if (ts.isPropertyAssignment(p)) go(p.initializer, hintOf(hint, p.name.getText().replace(/["']/g, "")))
-    }
-  } else if (ts.isCallExpression(n)) {
-    const callee = n.expression
-    if (ts.isIdentifier(callee) && (callee.text === "cn" || callee.text === "computed"))
-      for (const a of n.arguments) go(a, callee.text === "cn" ? "" : hint)
-    else if (ts.isIdentifier(callee)) holders.add(callee.text)
-  } else if (ts.isArrowFunction(n) || ts.isFunctionExpression(n)) {
-    if (ts.isBlock(n.body)) for (const r of returnsOf(n.body)) go(r)
-    else go(n.body)
-  } else if (ts.isIdentifier(n)) holders.add(n.text)
-  else if (ts.isPropertyAccessExpression(n) && n.name.text === "value" && ts.isIdentifier(n.expression))
-    holders.add(n.expression.text)
-  else if (ts.isElementAccessExpression(n) && ts.isIdentifier(n.expression)) holders.add(n.expression.text)
-}
-
-/** One parsed script: its class sites from `cn()` calls, `class:` in `h()`,
- * and the declarations of every holder (to a fixpoint). */
-class Script {
-  sf: ts.SourceFile
-  sites: Site[] = []
-  edits: Edit[] = []
-  private done = new Set<string>()
-  constructor(
-    readonly file: string,
-    readonly text: string,
-    readonly offset: number,
-  ) {
-    this.sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
-  }
-
-  roots(holders: Set<string>) {
-    const visit = (n: ts.Node) => {
-      if (ts.isCallExpression(n) && ts.isIdentifier(n.expression) && n.expression.text === "cn")
-        for (const a of n.arguments) {
-          if (a.getText() === "props.class") this.edit(a.getStart(), a.getStart(), "props.xstyle, ")
-          walk(a, this.file, this.sites, holders, "", false)
-        }
-      else if (
-        ts.isPropertyAssignment(n) &&
-        n.name.getText() === "class" &&
-        ts.isObjectLiteralExpression(n.parent) &&
-        ts.isCallExpression(n.parent.parent) &&
-        n.parent.parent.expression.getText() === "h"
-      )
-        walk(n.initializer, this.file, this.sites, holders, "", false)
-      ts.forEachChild(n, visit)
-    }
-    visit(this.sf)
-  }
-
-  /** Walk the declarations of holders not walked yet; true when any was. */
-  declarations(holders: Set<string>): boolean {
-    let more = false
-    const visit = (n: ts.Node) => {
-      if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name) && n.initializer) {
-        const name = n.name.text
-        if (holders.has(name) && !this.done.has(name)) {
-          this.done.add(name)
-          more = true
-          walk(n.initializer, this.file, this.sites, holders, hintOf(name), true)
-          // A record typed as strings holds styles now.
-          const t = n.type
-          if (t && ts.isTypeReferenceNode(t) && t.typeName.getText() === "Record" && t.typeArguments?.length === 2) {
-            const v = t.typeArguments[1]
-            if (v.kind === ts.SyntaxKind.StringKeyword) this.edit(v.getStart(), v.getEnd(), "StyleProp")
-          }
-        }
-      } else if (ts.isFunctionDeclaration(n) && n.name && n.body) {
-        const name = n.name.text
-        if (holders.has(name) && !this.done.has(name)) {
-          this.done.add(name)
-          more = true
-          for (const r of returnsOf(n.body)) walk(r, this.file, this.sites, holders, hintOf(name), true)
-        }
-      }
-      ts.forEachChild(n, visit)
-    }
-    visit(this.sf)
-    return more
-  }
-
-  /** Each class site as StyleX (a literal reached twice, once). */
-  convert(ctx: Context) {
-    const seen = new Set<ts.Node>()
-    for (const site of this.sites) {
-      if (seen.has(site.node)) continue
-      seen.add(site.node)
-      const out = convert(site.node.text, site.hint, ctx, '"')
-      if (out !== null) this.edit(site.node.getStart(), site.node.getEnd(), out)
-    }
-  }
-
-  edit(start: number, end: number, text: string) {
-    this.edits.push({ start: this.offset + start, end: this.offset + end, text })
-  }
-
-  /** The names this script imports from `./lib`, and where that import is. */
-  libImport(): { names: string[]; start: number; end: number } | null {
-    for (const s of this.sf.statements)
-      if (ts.isImportDeclaration(s) && (s.moduleSpecifier as ts.StringLiteral).text === "./lib") {
-        const named = s.importClause?.namedBindings
-        const names = named && ts.isNamedImports(named) ? named.elements.map((e) => e.getText()) : []
-        return { names, start: s.getStart(), end: s.getEnd() }
-      }
-    return null
-  }
-
-  /** Where a new import goes: after the last one (0 when none). */
-  importsEnd(): number {
-    let end = 0
-    for (const s of this.sf.statements) if (ts.isImportDeclaration(s)) end = s.getEnd()
-    return end
-  }
-}
-
-interface Context {
-  map: UtilityMap
-  names: Names
-  kept: Set<string>
-  inert: Set<string>
-}
-
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
-
-/** A class literal as StyleX: `styles.name`, `[styles.name, "hook"]` when it
- * also holds class names no utility stands for, `null` for an empty one, or
- * null (left as written) when no utility is in it. */
-function convert(text: string, hint: string, ctx: Context, quote: string): string | null {
-  const tokens = text.split(/\s+/).filter(Boolean)
-  if (!tokens.length) return "null"
-  const compiled = compileUtilities(tokens, true, ctx.map)
-  for (const t of compiled.rest) ctx.kept.add(t)
-  if (!compiled.chains.length) return null
-  // An input alone (`ring-accent/30`) writes nothing; it must change the literal it is in.
-  for (const t of tokens)
-    if (
-      !compiled.rest.includes(t) &&
-      !compileUtilities([t], true, ctx.map).chains.length &&
-      same(
-        compileUtilities(
-          tokens.filter((x) => x !== t),
-          true,
-          ctx.map,
-        ),
-        compiled,
-      )
-    )
-      ctx.inert.add(t)
-  const first = tokens.find((t) => !compiled.rest.includes(t))!
-  const ref = `styles.${ctx.names.claim(hint || camel(first).replace(/^[A-Z]/, (c) => c.toLowerCase()), compiled)}`
-  return compiled.rest.length ? `[${ref}, ${quote}${compiled.rest.join(" ")}${quote}]` : ref
-}
-
-/** Apply the replacements that fall inside [start, end) of `text`. */
-function splice(text: string, edits: Edit[], start = 0, end = text.length): string {
-  let out = ""
-  let at = start
-  for (const e of [...edits].filter((e) => e.start >= start && e.end <= end).sort((a, b) => a.start - b.start)) {
-    out += text.slice(at, e.start) + e.text
-    at = e.end
-  }
-  return out + text.slice(at, end)
-}
-
-const CLASS_TYPE = /\bclass\?: string\b/g
-const XSTYLE_TYPE = "; xstyle?: StyleProp"
-const TAKES_CLASS = /\bclass\?: string\b/
 
 /* ------------------------------ .vue files -------------------------------- */
 
@@ -320,15 +107,15 @@ function sfc(
       if (ts.isObjectLiteralExpression(root)) {
         // `{ shown }`: a component's own hooks as Vue's class object, which
         // stays as written beside the element's styles.
-        walk(root, name, [], holders, "", false)
+        walk(root, { sites: [], holders, refuse: throwing(name) }, "", false)
         binding = undefined
       } else {
         const sites: Site[] = []
-        walk(root, name, sites, holders, "", false)
+        walk(root, { sites, holders, refuse: throwing(name) }, "", false)
         const local: Edit[] = []
         for (const s of sites) {
           const unconditional = s.node === root || s.node.parent === root
-          const out = convert(s.node.text, unconditional ? baseName(el.tag, s.node.text.split(/\s+/)) : "", ctx, "'")
+          const out = convert(s.text, unconditional ? baseName(el.tag, s.text.split(/\s+/)) : "", ctx, "'")
           if (out !== null) local.push({ start: s.node.getStart(), end: s.node.getEnd(), text: out })
         }
         args =

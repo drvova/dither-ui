@@ -38,17 +38,10 @@ export default function DitherStepper(props: DitherStepperProps) {
               </span>
               <Show when={i() < props.steps.length - 1} fallback={<span class="flex-1" />}>
                 <DitherSeparator
-                  class={
-                    (
-                      state(i() + 1) === "todo" && state(i()) !== "active"
-                        ? "opacity-30"
-                        : state(i()) === "todo"
-                          ? "opacity-30"
-                          : ""
-                    )
-                      ? "flex-1 opacity-30"
-                      : "flex-1"
-                  }
+                  class={cn(
+                    "flex-1",
+                    ((state(i() + 1) === "todo" && state(i()) !== "active") || state(i()) === "todo") && "opacity-30",
+                  )}
                 />
               </Show>
             </div>

@@ -95,9 +95,6 @@ export type DitherTabsProps = {
   children?: JSX.Element
 }
 
-/** Class parts as a template's class list joins them: the truthy ones, in order. */
-const join = (...parts: (string | false | undefined)[]) => parts.filter(Boolean).join(" ")
-
 export default function DitherTabs(raw: DitherTabsProps) {
   const props = mergeProps({ variant: "underline" as TabsVariant, orientation: "horizontal" as const }, raw)
 
@@ -194,10 +191,10 @@ export default function DitherTabs(raw: DitherTabsProps) {
           ref={(el) => (list = el)}
           role="tablist"
           aria-orientation={props.orientation}
-          class={join(
+          class={cn(
             vertical() ? "relative flex flex-col" : "relative flex",
             props.variant === "segmented"
-              ? join("gap-1 rounded-md border border-border/60 p-1", !vertical() && "items-center")
+              ? ["gap-1 rounded-md border border-border/60 p-1", !vertical() && "items-center"]
               : props.variant === "underline"
                 ? vertical()
                   ? "gap-1 pl-3"
@@ -217,7 +214,7 @@ export default function DitherTabs(raw: DitherTabsProps) {
                 aria-controls={`${idBase}-panel-${t.value}`}
                 tabIndex={t.value === props.modelValue ? 0 : -1}
                 disabled={t.disabled}
-                class={join(
+                class={cn(
                   "relative z-10 flex items-center gap-1.5 text-[12px] transition-colors focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40",
                   props.variant === "underline"
                     ? vertical()
@@ -248,7 +245,7 @@ export default function DitherTabs(raw: DitherTabsProps) {
             <canvas
               ref={(el) => (canvas = el)}
               aria-hidden="true"
-              class={join(
+              class={cn(
                 "absolute transition-[left,top,width,height] duration-200 motion-reduce:transition-none",
                 props.variant === "washed" && "rounded",
               )}

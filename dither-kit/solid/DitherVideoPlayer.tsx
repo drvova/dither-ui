@@ -19,10 +19,10 @@ const fmt = (s: number) => {
   const sec = Math.floor(s % 60)
   return `${m}:${String(sec).padStart(2, "0")}`
 }
-const btn = cn(
+const btn = [
   "grid size-8 place-items-center rounded-md text-[12px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground",
   CONTROL_BUTTON,
-)
+]
 
 /** Native video under dither chrome — play, a dithered scrubber, volume,
  * playback rate, tabular time, mute, fullscreen, and player keyboard:
@@ -173,7 +173,7 @@ export default function DitherVideoPlayer(raw: DitherVideoPlayerProps) {
         <div class="flex items-center gap-1">
           <button
             type="button"
-            class={btn}
+            class={cn(btn)}
             aria-label={playing() ? "Pause" : "Play"}
             disabled={!props.src}
             onClick={toggle}
@@ -182,7 +182,7 @@ export default function DitherVideoPlayer(raw: DitherVideoPlayerProps) {
           </button>
           <button
             type="button"
-            class={btn}
+            class={cn(btn)}
             aria-label={muted() ? "Unmute" : "Mute"}
             disabled={!props.src}
             onClick={toggleMute}

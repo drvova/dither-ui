@@ -89,7 +89,7 @@ export default function SignaturePad(raw: SignaturePadProps) {
   }
 
   return (
-    <div class={["grid gap-2", cn(props.class)].filter(Boolean).join(" ")}>
+    <div class={cn("grid gap-2", props.class)}>
       <canvas
         ref={(el) => (canvasEl = el)}
         width={props.width}
