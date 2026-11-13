@@ -52,11 +52,13 @@ export default function DitherStage(raw: DitherStageProps) {
   const props = mergeProps({ speed: 1, paused: false, frameRate: 0, as: "div" }, raw)
 
   let root: HTMLElement | undefined
-  const [time, setTime] = createSignal(0)
+  // The stage's own clock, seconds (written at its frames), and the kit
+  // clock's moment while it is directed: the time shown is read off them, so
+  // a new speed or duration shows at once.
+  const [own, setOwn] = createSignal(0)
+  const [moment, setMoment] = createSignal<number | null>(null)
   const [box, setBox] = createSignal<CqBox>({ width: 0, height: 0 })
   const [reduced, setReduced] = createSignal(false)
-  /** Whether the kit clock holds the moment (reactive for the state attribute). */
-  const [directed, setDirected] = createSignal(false)
 
   let raf = 0
   let last = 0
@@ -66,6 +68,10 @@ export default function DitherStage(raw: DitherStageProps) {
 
   const wrap = (t: number): number =>
     props.duration && props.duration > 0 ? ((t % props.duration) + props.duration) % props.duration : t
+  const time = createMemo(() => {
+    const ms = moment()
+    return wrap(ms === null ? own() : (ms / 1000) * props.speed)
+  })
 
   function frame(now: number): void {
     raf = 0
@@ -79,7 +85,7 @@ export default function DitherStage(raw: DitherStageProps) {
     const idx = fps > 0 ? frameIndex(elapsed * 1000, fps) : -1
     if (fps <= 0 || idx !== lastFrame) {
       lastFrame = idx
-      setTime(wrap(elapsed))
+      setOwn(elapsed)
     }
     raf = requestAnimationFrame(frame)
   }
@@ -89,7 +95,7 @@ export default function DitherStage(raw: DitherStageProps) {
       seekTo(directedTime() ?? 0)
       return
     }
-    setDirected(false)
+    setMoment(null)
     if (reduced() || props.paused || raf) return
     last = 0
     lastFrame = -1
@@ -104,14 +110,13 @@ export default function DitherStage(raw: DitherStageProps) {
   /** Directed: the composition's moment (looped over `duration`), no frames. */
   function seekTo(ms: number): void {
     stop()
-    setDirected(true)
-    setTime(wrap((ms / 1000) * props.speed))
+    setMoment(ms)
   }
 
   function restart(): void {
     stop()
     elapsed = 0
-    setTime(0)
+    setOwn(0)
     play()
   }
 
@@ -146,7 +151,9 @@ export default function DitherStage(raw: DitherStageProps) {
     })
   })
 
-  const state = createMemo(() => (reduced() ? "still" : props.paused ? "paused" : directed() ? "directed" : "playing"))
+  const state = createMemo(() =>
+    reduced() ? "still" : props.paused ? "paused" : moment() !== null ? "directed" : "playing",
+  )
   const style = createMemo<JSX.CSSProperties>(() => ({
     "container-type": "size",
     "container-name": "stage",

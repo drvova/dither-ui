@@ -161,7 +161,11 @@ are from the repository's.
   and the video export are checked in a browser.
 - A spec that crosses packages lives here, the highest package it touches
   (`tests/bridge.spec.ts`, `tests/focus-ring.spec.ts`,
-  `tests/site/stylex-layer.spec.tsx`). The kit's component specs are the
+  `tests/site/stylex-layer.spec.tsx`, `tests/site/paint-law.spec.tsx`: the
+  kit's paint law over every component row of the registry, each input
+  changed in place against a fresh mount at one directed moment, a
+  failure named `<Component>.<input>`; a row whose two copies differ with
+  nothing changed is skipped with the reason printed). The kit's component specs are the
   kit's (`packages/dither-kit/tests/solid/`).
 
 ## Child DOX Index

@@ -150,7 +150,9 @@ around this tree (entries, routes, the build, how Solid is written) is
   `value`, `artboard.update`'s `widget.value`) only in the kind of the
   entry's default and under `MODEL_MAX`, else the default;
   `tests/field-values.spec.ts`. Every public `Dither*` export is covered
-  there or by a bespoke widget kind.
+  there or by a bespoke widget kind. `TEXT_SAMPLES` beside the rows gives
+  a text prop read as a value (a locale, a currency, a CSS length) the
+  second value `tests/site/paint-law.spec.tsx` changes it to.
 
 ## Local Contracts
 

@@ -34,6 +34,7 @@ export type FlowFieldParams = {
 }
 
 type FlowState = {
+  seed: number
   noise: (x: number, y: number) => number
   rng: () => number
   px: Float32Array
@@ -92,10 +93,11 @@ export function paintFlowField(
   // 1) The trail decays toward transparent.
   fadeRasterAlpha(buffer, p.fade)
 
-  // 2) The state (created once per buffer; rebuilt if the count changes).
+  // 2) The state (created once per buffer; rebuilt if the count or the seed changes).
   let st = states.get(buffer)
-  if (!st || st.px.length !== n) {
+  if (!st || st.px.length !== n || st.seed !== p.seed) {
     st = {
+      seed: p.seed,
       noise: simplex2DFactory(p.seed),
       rng: mulberry32(p.seed ^ 0x9e3779b9),
       px: new Float32Array(n),

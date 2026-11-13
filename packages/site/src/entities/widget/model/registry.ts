@@ -3135,6 +3135,20 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
   },
 ]
 
+/** A second value for a text prop whose text is read as a value (a
+ * locale, a currency, a date, a ratio, a CSS colour, length or origin), by the prop's key: what
+ * `tests/site/paint-law.spec.tsx` changes it to, every other prop's second
+ * value being made from its spec. */
+export const TEXT_SAMPLES: Readonly<Record<string, string>> = {
+  locale: "de-DE",
+  currency: "EUR",
+  date: "2024-02-29T08:30:00Z",
+  ratio: "1.25",
+  color: "#3DA5FF",
+  gap: "1.5rem",
+  origin: "0% 100%",
+}
+
 export const componentEntry = (is: string): ComponentEntry | undefined => COMPONENT_REGISTRY.find((e) => e.is === is)
 
 /** A field's visible label, when it has one: the canvas and the code

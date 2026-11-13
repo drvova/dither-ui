@@ -1,4 +1,4 @@
-import { type JSX, mergeProps, onCleanup, onMount } from "solid-js"
+import { createEffect, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 import { createInviewLoop } from "./runtime/in-view"
@@ -73,7 +73,7 @@ export default function Antigravity(raw: AntigravityProps) {
 
   onMount(() => {
     resize()
-    init()
+    createEffect(on(() => props.count, init))
     const ro = new ResizeObserver(() => resize())
     if (wrap) ro.observe(wrap)
     onCleanup(() => ro.disconnect())

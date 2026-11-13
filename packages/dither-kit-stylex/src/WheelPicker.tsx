@@ -168,11 +168,11 @@ export default function WheelPicker(raw: WheelPickerProps) {
   const indexOfValue = (v: string | undefined) => opts().findIndex((o) => o.value === v)
   onMount(() => {
     setStill(pixelPrefersReducedMotion())
+    // The drum follows the value to its row, wherever the options put it.
     createEffect(
       on(
-        () => props.modelValue,
-        (v) => {
-          const i = indexOfValue(v)
+        () => indexOfValue(props.modelValue),
+        (i) => {
           if (i >= 0 && i !== index() && !dragging)
             scroller?.scrollTo({ top: i * ITEM, behavior: still() ? "auto" : "smooth" })
         },

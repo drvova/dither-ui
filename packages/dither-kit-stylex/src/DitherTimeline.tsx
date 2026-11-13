@@ -1,6 +1,6 @@
 // Generated from @dither-ui/kit/solid/DitherTimeline.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { For, mergeProps, onMount, Show } from "solid-js"
+import { createEffect, For, mergeProps, onMount, Show } from "solid-js"
 import { BAYER4, fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cellCanvas } from "@dither-ui/kit/engine/raster.ts"
 import { cn, type StyleProp } from "./lib"
@@ -63,52 +63,53 @@ export type DitherTimelineProps = {
 export default function DitherTimeline(raw: DitherTimelineProps) {
   const props = mergeProps({ dotSize: 12 }, raw)
 
-  const dots: HTMLCanvasElement[] = []
-
-  onMount(() => {
-    const cells = Math.max(4, Math.round(props.dotSize / CELL))
-    dots.forEach((canvas, i) => {
-      const ctx = canvas.getContext("2d", { willReadFrequently: true })
-      if (!ctx) return
-      canvas.width = cells
-      canvas.height = cells
-      paintDot(ctx, cells, props.items[i]?.color ?? "blue")
-    })
-  })
-
   return (
     <ol class={cn(styles.ol, props.xstyle, props.class)}>
       <For each={props.items}>
-        {(it, i) => (
-          <li {...stylex.props(styles.li)}>
-            {/* rail: dot + connecting line down to the next item */}
-            <div {...stylex.props(styles.stack)}>
-              <canvas
-                ref={(el) => (dots[i()] = el)}
-                aria-hidden="true"
-                style={{
-                  width: `${props.dotSize}px`,
-                  height: `${props.dotSize}px`,
-                  "image-rendering": "pixelated",
-                }}
-              />
-              <Show when={i() < props.items.length - 1}>
-                <span aria-hidden="true" {...stylex.props(styles.text)} />
-              </Show>
-            </div>
-            <div {...stylex.props(styles.box)}>
-              <div {...stylex.props(styles.row)}>
-                <p {...stylex.props(styles.p)}>{it.title}</p>
-                <Show when={it.time}>
-                  <span {...stylex.props(styles.text2)}>{it.time}</span>
+        {(it, i) => {
+          let dot: HTMLCanvasElement | undefined
+          // Each dot prints as its item and the size are now.
+          onMount(() =>
+            createEffect(() => {
+              const ctx = dot?.getContext("2d", { willReadFrequently: true })
+              if (!dot || !ctx) return
+              const cells = Math.max(4, Math.round(props.dotSize / CELL))
+              dot.width = cells
+              dot.height = cells
+              paintDot(ctx, cells, it.color ?? "blue")
+            }),
+          )
+          return (
+            <li {...stylex.props(styles.li)}>
+              {/* rail: dot + connecting line down to the next item */}
+              <div {...stylex.props(styles.stack)}>
+                <canvas
+                  ref={(el) => (dot = el)}
+                  aria-hidden="true"
+                  style={{
+                    width: `${props.dotSize}px`,
+                    height: `${props.dotSize}px`,
+                    "image-rendering": "pixelated",
+                  }}
+                />
+                <Show when={i() < props.items.length - 1}>
+                  <span aria-hidden="true" {...stylex.props(styles.text)} />
                 </Show>
               </div>
-              <Show when={it.body}>
-                <p {...stylex.props(styles.p2)}>{it.body}</p>
-              </Show>
-            </div>
-          </li>
-        )}
+              <div {...stylex.props(styles.box)}>
+                <div {...stylex.props(styles.row)}>
+                  <p {...stylex.props(styles.p)}>{it.title}</p>
+                  <Show when={it.time}>
+                    <span {...stylex.props(styles.text2)}>{it.time}</span>
+                  </Show>
+                </div>
+                <Show when={it.body}>
+                  <p {...stylex.props(styles.p2)}>{it.body}</p>
+                </Show>
+              </div>
+            </li>
+          )
+        }}
       </For>
     </ol>
   )

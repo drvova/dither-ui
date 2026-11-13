@@ -27,7 +27,8 @@ package's paths are from the repository's root.
   (`@dither-ui/kit/engine/<file>`, `@dither-ui/kit/solid/<file>`,
   `@dither-ui/kit/tailwind/<file>`). `@dither-ui/kit/testing/<file>` is
   `tests/support/`: the fake browser the component specs of this package
-  and of the site run in, never shipped (`files` is `src`).
+  and of the site run in (`paint.ts`: a 2D canvas that remembers what it
+  shows), never shipped (`files` is `src`).
 - Depends on no package of this workspace (`tests/workspace.spec.ts` at
   the root).
 
@@ -240,7 +241,10 @@ generated twin. Inside the kit every import is relative
   the surface loop sets `clock = ms/1000 · timeScale` (pure
   renderers land on the exact frame) and passes `dt` = the step since the
   last directed moment (simulations advance in capture order, so those
-  render with one worker); the chart canvases run the entrance from
+  render with one worker; a moment that is not the next step, the first
+  included, prints on a clean raster), holds a paused surface on its
+  first frame (clock 0) whatever the moment, and prints the moment again
+  when what its frame read changes (`holds()` is true while directed); the chart canvases run the entrance from
   composition time 0 and derive the sparkle tick from the moment;
   `Sequence` samples its plan at the moment; spinner, skeleton, progress,
   avatar, `CountUp` and `CurvedLoop` are pure functions of the moment;
@@ -253,6 +257,18 @@ generated twin. Inside the kit every import is relative
   Studio's video export and `src/pages/play` rely on. Pinned by
   `tests/clock.spec.ts` and the directed cases in
   `tests/solid/carried-motion.spec.tsx`.
+- The paint law: a surface updated in place paints the same pixels as one
+  mounted fresh with the same props at the same clock time. What a
+  component shows is derived from its inputs and the moment (a signal of
+  progress or time, the text or count read off it in a memo), never a copy
+  of a prop taken at mount or at a step; a canvas repaints when anything
+  its paint reads changes (props, the screen around it, its box); a
+  surface that keeps state between frames drops it where a fresh mount
+  would not have it. Checked for every component row of the Studio's
+  registry by `packages/site/tests/site/paint-law.spec.tsx` (each prop,
+  the screen, the theme and the box changed in place against a fresh
+  mount, both directed to one moment; `tests/support/paint.ts` reads what
+  a canvas shows).
 - `wipe.ts` is the wipe engine — ordered-dither reveal masks for any DOM.
   `wipeStyle(progress, { cell, seed?, direction, band, width, height })`
   turns a progress into CSS `mask-image/size/repeat/position` values: a
@@ -997,7 +1013,8 @@ generated twin. Inside the kit every import is relative
 ## Work Guidance
 
 - A new time-driven surface subscribes to the clock: paint the moment on
-  seek, request no frames while directed, resume on release.
+  seek, request no frames while directed, resume on release, and show what
+  its inputs and that moment give (the paint law).
 
 ## Verification
 

@@ -16,7 +16,8 @@ export default function TextCursor(raw: TextCursorProps) {
   let trail: HTMLDivElement | undefined
   let raf = 0
   const mouse = { x: 0, y: 0, active: false }
-  const pos = chars().map(() => ({ x: 0, y: 0 }))
+  // One trailing point per letter shown, however the text changed.
+  const pos: { x: number; y: number }[] = []
 
   function onMove(e: PointerEvent) {
     const r = area?.getBoundingClientRect()
@@ -29,6 +30,8 @@ export default function TextCursor(raw: TextCursorProps) {
     raf = requestAnimationFrame(frame)
     const kids = trail?.children
     if (!kids) return
+    while (pos.length < kids.length) pos.push({ x: 0, y: 0 })
+    pos.length = kids.length
     let tx = mouse.x
     let ty = mouse.y
     for (let i = 0; i < pos.length; i++) {

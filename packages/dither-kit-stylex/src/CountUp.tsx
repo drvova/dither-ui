@@ -24,34 +24,34 @@ export default function CountUp(raw: CountUpProps) {
   const props = mergeProps({ from: 0, duration: 1500, decimals: 0 }, raw)
 
   let el: HTMLSpanElement | undefined
-  const [value, setValue] = createSignal(props.from)
+  // How far into the count it is, ms: the count shown is read off it, so
+  // new ends or a new length show at once.
+  const [elapsed, setElapsed] = createSignal(0)
   let raf = 0
   let started = false
-
-  /** The count at progress p (eased out). */
-  const at = (p: number) => {
-    const e = 1 - Math.pow(1 - Math.min(1, Math.max(0, p)), 3)
-    setValue(props.from + (props.to - props.from) * e)
-  }
   const duration = () => Math.max(1, props.duration)
+  /** The count at the moment (eased out). */
+  const value = createMemo(() => {
+    const e = 1 - Math.pow(1 - Math.min(1, Math.max(0, elapsed() / duration())), 3)
+    return props.from + (props.to - props.from) * e
+  })
 
   function run() {
     if (started) return
     started = true
     if (pixelPrefersReducedMotion()) {
-      setValue(props.to)
+      setElapsed(Infinity)
       return
     }
     // Directed (clock.ts): the count is the moment's, no frames requested.
     if (isDirected()) {
-      at((directedTime() ?? 0) / duration())
+      setElapsed(directedTime() ?? 0)
       return
     }
     const t0 = performance.now()
     const step = (now: number) => {
-      const p = Math.min(1, (now - t0) / duration())
-      at(p)
-      if (p < 1 && !isDirected()) raf = requestAnimationFrame(step)
+      setElapsed(now - t0)
+      if (now - t0 < duration() && !isDirected()) raf = requestAnimationFrame(step)
     }
     raf = requestAnimationFrame(step)
   }
@@ -61,7 +61,7 @@ export default function CountUp(raw: CountUpProps) {
       if (ms === null || !started) return
       if (raf) cancelAnimationFrame(raf)
       raf = 0
-      at(ms / duration())
+      setElapsed(ms)
     })
     let io: IntersectionObserver | null = null
     if (typeof IntersectionObserver === "undefined") run()

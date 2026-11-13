@@ -1,6 +1,6 @@
 // Generated from @dither-ui/kit/solid/MagnetLines.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { type JSX, mergeProps, onCleanup, onMount } from "solid-js"
+import { createEffect, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"
 
@@ -26,12 +26,14 @@ export default function MagnetLines(raw: MagnetLinesProps) {
   let ro: ResizeObserver | null = null
   let W = 1
   let H = 1
-  const m = { x: 0.5, y: 0.5 }
+  // Where the lines point: the pointer once it has moved, else the centre.
+  let pointer: { x: number; y: number } | null = null
 
   function draw() {
     const c = canvas
     const ctx = c?.getContext("2d")
     if (!c || !ctx) return
+    const m = pointer ?? { x: W / 2, y: H / 2 }
     ctx.clearRect(0, 0, W, H)
     ctx.strokeStyle = props.color
     ctx.lineWidth = 2
@@ -55,17 +57,12 @@ export default function MagnetLines(raw: MagnetLinesProps) {
     const r = w.getBoundingClientRect()
     W = c.width = Math.max(1, r.width)
     H = c.height = Math.max(1, r.height)
-    if (m.x <= 1) {
-      m.x = W / 2
-      m.y = H / 2
-    }
     draw()
   }
   function onMove(e: PointerEvent) {
     const r = wrap?.getBoundingClientRect()
     if (!r) return
-    m.x = e.clientX - r.left
-    m.y = e.clientY - r.top
+    pointer = { x: e.clientX - r.left, y: e.clientY - r.top }
     draw()
   }
 
@@ -73,6 +70,7 @@ export default function MagnetLines(raw: MagnetLinesProps) {
     resize()
     ro = new ResizeObserver(() => resize())
     if (wrap) ro.observe(wrap)
+    createEffect(on([() => props.color, () => props.gap, () => props.lineLength], draw, { defer: true }))
   })
   onCleanup(() => ro?.disconnect())
 

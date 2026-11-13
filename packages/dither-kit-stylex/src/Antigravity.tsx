@@ -1,6 +1,6 @@
 // Generated from @dither-ui/kit/solid/Antigravity.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { type JSX, mergeProps, onCleanup, onMount } from "solid-js"
+import { createEffect, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import { createInviewLoop } from "@dither-ui/kit/solid/runtime/in-view.ts"
@@ -82,7 +82,7 @@ export default function Antigravity(raw: AntigravityProps) {
 
   onMount(() => {
     resize()
-    init()
+    createEffect(on(() => props.count, init))
     const ro = new ResizeObserver(() => resize())
     if (wrap) ro.observe(wrap)
     onCleanup(() => ro.disconnect())
