@@ -230,6 +230,7 @@ export default function DitherAvatar(raw: DitherAvatarProps) {
           props.bloom,
           props.pattern,
           props.seed,
+          matrix(),
         ],
         paint,
         { defer: true },

@@ -210,7 +210,9 @@ export default function DitherSpinner(raw: DitherSpinnerProps) {
   onMount(() => {
     restartRuntime()
     createEffect(
-      on([() => props.size, () => props.color, () => props.seed, () => props.renderMode, precompiled], restartRuntime, {
+      // `spin` and `matrix` are what a still spinner (static mode, reduced
+      // motion) printed its one frame from: the seed's, and the screen's.
+      on([() => props.size, () => props.color, spin, matrix, () => props.renderMode, precompiled], restartRuntime, {
         defer: true,
       }),
     )

@@ -51,7 +51,9 @@ function world() {
   return { made, show: () => shows.forEach((s) => s()), run }
 }
 
-function loopOn(opts: { paused?: () => boolean; frameRate?: number } = {}) {
+function loopOn(
+  opts: { paused?: () => boolean; frameRate?: number; renderMode?: "live" | "static"; precompiled?: string } = {},
+) {
   const wrap = document.createElement("div")
   const canvas = document.createElement("canvas")
   const painted: number[] = []
@@ -63,8 +65,8 @@ function loopOn(opts: { paused?: () => boolean; frameRate?: number } = {}) {
     maxRows: 8,
     dpr: () => 1,
     paused: opts.paused ?? (() => false),
-    renderMode: () => "live",
-    precompiled: () => undefined,
+    renderMode: () => opts.renderMode ?? "live",
+    precompiled: () => opts.precompiled,
     frameRate: () => opts.frameRate,
     render: (_buffer, clock) => painted.push(clock),
   })
@@ -141,6 +143,106 @@ describe("a surface loop", () => {
     loop.surface.pull(2000)
     expect(painted.length).toBe(free + 1)
     expect(painted.at(-1)).toBe(2)
+    loop.dispose()
+  })
+})
+
+describe("a held frame whose inputs changed", () => {
+  it("paints a still surface's frame again, once, at the same moment", async () => {
+    const w = world()
+    const { loop, painted } = loopOn({ renderMode: "static" })
+    loop.mount()
+    await w.run(100)
+    expect(painted).toEqual([4])
+    expect(loop.holds()).toBe(true)
+    // two inputs changing together are one print
+    loop.repaint()
+    loop.repaint()
+    await w.run(200)
+    expect(painted).toEqual([4, 4])
+    await w.run(300)
+    expect(painted).toEqual([4, 4])
+    loop.dispose()
+    loop.repaint()
+    await w.run(400)
+    expect(painted).toEqual([4, 4])
+  })
+
+  it("leaves the print to a restart the same change caused", async () => {
+    const w = world()
+    const { loop, painted } = loopOn({ renderMode: "static" })
+    loop.mount()
+    await w.run(100)
+    loop.repaint()
+    loop.start()
+    await w.run(200)
+    expect(painted.length).toBe(2)
+    loop.start()
+    loop.repaint()
+    await w.run(300)
+    expect(painted.length).toBe(3)
+    loop.dispose()
+  })
+
+  it("paints nothing before the mount, nor for a precompiled surface", async () => {
+    const w = world()
+    const unmounted = loopOn({ renderMode: "static" })
+    unmounted.loop.repaint()
+    await w.run(100)
+    expect(unmounted.painted).toEqual([])
+    expect(w.made).toEqual({ observers: 0, frames: 0 })
+    const image = loopOn({ renderMode: "static", precompiled: "data:image/png;base64,AAAA" })
+    image.loop.mount()
+    image.loop.repaint()
+    await w.run(200)
+    expect(image.painted).toEqual([])
+    image.loop.dispose()
+  })
+
+  it("waits out the kit clock's direction, and prints as it lets go", async () => {
+    const w = world()
+    const { loop, painted } = loopOn({ renderMode: "static" })
+    loop.mount()
+    await w.run(100)
+    seek(2000)
+    loop.repaint()
+    await w.run(200)
+    expect(painted).toEqual([4])
+    release()
+    await w.run(300)
+    expect(painted).toEqual([4, 4])
+    loop.dispose()
+  })
+
+  it("is nothing to a running loop, which reads its inputs every frame", async () => {
+    const w = world()
+    const { loop, painted } = loopOn()
+    loop.mount()
+    w.show()
+    await w.run(100)
+    expect(loop.holds()).toBe(false)
+    loop.repaint()
+    await Promise.resolve()
+    expect(painted.length).toBe(1)
+    await w.run(200)
+    expect(painted.length).toBe(2)
+    expect(painted[1]).toBeCloseTo(0.1)
+    loop.dispose()
+  })
+
+  it("paints a paused surface's frame again through the loop, the clock kept, and stands down", async () => {
+    const w = world()
+    const { loop, painted } = loopOn({ paused: () => true })
+    loop.mount()
+    w.show()
+    await w.run(100)
+    expect(painted).toEqual([0])
+    loop.repaint()
+    loop.repaint()
+    await w.run(200)
+    expect(painted).toEqual([0, 0])
+    await w.run(300)
+    expect(painted).toEqual([0, 0])
     loop.dispose()
   })
 })

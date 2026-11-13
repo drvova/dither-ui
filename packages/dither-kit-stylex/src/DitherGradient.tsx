@@ -161,7 +161,18 @@ export default function DitherGradient(raw: DitherGradientProps) {
     createEffect(on([precompiled, () => props.renderMode], startRuntime, { defer: true }))
     createEffect(
       on(
-        [effFrom, effTo, effDirection, effCell, effOpacity, effBloom, effMaxCols, effMaxRows, () => screen?.()],
+        [
+          effFrom,
+          effTo,
+          effDirection,
+          effCell,
+          effOpacity,
+          effBloom,
+          effMaxCols,
+          effMaxRows,
+          () => props.seed,
+          () => screen?.(),
+        ],
         paint,
         { defer: true },
       ),

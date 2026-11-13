@@ -4,7 +4,7 @@
 // Nothing here runs while rendering on a server: the loop is made (which
 // touches nothing) and everything else waits for the mount.
 
-import { createEffect, createMemo, on, onCleanup, onMount } from "solid-js"
+import { createEffect, createMemo, createReaction, on, onCleanup, onMount } from "solid-js"
 import { createSurfaceLoop, type DitherSurface, type SurfaceLoopOptions } from "../../engine/surface-loop"
 
 export { surfaceOf, type DitherSurface } from "../../engine/surface-loop"
@@ -15,7 +15,16 @@ export type DitherBackgroundOptions = Omit<SurfaceLoopOptions, "defer"> & {
 }
 
 export function createDitherBackground(opts: DitherBackgroundOptions): DitherSurface {
-  const loop = createSurfaceLoop(opts)
+  // A frame the surface holds (static mode, reduced motion, paused) is
+  // printed from what `render` read: those reads are tracked as it paints,
+  // and the first of them to change paints the same moment again. A running
+  // loop reads them afresh every frame and tracks nothing.
+  const reprint = createReaction(() => loop.repaint())
+  const loop = createSurfaceLoop({
+    ...opts,
+    render: (buffer, clock, dt, elapsed) =>
+      loop.holds() ? reprint(() => opts.render(buffer, clock, dt, elapsed)) : opts.render(buffer, clock, dt, elapsed),
+  })
   // The loop hears of a pause only when the answer changes, not each time
   // something the answer reads does.
   const paused = createMemo(opts.paused)

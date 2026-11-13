@@ -2,11 +2,24 @@
 // prints through the shared engine, follows its props, and lets go of what
 // it listened to when it leaves.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
-import { createSignal } from "solid-js"
+import { createSignal, type JSX } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { DitherAurora, DitherButton, DitherHeatTrail, DitherPoster, DitherScreen, surfaceOf } from "../../src/solid"
-import { screenMatrix } from "../../src/engine/pixel"
+import {
+  DitherAurora,
+  DitherAvatar,
+  DitherButton,
+  DitherGradient,
+  DitherHeatTrail,
+  DitherPoster,
+  DitherScreen,
+  DitherSpinner,
+  surfaceOf,
+} from "../../src/solid"
+import * as aurora from "../../src/engine/aurora"
+import { hexToRgb } from "../../src/engine/palette"
+import { SCREENS, screenMatrix } from "../../src/engine/pixel"
 import * as poster from "../../src/engine/poster"
+import * as precompile from "../../src/engine/precompile"
 import { world } from "../support/world"
 
 let w: ReturnType<typeof world>
@@ -57,6 +70,101 @@ describe("DitherAurora", () => {
     unmount()
     await w.frame(200)
     expect(w.uploads.length).toBe(1)
+  })
+})
+
+describe("a surface holding a still frame", () => {
+  const still = async (ui: () => JSX.Element) => {
+    const { container } = render(ui)
+    w.show()
+    await w.frame(100)
+    await w.frame(200)
+    return container
+  }
+
+  it("prints again when a colour it was printed from changes", async () => {
+    const paint = vi.spyOn(aurora, "paintAurora")
+    const [colors, setColors] = createSignal(["#ff0000", "#00ff00"])
+    await still(() => <DitherAurora renderMode="static" colors={colors()} />)
+    expect(w.uploads.length).toBe(1)
+    const clock = paint.mock.lastCall?.[2]
+    setColors(["#0000ff", "#ffffff"])
+    await w.frame(300)
+    expect(w.uploads.length).toBe(2)
+    expect(paint.mock.lastCall?.[1].colors[0]).toEqual(hexToRgb("#0000ff"))
+    // the same moment: the run did not start over
+    expect(paint.mock.lastCall?.[2]).toBe(clock)
+    await w.frame(400)
+    expect(w.uploads.length).toBe(2)
+  })
+
+  it("prints again through the screen around it when that changes", async () => {
+    const paint = vi.spyOn(aurora, "paintAurora")
+    const [screen, setScreen] = createSignal<"line" | "dot">("line")
+    await still(() => (
+      <DitherScreen screen={screen()}>
+        <DitherAurora renderMode="static" />
+      </DitherScreen>
+    ))
+    expect(paint.mock.lastCall?.[3]).toBe(SCREENS.line)
+    setScreen("dot")
+    await w.frame(300)
+    expect(w.uploads.length).toBe(2)
+    expect(paint.mock.lastCall?.[3]).toBe(SCREENS.dot)
+  })
+
+  it("prints once for a change that also restarts it", async () => {
+    const [seed, setSeed] = createSignal(1)
+    await still(() => <DitherAurora renderMode="static" seed={seed()} />)
+    setSeed(2)
+    await w.frame(300)
+    await w.frame(400)
+    expect(w.uploads.length).toBe(2)
+  })
+
+  it("prints a paused surface again, once, and leaves it paused", async () => {
+    const [colors, setColors] = createSignal(["#ff0000", "#00ff00"])
+    await still(() => <DitherAurora paused colors={colors()} />)
+    expect(w.uploads.length).toBe(1)
+    setColors(["#0000ff", "#ffffff"])
+    await w.frame(300)
+    await w.frame(400)
+    expect(w.uploads.length).toBe(2)
+  })
+
+  it("a running surface paints once a frame, whatever changes", async () => {
+    const [colors, setColors] = createSignal(["#ff0000", "#00ff00"])
+    await still(() => <DitherAurora colors={colors()} />)
+    const before = w.uploads.length
+    setColors(["#0000ff", "#ffffff"])
+    await Promise.resolve()
+    expect(w.uploads.length).toBe(before)
+    await w.frame(300)
+    expect(w.uploads.length).toBe(before + 1)
+  })
+
+  it("a static spinner and an avatar follow the screen around them, a gradient its seed", async () => {
+    const gradient = vi.spyOn(precompile, "renderDitherGradient")
+    const [screen, setScreen] = createSignal<"line" | "dot">("line")
+    const [seed, setSeed] = createSignal(1)
+    const container = await still(() => (
+      <DitherScreen screen={screen()}>
+        <DitherSpinner renderMode="static" />
+        <DitherAvatar name="Ada" animate={false} />
+        <DitherGradient from="blue" to="green" direction="up" cell={3} opacity={1} bloom="off" seed={seed()} />
+      </DitherScreen>
+    ))
+    await new Promise((done) => setTimeout(done, 5))
+    const [spinner, avatar] = [...container.querySelectorAll("canvas")]
+    const prints = (canvas: HTMLCanvasElement) => w.uploads.filter((c) => c === canvas).length
+    expect([prints(spinner), prints(avatar)]).toEqual([1, 1])
+    setScreen("dot")
+    await w.frame(300)
+    expect([prints(spinner), prints(avatar)]).toEqual([2, 2])
+    const before = gradient.mock.calls.length
+    setSeed(2)
+    expect(gradient.mock.calls.length).toBe(before + 1)
+    expect(gradient.mock.lastCall?.[0].seed).toBe(2)
   })
 })
 

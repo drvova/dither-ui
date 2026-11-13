@@ -89,6 +89,15 @@ export type SurfaceLoop = {
   start: () => void
   /** `paused` changed: stand down once a frame is up, or wake. */
   pausedChanged: (paused: boolean) => void
+  /** The frame a paint now leaves is one the surface holds (static mode,
+   * reduced motion, paused): what its `render` reads decides the print
+   * until it is told otherwise, so a runtime watches those reads. */
+  holds: () => boolean
+  /** What `render` reads changed under a held frame: paint the same moment
+   * again, the clock and the run kept. Nothing while the loop runs, before
+   * the mount, for a precompiled surface or under the kit clock's
+   * direction (which the surface then owes once released). */
+  repaint: () => void
   dispose: () => void
 }
 
@@ -114,6 +123,10 @@ export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
   let owed = false
   // The canvas's context, asked for once per element, not once per frame.
   let ctx2d: CanvasRenderingContext2D | null = null
+  // A still frame's repaint: asked for and not yet painted, and one the
+  // clock's direction held back until it lets go.
+  let repaintAsked = false
+  let stale = false
   const visibility = watchVisibility(opts.wrap, () => wake())
   const isVisible = visibility.visible
   const surface: DitherSurface = {
@@ -216,6 +229,8 @@ export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
     if (!paused) raf = requestAnimationFrame(frame)
   }
 
+  const still = () => opts.renderMode() === "static" || pixelPrefersReducedMotion()
+
   function wake() {
     if (isDirected()) {
       seekTo(directedTime() ?? 0)
@@ -223,7 +238,10 @@ export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
     }
     // A still surface (static mode, reduced motion) painted its one frame in
     // start(); the visibility wake must never start the loop behind it.
-    if (opts.renderMode() === "static" || pixelPrefersReducedMotion()) return
+    if (still()) {
+      if (stale) repaint()
+      return
+    }
     // Paused never leaves the raster blank: a surface paused before it was
     // first in view paints that first frame as it comes into view.
     if (raf || !isVisible() || (opts.paused() && lastPaint)) return
@@ -252,6 +270,43 @@ export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
     draw(ctx, dt, ms)
   }
 
+  /** Paint the held frame again: its inputs changed, its moment did not.
+   * A still frame waits for the framework's pending changes like a start
+   * does, and stands aside for any paint that lands first (a restart the
+   * same change caused), so one change is one paint. A paused frame goes
+   * back through the loop, which paints it once where it shows (or as it
+   * comes into view) and stands down again. */
+  function repaint() {
+    if (!unseek || opts.precompiled()) return
+    if (!still()) {
+      if (opts.paused() && lastPaint) {
+        lastPaint = 0
+        wake()
+      }
+      return
+    }
+    if (isDirected()) {
+      stale = true
+      return
+    }
+    stale = false
+    if (repaintAsked) return
+    repaintAsked = true
+    const token = restartToken
+    const seen = version
+    defer(() => {
+      repaintAsked = false
+      // A restart since paints the frame itself, as does a first paint still waiting on its canvas.
+      if (token !== restartToken || version !== seen || !buffer || !still() || opts.precompiled()) return
+      if (isDirected()) {
+        stale = true
+        return
+      }
+      const ctx = measure()
+      if (ctx) draw(ctx, 0, 1e6)
+    })
+  }
+
   function start() {
     const token = ++restartToken
     // A frame already queued stays queued: a prop driven every frame (a
@@ -267,7 +322,8 @@ export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
       lastFrame = -1 // a restart paints at once, as a wake does: a source driven every frame never starves
       lastSeek = -1
       paintedSeek = -1
-      if (opts.renderMode() === "static" || pixelPrefersReducedMotion()) {
+      stale = false
+      if (still()) {
         stop()
         clock = opts.staticClock ?? 4
         // Retry the one-shot until the canvas ref settles.
@@ -332,6 +388,8 @@ export function createSurfaceLoop(opts: SurfaceLoopOptions): SurfaceLoop {
     start,
     // A pause stands the loop down once a frame is up; before, the first still paints.
     pausedChanged: (p) => (p && lastPaint ? stop() : wake()),
+    holds: () => still() || opts.paused(),
+    repaint,
     dispose() {
       restartToken += 1
       unseek?.()
