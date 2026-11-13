@@ -2,17 +2,19 @@
 
 ## Purpose
 
-What writes code for a reader in their styling system. A snippet or an
-exported frame is authored with Tailwind classes; this package rewrites it
-as a scoped stylesheet, CSS Modules or StyleX from the declarations
+What writes Solid code for a reader in their styling system. A snippet or
+an exported frame reaches it as Solid with Tailwind classes; this package
+rewrites it with a stylesheet the file imports, CSS Modules or StyleX from the declarations
 Tailwind's own compiler gives each class, and generates the kit's StyleX
 twin the same way. Paths here are from this package's root.
 
 ## Ownership
 
 - `src/index.ts`: the rewriter, the package's entry (`restyle`), framework
-  free and safe in a browser: `restyle(code, system, framework)`,
-  `restyleSolid`, `compileUtilities`, `Names`, `stylexText`, the styling
+  free and safe in a browser. It reads and writes Solid only (JSX `class`
+  and `style`): `restyleSolid(code, system, name)` gives the code and the
+  stylesheet it imports, `restyle(code, system)` the two as one text. Also
+  `compileUtilities`, `Names`, `stylexText`, the styling
   systems and their labels, and the `UtilityMap` type.
 - `src/utility-map.ts` (`restyle/utility-map`), Node only:
   `buildUtilityMap(dirs)` scans the folders a caller names and compiles
@@ -29,6 +31,9 @@ twin the same way. Paths here are from this package's root.
   generator's spec names the kit's own folders).
 
 ## Local Contracts
+
+- The docs' authoring notation never reaches this package: the site
+  translates a snippet to Solid first (`toSolidCode`), then restyles it.
 
 - Depends on `dither-kit` only, for one file: the kit's token mapping and
   dark variant are read from `dither-kit/tailwind/kit.css`, found through
@@ -57,7 +62,8 @@ twin the same way. Paths here are from this package's root.
 ## Verification
 
 - `npx rs test packages/restyle` at the root: `tests/restyle.spec.ts`
-  (the map's shape, each styling system, StyleX as its compiler takes it).
+  (the map's shape, each styling system on Solid code, StyleX as its
+  compiler takes it).
   The spec reads the vocabulary the workspace's `rstack.config.ts`
   compiles, which is the site's.
 - The generator is held by the twin's own spec

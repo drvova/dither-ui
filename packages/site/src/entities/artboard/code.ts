@@ -19,6 +19,6 @@ export function frameCode(a: Artboard, system: Styling): FrameCode {
 }
 
 /** Both files as one text to read: the stylesheet under the component,
- * under its file's name (as `restyle(…, "solid")` shows one). */
+ * under its file's name (as `restyle(…)` shows one). */
 export const shown = (f: FrameCode): string =>
   f.sheet ? `${f.code.replace(/\s+$/, "")}\n\n/* ${f.sheet.file} */\n${f.sheet.text}` : f.code

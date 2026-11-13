@@ -348,13 +348,14 @@ around this tree (entries, routes, the build, how Solid is written) is
     `tests/site/state.spec.tsx`; the bridge chain by
     `tests/bridge.spec.ts`.
 - Styling systems: `packages/restyle/src/index.ts` is the ONE translator.
-  `restyle(code, system, framework)` rewrites the class and `style` attributes
-  of a snippet into named styles: a Solid file's (`class`, `classList`;
-  `restyleSolid` also hands back the stylesheet the `.tsx` imports on `css` or
-  `modules`, and writes `stylex.create` with `{...stylex.props()}` on the
-  element) or the authoring notation's (`class` / `:class`: a `<style scoped>`
-  block, `$style` bindings + `<style module>`, or `stylex.attrs` through
-  `v-bind`); `tailwind` returns the code untouched. Its data is
+  It reads and writes Solid only: `restyleSolid(code, system, name)` rewrites
+  the `class` and `style` attributes of a Solid file into named styles and
+  hands back the stylesheet the `.tsx` imports on `css` or `modules`
+  (`stylex` writes `stylex.create` with `{...stylex.props()}` on the
+  element), and `restyle(code, system)` is the two as one text, the sheet
+  under the code; `tailwind` returns the code untouched. A docs snippet is
+  translated from its authoring notation first (`toSolidCode`), so that
+  notation never reaches the rewriter. Its data is
   `virtual-dither-utilities`: `restyle/utility-map` (node-side only: the Vite
   plugin `build/utilities.ts`, and `rstack.config.ts` for the framework-free
   specs) scans `UTILITY_SOURCES` (`build/utility-sources.ts`: `pages/docs` and

@@ -553,7 +553,7 @@ const SHEET = `.row {
 
 describe("restyle, for Solid", () => {
   it("leaves Tailwind as written", () => {
-    expect(restyle(FILE, "tailwind", "solid")).toBe(FILE)
+    expect(restyle(FILE, "tailwind")).toBe(FILE)
     expect(restyleSolid(FILE, "tailwind")).toEqual({ code: FILE, sheet: null })
   })
 
@@ -628,11 +628,11 @@ export default function Example() {
 
   it("shows a file and its stylesheet as one text, and a fragment the same way", () => {
     const whole = restyleSolid(FILE, "css")
-    expect(restyle(FILE, "css", "solid")).toBe(`${whole.code}
+    expect(restyle(FILE, "css")).toBe(`${whole.code}
 
 /* styles.css */
 ${SHEET}`)
-    expect(restyle(`<div class="flex gap-2"><span class="text-[13px]">a</span></div>`, "css", "solid"))
+    expect(restyle(`<div class="flex gap-2"><span class="text-[13px]">a</span></div>`, "css"))
       .toBe(`import "./styles.css"
 
 <div class="row"><span class="text">a</span></div>
@@ -651,7 +651,7 @@ ${SHEET}`)
     const nested = `<DitherSidebar class="w-64" header={<div class="flex gap-2">x</div>}>
   <p class="cta">y</p>
 </DitherSidebar>`
-    expect(restyle(nested, "stylex", "solid")).toBe(`import * as stylex from "@stylexjs/stylex"
+    expect(restyle(nested, "stylex")).toBe(`import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
   sidebar: { width: "16rem" },
@@ -662,12 +662,12 @@ const styles = stylex.create({
   <p class="cta">y</p>
 </DitherSidebar>`)
     // nothing the map knows: the code comes back as it was
-    expect(restyle(`<p class="cta">y</p>`, "css", "solid")).toBe(`<p class="cta">y</p>`)
+    expect(restyle(`<p class="cta">y</p>`, "css")).toBe(`<p class="cta">y</p>`)
     // a type argument or a comparison is not a tag
     const typed = `const [n, setN] = createSignal<number>(0)
 const small = n() < 3 && n() > 1
 <p class="flex">x</p>`
-    expect(restyle(typed, "modules", "solid")).toContain(`createSignal<number>(0)
+    expect(restyle(typed, "modules")).toContain(`createSignal<number>(0)
 const small = n() < 3 && n() > 1
 <p class={styles.p}>x</p>`)
   })

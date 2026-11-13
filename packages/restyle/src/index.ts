@@ -1,8 +1,8 @@
-// The rewriter: code in the reader's styling system (framework-free; the
-// reader's own choice of system lives beside it, in `restyle.ts`). Snippets and Studio exports are
-// authored once with Tailwind classes; `restyle` rewrites a snippet so the
-// same look is written in vanilla CSS (a scoped stylesheet), CSS Modules or
-// StyleX, from the declarations Tailwind's compiler gives each class
+// The rewriter: Solid code in the reader's styling system (no framework is
+// loaded here; the reader's own choice of system lives in the site). Snippets
+// and Studio exports reach it as Solid with Tailwind classes; `restyle`
+// rewrites one so the same look is written in vanilla CSS (a stylesheet the
+// file imports), CSS Modules or StyleX, from the declarations Tailwind's compiler gives each class
 // (`virtual-dither-utilities`, built by `utility-map.ts`). Classes the map
 // does not know stay classes — the kit's own stylesheet covers them.
 import UTILITIES from "virtual-dither-utilities"
@@ -16,7 +16,6 @@ export type UtilityMap = {
 
 export const STYLINGS = ["tailwind", "css", "modules", "stylex"] as const
 export type Styling = (typeof STYLINGS)[number]
-export type Framework = "vue" | "solid"
 export const STYLING_LABELS: Record<Styling, string> = {
   tailwind: "Tailwind",
   css: "CSS",
@@ -193,24 +192,9 @@ export class Names {
   }
 }
 
-const TAG_RE = /<([A-Za-z][A-Za-z0-9]*)((?:"[^"]*"|'[^']*'|\{[^}]*\}|<!--[\s\S]*?-->|\/(?!>)|[^">/])*)(\/?)>/g
 const STRING_RE = /'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g
 
 type Attr = { start: number; end: number; value: string; braces: boolean }
-
-/** `name="…"`, `name='…'` or `name={…}` inside an attribute string. */
-function attrOf(attrs: string, name: string): Attr | null {
-  const re = new RegExp(`(^|\\s)${name.replace(/[:.]/g, "\\$&")}=("([^"]*)"|'([^']*)'|\\{([^}]*)\\})`)
-  const m = re.exec(attrs)
-  if (!m) return null
-  const start = m.index + m[1].length
-  return {
-    start,
-    end: start + m[0].length - m[1].length,
-    value: m[3] ?? m[4] ?? m[5] ?? "",
-    braces: m[5] !== undefined,
-  }
-}
 
 const parseInline = (style: string): [string, string][] =>
   style
@@ -223,7 +207,7 @@ const parseInline = (style: string): [string, string][] =>
     })
     .filter(([k, v]) => k && v)
 
-type Target = { system: Exclude<Styling, "tailwind">; framework: Framework }
+type Target = Exclude<Styling, "tailwind">
 
 /** Where a class binding's class strings are: the string literals in class
  * position (the bare expression, array items, object keys, a ternary's arms,
@@ -287,23 +271,22 @@ function nameLiterals(expr: string, names: Names, target: Target): { expr: strin
     if (!classes.has(at)) return all
     const text = single ?? double ?? ""
     const tokens = text.split(/\s+/).filter(Boolean)
-    const compiled = compileUtilities(tokens, target.system === "stylex")
+    const compiled = compileUtilities(tokens, target === "stylex")
     if (!compiled.chains.length) return all
     found = true
     const first = tokens.find((t) => !compiled.rest.includes(t)) ?? "style"
     const name = names.claim(camel(first), compiled)
     const kept = compiled.rest.join(" ")
     if (kept) lossy = true
-    if (target.system === "stylex") return `styles.${name}`
-    const module = target.framework === "solid" ? "styles" : "$style"
-    if (target.system === "modules") return kept ? `${module}.${name} + ' ${kept}'` : `${module}.${name}`
+    if (target === "stylex") return `styles.${name}`
+    if (target === "modules") return kept ? `styles.${name} + ' ${kept}'` : `styles.${name}`
     return `'${name}${kept ? " " + kept : ""}'`
   })
   return { expr: out, found, lossy }
 }
 
 /** StyleX takes styles, not class strings: the common binding shapes become
- * `stylex.attrs` arguments; anything else keeps its class binding. A ternary
+ * `stylex.props` arguments; anything else keeps its class binding. A ternary
  * or `&&` takes any condition (comparisons with strings, calls, `||`): only
  * its branches must be named styles, and an empty string is no style. */
 function stylexArgs(expr: string): string[] | null {
@@ -381,69 +364,6 @@ function splitTop(list: string): string[] {
   }
   if (buf.trim()) parts.push(buf.trim())
   return parts
-}
-
-function rewriteTag(tag: string, attrs: string, names: Names, target: Target): string {
-  const stylex = target.system === "stylex"
-  const modules = target.system === "modules"
-  const classAttr = attrOf(attrs, "class")
-  const dynamic = attrOf(attrs, ":class")
-  const fixed = classAttr
-  const style = attrOf(attrs, "style")
-  const inline = style && !style.braces ? style : null
-  if ((!fixed && !dynamic && !inline) || fixed?.value.includes("{{")) return attrs
-
-  const tokens = fixed ? fixed.value.split(/\s+/).filter(Boolean) : []
-  const compiled = compileUtilities(tokens, stylex)
-  if (inline) {
-    // Inline declarations join the element's own rule (they beat classes, so they come last).
-    const base = compiled.chains.find((c) => !c.chain.length)
-    base
-      ? base.decl.push(...parseInline(inline.value))
-      : compiled.chains.unshift({ chain: [], decl: parseInline(inline.value) })
-  }
-  const own = compiled.chains.length ? names.claim(baseName(tag, tokens), compiled) : null
-  const bindDynamic = () => `:class="${dynamic!.value}"`
-  const parts: string[] = []
-  const kept = compiled.rest
-  let changed = !!own
-  if (stylex) {
-    const args = own ? [`styles.${own}`] : []
-    if (dynamic) {
-      // Only the shapes attrs() can take are named; anything else keeps its binding.
-      const shape = stylexArgs(dynamic.value.replace(STRING_RE, "styles._"))
-      const bound = shape ? nameLiterals(dynamic.value, names, target) : null
-      const named = bound?.found && !bound.lossy ? stylexArgs(bound.expr) : null
-      if (named) {
-        args.push(...named)
-        changed = true
-      } else parts.push(bindDynamic())
-    }
-    if (args.length) parts.unshift(`v-bind="stylex.attrs(${args.join(", ")})"`)
-    if (kept.length) parts.push(`class="${kept.join(" ")}"`)
-  } else {
-    const bound = dynamic ? nameLiterals(dynamic.value, names, target) : null
-    if (bound?.found) changed = true
-    if (modules) {
-      if (kept.length) parts.push(`class="${kept.join(" ")}"`)
-      const bindings = [...(own ? [`$style.${own}`] : []), ...(bound ? [bound.expr] : [])]
-      if (bindings.length) parts.push(`:class="${bindings.length > 1 ? `[${bindings.join(", ")}]` : bindings[0]}"`)
-    } else {
-      const classes = [...(own ? [own] : []), ...kept]
-      if (classes.length) parts.push(`class="${classes.join(" ")}"`)
-      if (bound) parts.push(`:class="${bound.expr}"`)
-    }
-  }
-  if (!changed) return attrs
-
-  // Splice the rewritten attributes where the first of them stood.
-  const removed = [fixed, dynamic, inline].filter((a): a is Attr => !!a)
-  let out = attrs
-  for (const a of [...removed].sort((a, b) => b.start - a.start))
-    out = out.slice(0, a.start).replace(/\s+$/, "") + out.slice(a.end)
-  const prefix = attrs.slice(0, Math.min(...removed.map((a) => a.start))).replace(/\s+$/, "")
-  const remainder = out.slice(prefix.length)
-  return `${prefix} ${parts.join(" ")}${remainder.trim() ? remainder : ""}`
 }
 
 /* ------------------------------ emitters ---------------------------------- */
@@ -543,24 +463,6 @@ export function stylexText(styles: Named[]): string {
 
 const STYLEX_IMPORT = `import * as stylex from "@stylexjs/stylex"`
 
-function withScript(code: string, lines: string): string {
-  const m = code.match(/<script setup[^>]*>\n/)
-  if (m) {
-    const start = m.index! + m[0].length
-    const close = code.indexOf("</script>", start)
-    const body = code.slice(start, close)
-    const imports = body.match(/^(?:\s*import .*\n)+/)
-    const head = imports ? imports[0] : ""
-    const rest = body.slice(head.length)
-    const headOut = head.includes("@stylexjs/stylex") ? head : `${head}${STYLEX_IMPORT}\n`
-    const restOut = rest.replace(/\n*$/, "")
-    return `${code.slice(0, start)}${headOut}${restOut ? restOut + "\n" : ""}\n${lines}\n${code.slice(close)}`
-  }
-  // An SFC without a script gets one; a fragment gets the lines it would add.
-  if (/<template>/.test(code)) return `<script setup lang="ts">\n${STYLEX_IMPORT}\n\n${lines}\n</script>\n\n${code}`
-  return `${STYLEX_IMPORT}\n\n${lines}\n\n${code}`
-}
-
 /* ------------------------------ Solid ------------------------------------- */
 
 // A Solid file is JSX in a module: its classes are `class="…"`,
@@ -634,7 +536,7 @@ function jsxClass(pieces: string[]): string {
 }
 
 function rewriteSolidTag(tag: string, attrs: string, names: Names, target: Target): string {
-  const stylex = target.system === "stylex"
+  const stylex = target === "stylex"
   const classAttr = jsxAttr(attrs, "class")
   const style = jsxAttr(attrs, "style")
   const inline = style && !style.braces ? style : null
@@ -688,7 +590,7 @@ function rewriteSolidTag(tag: string, attrs: string, names: Names, target: Targe
   } else {
     const bound = dynamic ? nameLiterals(dynamic, names, target) : null
     if (bound?.found) changed = true
-    const mine = own ? [target.system === "modules" ? `\${styles.${own}}` : own] : []
+    const mine = own ? [target === "modules" ? `\${styles.${own}}` : own] : []
     part = jsxClass([...mine, ...kept, ...(bound ? [`\${${bound.expr}}`] : [])])
   }
   if (!changed) return attrs
@@ -716,7 +618,6 @@ function withImports(code: string, lines: string[], after = ""): string {
  * StyleX keeps its styles in the file. */
 export function restyleSolid(code: string, system: Styling, name = "styles"): { code: string; sheet: Sheet | null } {
   if (system === "tailwind") return { code, sheet: null }
-  const target: Target = { system, framework: "solid" }
   const names = new Names()
   // Each tag's attributes rewritten where they stand. Names are claimed in
   // the order the file reads; the text is then rewritten from its end, so a
@@ -730,7 +631,7 @@ export function restyleSolid(code: string, system: Styling, name = "styles"): { 
     const start = m.index! + m[0].length
     const attrs = text.slice(start, selfClose ? end - 1 : end)
     if (!/\b(class|style)=/.test(attrs)) return text
-    const next = rewriteSolidTag(m[1], attrs, names, target)
+    const next = rewriteSolidTag(m[1], attrs, names, system)
     return next === attrs ? text : `${text.slice(0, start)}${next}${selfClose ? " /" : ""}${text.slice(end)}`
   }
   for (const m of tags) rewriteAt(code, m)
@@ -743,27 +644,11 @@ export function restyleSolid(code: string, system: Styling, name = "styles"): { 
   return { code: withImports(out, [line]), sheet: { file, text: cssText(names.all) } }
 }
 
-/** `code` (in `framework`'s notation: `vue` is the one the docs' snippets
- * are authored in) written in `system`: the classes the map knows become the target's
- * styles, every unknown class stays, Tailwind returns the code untouched. A
- * Solid file's stylesheet follows it, under its file's name. */
-export function restyle(code: string, system: Styling, framework: Framework): string {
-  if (system === "tailwind") return code
-  if (framework === "solid") {
-    const solid = restyleSolid(code, system)
-    return solid.sheet
-      ? `${solid.code.replace(/\s+$/, "")}\n\n/* ${solid.sheet.file} */\n${solid.sheet.text}`
-      : solid.code
-  }
-  const target: Target = { system, framework }
-  const names = new Names()
-  const out = code.replace(TAG_RE, (all, tag: string, attrs: string, selfClose: string) => {
-    if (!/\b(class|style)=/.test(attrs)) return all
-    const next = rewriteTag(tag, attrs, names, target)
-    return next === attrs ? all : `<${tag}${next}${selfClose ? " /" : ""}>`
-  })
-  if (!names.all.length) return code
-  if (target.system === "stylex") return withScript(out, stylexText(names.all))
-  const tagName = target.system === "modules" ? "<style module>" : "<style scoped>"
-  return `${out.replace(/\s+$/, "")}\n\n${tagName}\n${cssText(names.all)}\n</style>`
+/** A Solid file (or fragment) in `system` as one text: its stylesheet, when
+ * it has one, follows the code under the sheet's file name. */
+export function restyle(code: string, system: Styling): string {
+  const solid = restyleSolid(code, system)
+  return solid.sheet
+    ? `${solid.code.replace(/\s+$/, "")}\n\n/* ${solid.sheet.file} */\n${solid.sheet.text}`
+    : solid.code
 }

@@ -6,7 +6,7 @@ import { toSolidCode } from "./solid"
 
 /** An authored docs snippet as the reader reads it: Solid, in their styling
  * system (the file's stylesheet under it, named). */
-export const docsCode = (vue: string): string => restyle(toSolidCode(vue), styling(), "solid")
+export const docsCode = (vue: string): string => restyle(toSolidCode(vue), styling())
 
 /** The same snippet as the files the reader takes: the code, and the
  * stylesheet it imports on CSS or CSS Modules, named after it. */

@@ -392,11 +392,11 @@ describe("a frame as the files a reader takes away", () => {
     expect(frameCode(a, "tailwind").file).toBe("artboard.tsx")
   })
 
-  it('reads as `restyle(…, "solid")` writes it', () => {
+  it("reads as `restyle(…)` writes it", () => {
     const a = createArtboard("gradient")
     a.name = "styles"
     for (const system of STYLINGS)
-      expect(shown(frameCode(a, system))).toBe(restyle(widgetCode(a.widget!, { w: a.w, h: a.h }), system, "solid"))
+      expect(shown(frameCode(a, system))).toBe(restyle(widgetCode(a.widget!, { w: a.w, h: a.h }), system))
   })
 })
 
@@ -433,7 +433,7 @@ describe("every frame the Studio can place", () => {
       if (/<script|<template|\sv-[a-z]+|\s[:@][\w-]+=|from "vue"/.test(code)) bad.push(`${what}: Vue left in it`)
       for (const system of STYLINGS) {
         try {
-          compile(`${what}.tsx`, restyle(code, system, "solid").replace(/\n\n\/\* [\w.-]+\.css \*\/\n[\s\S]*$/, ""))
+          compile(`${what}.tsx`, restyle(code, system).replace(/\n\n\/\* [\w.-]+\.css \*\/\n[\s\S]*$/, ""))
         } catch (e) {
           bad.push(`${what} (${system}): ${(e as Error).message}`)
         }
@@ -463,15 +463,14 @@ describe("every frame the Studio can place", () => {
 
   it("leaves no Tailwind class once restyled to StyleX", () => {
     const left: string[] = []
-    for (const [what, code] of frames)
-      left.push(...leftovers(restyle(code, "stylex", "solid")).map((c) => `${what}: ${c}`))
+    for (const [what, code] of frames) left.push(...leftovers(restyle(code, "stylex")).map((c) => `${what}: ${c}`))
     // a screen's own layout classes, and the ones it hands its cells
     const s = createScreen()
     addCell(s.rows[0], componentEntry("DitherEmailInput")!).grow = true
     const labelled = addCell(s.rows[0], componentEntry("DitherInput")!)
     labelled.grow = true
     labelled.props.label = "Name"
-    const screen = restyle(widgetCode(s, { w: 480, h: 320 }), "stylex", "solid")
+    const screen = restyle(widgetCode(s, { w: 480, h: 320 }), "stylex")
     left.push(...leftovers(screen).map((c) => `screen: ${c}`))
     expect(screen).toContain("stylex.props(")
     expect(left).toEqual([])

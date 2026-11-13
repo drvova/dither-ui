@@ -17,7 +17,7 @@ const SNIPPET = `<div class="flex flex-col gap-3 rounded-lg bg-background p-4">
 
 export default function ExportScene() {
   const [system, setSystem] = createSignal<Styling>("stylex")
-  const code = createMemo(() => restyle(SNIPPET, system(), "solid"))
+  const code = createMemo(() => restyle(SNIPPET, system()))
   // Each line with its own indent, so a line that wraps hangs under itself.
   const lines = createMemo(() =>
     code()
