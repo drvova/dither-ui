@@ -5,6 +5,7 @@ import { cssColor } from "@dither-ui/kit/engine/palette.ts"
 import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import type { Option } from "./DitherSelect"
+import { nextEnabled } from "@dither-ui/kit/engine/keys.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -142,16 +143,8 @@ export default function DitherCombobox(raw: DitherComboboxProps) {
   }
 
   function move(dir: number) {
-    const list = filtered()
-    const n = list.length
-    let i = highlighted()
-    for (let step = 0; step < n; step++) {
-      i = (i + dir + n) % n
-      if (!list[i].disabled) {
-        setHighlighted(i)
-        return
-      }
-    }
+    const i = nextEnabled(filtered(), highlighted(), dir)
+    if (i >= 0) setHighlighted(i)
   }
 
   function onKeydown(e: KeyboardEvent) {

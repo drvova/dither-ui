@@ -1,6 +1,6 @@
 import { createEffect, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
-import { isTab } from "../engine/keys"
+import { focusablesIn, trapKeys } from "../engine/keys"
 import { CONTROL_BUTTON } from "../tailwind/control"
 import { cn } from "../tailwind/lib"
 import DitherButton from "./DitherButton"
@@ -24,28 +24,8 @@ export default function DitherAlertDialog(raw: DitherAlertDialogProps) {
   let panel: HTMLDivElement | undefined
   let cancel: HTMLButtonElement | undefined
   let previousFocus: HTMLElement | null = null
-  const focusable = () => [
-    ...(panel?.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    ) ?? []),
-  ]
   function onKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") {
-      e.stopPropagation()
-      props.onCancel?.()
-      return
-    }
-    if (!isTab(e)) return
-    const items = focusable(),
-      first = items[0],
-      last = items[items.length - 1]
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault()
-      last?.focus()
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault()
-      first?.focus()
-    }
+    trapKeys(e, focusablesIn(panel), () => props.onCancel?.())
   }
   onMount(() => {
     createEffect(

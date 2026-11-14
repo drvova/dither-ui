@@ -38,9 +38,11 @@ export const isDitherColor = (value: unknown): value is DitherColor =>
   typeof value === "string" && Object.prototype.hasOwnProperty.call(PALETTE, value)
 
 // Arbitrary-hue support so a series can be any colour, not just the 7 presets.
-// Local HSL→RGB (mirrors pixel.hueFill) to avoid a palette→pixel import cycle.
-function hslFill(hue: number, s = 0.85, l = 0.58): Rgb {
+/** Hue (0–360) → an rgb fill tuned to sit alongside the chart palette. */
+export function hueFill(hue: number): Rgb {
   const h = ((hue % 360) + 360) % 360
+  const s = 0.85
+  const l = 0.58
   const c = (1 - Math.abs(2 * l - 1)) * s
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
   const m = l - c / 2
@@ -72,7 +74,7 @@ const seedFromFill = (fill: Rgb): Seed => ({
 
 /** A full Seed from a hue (0–360). Kept for back-compat with hue-number colours. */
 export function seedFromHue(hue: number): Seed {
-  return seedFromFill(hslFill(hue))
+  return seedFromFill(hueFill(hue))
 }
 
 // --- full RGB / hex / HSV colour ------------------------------------------
@@ -178,14 +180,14 @@ export function seedFromColor(color: DitherColor | number | string): Seed {
 
 /** A CSS colour string for a swatch. */
 export function cssColor(color: DitherColor | number | string): string {
-  if (typeof color === "number") return rgbToHex(hslFill(color))
+  if (typeof color === "number") return rgbToHex(hueFill(color))
   if (isDitherColor(color)) return `var(--swatch-${color})`
   return color
 }
 
 /** Any colour → a hex string (to seed the picker from a preset). */
 export function colorToHex(color: DitherColor | number | string): string {
-  if (typeof color === "number") return rgbToHex(hslFill(color))
+  if (typeof color === "number") return rgbToHex(hueFill(color))
   if (isDitherColor(color)) return rgbToHex(PALETTE[color].fill)
   return color
 }

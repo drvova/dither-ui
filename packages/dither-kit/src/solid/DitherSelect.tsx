@@ -10,7 +10,7 @@ import {
   Show,
   splitProps,
 } from "solid-js"
-import { isTab } from "../engine/keys"
+import { isTab, nextEnabled } from "../engine/keys"
 import { cssColor } from "../engine/palette"
 import type { PixelColor } from "../engine/pixel"
 import { CONTROL, CONTROL_INVALID, POPOVER } from "../tailwind/control"
@@ -80,13 +80,8 @@ export default function DitherSelect(raw: DitherSelectProps) {
     queueMicrotask(() => trigger?.focus())
   }
   function move(dir: number) {
-    const n = props.options.length
-    if (!n) return
-    let i = highlighted()
-    for (let step = 0; step < n; step++) {
-      i = (i + dir + n) % n
-      if (!props.options[i].disabled) return void setHighlighted(i)
-    }
+    const i = nextEnabled(props.options, highlighted(), dir)
+    if (i >= 0) setHighlighted(i)
   }
   function edge(toEnd: boolean) {
     const enabled = props.options.map((o, i) => ({ o, i })).filter(({ o }) => !o.disabled)

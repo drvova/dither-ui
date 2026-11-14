@@ -1,27 +1,6 @@
 import { createEffect, createUniqueId, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
-import { BAYER4, fillOf, type PixelColor } from "../engine/pixel"
-import { cellCanvas } from "../engine/raster"
-
-const CELL = 2
-
-/** Paint the 2px left rail — a vertical dither ramp fading downward. */
-function paintRail(canvas: HTMLCanvasElement, height: number, color: PixelColor, matrix: number[][] = BAYER4): void {
-  const ctx = canvas.getContext("2d", { willReadFrequently: true })
-  if (!ctx || height <= 0) return
-  const rows = Math.max(4, Math.round(height / CELL))
-  canvas.width = 1
-  canvas.height = rows
-  const fill = fillOf(color)
-  const px = cellCanvas(ctx, 1, rows)
-  for (let y = 0; y < rows; y++) {
-    const density = 1 - (y + 0.5) / rows
-    const lit = density > matrix[y & 3][0]
-    const alpha = lit ? 0.35 + 0.65 * density : 0.12 * density
-    if (alpha <= 0.004) continue
-    px.cell(0, y, fill, alpha)
-  }
-  px.flush()
-}
+import type { PixelColor } from "../engine/pixel"
+import { paintRail } from "../engine/rail"
 
 export type DitherCollapsibleProps = {
   title: string
@@ -39,7 +18,7 @@ export default function DitherCollapsible(raw: DitherCollapsibleProps) {
 
   function paint() {
     const canvas = rail
-    if (canvas) paintRail(canvas, canvas.offsetHeight, props.color)
+    if (canvas) paintRail(canvas, props.color)
   }
 
   onMount(() => {

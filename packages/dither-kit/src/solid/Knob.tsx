@@ -1,5 +1,6 @@
 import { createMemo, mergeProps, onCleanup } from "solid-js"
 import { cn } from "../tailwind/lib"
+import { sliderKeys } from "../engine/keys"
 
 export type KnobProps = {
   modelValue?: number
@@ -63,17 +64,8 @@ export default function Knob(raw: KnobProps) {
 
   function onKeydown(e: KeyboardEvent) {
     if (props.disabled) return
-    const big = props.step * 10
-    let next: number | null = null
-    if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = props.modelValue - props.step
-    else if (e.key === "ArrowRight" || e.key === "ArrowUp") next = props.modelValue + props.step
-    else if (e.key === "PageDown") next = props.modelValue - big
-    else if (e.key === "PageUp") next = props.modelValue + big
-    else if (e.key === "Home") next = props.min
-    else if (e.key === "End") next = props.max
-    if (next === null) return
-    e.preventDefault()
-    props.onUpdateModelValue?.(clampSnap(next))
+    const next = sliderKeys(e, { value: props.modelValue, step: props.step, min: props.min, max: props.max })
+    if (next !== null) props.onUpdateModelValue?.(clampSnap(next))
   }
 
   return (

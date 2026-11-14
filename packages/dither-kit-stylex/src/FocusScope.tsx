@@ -1,7 +1,7 @@
 // Generated from @dither-ui/kit/solid/FocusScope.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type JSX, mergeProps, onCleanup, onMount, splitProps } from "solid-js"
-import { isTab } from "@dither-ui/kit/engine/keys.ts"
+import { FOCUSABLE, isTab } from "@dither-ui/kit/engine/keys.ts"
 import { cn, type StyleProp } from "./lib"
 
 type Own = {
@@ -13,9 +13,6 @@ type Own = {
 }
 
 export type FocusScopeProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 /** Rendered, so focus can land on it: neither it nor an ancestor inside the
  * scope is `display: none`, and it is not `visibility: hidden`. A control

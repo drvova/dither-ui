@@ -1,6 +1,7 @@
 import { createEffect, createSignal, For, on, onCleanup, onMount, Show } from "solid-js"
 import { Presence } from "./runtime/presence"
 import "./DitherMenubar.css"
+import { menuKeys } from "../engine/keys"
 
 export type MenubarItem = {
   label?: string
@@ -54,14 +55,6 @@ export default function DitherMenubar(props: DitherMenubarProps) {
     if (openIndex() !== null) open(next)
   }
 
-  function moveFocus(dir: number) {
-    const els = itemRefs.filter((el): el is HTMLButtonElement => !!el)
-    if (!els.length) return
-    const i = els.indexOf(document.activeElement as HTMLButtonElement)
-    const next = i === -1 ? (dir > 0 ? 0 : els.length - 1) : (i + dir + els.length) % els.length
-    els[next]?.focus()
-  }
-
   function onKeydown(e: KeyboardEvent) {
     const at = openIndex()
     if (e.key === "ArrowRight") {
@@ -70,16 +63,11 @@ export default function DitherMenubar(props: DitherMenubarProps) {
     } else if (e.key === "ArrowLeft") {
       e.preventDefault()
       moveTop(-1)
-    } else if (e.key === "Escape" && at !== null) {
-      e.stopPropagation()
-      open(null)
-      topRefs[at]?.focus()
-    } else if (e.key === "ArrowDown" && at !== null) {
-      e.preventDefault()
-      moveFocus(1)
-    } else if (e.key === "ArrowUp" && at !== null) {
-      e.preventDefault()
-      moveFocus(-1)
+    } else if (at !== null) {
+      menuKeys(e, itemRefs, () => {
+        open(null)
+        topRefs[at]?.focus()
+      })
     }
   }
 

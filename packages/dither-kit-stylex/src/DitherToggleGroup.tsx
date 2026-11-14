@@ -6,6 +6,7 @@ import { fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import type { Option } from "./DitherSelect"
 import { paintToggleCanvas } from "./DitherToggle"
+import { rovingKeys } from "@dither-ui/kit/engine/keys.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -103,20 +104,10 @@ export default function DitherToggleGroup(raw: DitherToggleGroupProps) {
 
   function onKeydown(e: KeyboardEvent) {
     if (props.type !== "single") return
-    const dir =
-      e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 0
-    if (!dir) return
-    e.preventDefault()
-    const n = props.options.length
-    let i = activeIndex()
-    for (let step = 0; step < n; step++) {
-      i = (i + dir + n) % n
-      if (!props.options[i].disabled) {
-        props.onUpdateModelValue?.(props.options[i].value)
-        queueMicrotask(() => btns[i]?.focus())
-        return
-      }
-    }
+    const i = rovingKeys(e, props.options, activeIndex())
+    if (i < 0) return
+    props.onUpdateModelValue?.(props.options[i].value)
+    queueMicrotask(() => btns[i]?.focus())
   }
 
   onMount(() => {

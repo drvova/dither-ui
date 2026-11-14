@@ -190,7 +190,8 @@ generated twin. Inside the kit every import is relative
   solid-js, d3-scale, d3-shape, clsx, tailwind-merge and Tailwind classes
   only (peer dependencies; `@stylexjs/stylex` is the StyleX package's).
 - `palette.ts` is the single source of color truth: 7 seeds, each resolving
-  fill/line/star hues. Swatch CSS vars in `packages/site/src/app/styles.css`
+  fill/line/star hues, and a raw hue's fill (`hueFill`, which `pixel.ts`
+  hands on). Swatch CSS vars in `packages/site/src/app/styles.css`
   mirror it. It is also the ONE reading of WCAG 2 contrast (`toLinear`,
   `toGamma`, `luminance` of an sRGB triple, `contrast` of two
   luminances; in `api.ts`): `label-fill.ts` inks by it, and the site's
@@ -994,6 +995,9 @@ generated twin. Inside the kit every import is relative
   report (`borderBoxSize`), never a read of its box, so a wall of buttons
   starting together forces no layout (a static button, without one, reads
   once). `DitherToggleGroup` defers `paintAll()` via RAF.
+- The disclosure surfaces' side rail (`DitherAccordion`,
+  `DitherCollapsible`, `DitherToaster`) is one painter, `paintRail`
+  (`engine/rail.ts`).
 - A canvas painted cell by cell writes a raster and uploads it once: a
   RasterBuffer + `putRasterBuffer` (`paintToggleCanvas`, the spinner's
   loop), or `cellCanvas(ctx, cols, rows)` (`raster.ts`), whose `cell` /
@@ -1026,7 +1030,15 @@ generated twin. Inside the kit every import is relative
   still shows focus.
 - The keyboard is never held: Tab moves on from every control, and every
   trap and field reads Tab through `isTab` (`engine/keys.ts`: WebKitGTK
-  names Shift+Tab "Unidentified", its code still Tab). A field that
+  names Shift+Tab "Unidentified", its code still Tab). A keyboard path
+  more than one component has lives there once: `menuKeys` (a menu's
+  arrows and Escape: `DitherMenu`, `DitherContextMenu`, `DitherMenubar`),
+  `trapKeys` over `focusablesIn` (a modal's Escape and Tab trap:
+  `DitherDialog`, `DitherAlertDialog`, `CenterMorphModal`; `FOCUSABLE` is
+  `DitherFocusScope`'s too), `rovingKeys` / `nextEnabled` (a group's
+  arrows past disabled options: `DitherRadioGroup`, `DitherToggleGroup`,
+  `DitherSelect`, `DitherCombobox`) and `sliderKeys` (`DitherKnob`,
+  `DitherScrubInput`); `tests/keys.spec.ts`. A field that
   takes Tab for itself (`DitherCodeInput`'s indent) lets go on Escape, the
   next Tab moving on; `DitherHotkeyInput` never records a bare Tab; a
   suggestion list opens on what moves the caret, never on Tab arriving
