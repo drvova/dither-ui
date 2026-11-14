@@ -59,7 +59,7 @@ async function fetchText(url: string): Promise<string> {
 
 let assets: Promise<{ js: string; css: string }> | null = null
 /** The built player (play/player.js + player.css), fetched once. */
-export function playerAssets(): Promise<{ js: string; css: string }> {
+function playerAssets(): Promise<{ js: string; css: string }> {
   assets ??= Promise.all(playerAssetUrls().map((a) => fetchText(a.url))).then(([js, css]) => ({ js, css }))
   assets.catch(() => (assets = null))
   return assets

@@ -90,11 +90,11 @@ import {
 import { inspectFrame } from "./inspect"
 
 export const PROTOCOL_VERSION = 1
-export const SITE = "https://dither-ui.com"
+const SITE = "https://dither-ui.com"
 
 /** Where `view` can look: every frame, the selection, a zoom step, 100%. */
-export const VIEW_TO = ["all", "selection", "in", "out", "actual"] as const
-export type ViewTo = (typeof VIEW_TO)[number]
+const VIEW_TO = ["all", "selection", "in", "out", "actual"] as const
+type ViewTo = (typeof VIEW_TO)[number]
 const VIEW: Record<ViewTo, () => void> = {
   all: fitAll,
   selection: fitSelection,
@@ -103,11 +103,11 @@ const VIEW: Record<ViewTo, () => void> = {
   actual: actualSize,
 }
 /** A PNG export's pixel ratios. */
-export const PNG_SCALES = [1, 2, 3, 4] as const
+const PNG_SCALES = [1, 2, 3, 4] as const
 
 /** One clip of a reel as a command spells it: a frame, how long it plays, how
  * it comes in, and the film over it (camera keys, callouts, a chapter). */
-export type ReelClipSpec = {
+type ReelClipSpec = {
   id: string
   seconds?: number
   transition?: { kind?: ReelTransitionKind; seconds?: number; cell?: number; seed?: number }
@@ -124,7 +124,7 @@ export type ReelClipSpec = {
   chapter?: { line: string; spec?: [string, string][] } | null
 }
 /** A reel's score as a command spells it: on, or on with a seed. */
-export type ScoreSpec = boolean | { seed?: number } | null
+type ScoreSpec = boolean | { seed?: number } | null
 
 /** The commands as a caller writes them (the wire shape; every one is parsed
  * again where it enters). */
@@ -194,7 +194,7 @@ export type ToolDef = { name: string; description: string; parameters: Record<st
 export type ToolStep = { verb: string; ask: string; icon: IconName; mutates: boolean }
 /** A command as a Studio action: its definition for the harness, arguments
  * it always sends (`preset`, under the harness's own), its step. */
-export type CommandTool = { def: ToolDef; preset?: Record<string, unknown>; step: ToolStep }
+type CommandTool = { def: ToolDef; preset?: Record<string, unknown>; step: ToolStep }
 
 type Raw = Record<string, unknown>
 /** Why a command's input is none. */
@@ -207,7 +207,7 @@ type Spec<C> = {
   tool?: CommandTool
 }
 /** A row of the table: its parse and run as one call, and what is said of it. */
-export type CommandRow = {
+type CommandRow = {
   exec: (raw: Raw) => CommandResult
   doc: string
   skill: string

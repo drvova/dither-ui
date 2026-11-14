@@ -2,7 +2,7 @@ import { For } from "solid-js"
 import { DitherIcon } from "@dither-ui/kit"
 import { NAV_LINK, type PagePart } from "./DocsNav"
 
-export type OnThisPageProps = { parts: PagePart[]; onGo?: (el: HTMLElement) => void }
+type OnThisPageProps = { parts: PagePart[]; onGo?: (el: HTMLElement) => void }
 
 /** On this page (the rail right of the content at xl): the parts of the
  * section in view, each a button that scrolls to it, the first (the

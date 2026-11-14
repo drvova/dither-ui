@@ -8,7 +8,7 @@ import { type GuideStop, placeGuide } from "@/pages/studio/guide"
 import Mascot from "@/shared/ui/Mascot"
 import "./StudioGuide.css"
 
-export type StudioGuideProps = { open: boolean; stops: GuideStop[]; onClose?: () => void }
+type StudioGuideProps = { open: boolean; stops: GuideStop[]; onClose?: () => void }
 
 export default function StudioGuide(props: StudioGuideProps) {
   const [at, setAt] = createSignal(0)

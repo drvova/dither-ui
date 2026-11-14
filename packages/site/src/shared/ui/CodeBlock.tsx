@@ -4,7 +4,7 @@ import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { play } from "../lib/sound"
 
 type Own = { code: string; class?: string }
-export type CodeBlockProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
+type CodeBlockProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
 
 export default function CodeBlock(raw: CodeBlockProps) {
   const [props, rest] = splitProps(raw, ["code", "class"])

@@ -1,1 +1,1 @@
-export { addArtboardFromPreset, type Preset, presets, removePreset, savePreset } from "./presets"
+export { addArtboardFromPreset, presets, removePreset, savePreset } from "./presets"

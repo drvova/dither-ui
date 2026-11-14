@@ -47,7 +47,6 @@ export const DIALOG_FOCUS: string
 export const DIALOG_OPENED: string
 export const DIALOG_TABBED: string
 export const DIALOG_CLOSED: string
-export const INTERACTIVE: string
 
 /** Text short of contrast: where it stands and what it says (`text`), and
  * the finding as the report words it. */
@@ -73,9 +72,7 @@ export function foundTwice(first: ContrastFound[], again: ContrastFound[]): Cont
 export const HELD_FACES: string
 export function heldPreload(text: string, held: Set<string>): boolean
 export function concealed(el: Element): boolean
-export function roleOf(el: Element): string
 export function accessibleName(el: Element): string
-export function describe(el: Element): string
 export function auditA11y(doc: Document): A11yAudit
 export function focusMarks(el: Element): string[]
 export function indicated(before: string[], after: string[]): boolean

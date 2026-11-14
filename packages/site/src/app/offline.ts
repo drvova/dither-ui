@@ -26,10 +26,10 @@ export const inApp = (pathname: string) => `${pathname}/`.startsWith(`/${OFFLINE
  * page (network first, the copy kept for offline), a hashed asset (from the
  * cache once kept), or another of the site's files (the kept copy at once,
  * refreshed behind it). */
-export type Strategy = "network" | "page" | "static" | "asset"
+type Strategy = "network" | "page" | "static" | "asset"
 
 /** What of a request the rules read. */
-export type Ask = { method: string; mode: string; range: boolean }
+type Ask = { method: string; mode: string; range: boolean }
 
 /** Paths under the site the worker leaves to the network: the film and the
  * share cards (large, range-read media), their embeds, the player and the

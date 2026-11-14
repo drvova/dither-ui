@@ -255,7 +255,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   into it.
 - A slice is entered only through its public entry, its `index.ts`, from
   anywhere outside it (another layer, the routes, the shell); inside a
-  slice files import each other freely. Where a module behind an
+  slice files import each other freely. The surface is what is used:
+  `tests/exports.spec.ts` fails on an export nothing imports (a spec
+  counts), so a name a slice keeps to itself is not exported, its
+  components' props types included. Where a module behind an
   index would pull weight into a page that loads the index without using
   it (the bundler places a module by the imports that reach it, used or
   not), the slice names a second entry, listed in the spec's `ENTRIES`:

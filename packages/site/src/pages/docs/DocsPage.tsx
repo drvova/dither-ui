@@ -34,7 +34,7 @@ const commandItems = GROUPS.flatMap((g) => g.items.map((it) => ({ value: it.id, 
 
 const smooth = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth")
 
-export type DocsPageProps = {
+type DocsPageProps = {
   /** The section this page shows (its route's), or "" for the docs' front,
    * which opens on the first section. */
   section: string

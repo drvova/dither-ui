@@ -10,8 +10,8 @@ export type ScreenCell = {
   grow: boolean // flex-1 vs natural width
 }
 
-export type RowAlign = "start" | "center" | "end" | "stretch"
-export type RowJustify = "start" | "center" | "end" | "between"
+type RowAlign = "start" | "center" | "end" | "stretch"
+type RowJustify = "start" | "center" | "end" | "between"
 
 export type ScreenRow = {
   id: string

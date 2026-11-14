@@ -29,7 +29,7 @@ import Mascot from "@/shared/ui/Mascot"
 import RowMenu, { type RowAction } from "./RowMenu"
 import "./StudioSidebar.css"
 
-export type StudioSidebarProps = {
+type StudioSidebarProps = {
   /** A turn is running: the chat and the project stay put until it ends. */
   locked: boolean
   /** Whether it shows: folded away it stays mounted. */

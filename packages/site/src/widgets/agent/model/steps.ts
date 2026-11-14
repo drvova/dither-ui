@@ -7,7 +7,7 @@ import { commandRows, parseDither, STUDIO_SERVER, type ToolStep } from "@/featur
 
 type Result = { ok: true; data: unknown } | { ok: false; error: string }
 export type Changed = { id: string; name: string }
-export type Step = { icon: IconName; title: string; changed: Changed[]; mutates: boolean }
+type Step = { icon: IconName; title: string; changed: Changed[]; mutates: boolean }
 
 /** Every Studio tool's step (the command table's), and the one tool's own
  * `find` and `build`. */

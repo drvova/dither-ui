@@ -8,7 +8,7 @@ import { editor } from "../../entities/editor"
 import { audit, boxOf, focusOrder, nameOf, roleOf, statesOf } from "@/shared/lib/inspect/measure"
 
 /** At most this many controls come back, so a busy screen stays a short answer. */
-export const INSPECT_CONTROLS = 60
+const INSPECT_CONTROLS = 60
 
 export function inspectFrame(a: Artboard) {
   const surface = surfaceOf(a.id)

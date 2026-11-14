@@ -16,7 +16,7 @@
 // tools' own site icons, in one colour: oh-my-pi (omp.sh/favicon.svg),
 // Auggie (augmentcode.com/favicon.svg), StyleX (stylexjs.com/favicon.svg).
 
-export interface Mark {
+interface Mark {
   /** The tool's name, as its owner writes it. */
   name: string
   viewBox: string

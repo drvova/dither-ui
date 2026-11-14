@@ -7,7 +7,7 @@ import { assetPath } from "@/shared/lib/routes"
 import Mascot from "@/shared/ui/Mascot"
 import "./BridgeSetup.css"
 
-export type BridgeSetupProps = { looking: boolean; url: string; onLook?: () => void }
+type BridgeSetupProps = { looking: boolean; url: string; onLook?: () => void }
 
 export default function BridgeSetup(props: BridgeSetupProps) {
   // The page's own address is read once it is a page (never on a server).

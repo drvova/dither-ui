@@ -64,7 +64,7 @@ export const running = (now: number): Turn => ({ kind: "running", started: now }
 /** Stop asked: only of a running turn, once. */
 export const stopAsked = (t: Turn, now: number): Turn =>
   t.kind === "running" ? { kind: "stopping", started: t.started, asked: now } : t
-export const elapsedOf = (t: Turn, now: number) => (t.kind === "idle" ? 0 : Math.max(0, now - t.started))
+const elapsedOf = (t: Turn, now: number) => (t.kind === "idle" ? 0 : Math.max(0, now - t.started))
 export const stuckOf = (t: Turn, now: number) => t.kind === "stopping" && now - t.asked >= STUCK_MS
 
 /** What streams now, by its place in the thread (`null`: its entry left the
@@ -141,7 +141,7 @@ const put = (entries: readonly Entry[], at: number, entry: Entry): Entry[] => {
 }
 
 /** The thought ended: folded under how long it took. */
-export function endThought(f: Fold, now: number): Fold {
+function endThought(f: Fold, now: number): Fold {
   const s = f.stream
   if (s.kind !== "thought") return f
   const t = s.at === null ? null : (f.entries[s.at] as Thought)

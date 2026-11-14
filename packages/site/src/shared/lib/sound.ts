@@ -8,13 +8,13 @@ import { createRoot, createSignal } from "solid-js"
 import { storage } from "@/shared/lib/storage"
 import { STORAGE_KEYS } from "@/shared/config/storage"
 
-export type Cue = "on" | "off" | "tap" | "copy" | "theme" | "fold" | "unfold"
+type Cue = "on" | "off" | "tap" | "copy" | "theme" | "fold" | "unfold"
 
 /** One oscillator: a pitch (gliding exponentially to `to` over `glide`), a
  * linear attack to `gain`, an exponential decay toward `floor` (time
  * constant `decay`), an optional release and lowpass. Times in seconds,
  * from the voice's start (`at`). */
-export interface Voice {
+interface Voice {
   type: OscillatorType
   from: number
   to?: number

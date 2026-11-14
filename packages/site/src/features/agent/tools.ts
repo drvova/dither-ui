@@ -161,9 +161,9 @@ export const saveAgentConfig = (c: AgentConfig): void => writeJson(STORAGE_KEYS.
 
 /** A chat's unsent message: its words and what it carries, as stored (the
  * panel parses the attachments, untrusted, where they come back in). */
-export type Draft = { text: string; attachments: unknown[] }
+type Draft = { text: string; attachments: unknown[] }
 /** The most a draft keeps, as JSON: past it, its pictures stay out. */
-export const DRAFT_MAX = 1_500_000
+const DRAFT_MAX = 1_500_000
 const draftKey = (projectId: string, chatId: string) => `${STORAGE_PREFIXES.draft}${projectId}/${chatId}`
 
 /** A chat's unsent message, kept while the panel is closed, a reload, or

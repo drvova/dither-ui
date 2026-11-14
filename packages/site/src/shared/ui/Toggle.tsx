@@ -3,7 +3,7 @@ import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { breakable } from "@/shared/lib/words"
 
 type Own = { modelValue: boolean; label: string; class?: string; onUpdateModelValue?: (value: boolean) => void }
-export type ToggleProps = Own & Omit<JSX.LabelHTMLAttributes<HTMLLabelElement>, keyof Own>
+type ToggleProps = Own & Omit<JSX.LabelHTMLAttributes<HTMLLabelElement>, keyof Own>
 
 export default function Toggle(raw: ToggleProps) {
   const [props, rest] = splitProps(raw, ["modelValue", "label", "class", "onUpdateModelValue"])

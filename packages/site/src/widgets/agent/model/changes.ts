@@ -8,9 +8,9 @@ import { changesOf, type Entry } from "./thread"
 
 /** The frame just undone: its name, and the canvas's checkpoint right after
  * (it goes back only while the canvas still stands there). */
-export type PutBack = { id: string; name: string; after: string }
+type PutBack = { id: string; name: string; after: string }
 
-export type Bar = {
+type Bar = {
   /** Turns whose changes were kept or undone: their bar is gone. */
   settled: ReadonlySet<number>
   /** The latest turn's frames settled one by one. */

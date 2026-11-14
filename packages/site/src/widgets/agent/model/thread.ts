@@ -51,7 +51,7 @@ export type Entry =
    * ended when not on its own (you stopped it, or it failed). */
   | { kind: "worked"; ms: number; end?: "stopped" | "failed" }
 
-export type ToolEntry = Extract<Entry, { kind: "tool" }>
+type ToolEntry = Extract<Entry, { kind: "tool" }>
 export type Todo = { content: string; status: string }
 
 const short = (v: unknown, n = 36): string => {
@@ -61,7 +61,7 @@ const short = (v: unknown, n = 36): string => {
 }
 
 /** A Studio tool call's arguments in one line (the step's hover title). */
-export function describeArgs(name: string, args: Record<string, unknown>): string {
+function describeArgs(name: string, args: Record<string, unknown>): string {
   switch (name) {
     case "add_screen":
       return `${short(args.name ?? "screen")}, ${Array.isArray(args.rows) ? args.rows.length : 0} rows`
@@ -90,7 +90,7 @@ export function describeArgs(name: string, args: Record<string, unknown>): strin
 }
 
 /** A Studio tool call's result in one line. */
-export function describeResult(result: Result): string {
+function describeResult(result: Result): string {
   if (!result.ok) return result.error
   const d = result.data as Record<string, unknown> | unknown[] | null
   if (Array.isArray(d)) return `${d.length} ${d.length === 1 ? "item" : "items"}`
@@ -168,7 +168,7 @@ export function changesOf(entries: readonly Entry[], turn: number) {
 }
 
 /** A step of the thread: a Studio tool call or one of the harness's own. */
-export const isStep = (e: Entry) => e.kind === "tool" || e.kind === "activity"
+const isStep = (e: Entry) => e.kind === "tool" || e.kind === "activity"
 
 /** Runs this long or longer fold into one row. */
 export const STEP_RUN = 3

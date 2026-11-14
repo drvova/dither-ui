@@ -14,7 +14,7 @@ import {
 } from "@/entities/video"
 import "./VideoDialog.css"
 
-export type VideoDialogProps = { open: boolean; onClose?: () => void }
+type VideoDialogProps = { open: boolean; onClose?: () => void }
 
 export default function VideoDialog(props: VideoDialogProps) {
   const [options, setOptions] = createStore<VideoOptions>({ ...DEFAULT_VIDEO })

@@ -399,7 +399,7 @@ export function concealed(el) {
 }
 
 /** The ARIA role `el` stands in: its own, else the one its tag implies. */
-export function roleOf(el) {
+function roleOf(el) {
   const own = (el.getAttribute("role") || "").trim().split(/\s+/)[0]
   if (own) return own
   const tag = el.localName
@@ -489,11 +489,11 @@ export function accessibleName(el) {
 
 /** What a reader can operate: links, controls, the widget roles and
  * anything put in the tab order. */
-export const INTERACTIVE =
+const INTERACTIVE =
   'a[href],area[href],button,input:not([type=hidden]),select,textarea,summary,[role=button],[role=link],[role=tab],[role=switch],[role=checkbox],[role=radio],[role=slider],[role=spinbutton],[role=combobox],[role=searchbox],[role=textbox],[role=menuitem],[role=menuitemcheckbox],[role=menuitemradio],[role=option],[role=treeitem],[tabindex]:not([tabindex^="-"])'
 
 /** Where an element stands and what it is, in words a finding can carry. */
-export function describe(el) {
+function describe(el) {
   const card = el.closest("[data-demo-card]")
   const cards = card ? [...el.ownerDocument.querySelectorAll("[data-demo-card]")] : []
   const place = card

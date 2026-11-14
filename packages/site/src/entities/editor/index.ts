@@ -3,7 +3,6 @@ export {
   addComponentArtboard,
   addReelArtboard,
   addScreenArtboard,
-  artboardIdOf,
   deleteGroup,
   deleteSeries,
   copySelected,
@@ -25,7 +24,6 @@ export {
   removeSelected,
   replay,
   resizeArtboard,
-  restore,
   selectArtboard,
   selectedArtboard,
   selectedChart,
@@ -40,19 +38,9 @@ export {
   setGroupLocked,
   setGuides,
   setSelectedType,
-  snapshot,
   ungroup,
 } from "./model/store"
-export {
-  DOCUMENT_KEYS,
-  type DocumentState,
-  type Group,
-  MAX_ZOOM,
-  MIN_ZOOM,
-  parseDocument,
-  type StudioDocument,
-  type Viewport,
-} from "./model/document"
+export { DOCUMENT_KEYS, type Group, parseDocument, type StudioDocument } from "./model/document"
 export { boundsOf } from "@/entities/editor/model/free"
 export { watch } from "./model/watch"
 export {

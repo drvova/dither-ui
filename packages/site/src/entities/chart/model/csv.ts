@@ -32,7 +32,7 @@ const keyOf = (header: string, i: number): string => {
   return k || `col${i}`
 }
 
-export type ParsedCsv = { headers: string[]; records: string[][] }
+type ParsedCsv = { headers: string[]; records: string[][] }
 
 /** Parse CSV text: first row = headers, first column = labels. */
 export function parseCsv(text: string): ParsedCsv | null {

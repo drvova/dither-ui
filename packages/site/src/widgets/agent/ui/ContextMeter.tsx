@@ -8,7 +8,7 @@ import "./ContextMeter.css"
 // reads as a spinner), the figures in words for the title and a screen
 // reader. Past `FULL` the ring takes the destructive ink: the harness
 // will soon compact or forget the start.
-export type ContextMeterProps = { use: ContextUse; class?: string }
+type ContextMeterProps = { use: ContextUse; class?: string }
 
 const FULL = 0.9
 const R = 6

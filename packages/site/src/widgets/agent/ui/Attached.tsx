@@ -6,7 +6,7 @@ import "./Attached.css"
 // What the message carries besides its words, as chips beside its frames:
 // a picture with its thumbnail and size, a pasted or dropped text with its
 // lines (pressed, it goes back into the field as typed text).
-export type AttachedProps = {
+type AttachedProps = {
   attachments: Attachment[]
   onRemove?: (id: string) => void
   onUnfold?: (id: string) => void

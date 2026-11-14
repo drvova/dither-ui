@@ -178,6 +178,10 @@ by the site's post-build. Paths here are from this package's root.
   twice, every page script compiling as the drivers run it, and
   `walk-page.js` standing for every page script `walk.mjs` calls. The site holds the static rules over its built pages
   (`packages/site/tests/site/page-reading.spec.tsx`).
+- Every export is imported somewhere in the workspace, a page script's
+  helpers (`walk-checks.mjs`, carried as source) included
+  (`packages/site/tests/exports.spec.ts`); `walk-checks.d.mts` declares
+  what is exported and no more.
 - The drawing code's pure parts are held where they run, by the site
   (`packages/site/tests/site/cards.spec.ts`), and its browser parts by the
   site's build, which fails when a card or the registry does.

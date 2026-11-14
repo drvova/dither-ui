@@ -27,7 +27,7 @@ import {
 } from "./stylex-core"
 
 /** What the generator could not carry: the file is left out of the layer. */
-export type Refusal = { file: string; line: number; kind: string; message: string }
+type Refusal = { file: string; line: number; kind: string; message: string }
 
 export interface SolidStylexLayer {
   /** The generated files, by name inside the layer. */

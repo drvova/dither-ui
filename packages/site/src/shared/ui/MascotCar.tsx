@@ -20,7 +20,7 @@ import { type CarInk, DRIVEN_H, DRIVEN_TOP, DRIVEN_W, drivenCells, toRuns, WHEEL
 import "./MascotCar.css"
 
 type Own = { size: number; driving?: boolean; class?: string }
-export type MascotCarProps = Own & Omit<JSX.SvgSVGAttributes<SVGSVGElement>, keyof Own>
+type MascotCarProps = Own & Omit<JSX.SvgSVGAttributes<SVGSVGElement>, keyof Own>
 
 const SIGNAL = "var(--signal, var(--swatch-orange))"
 /** A car cell's paint: the body a shade under the ink so its lights read

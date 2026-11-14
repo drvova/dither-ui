@@ -8,7 +8,7 @@ import type { JSX } from "solid-js"
 import { CLOSE_CELLS, SHEET_HEAD_FOOT } from "@/widgets/site-header/menu"
 import BrandMark from "../../shared/ui/BrandMark"
 
-export type SheetHeadProps = {
+type SheetHeadProps = {
   /** The close key's full name: "Close menu", "Close sections". */
   closeLabel: string
   onClose?: () => void

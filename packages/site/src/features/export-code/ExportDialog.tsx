@@ -9,7 +9,7 @@ import { setStyling, styling, STYLING_LABELS, STYLINGS } from "../../shared/lib/
 import { CodeBlock, Segmented } from "../../shared/ui"
 import "./ExportDialog.css"
 
-export type ExportDialogProps = { open: boolean; onClose?: () => void }
+type ExportDialogProps = { open: boolean; onClose?: () => void }
 
 export default function ExportDialog(props: ExportDialogProps) {
   // The Solid component in the chosen styling system: Tailwind as generated,

@@ -12,7 +12,7 @@ export type MenuItem = {
   divider?: boolean
 }
 
-export type ContextMenuProps = { x: number; y: number; items: MenuItem[]; onClose?: () => void }
+type ContextMenuProps = { x: number; y: number; items: MenuItem[]; onClose?: () => void }
 
 export default function ContextMenu(props: ContextMenuProps) {
   function run(it: MenuItem) {

@@ -5,7 +5,7 @@
 import { createMemo, For, Show } from "solid-js"
 import "./RiseWords.css"
 
-export type RiseWordsProps = { text: string; word?: string }
+type RiseWordsProps = { text: string; word?: string }
 
 export default function RiseWords(props: RiseWordsProps) {
   const words = createMemo(() => props.text.split(" "))

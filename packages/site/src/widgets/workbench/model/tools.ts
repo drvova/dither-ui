@@ -22,8 +22,8 @@ export type ToolId =
 
 export type ToggleId = "rulers" | "responsive" | "motion"
 
-export type Tool = { id: ToolId; key: string; label: string; group: 1 | 2; icon: string; hint: string }
-export type ToggleDef = { id: ToggleId; key: string; label: string; icon: string }
+type Tool = { id: ToolId; key: string; label: string; group: 1 | 2; icon: string; hint: string }
+type ToggleDef = { id: ToggleId; key: string; label: string; icon: string }
 
 export const TOOLS: Tool[] = [
   {

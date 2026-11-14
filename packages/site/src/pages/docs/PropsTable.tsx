@@ -4,7 +4,7 @@ import { For } from "solid-js"
 // as "none").
 export type PropRow = { prop: string; type: string; default: string }
 
-export type PropsTableProps = { rows: PropRow[] }
+type PropsTableProps = { rows: PropRow[] }
 
 export default function PropsTable(props: PropsTableProps) {
   return (

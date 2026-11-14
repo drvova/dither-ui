@@ -6,7 +6,7 @@ import Segmented from "./Segmented"
 import Toggle from "./Toggle"
 
 type Own = { modelValue: VariantInput; class?: string; onUpdateModelValue?: (value: VariantInput) => void }
-export type TextureFieldProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
+type TextureFieldProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
 
 const CHOICES = [...VARIANTS, "custom"] as const
 const num = (e: Event) => Number((e.target as HTMLInputElement).value)

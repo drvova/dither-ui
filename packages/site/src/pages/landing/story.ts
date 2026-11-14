@@ -18,7 +18,7 @@ export const DOES = [
 export const STEPS = DOES.length + 1
 
 /** Where a line stands at a step: not yet said, being done, done. */
-export type LineState = "ahead" | "working" | "done"
+type LineState = "ahead" | "working" | "done"
 export const lineState = (line: number, step: number): LineState =>
   step < line ? "ahead" : step === line ? "working" : "done"
 

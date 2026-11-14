@@ -18,7 +18,7 @@ import BrandGather from "./BrandGather"
 import HeatPrint from "./HeatPrint"
 import "./Plate.css"
 
-export type PlateProps = { plate: PlateRow }
+type PlateProps = { plate: PlateRow }
 
 const pct = (f: number) => `${f * 100}%`
 

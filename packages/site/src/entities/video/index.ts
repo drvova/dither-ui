@@ -4,7 +4,6 @@ export {
   embedJson,
   normalizeVideoOptions,
   slugOf,
-  type PlayerAssets,
   type VideoOptions,
 } from "./composition"
 export {

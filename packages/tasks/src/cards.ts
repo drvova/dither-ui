@@ -21,18 +21,18 @@ export interface CardPage {
 }
 
 /** The little of a Playwright browser this file drives. */
-export interface CardBrowser {
+interface CardBrowser {
   newPage(options?: { viewport?: { width: number; height: number } }): Promise<CardPage>
 }
 
 /** A section as the manifest (og/sections.json) names it, as far as the
  * embeds read it. */
-export interface CardSection {
+interface CardSection {
   id: string
   description: string
 }
 
-export const MIME: Record<string, string> = {
+const MIME: Record<string, string> = {
   ".html": "text/html",
   ".js": "text/javascript",
   ".css": "text/css",
@@ -58,7 +58,7 @@ export function servedFile(dir: string, url: string, base = "/"): string | null 
 }
 
 /** A minimal static server over a build's output. */
-export function serveStatic(dir: string, base = "/"): Server {
+function serveStatic(dir: string, base = "/"): Server {
   return createServer(async (req, res) => {
     try {
       let file = servedFile(dir, req.url ?? "/", base)

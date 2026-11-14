@@ -10,7 +10,7 @@ import { activeProjectId, createProject, projects, switchProject } from "@/featu
 import Mascot from "@/shared/ui/Mascot"
 import "./SearchPalette.css"
 
-export type SearchPaletteProps = {
+type SearchPaletteProps = {
   open: boolean
   locked: boolean
   onClose?: () => void

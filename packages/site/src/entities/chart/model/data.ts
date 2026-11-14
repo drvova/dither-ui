@@ -1,6 +1,6 @@
 import type { Family } from "@/shared/config"
 
-export const cartesianData = [
+const cartesianData = [
   { month: "Jan", desktop: 186, mobile: 80, tablet: 120, watch: 40 },
   { month: "Feb", desktop: 305, mobile: 200, tablet: 150, watch: 65 },
   { month: "Mar", desktop: 237, mobile: 120, tablet: 180, watch: 58 },
@@ -11,7 +11,7 @@ export const cartesianData = [
   { month: "Aug", desktop: 342, mobile: 290, tablet: 240, watch: 105 },
 ]
 
-export const pieData = [
+const pieData = [
   { name: "chrome", value: 63 },
   { name: "safari", value: 19 },
   { name: "firefox", value: 9 },
@@ -19,7 +19,7 @@ export const pieData = [
   { name: "other", value: 3 },
 ]
 
-export const radarData = [
+const radarData = [
   { axis: "Speed", alpha: 90, beta: 60, gamma: 75 },
   { axis: "Power", alpha: 70, beta: 85, gamma: 55 },
   { axis: "Range", alpha: 55, beta: 75, gamma: 88 },

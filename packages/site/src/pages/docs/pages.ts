@@ -15,7 +15,7 @@ export function sectionOf(path: string, hash: string): string {
 }
 
 /** A section as the pager and the breadcrumb name it. */
-export type SectionRef = { id: string; label: string; group: string }
+type SectionRef = { id: string; label: string; group: string }
 const REFS = new Map<string, SectionRef>(
   GROUPS.flatMap((g) => g.items.map((it) => [it.id, { id: it.id, label: it.label, group: g.title }] as const)),
 )

@@ -8,7 +8,7 @@ import { MARKS, type MarkId } from "@/shared/ui/marks"
 import "./ToolMark.css"
 
 type Own = { id: MarkId; size?: number; class?: string }
-export type ToolMarkProps = Own & Omit<JSX.SvgSVGAttributes<SVGSVGElement>, keyof Own>
+type ToolMarkProps = Own & Omit<JSX.SvgSVGAttributes<SVGSVGElement>, keyof Own>
 
 export default function ToolMark(raw: ToolMarkProps) {
   const merged = mergeProps({ size: 14 }, raw)

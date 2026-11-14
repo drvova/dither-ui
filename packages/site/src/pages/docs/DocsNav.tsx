@@ -13,7 +13,7 @@ export const docsUrl = (id: string) => routePath(`/docs/${id}`)
 /** Where a docs list stands: the rail beside the content (a pointer's 25px
  * targets at a 27px pitch) or the sections sheet (a finger's, at the
  * menu's reading size). */
-export type NavPlace = "rail" | "sheet"
+type NavPlace = "rail" | "sheet"
 export const NAV_LINK: Record<NavPlace, string> = { rail: "py-1 text-[11px]", sheet: "py-2 text-[15px]" }
 /** A group's heading sticks to the top of its list while its sections
  * scroll under it (the landmark in a long list). The list's top room lives
@@ -32,7 +32,7 @@ export const NAV_PLACE: Record<NavPlace, { top: string; head: string }> = {
  * table), read from its DOM: what "On this page" lists. */
 export type PagePart = { label: string; el: HTMLElement }
 
-export type DocsNavProps = {
+type DocsNavProps = {
   activeId: string
   variant: NavPlace
   parts?: PagePart[]

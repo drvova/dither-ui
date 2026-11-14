@@ -14,7 +14,7 @@ export const SECTION_COUNT = FACTS.sections
 const count = (title: string) => FAMILIES.find((f) => f.title === title)?.count ?? 0
 
 /** The big families, each with a line and the section it opens on. */
-export type DocsFamily = { label: string; count: number; note: string; first: string }
+type DocsFamily = { label: string; count: number; note: string; first: string }
 export const DOCS_FAMILIES: DocsFamily[] = [
   {
     label: "Components",
@@ -49,7 +49,7 @@ export const DOCS_FAMILIES: DocsFamily[] = [
  * control or a statement, never two moving surfaces side by side), and no
  * card repeats another's words. Its layout lives on `Examples.tsx`'s
  * `.t-<id>` cards. */
-export type BentoTile = { id: string; label: string; family: string }
+type BentoTile = { id: string; label: string; family: string }
 export const BENTO: BentoTile[] = [
   { id: "world", label: "3D model", family: "Components" },
   { id: "gauge", label: "Gauge", family: "Components" },

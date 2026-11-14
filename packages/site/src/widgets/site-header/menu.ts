@@ -28,7 +28,7 @@ export const STUDIO_LINK = { label: "Open studio", note: "An infinite canvas, be
 export const BAND_FLOOR = 64
 
 /** Band `i` of `n`'s ink share: even steps from the full ink to the floor. */
-export const bandInk = (i: number, n: number) =>
+const bandInk = (i: number, n: number) =>
   Math.round(100 - (Math.min(i, n - 1) * (100 - BAND_FLOOR)) / Math.max(1, n - 1))
 
 /** The menu's link bands, top to bottom (100/88/76/64). */
@@ -43,7 +43,7 @@ export const bandFill = (i: number, n: number = MENU_LINKS.length) =>
 export const STUDIO_FILL = "var(--signal, var(--swatch-orange))"
 
 /** The seam: four dither densities, one cell of `SEAM_CELL` px each. */
-export const SEAM_CELL = 3
+const SEAM_CELL = 3
 export const SEAM_HEIGHT = SEAM_CELL * 4
 
 /** Below this width the menu key shows (the capsule holds every link from
@@ -87,7 +87,7 @@ export const seamStyle = (fill: string) =>
   `${maskCss(SEAM_MASK)};position:absolute;inset-inline:0;top:-${SEAM_HEIGHT}px;height:${SEAM_HEIGHT}px;pointer-events:none;background:${fill}`
 
 /** A mask as an inline style, both spellings (WebKit reads the prefixed). */
-export const maskCss = (m: WipeStyle | null) =>
+const maskCss = (m: WipeStyle | null) =>
   m
     ? (["", "-webkit-"] as const)
         .map(

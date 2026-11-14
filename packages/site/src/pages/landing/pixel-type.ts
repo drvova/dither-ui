@@ -51,7 +51,7 @@ export const PIXEL_ROWS = 7
 export const PIXEL_DESCENT = 2
 export const PIXEL_CHARS = Object.keys(FACE).join("")
 
-export type PixelCell = { x: number; y: number; char: number }
+type PixelCell = { x: number; y: number; char: number }
 
 /** Lay `text` out on the cell grid: one empty column between glyphs. Throws
  * on a character the face lacks — every string the page sets is covered by

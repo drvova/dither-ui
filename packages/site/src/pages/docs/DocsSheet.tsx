@@ -9,7 +9,7 @@ import DocsNav, { type PagePart } from "./DocsNav"
 /** The sheet's id: the header key's `aria-controls` names it. */
 export const SHEET_ID = "docs-sheet"
 
-export type DocsSheetProps = {
+type DocsSheetProps = {
   open: boolean
   activeId: string
   parts: PagePart[]

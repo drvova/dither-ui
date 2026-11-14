@@ -9,7 +9,7 @@ import { headingOf, sectionItem, type SectionId } from "@/pages/docs/groups"
  * stops under the header. */
 const SHELL = "mt-16 scroll-mt-24"
 
-export type DocSectionProps = {
+type DocSectionProps = {
   id: SectionId
   /** The hook of the section's own stylesheet (`<kebab-name>-scope`). */
   class?: string

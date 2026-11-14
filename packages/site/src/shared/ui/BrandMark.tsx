@@ -5,7 +5,7 @@ import { For, type JSX, mergeProps, splitProps } from "solid-js"
 import { MARK_CELLS } from "@/shared/ui/brand-mark"
 
 type Own = { size: number; cells?: readonly { x: number; y: number; core?: boolean }[] }
-export type BrandMarkProps = Own & Omit<JSX.SvgSVGAttributes<SVGSVGElement>, keyof Own>
+type BrandMarkProps = Own & Omit<JSX.SvgSVGAttributes<SVGSVGElement>, keyof Own>
 
 export default function BrandMark(raw: BrandMarkProps) {
   const merged = mergeProps({ cells: MARK_CELLS as NonNullable<Own["cells"]> }, raw)

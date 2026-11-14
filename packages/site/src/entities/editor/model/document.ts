@@ -14,7 +14,6 @@ export type Group = { id: string; name: string; collapsed: boolean }
  * undo restores. A new kind of document state is one key here and one field
  * of `DocumentState`, which `parseDocument` must then produce. */
 export const DOCUMENT_KEYS = ["artboards", "groups"] as const
-export type DocumentKey = (typeof DOCUMENT_KEYS)[number]
 export type DocumentState = { artboards: Artboard[]; groups: Group[] }
 
 /** A document as kept and exchanged: the edited state, and the view it was

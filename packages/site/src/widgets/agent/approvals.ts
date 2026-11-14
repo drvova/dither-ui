@@ -11,7 +11,7 @@ import type { Entry } from "./model/thread"
 type Approval = Extract<Entry, { kind: "approval" }>
 type Option = Approval["options"][number]
 
-export type ApprovalHooks = {
+type ApprovalHooks = {
   config: AgentConfig
   /** The thread's store: a prompt is its newest entry once asked. */
   thread: { entries: Entry[] }

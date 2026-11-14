@@ -194,7 +194,9 @@ are from the repository's.
   `npm test` again after the build. Offline use
   and the video export are checked in a browser.
 - A spec that crosses packages lives here, the highest package it touches
-  (`tests/bridge.spec.ts`, `tests/focus-ring.spec.ts`,
+  (`tests/bridge.spec.ts`, `tests/exports.spec.ts`: no export of the
+  site's, the rewriter's or the tasks' modules that nothing in the
+  workspace imports, specs counting, `tests/focus-ring.spec.ts`,
   `tests/observer-entries.spec.ts`: every visibility observer in the kit
   and the site reads its newest entry, never only the first,
   `tests/site/stylex-layer.spec.tsx`, `tests/site/paint-law.spec.tsx`: the

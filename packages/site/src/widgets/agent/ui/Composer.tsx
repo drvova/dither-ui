@@ -48,7 +48,7 @@ import ContextMeter from "./ContextMeter"
 export type ComposerApi = { focus: () => void; blur: () => void }
 
 /** The message being written: its words, what it carries, a line about it. */
-export type Draft = {
+type Draft = {
   text: Accessor<string>
   setText: (text: string) => void
   attachments: Accessor<Attachment[]>
@@ -60,7 +60,7 @@ export type Draft = {
 export type Editing = { at: number; turn: number; was: string; restore: boolean; restorable: boolean }
 type Approval = Extract<Entry, { kind: "approval" }>
 
-export type ComposerProps = HarnessMenus & {
+type ComposerProps = HarnessMenus & {
   draft: Draft
   /** What sending does now, in the field's words. */
   placeholder: string

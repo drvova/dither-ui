@@ -20,7 +20,7 @@ import { SITE_STORAGE } from "./site-storage.mjs"
 /** The walk's page scripts, one file of real JavaScript (`walk-page.js`):
  * Playwright's init script, and over WebDriver (which has none) sent ahead
  * of each script a session runs, defining nothing where it already stands. */
-export const PAGE_SCRIPTS = fileURLToPath(new URL("./walk-page.js", import.meta.url))
+const PAGE_SCRIPTS = fileURLToPath(new URL("./walk-page.js", import.meta.url))
 const PAGE_SOURCE = readFileSync(PAGE_SCRIPTS, "utf8")
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -275,7 +275,7 @@ export function coloursIn(png, [x, y, w, h], ratio = 1) {
 
 /** The windows the walk looks through: a desktop, and an iPhone (its size,
  * touch, its user agent). */
-export const DEVICES = {
+const DEVICES = {
   desktop: { width: 1366, height: 900 },
   phone: {
     width: 390,
@@ -348,7 +348,7 @@ export async function playwrightDriver({ executablePath }) {
  * an Xvfb display of its own where there is one (headless Firefox has no
  * GL without a GPU). A phone is its viewport, ratio, touch and user agent;
  * Gecko has no mobile mode. */
-export async function playwrightFirefoxDriver({ executablePath } = {}) {
+async function playwrightFirefoxDriver({ executablePath } = {}) {
   const { firefox } = await import("playwright-core")
   const running = new Set()
   const driver = {
@@ -437,7 +437,7 @@ const WEBDRIVER_KEYS = { Tab: "", Enter: "", Escape: "", Shift: "" }
  * driver on a port. Where the machine has Xvfb each session's browser gets
  * a display of its own; elsewhere it has the one the walk was started on,
  * if any. */
-export function webDriver({ name, command, capabilities }) {
+function webDriver({ name, command, capabilities }) {
   const running = []
   return {
     version: name,

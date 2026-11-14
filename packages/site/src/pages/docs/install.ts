@@ -4,7 +4,7 @@
 // the landing's InstallBlock runs the same commands.
 
 /** One step: what it does, why where a reader would ask, and its code. */
-export type InstallStep = { title: string; why?: string; code: string }
+type InstallStep = { title: string; why?: string; code: string }
 
 /** The packages the kit needs beside Solid. */
 export const INSTALL_DEPS: readonly string[] = ["d3-scale", "d3-shape", "clsx", "tailwind-merge"]

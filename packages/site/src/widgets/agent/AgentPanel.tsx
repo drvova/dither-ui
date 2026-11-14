@@ -119,7 +119,7 @@ import "./AgentPanel.css"
 // every reading of the thread is `model/thread.ts`. Nothing here is a key
 // or a model setting.
 export type AgentPanelApi = { focus: () => void }
-export type AgentPanelProps = {
+type AgentPanelProps = {
   onClose?: () => void
   onActivity?: (activity: AgentActivity) => void
   ref?: (api: AgentPanelApi) => void

@@ -72,7 +72,7 @@ import {
   type Workspace,
 } from "@/widgets/workbench/model/workspace"
 
-export type BenchOptions = {
+type BenchOptions = {
   /** The preview frame the overlay covers. */
   host: HTMLElement
   /** The preview's root wrapper (what is inspected). */
@@ -91,7 +91,7 @@ export type BenchOptions = {
   send?: (markdown: string) => void
 }
 
-export type Draft =
+type Draft =
   | { kind: "arrow"; from: Point; to: Point }
   | { kind: "stroke"; points: InkPoint[] }
   | { kind: "region"; from: Point; to: Point; for: "shot" | "video" }
@@ -103,14 +103,14 @@ export type Draft =
   | { kind: "rotate"; center: Point; from: number; origin: Workspace; before: string }
 
 /** The selection box's corner handles and its rotate handle above. */
-export type Handle = "nw" | "ne" | "sw" | "se" | "rotate"
+type Handle = "nw" | "ne" | "sw" | "se" | "rotate"
 
-export type Capture =
+type Capture =
   | { kind: "shot"; blob: Blob; url: string }
   | { kind: "recording"; rec: Recording }
   | { kind: "video"; blob: Blob; url: string; duration: number; start: number; end: number }
 
-export type A11yReading = {
+type A11yReading = {
   label: string
   box: Box
   role: string
@@ -120,8 +120,8 @@ export type A11yReading = {
   /** A control: what the name and target-size floor applies to. */
   control: boolean
 }
-export type XrayBox = { box: Box; depth: number; layout: boolean }
-export type Mark = { box: Box; kind: Issue["kind"]; note: string }
+type XrayBox = { box: Box; depth: number; layout: boolean }
+type Mark = { box: Box; kind: Issue["kind"]; note: string }
 
 /** The export format that is not a video: a GIF through the kit's dither. */
 export const GIF = "image/gif"

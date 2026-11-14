@@ -11,7 +11,7 @@
  * `tests/mascot.spec.ts` holds its shape. */
 
 export type MascotPose = "idle" | "blink" | "hop" | "wave" | "fly"
-export type MascotInk = "body" | "ember"
+type MascotInk = "body" | "ember"
 export type MascotCell = { x: number; y: number; ink: MascotInk }
 
 export const MASCOT_W = 11

@@ -3,7 +3,7 @@ import { dataFor } from "./data"
 import type { ChartModel, DataRow, SeriesRow } from "./types"
 
 /** A fresh copy of the family's sample rows — each chart owns its data. */
-export function seedRows(type: ChartType): DataRow[] {
+function seedRows(type: ChartType): DataRow[] {
   return JSON.parse(JSON.stringify(dataFor(familyOf(type)))) as DataRow[]
 }
 

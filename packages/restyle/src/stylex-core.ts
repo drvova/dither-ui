@@ -7,16 +7,16 @@
 import ts from "typescript"
 import { camel, compileUtilities, type Names, type UtilityMap } from "./index"
 
-export type Edit = { start: number; end: number; text: string }
+type Edit = { start: number; end: number; text: string }
 /** A class literal: the node it replaces, its classes, the name it would
  * like, and (a piece of a template literal) how its style is written back. */
-export type Site = { node: ts.Node; text: string; hint: string; wrap?: (out: string | null) => string }
+type Site = { node: ts.Node; text: string; hint: string; wrap?: (out: string | null) => string }
 
 /** What a generator cannot carry, found at `node`. */
 export type Refuse = (node: ts.Node, kind: string, message: string) => void
 
 /** One walk's ends: where its class literals and holders go. */
-export interface Walk {
+interface Walk {
   sites: Site[]
   holders: Set<string>
   refuse: Refuse
@@ -27,7 +27,7 @@ export interface Walk {
 }
 
 /** `SIZES` + `sm` → `sizesSm`; `cellBase` stays. */
-export const hintOf = (...parts: string[]) =>
+const hintOf = (...parts: string[]) =>
   camel(parts.map((p) => (/^[A-Z0-9_]+$/.test(p) ? p.toLowerCase() : p)).join("-")).replace(/^[A-Z]/, (c) =>
     c.toLowerCase(),
   )

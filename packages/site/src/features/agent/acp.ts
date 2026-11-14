@@ -42,11 +42,11 @@ type Message = {
   error?: { code: number; message: string }
 }
 
-export type Harness = { id: string; name: string; command: string; installed: boolean; note?: string }
-export type BridgeAgent = { id: string; name: string; command: string; pid: number }
+type Harness = { id: string; name: string; command: string; installed: boolean; note?: string }
+type BridgeAgent = { id: string; name: string; command: string; pid: number }
 export type BridgeHello = { cwd: string; harnesses: Harness[]; agent: BridgeAgent | null }
 
-export type AcpPermissionOption = { optionId: string; name: string; kind: string }
+type AcpPermissionOption = { optionId: string; name: string; kind: string }
 
 /** A harness's permission options, read once as they arrive: an option is
  * kept only with a string id; its name falls back to the id and its kind to
@@ -66,7 +66,7 @@ export function permissionOptions(raw: unknown): AcpPermissionOption[] {
 }
 export type AcpPermissionRequest = { title: string; options: AcpPermissionOption[]; raw: unknown }
 
-export type AcpClientOptions = {
+type AcpClientOptions = {
   url: string
   /** Answer a `session/request_permission`: the chosen optionId, or null to cancel. */
   permission: (req: AcpPermissionRequest) => Promise<string | null>

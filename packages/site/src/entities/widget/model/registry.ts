@@ -12,7 +12,7 @@ export type PropSpec =
   | { key: string; kind: "list"; def: string[] }
 
 export type ComponentGroup = "inputs" | "navigation" | "display" | "overlays" | "structure"
-export type ComponentDemo =
+type ComponentDemo =
   | "alert"
   | "dialog"
   | "drawer"

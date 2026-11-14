@@ -34,7 +34,7 @@ import BrandMark from "../../shared/ui/BrandMark"
 import Mascot from "../../shared/ui/Mascot"
 import ToolMark from "../../shared/ui/ToolMark"
 
-export type SiteHeaderProps = {
+type SiteHeaderProps = {
   /** The page the reader is on, so its own link reads as current. */
   current: "landing" | "docs"
   /** A page's own tools, beside the studio key. */

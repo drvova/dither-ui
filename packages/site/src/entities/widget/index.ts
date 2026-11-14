@@ -17,7 +17,6 @@ export {
   fieldLabel,
   type ComponentEntry,
   type ComponentGroup,
-  defaultComponentProps,
   sanitizeComponentProps,
   sanitizeModel,
   type PropSpec,
@@ -34,8 +33,6 @@ export {
   moveScreenRow,
   removeCell,
   removeScreenRow,
-  type RowAlign,
-  type RowJustify,
   type ScreenCell,
   type ScreenModel,
   type ScreenRow,
@@ -43,12 +40,10 @@ export {
 export { modelOf, slotChildren } from "./model/model"
 export {
   CAMERA_MOVES,
-  type Camera,
   cameraAt,
   cameraMoveOf,
   cameraPoint,
   cameraTransform,
-  type CalloutState,
   calloutsAt,
   chapterAt,
   type ChapterState,
@@ -56,8 +51,6 @@ export {
   reelAt,
   reelDuration,
   reelLoop,
-  type ReelMoment,
   scorePlanOf,
-  STILL,
   wipeDirectionOf,
 } from "./model/reel"

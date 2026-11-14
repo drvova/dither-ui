@@ -8,7 +8,7 @@
 // motion it moves without travel. Framework-free.
 
 /** What the ground stands under: a host's items it goes to. */
-export const GLIDE_ITEMS = "a, button"
+const GLIDE_ITEMS = "a, button"
 
 /** The ground's box in the host's coordinates, from the two rects. */
 export function glideBox(host: DOMRectReadOnly, item: DOMRectReadOnly) {

@@ -7,7 +7,7 @@ import { chartCode } from "@/entities/chart/model/codegen"
 import { widgetCode } from "@/entities/widget/model/codegen"
 import type { Artboard } from "./model/types"
 
-export type FrameCode = { file: string; code: string; sheet: Sheet | null }
+type FrameCode = { file: string; code: string; sheet: Sheet | null }
 
 /** The frame's name as a file's: `Sign in` is `sign-in`. */
 const baseName = (a: Artboard): string => a.name.replace(/[^\w-]+/g, "-").toLowerCase() || "artboard"

@@ -56,7 +56,7 @@ export const selectedChart = computed(() => selectedArtboard.value?.chart ?? nul
 export const selectedLayers = computed<Layer[]>(() =>
   selectedArtboard.value ? layersOf(selectedArtboard.value.chart, selectedArtboard.value.id) : [],
 )
-export const artboardIdOf = (layerId: string) => layerId.split(":")[0]
+const artboardIdOf = (layerId: string) => layerId.split(":")[0]
 const find = (id: string) => editor.artboards.find((a) => a.id === id)
 const membersOf = (groupId: string) => editor.artboards.filter((a) => a.groupId === groupId)
 

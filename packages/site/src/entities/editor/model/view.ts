@@ -8,7 +8,7 @@ import { centreOn, editor, selectedArtboard } from "./store"
 import { clamp } from "@dither-ui/kit/engine/pixel.ts"
 
 /** A zoom key's step: in multiplies, out divides. */
-export const ZOOM_STEP = 1.2
+const ZOOM_STEP = 1.2
 /** What a fit keeps clear around the frames, in screen px. */
 const FIT_PAD = 96
 /** Room over a frame for its title label, in world px. */

@@ -13,7 +13,7 @@ import { STORAGE_PREFIXES } from "@/shared/config/storage"
  * it, kept over the first message's; `pinned`: it stands in the Pinned
  * group above the dated ones. */
 export type ChatMeta = { id: string; title: string; at: number; named?: boolean; pinned?: boolean }
-export type AgentSession<E> = { entries: E[]; usage: Usage }
+type AgentSession<E> = { entries: E[]; usage: Usage }
 
 const CAP = 160_000
 
@@ -127,7 +127,7 @@ export function pinChat(id: string, pinned: boolean): void {
   writeIndex()
 }
 
-export type ChatGroup = { label: string; chats: ChatMeta[] }
+type ChatGroup = { label: string; chats: ChatMeta[] }
 
 /** The sidebar's groups: Pinned, then by the day each chat last moved
  * (Today, Yesterday, This week, Earlier), each newest first, empty ones left out. */

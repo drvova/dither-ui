@@ -14,7 +14,7 @@ export const listenerOf = (event: string): string =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join("")}`
 
-export type ModelBinding = {
+type ModelBinding = {
   /** What the control holds on a new frame. */
   default: unknown
   /** The prop that carries the value. */

@@ -32,7 +32,7 @@ const rgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 
 
 /** The icon's pixels, RGBA: the ground, the mark's cells whole on it,
  * centred, the core in the ember. */
-export function iconPixels(size: number, span: number): Uint8Array {
+function iconPixels(size: number, span: number): Uint8Array {
   const px = new Uint8Array(size * size * 4)
   const ground = rgb(INSTALL_INK.ground)
   for (let i = 0; i < size * size; i++) px.set([...ground, 255], i * 4)
@@ -47,7 +47,7 @@ export function iconPixels(size: number, span: number): Uint8Array {
 }
 
 /** RGBA pixels as a PNG: 8 bits a channel, every row unfiltered. */
-export function png(pixels: Uint8Array, width: number, height: number): Uint8Array {
+function png(pixels: Uint8Array, width: number, height: number): Uint8Array {
   const rows = new Uint8Array(height * (width * 4 + 1))
   for (let y = 0; y < height; y++)
     rows.set(pixels.subarray(y * width * 4, (y + 1) * width * 4), y * (width * 4 + 1) + 1)

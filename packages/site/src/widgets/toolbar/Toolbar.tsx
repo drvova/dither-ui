@@ -31,7 +31,7 @@ export type ToolbarApi = {
   readonly guideKey: HTMLButtonElement | null
 }
 
-export type ToolbarProps = {
+type ToolbarProps = {
   sidebarOpen: boolean
   /** The chat's column is showing. */
   chatOpen: boolean

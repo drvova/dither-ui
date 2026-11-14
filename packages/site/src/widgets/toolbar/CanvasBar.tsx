@@ -22,7 +22,7 @@ import { evolveSelected, handoff } from "@/features/agent"
 import "@/widgets/toolbar/tool.css"
 import "./CanvasBar.css"
 
-export type CanvasBarProps = { onExport?: () => void; onVideo?: () => void }
+type CanvasBarProps = { onExport?: () => void; onVideo?: () => void }
 
 /** A key of the bar, and the agent's action that does the same. */
 type Key = {

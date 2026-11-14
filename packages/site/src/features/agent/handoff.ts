@@ -5,7 +5,7 @@
 // pulls the agent's protocol into its chunk.
 import { createMutable } from "solid-js/store"
 
-export type Ask = { text: string; frames: string[] }
+type Ask = { text: string; frames: string[] }
 
 export const handoff = createMutable({
   /** Picking: a click on a frame hands it to the agent instead of selecting it. */

@@ -17,7 +17,7 @@ import { glide } from "@dither-ui/kit/engine/dither-paint.ts"
 
 /** An edge of the element and a line of the viewport (a share of its
  * height from the top): the moment that edge crosses that line. */
-export type SceneMoment = readonly ["top" | "bottom", number]
+type SceneMoment = readonly ["top" | "bottom", number]
 
 /** A scene runs between two moments of its passage, or through the span
  * its sticky first child is pinned. */
@@ -50,7 +50,7 @@ export const sceneValue = (p: number) => glide(p).toFixed(4)
 
 /** How far beyond the viewport a scene starts being read, so it stands at
  * its start before it shows. */
-export const SCENE_NEAR = "50% 0px 50% 0px"
+const SCENE_NEAR = "50% 0px 50% 0px"
 
 const scenes = new Map<HTMLElement, SceneRange>()
 const near = new Set<HTMLElement>()

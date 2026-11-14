@@ -6,7 +6,7 @@ import { BLOOMS } from "@/shared/config"
 import Segmented from "./Segmented"
 
 type Own = { modelValue: BloomInput; class?: string; onUpdateModelValue?: (value: BloomInput) => void }
-export type BloomFieldProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
+type BloomFieldProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
 
 // Mirrors the engine's bloom presets so "custom" seeds from the current look.
 const SEED: Record<string, Required<Omit<BloomConfig, "blend">>> = {

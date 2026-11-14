@@ -9,7 +9,7 @@ import type { Slash } from "../model/slash"
 // frames on `@` (listboxes the field announces; their option is the
 // composer's), the model the harness runs, the harness to start, and the
 // settings (the bridge's address and the harness's own).
-export type ComposerMenusProps = HarnessMenus & {
+type ComposerMenusProps = HarnessMenus & {
   /** The command menu shows (open, with a match). */
   slash: boolean
   slashMatches: Slash[]

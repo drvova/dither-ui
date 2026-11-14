@@ -1,4 +1,4 @@
-import type { AreaVariant, BloomLevel, DitherColor, EasingName, GradientDirection, StackType } from "@dither-ui/kit"
+import type { AreaVariant, BloomLevel, DitherColor, EasingName, StackType } from "@dither-ui/kit"
 
 export type ChartType = "area" | "line" | "bar" | "pie" | "radar"
 export type Family = "cartesian" | "pie" | "radar"
@@ -12,5 +12,4 @@ export const EASING_NAMES: readonly EasingName[] = ["linear", "ease-out", "ease-
 export const VARIANTS: AreaVariant[] = ["gradient", "dotted", "hatched", "solid"]
 export const BLOOMS: BloomLevel[] = ["off", "low", "high", "aura"]
 export const STACKS: StackType[] = ["default", "stacked", "percent"]
-export const DIRECTIONS: GradientDirection[] = ["up", "down", "left", "right"]
 export const COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]

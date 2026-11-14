@@ -20,7 +20,7 @@ import type { Entry } from "./model/thread"
 // The panel's bridge: found, opened and closed, as one `Connection`
 // (`model/session.ts`). When none answers, the chat shows how to start it
 // while this looks again every few seconds, for a while, until one answers.
-export type BridgeHooks = {
+type BridgeHooks = {
   config: AgentConfig
   onEvent: (e: AgentEvent) => void
   permission: (req: AcpPermissionRequest) => Promise<string | null>

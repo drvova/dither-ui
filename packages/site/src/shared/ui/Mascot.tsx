@@ -21,7 +21,7 @@ import { MASCOT_H, MASCOT_ROTOR_STEPS, MASCOT_W, type MascotPose, mascotCells } 
 import "./Mascot.css"
 
 type Own = { size: number; pose?: MascotPose; alive?: boolean; class?: string }
-export type MascotProps = Own & Omit<JSX.SvgSVGAttributes<SVGSVGElement>, keyof Own>
+type MascotProps = Own & Omit<JSX.SvgSVGAttributes<SVGSVGElement>, keyof Own>
 
 export default function Mascot(raw: MascotProps) {
   const merged = mergeProps({ pose: "idle" as MascotPose, alive: false }, raw)

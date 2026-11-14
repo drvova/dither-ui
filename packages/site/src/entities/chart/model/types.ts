@@ -1,21 +1,17 @@
 import type { ChartType } from "@/shared/config"
 import type {
-  AreaVariant,
   BloomConfig,
   BloomLevel,
   DitherColor,
   DotVariant,
   EasingInput,
   StackType,
-  TextureConfig,
   TooltipVariant,
   VariantInput,
 } from "@dither-ui/kit"
 
-export type { AreaVariant, BloomConfig, DotVariant, TextureConfig, VariantInput }
-
 /** Per-series point markers (rendered inside the series). */
-export type MarkerConfig = { on: boolean; variant: DotVariant; r: number }
+type MarkerConfig = { on: boolean; variant: DotVariant; r: number }
 
 export type SeriesRow = {
   key: string
@@ -30,9 +26,9 @@ export type SeriesRow = {
   opacity: number // 0–1 layer opacity (cartesian series)
 }
 
-export type Margins = { top: number; right: number; bottom: number; left: number }
+type Margins = { top: number; right: number; bottom: number; left: number }
 
-export type GridPart = {
+type GridPart = {
   on: boolean
   locked: boolean
   horizontal: boolean
@@ -40,10 +36,10 @@ export type GridPart = {
   dash: string
   tickCount: number
 }
-export type XAxisPart = { on: boolean; locked: boolean; tickMargin: number; maxTicks: number }
-export type YAxisPart = { on: boolean; locked: boolean; tickCount: number; tickMargin: number }
-export type LegendPart = { on: boolean; locked: boolean; align: "left" | "center" | "right"; clickable: boolean }
-export type TooltipPart = { on: boolean; locked: boolean; variant: TooltipVariant }
+type XAxisPart = { on: boolean; locked: boolean; tickMargin: number; maxTicks: number }
+type YAxisPart = { on: boolean; locked: boolean; tickCount: number; tickMargin: number }
+type LegendPart = { on: boolean; locked: boolean; align: "left" | "center" | "right"; clickable: boolean }
+type TooltipPart = { on: boolean; locked: boolean; variant: TooltipVariant }
 
 /** One editable data row — the label field plus one numeric field per series. */
 export type DataRow = Record<string, string | number>
