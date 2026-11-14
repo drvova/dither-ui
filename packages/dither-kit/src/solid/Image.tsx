@@ -2,7 +2,10 @@ import { type JSX, mergeProps, splitProps } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 type Own = {
+  /** @default required */
   src: string
+  /** @docs string (empty string = decorative)
+   * @default required */
   alt: string
   loading?: "lazy" | "eager"
   decoding?: "async" | "auto" | "sync"

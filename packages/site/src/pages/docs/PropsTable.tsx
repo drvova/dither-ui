@@ -4,6 +4,62 @@ import { For } from "solid-js"
 // as "none").
 export type PropRow = { prop: string; type: string; default: string }
 
+/** A component's props as the kit types them (`build/props.ts`), one row
+ * a prop: `virtual:dither-props/<Component>`. */
+export type KitProps = { of: string; rows: readonly PropRow[] }
+
+/** How a table prints a component's props beside what the kit says. */
+type KitTable = {
+  /** Props printed as one row, `a / b`: a cell they share once, else theirs joined. */
+  join?: readonly (readonly string[])[]
+  /** A part of the family (`Item` of a sidebar): its rows read `prop (Item)`. */
+  part?: string
+  /** The props a section is about (the motion handbook's), in the kit's order. */
+  only?: readonly string[]
+  /** Rows that are not props (the engine's functions, what the host
+   * publishes for CSS), placed after the named prop, else last. */
+  add?: { after?: string; rows: readonly PropRow[] }
+}
+
+/** A component's API table, from the kit's own props types: every prop it
+ * declares, in its order, with its `@docs` type and `@default`. A name
+ * the kit does not declare fails the page's build, and a row added that
+ * the kit declares is one already printed. */
+export function kitTable(props: KitProps, spec: KitTable = {}): PropRow[] {
+  const known = (name: string) => {
+    const found = props.rows.find((r) => r.prop === name)
+    if (!found) throw new Error(`${props.of} takes no prop ${name}`)
+    return found
+  }
+  const joined = new Map(spec.join?.map((names) => [names[0], names.map(known)]))
+  const inner = new Set(spec.join?.flatMap((names) => names.slice(1)))
+  const cell = (cells: string[]) =>
+    cells.every((c) => c === cells[0]) ? cells[0] : cells.map((c) => c || "none").join(" / ")
+  spec.only?.forEach(known)
+  const rows: PropRow[] = props.rows
+    .filter((r) => !inner.has(r.prop) && (!spec.only || spec.only.includes(r.prop)))
+    .map((r) => {
+      const group = joined.get(r.prop)
+      return group
+        ? {
+            prop: group.map((g) => g.prop).join(" / "),
+            type: cell(group.map((g) => g.type)),
+            default: cell(group.map((g) => g.default)),
+          }
+        : r
+    })
+    .map((r) => (spec.part ? { ...r, prop: `${r.prop} (${spec.part})` } : r))
+  if (spec.add) {
+    for (const r of spec.add.rows)
+      for (const name of r.prop.split(" / "))
+        if (props.rows.some((k) => k.prop === name)) throw new Error(`${props.of}: ${name} is a prop, printed already`)
+    const after = spec.add.after
+    const at = after ? rows.findIndex((r) => known(after) && r.prop.split(" / ").includes(after)) + 1 : rows.length
+    rows.splice(at, 0, ...spec.add.rows)
+  }
+  return rows
+}
+
 type PropsTableProps = { rows: PropRow[] }
 
 export default function PropsTable(props: PropsTableProps) {

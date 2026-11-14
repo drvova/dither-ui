@@ -6,8 +6,11 @@ import { Presence } from "./runtime/presence"
 import "./RotatingText.css"
 
 export type RotatingTextProps = {
+  /** @default ['Solid', 'canvas', 'dither'] */
   texts?: string[]
+  /** @docs number (ms) */
   interval?: number
+  /** @default undefined */
   class?: string
 }
 

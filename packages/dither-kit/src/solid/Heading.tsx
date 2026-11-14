@@ -5,12 +5,17 @@ import { cn } from "../tailwind/lib"
 type Level = "1" | "2" | "3" | "4" | "5" | "6"
 
 export type HeadingProps = {
-  /** Its place in the page's outline: h1 to h6. */
+  /** Its place in the page's outline: h1 to h6.
+   * @docs 1 | 2 | 3 | 4 | 5 | 6
+   * @default 2 */
   level?: Level
   /** The step of the scale it is drawn at, when that is not its level's (a
-   * card's title under a section's h2: level 3, drawn at 4). */
+   * card's title under a section's h2: level 3, drawn at 4).
+   * @docs 1 | 2 | 3 | 4 | 5 | 6
+   * @default level */
   size?: Level
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -867,8 +867,10 @@ in the page's folder.
 - Docs serve Solid: snippets are written in Solid, once, for DemoCard
   code tabs and Handbook CodeBlocks (a fragment, or a whole `.tsx`
   module; the source panel completes a fragment, see
-  `widgets/source/AGENTS.md`); the API tables are written in Solid's
-  words. `tests/site/source.spec.tsx` compiles every snippet in every
+  `widgets/source/AGENTS.md`); the API tables are the kit's props types
+  (`kitTable` over `virtual:dither-props/<Component>`,
+  `packages/site/AGENTS.md`), a note or a default the docs show written
+  as the prop's `@docs`/`@default` in the kit, never in a pack. `tests/site/source.spec.tsx` compiles every snippet in every
   styling system and holds every one to Solid (no Vue notation: no
   `<template>`, directives, `:prop`/`@event` bindings, `{{ }}` or HTML
   comments in markup).
@@ -887,7 +889,8 @@ in the page's folder.
   values, no elision, only assets the site holds; see
   `widgets/source/AGENTS.md`); a demo stays inside its card (an overlay
   demo is `absolute` in its box, never `fixed` over the page); API tables
-  mirror actual kit prop defaults — update both when the kit API changes.
+  print the kit's props as its types say them, so a kit API change is
+  the table's change.
   Core form controls share Field-generated IDs, help/error relationships, and
   unified focus/invalid/disabled states; docs examples should show that path.
 - Wayfinding: one section per page (`docs/pages.ts` holds the rules:

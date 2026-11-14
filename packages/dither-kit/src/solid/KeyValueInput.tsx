@@ -12,6 +12,8 @@ export interface KeyValueRow {
 }
 
 export type KeyValueInputProps = {
+  /** @docs { key, value }[] (with onUpdateModelValue)
+   * @default [] */
   modelValue?: KeyValueRow[]
   disabled?: boolean
   class?: string

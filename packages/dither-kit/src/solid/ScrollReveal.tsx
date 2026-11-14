@@ -4,7 +4,9 @@ import { cn } from "../tailwind/lib"
 import "./ScrollReveal.css"
 
 export type ScrollRevealProps = {
+  /** @default required */
   text?: string
+  /** @default undefined */
   class?: string
 }
 

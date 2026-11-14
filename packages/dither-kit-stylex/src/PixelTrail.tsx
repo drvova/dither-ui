@@ -11,10 +11,13 @@ const styles = stylex.create({
 })
 
 export type PixelTrailProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   gap?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

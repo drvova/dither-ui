@@ -6,6 +6,7 @@ import { cn } from "../tailwind/lib"
 export type AccordionItem = { value: string; title: string }
 
 export type DitherAccordionProps = {
+  /** @docs { value: string; title: string }[] */
   items: AccordionItem[]
   modelValue: string | string[]
   type?: "single" | "multiple"

@@ -20,21 +20,34 @@ export type { LiquidEtherParams }
 export { paintLiquidEther }
 
 export type LiquidEtherProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#5227FF', '#7CFF67', '#3DA5FF'] */
   colors?: string[]
   scale?: number
   speed?: number
+  /** @docs number (advection) */
   flow?: number
-  opacity?: number
-  dither?: number | boolean
   mouseInteraction?: boolean
   mouseStrength?: number
+  /** @docs number 0…1 */
+  opacity?: number
+  /** @docs number 0…1 | boolean */
+  dither?: number | boolean
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

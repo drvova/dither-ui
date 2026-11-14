@@ -100,7 +100,9 @@ type Own = {
   label: string
   active?: boolean
   color?: PixelColor
-  /** Right-aligned count — folds to a colored dot on the icon rail. */
+  /** Right-aligned count — folds to a colored dot on the icon rail.
+   * @docs string | number: dot on the rail
+   * @default undefined */
   badge?: string | number
   onSelect?: () => void
   /** Leading icon; a small square without one. */

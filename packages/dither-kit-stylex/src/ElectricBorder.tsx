@@ -19,11 +19,14 @@ const styles = stylex.create({
 })
 
 export type ElectricBorderProps = {
+  /** @docs string (hex) */
   color?: string
   speed?: number
+  /** @docs number (px) */
   thickness?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

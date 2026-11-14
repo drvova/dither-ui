@@ -11,24 +11,37 @@ export type { FlowFieldParams }
 export { paintFlowField, fadeRasterAlpha }
 
 export type FlowFieldProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#f4f8ff', '#c9dbff', '#7ba3ee'] */
   colors?: string[]
   count?: number
   speed?: number
+  /** @docs number (noise frequency) */
   scale?: number
+  /** @docs number 0…1 (trail length) */
   fade?: number
   glow?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   /** edge fade mask on the wrapper: soft radial pool, horizontal sweep, or none. */
   mask?: "radial" | "linear" | "none"
   paused?: boolean
-  /** the brief's lock: 60 keeps every vsync; 0 = the smooth ~30fps throttle. */
+  /** the brief's lock: 60 keeps every vsync; 0 = the smooth ~30fps throttle.
+   * @docs number (fps, stop-motion) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
 }
 

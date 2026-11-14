@@ -9,8 +9,12 @@ import { cn, type StyleProp } from "./lib"
  * default, `label` promotes it to role=img with a name. An unknown name is a
  * loud error, never an empty box. */
 export type IconProps = {
+  /** @docs IconName (glyph list in icons.ts)
+   * @default required */
   name: IconName
+  /** @docs number (px) */
   size?: number
+  /** @docs string (promotes to role=img) */
   label?: string
   strokeWidth?: number
   class?: string

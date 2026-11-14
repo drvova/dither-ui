@@ -1,7 +1,11 @@
 import { createSignal, For, Index } from "solid-js"
 import { DitherBadge, DitherButton, DitherSeparator, DitherSkeleton, DitherSpinner } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import badgeProps from "virtual:dither-props/DitherBadge"
+import skeletonProps from "virtual:dither-props/DitherSkeleton"
+import spinnerProps from "virtual:dither-props/DitherSpinner"
+import separatorProps from "virtual:dither-props/DitherSeparator"
 import DocSection from "../DocSection"
 
 const VARIANTS = ["gradient", "solid", "dotted", "hatched"] as const
@@ -48,32 +52,11 @@ const SNIPPET_SEPARATOR = `<p>Charts render on canvas.</p>
   <span>studio</span>
 </div>`
 
-const API: Record<string, PropRow[]> = {
-  badge: [
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    {
-      prop: "variant",
-      type: '"gradient" | "solid" | "dotted" | "hatched"',
-      default: '"gradient"',
-    },
-    { prop: "class", type: "string", default: "" },
-  ],
-  skeleton: [{ prop: "class", type: "string", default: "" }],
-  spinner: [
-    { prop: "size", type: "number (px)", default: "20" },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "seed", type: "number (samples a spinner form)", default: "clean arc" },
-    { prop: "renderMode", type: '"live" | "static"', default: '"live"' },
-    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
-  ],
-  separator: [
-    {
-      prop: "orientation",
-      type: '"horizontal" | "vertical"',
-      default: '"horizontal"',
-    },
-    { prop: "class", type: "string", default: "" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  badge: kitTable(badgeProps),
+  skeleton: kitTable(skeletonProps),
+  spinner: kitTable(spinnerProps),
+  separator: kitTable(separatorProps),
 }
 
 const SPINNER_COLORS = ["blue", "green", "purple", "orange", "pink", "red"] as const

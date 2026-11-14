@@ -2,12 +2,14 @@ import { children, createUniqueId, type JSX, mergeProps, Show, useContext } from
 import { SIDEBAR_COLLAPSED, SIDEBAR_COMPACT } from "./DitherSidebar"
 
 export type DitherSidebarSubProps = {
-  label: string
-  /** Open state (with `onUpdateModelValue`). */
+  /** Open state (with `onUpdateModelValue`).
+   * @docs boolean (with onUpdateModelValue) */
   modelValue?: boolean
+  label: string
   onUpdateModelValue?: (open: boolean) => void
   /** Leading icon; a small square without one. */
   icon?: JSX.Element
+  /** @docs content */
   children?: JSX.Element
 }
 

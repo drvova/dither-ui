@@ -10,7 +10,13 @@ const styles = stylex.create({
   row: { display: "inline-flex", alignItems: "center", gap: "0.25rem" },
 })
 
-export type KbdComboProps = { keys?: string[]; separator?: string; class?: string; xstyle?: StyleProp }
+export type KbdComboProps = {
+  /** @default ['⌘', 'K'] */
+  keys?: string[]
+  separator?: string
+  class?: string
+  xstyle?: StyleProp
+}
 
 /** A key combo as one readable unit: `["⌘", "K"]` renders ⌘ + K with the
  * separators Kbd uses — single keys go through DitherKbd directly. */

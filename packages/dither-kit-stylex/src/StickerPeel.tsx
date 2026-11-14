@@ -11,7 +11,12 @@ const styles = stylex.create({
   frame2: { position: "relative", display: "inline-block" },
 })
 
-export type StickerPeelProps = { class?: string; xstyle?: StyleProp; children?: JSX.Element }
+export type StickerPeelProps = {
+  class?: string
+  xstyle?: StyleProp
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function StickerPeel(props: StickerPeelProps) {
   return (

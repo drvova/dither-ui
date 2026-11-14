@@ -59,14 +59,19 @@ const styles = stylex.create({
 export type GooeyItem = { value: string; label: string; color?: PixelColor }
 
 export type GooeyMenuProps = {
+  /** @docs { value, label, color? }[]
+   * @default required */
   items: GooeyItem[]
-  /** Expanded state (with `onUpdateModelValue`, a model). */
+  /** Expanded state (with `onUpdateModelValue`, a model).
+   * @docs boolean (with onUpdateModelValue): expanded */
   modelValue?: boolean
   onUpdateModelValue?: (open: boolean) => void
-  onSelect?: (value: string) => void
   direction?: "up" | "down" | "left" | "right"
-  /** Gap between item centers, px. */
+  /** Gap between item centers, px.
+   * @docs number (px): gap between item centers */
   spacing?: number
+  /** @docs (value), also collapses */
+  onSelect?: (value: string) => void
   label?: string
   class?: string
   xstyle?: StyleProp

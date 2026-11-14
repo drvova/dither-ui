@@ -19,17 +19,32 @@ import { useScreen } from "./runtime/screen"
 export type { DitherRenderMode, GradientDirection, PrecompiledDither }
 
 export type DitherGradientProps = {
+  /** @default seed / blue */
   from?: PixelColor
+  /** @default "transparent" */
   to?: PixelColor | "transparent"
+  /** @default seed / up */
   direction?: GradientDirection
+  /** @docs number (px)
+   * @default seed / 3 */
   cell?: number
+  /** @docs number 0…1
+   * @default seed / 1 */
   opacity?: number
+  /** @docs "off" | "low" | "high" | "aura" | object | number
+   * @default seed / off */
   bloom?: PixelBloomInput
+  /** @default undefined */
   seed?: number
+  /** @default undefined */
   class?: string
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number }
+   * @default undefined */
   precompiled?: PrecompiledDither
+  /** @default 960 / 600 live, 320 / 200 static */
   maxCols?: number
+  /** @default 960 / 600 live, 320 / 200 static */
   maxRows?: number
 }
 

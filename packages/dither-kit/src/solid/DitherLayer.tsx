@@ -27,21 +27,35 @@ export type LayerSlot = {
 }
 
 export type DitherLayerProps = {
-  /** The track: { at?, easing?, x, y, rotate, scale, scaleX, scaleY, skewX, skewY, opacity, ...custom } per key. */
+  /** The track: { at?, easing?, x, y, rotate, scale, scaleX, scaleY, skewX, skewY, opacity, ...custom } per key.
+   * @docs Keyframe[]: { at? (s or '50%'), easing?, x, y (lengths: px, %, cqw, cqh, cqi, cqb, cqmin, cqmax, vw…,
+   *   calc()), rotate, skewX, skewY (angles), scale, scaleX, scaleY, opacity, ...custom numbers or lengths }
+   * @default [] */
   keyframes?: Keyframe[]
-  /** Seconds of one cycle; unset, the last key's `at` in seconds, else 1. */
+  /** Seconds of one cycle; unset, the last key's `at` in seconds, else 1.
+   * @docs number (s): unset, the last key's at in seconds, else 1 */
   duration?: number
+  /** @docs number (s) */
   delay?: number
-  /** Cycles: a count, or true forever. */
+  /** Cycles: a count, or true forever.
+   * @docs number | true */
   loop?: number | boolean
   yoyo?: boolean
+  /** @docs 'linear' | 'ease-out' | 'ease-in-out' | bezier points | seed | Easing: between keys; a key's own easing wins
+   *   for the segment it starts
+   * @default linear */
   easing?: KeyEasing
-  /** transform-origin — container units welcome. */
+  /** transform-origin — container units welcome.
+   * @docs string: transform-origin, container units welcome */
   origin?: string
+  /** @docs element tag */
   as?: string
+  /** @docs class (the layer is absolute, inset 0) */
   class?: string
   /** A function child receives the slot: each member read where it is used,
-   * so it follows the stage. */
+   * so it follows the stage.
+   * @docs function of every property resolved to px / degrees against the stage box, plus progress, cycle, time, width,
+   *   height (the state is data-layer) */
   children?: JSX.Element | ((scope: LayerSlot) => JSX.Element)
 }
 

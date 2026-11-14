@@ -2,13 +2,17 @@ import { createMemo, type JSX, mergeProps } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 export type DitherGridProps = {
-  /** Minimum card width; columns auto-fit. Ignored when cols is set. */
+  /** Minimum card width; columns auto-fit. Ignored when cols is set.
+   * @docs number (minimum card width, columns auto-fit) */
   min?: number
-  /** Fixed column count — for deliberate layouts. */
+  /** Fixed column count — for deliberate layouts.
+   * @docs number (fixed column count, overrides min) */
   cols?: number
-  /** Grid gap, any CSS length. */
+  /** Grid gap, any CSS length.
+   * @docs string (any CSS length) */
   gap?: string
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

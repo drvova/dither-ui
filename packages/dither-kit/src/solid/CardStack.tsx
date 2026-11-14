@@ -4,13 +4,19 @@ import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 
 export type CardStackProps<T> = {
+  /** @docs T[]: cycled forever
+   * @default required */
   items: T[]
-  /** Visible under-cards. */
+  /** Visible under-cards.
+   * @docs number: visible under-cards */
   depth?: number
   class?: string
-  onAdvance?: (index: number) => void
-  /** One card: the item, its index, and whether it is the top one. */
+  /** One card: the item, its index, and whether it is the top one.
+   * @docs ({ item, index, top }) => JSX.Element
+   * @default card face fallback */
   children?: (scope: { item: T; index: number; top: boolean }) => JSX.Element
+  /** @docs (index) after a card flies out */
+  onAdvance?: (index: number) => void
 }
 
 /** Swipe deck — the top card tracks the pointer 1:1, rubber-bands, and a

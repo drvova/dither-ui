@@ -7,11 +7,14 @@ import "@dither-ui/kit/solid/FadeContent.css"
 import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 export type FadeContentProps = {
+  /** @docs number (ms) */
   duration?: number
+  /** @docs number (ms) */
   delay?: number
   blur?: boolean
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

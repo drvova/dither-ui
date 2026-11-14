@@ -1,9 +1,11 @@
 // The Studio's component registry, held to the Solid kit: every prop a row
 // binds (its `PropSpec` keys, after its `mapProps`, a field's label left to
 // its DitherField) is a prop its component really takes, by the type
-// checker, the way the docs' API tables are held (`docs-api.ts`), and the
-// code the Studio exports for a frame of each row type-checks against the
-// kit as a reader's project would.
+// checker (`docs-api.ts`); every value a setting hands its prop as it
+// stands (its default, an edit, each option of a select) is one the prop's
+// type takes, so a kind or an option the kit's type has left fails here;
+// and the code the Studio exports for a frame of each row type-checks
+// against the kit as a reader's project would.
 import { join } from "node:path"
 import ts from "typescript"
 import { describe, expect, it } from "vitest"
@@ -19,9 +21,9 @@ import {
   type PropSpec,
 } from "@/entities/widget/model/registry"
 import { frameCode } from "../../src/entities/artboard/code"
-import { kitProps, SITE } from "./docs-api"
+import { readKit, SITE } from "./docs-api"
 
-const kit = kitProps()
+const { props: kit, accepts } = readKit()
 
 describe("the component registry", () => {
   it("names a component of the kit in every row", () => {
@@ -35,6 +37,23 @@ describe("the component registry", () => {
         .filter((key) => !kit.get(e.is)?.has(key))
         .map((key) => `${e.is}.${key}`),
     )
+    expect(wrong).toEqual([])
+  })
+
+  it("gives each prop it binds as it stands only values the prop's type takes", () => {
+    const wrong = COMPONENT_REGISTRY.flatMap((e) => {
+      const def = defaultComponentProps(e)
+      return e.props.flatMap((spec) => {
+        const values = spec.kind === "select" ? spec.options : [spec.def, edited(spec)]
+        return values
+          .filter((v) => {
+            // a value the mapping reshapes is the mapping's to fit, held by the export's type check below
+            const bound = boundProps(e.is, { ...def, [spec.key]: v })
+            return JSON.stringify(bound[spec.key]) === JSON.stringify(v) && accepts(e.is, spec.key, v) === false
+          })
+          .map((v) => `${e.is}.${spec.key} (${spec.kind}) = ${JSON.stringify(v)}`)
+      })
+    })
     expect(wrong).toEqual([])
   })
 
@@ -65,7 +84,7 @@ describe("the component registry", () => {
 })
 
 /** A value each kind of setting may take that is not its default. */
-function edited(spec: PropSpec): unknown {
+function edited(spec: PropSpec): string | number | boolean | string[] {
   switch (spec.kind) {
     case "text":
       return spec.key === "label" ? "Edited label" : `${spec.def} edited`

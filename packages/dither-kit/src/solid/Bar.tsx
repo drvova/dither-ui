@@ -1,15 +1,9 @@
-import { createEffect, createMemo, Index, type JSX, mergeProps, onCleanup, Show } from "solid-js"
+import { createEffect, createMemo, Index, mergeProps, onCleanup, Show } from "solid-js"
 import { type StrokeVariant, useChartPart, type VariantInput } from "./runtime/chart-context"
 import { SeriesContext } from "./runtime/series-context"
+import type { SeriesProps } from "./CartesianSeries"
 
-export type BarProps = {
-  dataKey: string
-  variant?: VariantInput
-  strokeVariant?: StrokeVariant
-  isClickable?: boolean
-  opacity?: number
-  children?: JSX.Element
-}
+export type BarProps = SeriesProps
 
 export default function Bar(raw: BarProps) {
   const props = mergeProps(

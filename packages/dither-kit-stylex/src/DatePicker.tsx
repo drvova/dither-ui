@@ -60,14 +60,19 @@ const styles = stylex.create({
  * and outside-click dismiss (ClickOutside, capture-phase); a pick or Escape
  * hands focus back to the field. The model stays ISO YYYY-MM-DD. */
 export type DatePickerProps = {
+  /** @docs string (ISO, with onUpdateModelValue)
+   * @default "" */
   modelValue?: string
   placeholder?: string
+  /** @docs string (ISO) */
   min?: string
+  /** @docs string (ISO) */
   max?: string
   disabled?: boolean
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
+  /** @docs (ISO) when picked */
   onSelect?: (value: string) => void
 }
 

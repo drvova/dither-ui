@@ -15,48 +15,24 @@ import {
   type ConsoleLine,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import shellProps from "virtual:dither-props/DitherShell"
+import railProps from "virtual:dither-props/DitherRail"
+import consoleProps from "virtual:dither-props/DitherConsole"
+import canvasProps from "virtual:dither-props/DitherCanvas"
+import gridProps from "virtual:dither-props/DitherGrid"
+import infiniteCanvasProps from "virtual:dither-props/DitherInfiniteCanvas"
 import DocSection from "../DocSection"
 
 const TREND = [12, 14, 13, 17, 16, 19, 22, 21, 24, 27, 26, 31]
 
-const API: Record<string, PropRow[]> = {
-  shell: [
-    { prop: "frame", type: "boolean (embedded card chrome: border, rounding, clip)", default: "false" },
-    { prop: "topbar / aside / statusbar / children", type: "JSX.Element (children: content)", default: "" },
-  ],
-  rail: [
-    { prop: "label", type: "string (aria-label for the nav landmark)", default: '"Rail"' },
-    { prop: "side", type: '"left" | "right" (flips the border edge)', default: '"left"' },
-    {
-      prop: "header / footer / children",
-      type: "JSX.Element (children: items, labels fold automatically)",
-      default: "",
-    },
-  ],
-  console: [
-    { prop: "lines", type: "(string | { text, level?, at? })[] (level: info | success | warn | error)", default: "[]" },
-    { prop: "title", type: "string (header caption)", default: '"console"' },
-    { prop: "follow", type: "boolean (pin the view to the newest line)", default: "true" },
-    { prop: "caret", type: "boolean (blinking block caret, still under reduced motion)", default: "true" },
-    { prop: "actions", type: "JSX.Element (right side of the header)", default: "" },
-  ],
-  canvas: [
-    { prop: "pattern", type: '"dots" | "grid" | "plain"', default: '"dots"' },
-    { prop: "cell", type: "number (pattern pitch in px)", default: "16" },
-  ],
-  grid: [
-    { prop: "min", type: "number (minimum card width, columns auto-fit)", default: "240" },
-    { prop: "cols", type: "number (fixed column count, overrides min)", default: "" },
-    { prop: "gap", type: "string (any CSS length)", default: '"0.75rem"' },
-  ],
-  infinite: [
-    { prop: "zoom", type: "number (with onUpdateZoom)", default: "1" },
-    { prop: "minZoom / maxZoom", type: "number (clamp range)", default: "0.25 / 3" },
-    { prop: "pattern", type: '"dots" | "grid" | "plain"', default: '"dots"' },
-    { prop: "cell", type: "number (pattern pitch at zoom 1, px)", default: "16" },
-    { prop: "label", type: "string (aria-label for the surface)", default: '"Infinite canvas"' },
-  ],
+export const API: Record<string, PropRow[]> = {
+  shell: kitTable(shellProps, { join: [["topbar", "aside", "statusbar", "children"]] }),
+  rail: kitTable(railProps, { join: [["header", "footer", "children"]] }),
+  console: kitTable(consoleProps),
+  canvas: kitTable(canvasProps),
+  grid: kitTable(gridProps),
+  infinite: kitTable(infiniteCanvasProps, { join: [["minZoom", "maxZoom"]] }),
 }
 
 const SNIPPET_SHELL = `const items = ["Overview", "Deploys", "Data", "Alerts"]

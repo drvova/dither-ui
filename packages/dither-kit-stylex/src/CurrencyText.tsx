@@ -9,7 +9,9 @@ const styles = stylex.create({
 })
 
 export type CurrencyTextProps = {
+  /** @default required */
   value: number
+  /** @docs string (ISO 4217) */
   currency?: string
   locale?: string
   decimals?: number

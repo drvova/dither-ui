@@ -6,6 +6,8 @@ import DitherInput, { type DitherInputProps } from "./DitherInput"
  * DISPLAY groups thousands while blurred and shows raw digits while focused
  * so the caret and typing stay predictable. One dot, digits only. */
 type Own = {
+  /** @docs string (with onUpdateModelValue, digits[.digits])
+   * @default "" */
   modelValue?: string
   placeholder?: string
   prefix?: string

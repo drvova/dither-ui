@@ -46,13 +46,18 @@ const styles = stylex.create({
  * embedded frame) it is a plain block, the same nodes moved, never
  * remounted: a page holds one main. */
 export type DitherShellProps = {
-  /** true draws the embedded card chrome — border, rounding, clip. */
+  /** true draws the embedded card chrome — border, rounding, clip.
+   * @docs boolean (embedded card chrome: border, rounding, clip) */
   frame?: boolean
   class?: string
   xstyle?: StyleProp
+  /** @docs JSX.Element (children: content) */
   topbar?: JSX.Element
+  /** @docs JSX.Element (children: content) */
   aside?: JSX.Element
+  /** @docs JSX.Element (children: content) */
   statusbar?: JSX.Element
+  /** @docs JSX.Element (children: content) */
   children?: JSX.Element
 }
 

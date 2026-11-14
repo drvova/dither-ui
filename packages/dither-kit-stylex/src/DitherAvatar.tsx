@@ -150,18 +150,24 @@ export type DitherAvatarProps = {
   /** Colour override — palette name, hue number, or hex. Derived from the
    * name when omitted (or when the legacy `hue` prop is set). */
   color?: PixelColor
-  hue?: number
-  mirror?: AvatarMirror
+  /** @docs number (px) */
   size?: number
+  /** @docs number 0…360
+   * @default from name */
+  hue?: number
+  /** @docs "auto" | "on" | "off" */
+  mirror?: AvatarMirror
   grid?: number // even cell count per side (4–16)
   /** Explicit cells (drawn or image-derived) — overrides the seeded pattern. */
   pattern?: AvatarPattern
   cellPx?: number // backing px per cell — dither resolution inside a cell
   density?: number // additive density bias (-0.5–0.5)
   offTier?: number // 0–1 alpha of unlit backing pixels
-  bloom?: PixelBloomInput
   seed?: number
   animate?: boolean
+  /** @docs "off" | "low" | "high" | "aura"
+   * @default "off" */
+  bloom?: PixelBloomInput
   animationDuration?: number
   replayToken?: number
   class?: string

@@ -41,7 +41,16 @@ import {
 } from "../demo-data"
 import DocSection from "../DocSection"
 import { thumbClass, thumbLabel } from "../gallery"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import areaChartProps from "virtual:dither-props/AreaChart"
+import areaProps from "virtual:dither-props/Area"
+import lineChartProps from "virtual:dither-props/LineChart"
+import lineProps from "virtual:dither-props/Line"
+import barChartProps from "virtual:dither-props/BarChart"
+import barProps from "virtual:dither-props/Bar"
+import pieChartProps from "virtual:dither-props/PieChart"
+import radarChartProps from "virtual:dither-props/RadarChart"
+import sparklineProps from "virtual:dither-props/Sparkline"
 import { dataCode } from "../snippet"
 import type { AreaVariant } from "@dither-ui/kit"
 
@@ -64,125 +73,13 @@ const miniPieConfig = {
   c: { color: "orange" as DitherColor },
 }
 
-const API: Record<string, PropRow[]> = {
-  cartesian: [
-    { prop: "data", type: "Row[]", default: "required" },
-    { prop: "config", type: "ChartConfig", default: "required" },
-    { prop: "stackType", type: '"default" | "stacked" | "percent"', default: '"default"' },
-    { prop: "margins", type: "Partial<Margins>", default: "{}" },
-    { prop: "class", type: "string", default: "undefined" },
-    { prop: "interactive", type: "boolean", default: "true" },
-    { prop: "animate", type: "boolean", default: "true" },
-    { prop: "seed", type: "number", default: "undefined" },
-    { prop: "effect", type: "number", default: "seed / sparkle" },
-    { prop: "animationDuration", type: "number (ms)", default: "seed / 900" },
-    { prop: "animationDelay", type: "number (ms)", default: "seed / 0" },
-    { prop: "easing", type: "name | bezier tuple | number", default: "seed / chart default" },
-    { prop: "sparkles", type: "boolean", default: "true" },
-    { prop: "hoverLift", type: "boolean", default: "true" },
-    { prop: "stagger", type: "number", default: "seed / 0.55" },
-    { prop: "cell", type: "number (px)", default: "2" },
-    { prop: "sparkleDensity", type: "number", default: "seed / 1" },
-    { prop: "sparkleSpeed", type: "number", default: "seed / 1" },
-    { prop: "barGap", type: "number", default: "seed / 0.28" },
-    { prop: "barEdge", type: "number", default: "seed / 0.18" },
-    { prop: "glowSize", type: "number", default: "seed / 0.16" },
-    { prop: "hoverStrength", type: "number", default: "seed / 1" },
-    { prop: "dimOpacity", type: "number", default: "seed / 0.3" },
-    { prop: "crosshair", type: "boolean", default: "true" },
-    { prop: "replayToken", type: "number", default: "0" },
-    { prop: "markerIndex", type: "number | null", default: "null" },
-    { prop: "hovered", type: "boolean", default: "false" },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
-    { prop: "bloomOnHover", type: "boolean", default: "false" },
-    {
-      prop: "precompiled",
-      type: "string | { src: string; width?: number; height?: number }: a packaged plot URL",
-      default: "undefined",
-    },
-    { prop: "defaultSelectedDataKey", type: "string | null", default: "null" },
-    { prop: "onHoverChange", type: "(index: number | null) => void", default: "undefined" },
-    { prop: "onSelectionChange", type: "(key: string | null) => void", default: "undefined" },
-    { prop: "variant (series)", type: "name | TextureConfig | number (seed)", default: '"gradient"' },
-  ],
-  pie: [
-    { prop: "data", type: "Row[]", default: "required" },
-    { prop: "config", type: "ChartConfig", default: "required" },
-    { prop: "dataKey", type: "string", default: '""' },
-    { prop: "nameKey", type: "string", default: "required" },
-    { prop: "innerRadius", type: "number 0…0.85", default: "seed / 0" },
-    { prop: "margins", type: "Partial<Margins>", default: "{}" },
-    { prop: "class", type: "string", default: "undefined" },
-    { prop: "animate", type: "boolean", default: "true" },
-    { prop: "seed", type: "number", default: "undefined" },
-    { prop: "animationDuration", type: "number (ms)", default: "seed / 900" },
-    { prop: "animationDelay", type: "number (ms)", default: "seed / 0" },
-    { prop: "easing", type: "name | bezier tuple | number", default: "seed / ease-in-out" },
-    { prop: "hoverLift", type: "boolean", default: "true" },
-    { prop: "cell", type: "number (px)", default: "2" },
-    { prop: "popOut", type: "number", default: "seed / 6" },
-    { prop: "rimWidth", type: "number", default: "seed / 1.4" },
-    { prop: "falloff", type: "number", default: "seed / 0.45" },
-    { prop: "hoverStrength", type: "number", default: "seed / 1" },
-    { prop: "dimOpacity", type: "number", default: "seed / 0.3" },
-    { prop: "startAngle", type: "number", default: "seed / 0" },
-    { prop: "replayToken", type: "number", default: "0" },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
-    { prop: "bloomOnHover", type: "boolean", default: "false" },
-    {
-      prop: "precompiled",
-      type: "string | { src: string; width?: number; height?: number }: a packaged plot URL",
-      default: "undefined",
-    },
-    { prop: "defaultSelectedDataKey", type: "string | null", default: "null" },
-    { prop: "onSelectionChange", type: "(key: string | null) => void", default: "undefined" },
-  ],
-  radar: [
-    { prop: "data", type: "Row[]", default: "required" },
-    { prop: "config", type: "ChartConfig", default: "required" },
-    { prop: "nameKey", type: "string", default: "required" },
-    { prop: "rings", type: "number", default: "seed / 4" },
-    { prop: "margins", type: "Partial<Margins>", default: "{}" },
-    { prop: "class", type: "string", default: "undefined" },
-    { prop: "animate", type: "boolean", default: "true" },
-    { prop: "seed", type: "number", default: "undefined" },
-    { prop: "animationDuration", type: "number (ms)", default: "seed / 900" },
-    { prop: "animationDelay", type: "number (ms)", default: "seed / 0" },
-    { prop: "easing", type: "name | bezier tuple | number", default: "seed / ease-in-out" },
-    { prop: "hoverLift", type: "boolean", default: "true" },
-    { prop: "cell", type: "number (px)", default: "2" },
-    { prop: "falloff", type: "number", default: "seed / 0.45" },
-    { prop: "hoverStrength", type: "number", default: "seed / 1" },
-    { prop: "dimOpacity", type: "number", default: "seed / 0.3" },
-    { prop: "startAngle", type: "number", default: "seed / 0" },
-    { prop: "replayToken", type: "number", default: "0" },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
-    { prop: "bloomOnHover", type: "boolean", default: "false" },
-    {
-      prop: "precompiled",
-      type: "string | { src: string; width?: number; height?: number }: a packaged plot URL",
-      default: "undefined",
-    },
-    { prop: "defaultSelectedDataKey", type: "string | null", default: "null" },
-    { prop: "onSelectionChange", type: "(key: string | null) => void", default: "undefined" },
-  ],
-  sparkline: [
-    { prop: "data", type: "number[]", default: "" },
-    { prop: "color", type: "DitherColor", default: "" },
-    { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
-    { prop: "markerIndex", type: "number | null", default: "null" },
-    {
-      prop: "interactive",
-      type: "boolean (scrub: the crosshair follows the pointer; a slider for the keyboard, arrows, Home, End, Escape)",
-      default: "false",
-    },
-    { prop: "label", type: "string (the slider's name, when interactive)", default: '"Series"' },
-    { prop: "hoverLift", type: "boolean", default: "true" },
-    { prop: "sparkles", type: "boolean (the idle drift along the line)", default: "true" },
-    { prop: "onHoverChange", type: "(index: number | null) => void", default: "" },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
-    { prop: "animate", type: "boolean", default: "false" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  area: [...kitTable(areaChartProps), ...kitTable(areaProps, { part: "series" })],
+  line: [...kitTable(lineChartProps), ...kitTable(lineProps, { part: "series" })],
+  bar: [...kitTable(barChartProps), ...kitTable(barProps, { part: "series" })],
+  pie: kitTable(pieChartProps),
+  radar: kitTable(radarChartProps),
+  sparkline: kitTable(sparklineProps),
 }
 
 const SNIPPETS = {
@@ -379,7 +276,7 @@ export default function ChartDocs() {
             <div class={`${thumbLabel(rolled() !== null)} tabular-nums`}>{rolled() ?? "random"}</div>
           </button>
         </div>
-        <PropsTable rows={API.cartesian} />
+        <PropsTable rows={API.area} />
       </DocSection>
 
       {/* Line */}
@@ -429,7 +326,7 @@ export default function ChartDocs() {
             )}
           </For>
         </div>
-        <PropsTable rows={API.cartesian} />
+        <PropsTable rows={API.line} />
       </DocSection>
 
       {/* Bar */}
@@ -476,7 +373,7 @@ export default function ChartDocs() {
             )}
           </For>
         </div>
-        <PropsTable rows={API.cartesian} />
+        <PropsTable rows={API.bar} />
       </DocSection>
 
       {/* Pie */}

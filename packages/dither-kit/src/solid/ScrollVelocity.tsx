@@ -5,7 +5,9 @@ import { cn } from "../tailwind/lib"
 import { createKitTime } from "./runtime/kit-time"
 
 export type ScrollVelocityProps = {
+  /** @default "DITHER · UI · TOOLKIT ·" */
   text?: string
+  /** @docs number (px/s) */
   baseSpeed?: number
   class?: string
 }

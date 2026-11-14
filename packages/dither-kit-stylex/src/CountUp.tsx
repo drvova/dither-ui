@@ -13,10 +13,13 @@ const styles = stylex.create({
 })
 
 export type CountUpProps = {
+  /** @default required */
   to: number
   from?: number
+  /** @docs number (ms) */
   duration?: number
   decimals?: number
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

@@ -11,20 +11,33 @@ export type { SoftAuroraParams }
 export { paintSoftAurora }
 
 export type SoftAuroraProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#5227FF', '#7CFF67', '#A8FFB6'] */
   colors?: string[]
   bands?: number
   amplitude?: number
+  /** @docs number 0…1 (softness) */
   blend?: number
   speed?: number
-  opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
+  /** @docs number 0…1 */
+  opacity?: number
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
 }
 

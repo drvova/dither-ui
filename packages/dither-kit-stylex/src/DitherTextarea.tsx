@@ -22,9 +22,12 @@ type Own = {
   modelValue?: string
   placeholder?: string
   rows?: number
+  /** @default "vertical" */
   resize?: "none" | "vertical" | "horizontal" | "both"
   disabled?: boolean
+  /** @default false */
   readonly?: boolean
+  /** @default false */
   invalid?: boolean
   class?: string
   xstyle?: StyleProp

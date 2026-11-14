@@ -113,10 +113,15 @@ function paintSpinner(
 }
 
 export type DitherSpinnerProps = {
+  /** @docs number (px) */
   size?: number
   color?: PixelColor
+  /** @docs number (samples a spinner form)
+   * @default clean arc */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number }
+   * @default undefined */
   precompiled?: PrecompiledDither
 }
 

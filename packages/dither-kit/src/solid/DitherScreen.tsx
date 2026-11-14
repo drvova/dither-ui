@@ -1,8 +1,14 @@
-import type { ParentProps } from "solid-js"
+import type { JSX } from "solid-js"
 import type { ScreenKind } from "../engine/pixel"
 import { ScreenContext } from "./runtime/screen"
 
-export type DitherScreenProps = ParentProps<{ screen?: ScreenKind }>
+export type DitherScreenProps = {
+  /** @docs 'bayer' | 'line' | 'diagonal' | 'dot' | 'cross'
+   * @default 'diagonal' */
+  screen?: ScreenKind
+  /** @docs content (every surface inside prints through the screen) */
+  children?: JSX.Element
+}
 
 /** Prints everything inside it through one screen: every pixel surface and
  * chart below it reads its threshold matrix from here, so a line, hatch,

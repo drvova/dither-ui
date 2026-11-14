@@ -7,7 +7,9 @@ import { latestEntry } from "../engine/visibility"
 export type BlurTextProps = {
   text?: string
   by?: "words" | "chars"
+  /** @docs number (ms) */
   stagger?: number
+  /** @docs number (ms) */
   duration?: number
   class?: string
 }

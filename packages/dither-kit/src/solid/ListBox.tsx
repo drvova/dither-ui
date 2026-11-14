@@ -3,10 +3,13 @@ import { cn } from "../tailwind/lib"
 
 export type ListBoxProps = {
   options?: string[]
+  /** @docs string (with onUpdateModelValue)
+   * @default "" */
   value?: string
   disabled?: boolean
   class?: string
   onUpdateModelValue?: (value: string) => void
+  /** @docs (value) on commit */
   onSelect?: (value: string) => void
   /** The list's accessible name (passed on to the listbox). */
   "aria-label"?: string

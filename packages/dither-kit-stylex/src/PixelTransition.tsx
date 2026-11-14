@@ -13,9 +13,11 @@ const styles = stylex.create({
 export type PixelTransitionProps = {
   rows?: number
   cols?: number
+  /** @docs string (hex) */
   color?: string
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

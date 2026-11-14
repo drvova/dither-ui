@@ -20,21 +20,34 @@ export type { AuroraParams }
 export { paintAurora }
 
 export type AuroraProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#5227FF', '#7CFF67', '#5227FF'] */
   colors?: string[]
   amplitude?: number
+  /** @docs number 0…1 */
   blend?: number
   speed?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   paused?: boolean
-  dpr?: number
   /** Stop-motion cadence in fps (0 = smooth). Steps the field like film and
-   * skips paints between boundaries (see timing.ts). */
+   * skips paints between boundaries (see timing.ts).
+   * @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
+  dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

@@ -1,7 +1,12 @@
 import { createSignal, Index } from "solid-js"
 import { DitherBreadcrumb, DitherPagination, DitherRating, DitherStepper, DitherTimeline } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import breadcrumbProps from "virtual:dither-props/DitherBreadcrumb"
+import paginationProps from "virtual:dither-props/DitherPagination"
+import ratingProps from "virtual:dither-props/DitherRating"
+import stepperProps from "virtual:dither-props/DitherStepper"
+import timelineProps from "virtual:dither-props/DitherTimeline"
 import DocSection from "../DocSection"
 
 const SNIPPET_BREADCRUMB = `<DitherBreadcrumb
@@ -47,33 +52,12 @@ const SNIPPET_TIMELINE = `<DitherTimeline
   ]}
 />`
 
-const API: Record<string, PropRow[]> = {
-  breadcrumb: [
-    { prop: "items", type: "{ label; href? }[]", default: "" },
-    { prop: "separator", type: "string", default: '"/"' },
-  ],
-  pagination: [
-    { prop: "page", type: "number (with onUpdatePage)", default: "" },
-    { prop: "total", type: "number (page count)", default: "" },
-    { prop: "siblings", type: "number (pages either side)", default: "1" },
-  ],
-  rating: [
-    { prop: "modelValue", type: "number (with onUpdateModelValue)", default: "0" },
-    { prop: "max", type: "number", default: "5" },
-    { prop: "color", type: "PixelColor", default: '"orange"' },
-    { prop: "size", type: "number (px per star)", default: "22" },
-    { prop: "readonly", type: "boolean (fractions allowed)", default: "false" },
-    { prop: "label", type: "string (accessible name)", default: '"Rating"' },
-    { prop: "seed", type: "number (star tilt + scatter)", default: "clean" },
-  ],
-  stepper: [
-    { prop: "steps", type: "{ label; hint? }[]", default: "" },
-    { prop: "current", type: "number (active index)", default: "" },
-  ],
-  timeline: [
-    { prop: "items", type: "{ title; time?; body?; color? }[]", default: "" },
-    { prop: "dotSize", type: "number (px)", default: "12" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  breadcrumb: kitTable(breadcrumbProps),
+  pagination: kitTable(paginationProps),
+  rating: kitTable(ratingProps),
+  stepper: kitTable(stepperProps),
+  timeline: kitTable(timelineProps),
 }
 
 const RATING_COLORS = ["orange", "pink", "purple", "green"] as const

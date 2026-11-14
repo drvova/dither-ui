@@ -17,9 +17,12 @@ export function pageList(page: number, total: number, siblings = 1): (number | "
 }
 
 export type DitherPaginationProps = {
+  /** @docs number (with onUpdatePage) */
   page: number
   onUpdatePage?: (page: number) => void
+  /** @docs number (page count) */
   total: number
+  /** @docs number (pages either side) */
   siblings?: number
   class?: string
 }

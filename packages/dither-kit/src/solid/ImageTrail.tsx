@@ -3,10 +3,15 @@ import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 
 export type ImageTrailProps = {
+  /** @docs string[] (hex)
+   * @default ['#5227FF', '#7CFF67', ...] */
   colors?: string[]
+  /** @docs number (px) */
   size?: number
+  /** @docs number (ms) */
   duration?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

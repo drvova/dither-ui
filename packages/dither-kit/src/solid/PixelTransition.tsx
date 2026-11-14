@@ -5,8 +5,10 @@ import "./PixelTransition.css"
 export type PixelTransitionProps = {
   rows?: number
   cols?: number
+  /** @docs string (hex) */
   color?: string
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

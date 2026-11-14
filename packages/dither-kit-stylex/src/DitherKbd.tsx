@@ -19,7 +19,13 @@ const styles = stylex.create({
   },
 })
 
-export type DitherKbdProps = { class?: string; xstyle?: StyleProp; children?: JSX.Element }
+export type DitherKbdProps = {
+  /** @default undefined */
+  class?: string
+  xstyle?: StyleProp
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function DitherKbd(props: DitherKbdProps) {
   return (

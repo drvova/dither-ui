@@ -54,8 +54,9 @@ const dirOf = (name: string) => join(PACKAGES, FOLDER[name])
 /** The one package a reader installs or copies: every other is private. */
 const PUBLIC = "@dither-ui/kit"
 
-/** Modules a build supplies rather than a package (`restyle`'s utility map). */
-const VIRTUAL = new Set(["virtual-dither-utilities"])
+/** Modules a build supplies rather than a package (`restyle`'s utility map, the
+ * site's kit props, `virtual:dither-props/<Component>`). */
+const VIRTUAL = new Set(["virtual-dither-utilities", "virtual:dither-props"])
 
 /** The site's alias for its own `src/`: no other package has one. */
 const OWN_SOURCE = { package: "@dither-ui/site", prefix: "@/" }
@@ -261,7 +262,7 @@ describe("an import between packages", () => {
     const undeclared = new Set<string>()
     for (const i of IMPORTS) {
       const to = packageOf(i.spec)
-      if (!isBare(i.spec) || NAMES.includes(to) || VIRTUAL.has(i.spec)) continue
+      if (!isBare(i.spec) || NAMES.includes(to) || VIRTUAL.has(to)) continue
       if (i.spec.startsWith("node:") || builtinModules.includes(to)) continue
       if (i.pkg === OWN_SOURCE.package && i.spec.startsWith(OWN_SOURCE.prefix)) continue
       const pkg = MANIFESTS[i.pkg]

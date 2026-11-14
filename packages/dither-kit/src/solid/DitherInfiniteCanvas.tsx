@@ -2,16 +2,22 @@ import { createEffect, createSignal, type JSX, mergeProps, on } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 export type DitherInfiniteCanvasProps = {
-  /** Zoom (with `onUpdateZoom`, a model). */
+  /** Zoom (with `onUpdateZoom`, a model).
+   * @docs number (with onUpdateZoom) */
   zoom?: number
   onUpdateZoom?: (zoom: number) => void
+  /** @docs number (clamp range) */
   minZoom?: number
+  /** @docs number (clamp range) */
   maxZoom?: number
   pattern?: "dots" | "grid" | "plain"
-  /** Pattern pitch at zoom 1, CSS px. */
+  /** Pattern pitch at zoom 1, CSS px.
+   * @docs number (pattern pitch at zoom 1, px) */
   cell?: number
+  /** @docs string (aria-label for the surface) */
   label?: string
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

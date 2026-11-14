@@ -3,11 +3,15 @@ import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 
 export type ClickSparkProps = {
+  /** @docs string (hex) */
   color?: string
   count?: number
+  /** @docs number (px) */
   size?: number
+  /** @docs number (ms) */
   duration?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

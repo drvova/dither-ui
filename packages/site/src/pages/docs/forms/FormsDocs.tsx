@@ -33,7 +33,36 @@ import {
 import { DitherField, DitherInput } from "@dither-ui/kit"
 import { createSignal } from "solid-js"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import passwordInputProps from "virtual:dither-props/DitherPasswordInput"
+import searchInputProps from "virtual:dither-props/DitherSearchInput"
+import emailInputProps from "virtual:dither-props/DitherEmailInput"
+import phoneInputProps from "virtual:dither-props/DitherPhoneInput"
+import currencyInputProps from "virtual:dither-props/DitherCurrencyInput"
+import scrubInputProps from "virtual:dither-props/DitherScrubInput"
+import hotkeyInputProps from "virtual:dither-props/DitherHotkeyInput"
+import codeInputProps from "virtual:dither-props/DitherCodeInput"
+import inlineEditProps from "virtual:dither-props/DitherInlineEdit"
+import tagInputProps from "virtual:dither-props/DitherTagInput"
+import choiceChipsProps from "virtual:dither-props/DitherChoiceChips"
+import checkboxCardProps from "virtual:dither-props/DitherCheckboxCard"
+import keyValueInputProps from "virtual:dither-props/DitherKeyValueInput"
+import mentionInputProps from "virtual:dither-props/DitherMentionInput"
+import fileInputProps from "virtual:dither-props/DitherFileInput"
+import listBoxProps from "virtual:dither-props/DitherListBox"
+import multiSelectProps from "virtual:dither-props/DitherMultiSelect"
+import cascadeSelectProps from "virtual:dither-props/DitherCascadeSelect"
+import transferListProps from "virtual:dither-props/DitherTransferList"
+import languageSelectProps from "virtual:dither-props/DitherLanguageSelect"
+import iconPickerProps from "virtual:dither-props/DitherIconPicker"
+import fontPickerProps from "virtual:dither-props/DitherFontPicker"
+import calendarProps from "virtual:dither-props/DitherCalendar"
+import datePickerProps from "virtual:dither-props/DitherDatePicker"
+import monthPickerProps from "virtual:dither-props/DitherMonthPicker"
+import colorSwatchProps from "virtual:dither-props/DitherColorSwatch"
+import colorPickerProps from "virtual:dither-props/DitherColorPicker"
+import knobProps from "virtual:dither-props/DitherKnob"
+import signaturePadProps from "virtual:dither-props/DitherSignaturePad"
 import DocSection from "../DocSection"
 
 const SNIPPET_PASSWORD_INPUT = `const [pw, setPw] = createSignal("correct-horse-battery")
@@ -214,143 +243,36 @@ const SNIPPET_SIGNATURE_PAD = `const [sig, setSig] = createSignal("")
 
 <DitherSignaturePad modelValue={sig()} onUpdateModelValue={setSig} height={140} />`
 
-const API: Record<string, PropRow[]> = {
-  passwordInput: [
-    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
-    { prop: "invalid", type: "boolean", default: "false" },
-  ],
-  searchInput: [
-    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
-    { prop: "onClear", type: "() on clear/Escape", default: "" },
-  ],
-  emailInput: [
-    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
-    { prop: "autocomplete", type: "string", default: '"email"' },
-  ],
-  phoneInput: [
-    { prop: "modelValue", type: "string (with onUpdateModelValue, formatted)", default: '""' },
-    { prop: "autocomplete", type: "string", default: '"tel"' },
-  ],
-  currencyInput: [
-    { prop: "modelValue", type: "string (with onUpdateModelValue, digits[.digits])", default: '""' },
-    { prop: "prefix", type: "string", default: '"$"' },
-    { prop: "locale", type: "string", default: '"en-US"' },
-  ],
-  scrubInput: [
-    { prop: "modelValue", type: "number (with onUpdateModelValue)", default: "0" },
-    { prop: "min / max / step", type: "number", default: "0 / 100 / 1" },
-  ],
-  hotkeyInput: [
-    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
-    { prop: "placeholder", type: "string", default: '"Press a shortcut…"' },
-  ],
-  codeInput: [
-    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
-    { prop: "rows", type: "number", default: "6" },
-    { prop: "onSubmit", type: "Ctrl/Cmd + Enter", default: "" },
-  ],
-  inputGroup: [],
-  inlineEdit: [
-    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
-    { prop: "onSave / onCancel", type: "(value) / ()", default: "" },
-  ],
-  tagInput: [
-    { prop: "modelValue", type: "string[] (with onUpdateModelValue)", default: "[]" },
-    { prop: "max", type: "number", default: "Infinity" },
-  ],
-  choiceChips: [
-    { prop: "label", type: "string (names the group, shown over the chips)", default: '""' },
-    { prop: "options", type: "string[]", default: "[]" },
-    { prop: "modelValue", type: "string | string[] (with onUpdateModelValue; `value` still read)", default: '"" / []' },
-    { prop: "multiple", type: "boolean (checkbox mode)", default: "false" },
-  ],
-  checkboxCard: [
-    { prop: "modelValue", type: "boolean (with onUpdateModelValue)", default: "false" },
-    { prop: "label / description", type: "string", default: '""' },
-  ],
-  keyValueInput: [
-    { prop: "modelValue", type: "{ key, value }[] (with onUpdateModelValue)", default: "[]" },
-    { prop: "disabled", type: "boolean", default: "false" },
-  ],
-  mentionInput: [
-    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: '""' },
-    { prop: "options", type: "string[]", default: "[]" },
-    { prop: "onMention", type: "(handle) on insert", default: "" },
-  ],
-  fileInput: [
-    { prop: "modelValue", type: "File[] (with onUpdateModelValue)", default: "[]" },
-    { prop: "multiple", type: "boolean", default: "false" },
-    { prop: "accept", type: "string (input accept)", default: "" },
-    { prop: "onChange", type: "(File[]) after pick/remove", default: "" },
-  ],
-  listBox: [
-    { prop: "options", type: "string[]", default: "[]" },
-    { prop: "value", type: "string (with onUpdateModelValue)", default: '""' },
-    { prop: "onSelect", type: "(value) on commit", default: "" },
-  ],
-  multiSelect: [
-    { prop: "options", type: "string[]", default: "[]" },
-    { prop: "value", type: "string[] (with onUpdateModelValue)", default: "[]" },
-    { prop: "onSearch", type: "(query) as you type", default: "" },
-  ],
-  cascadeSelect: [
-    { prop: "tree", type: "{ value, children? }[]", default: "[]" },
-    { prop: "value", type: "string[] path (with onUpdateModelValue)", default: "[]" },
-    { prop: "placeholders", type: "string[] per level", default: "Level n" },
-  ],
-  transferList: [
-    { prop: "source", type: "string[] (pool)", default: "[]" },
-    { prop: "value", type: "string[] (destination)", default: "[]" },
-    { prop: "sourceLabel / targetLabel", type: "string", default: "Available / Selected" },
-  ],
-  languageSelect: [
-    { prop: "modelValue", type: "string (BCP 47 tag)", default: '"en"' },
-    { prop: "includeDefault", type: "boolean (first entry)", default: "false" },
-    { prop: "defaultLabel", type: "string", default: '"System default"' },
-  ],
-  iconPicker: [
-    { prop: "modelValue", type: "string (icon name)", default: '""' },
-    { prop: "size", type: "number (px)", default: "16" },
-    { prop: "placeholder", type: "string (filter)", default: '"Filter icons…"' },
-  ],
-  fontPicker: [
-    { prop: "modelValue", type: "string (CSS font stack)", default: '""' },
-    { prop: "disabled", type: "boolean", default: "false" },
-  ],
-  calendar: [
-    { prop: "modelValue", type: "string (ISO date, with onUpdateModelValue)", default: '""' },
-    { prop: "min / max", type: "string (ISO)", default: "" },
-  ],
-  datePicker: [
-    { prop: "modelValue", type: "string (ISO, with onUpdateModelValue)", default: '""' },
-    { prop: "min / max", type: "string (ISO)", default: "" },
-    { prop: "onSelect", type: "(ISO) when picked", default: "" },
-  ],
-  monthPicker: [
-    { prop: "modelValue", type: "string (YYYY-MM, with onUpdateModelValue)", default: '""' },
-    { prop: "disabled", type: "boolean", default: "false" },
-  ],
-  colorSwatch: [
-    { prop: "color", type: "string (css color)", default: '"#5227FF"' },
-    { prop: "label", type: "string (aria name)", default: "the color" },
-    { prop: "selected", type: "boolean (ring)", default: "false" },
-    { prop: "size", type: "number (px)", default: "24" },
-  ],
-  colorPicker: [
-    { prop: "modelValue", type: "string (hex, with onUpdateModelValue)", default: '"#5227FF"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-  ],
-  knob: [
-    { prop: "modelValue", type: "number (with onUpdateModelValue)", default: "50" },
-    { prop: "min / max / step", type: "number", default: "0 / 100 / 1" },
-    { prop: "size", type: "number (px)", default: "72" },
-    { prop: "label", type: "string (its accessible name)", default: '"Knob"' },
-  ],
-  signaturePad: [
-    { prop: "modelValue", type: "string (dataURL, with onUpdateModelValue)", default: '""' },
-    { prop: "width / height", type: "number (canvas)", default: "420 / 160" },
-    { prop: "onChange", type: "(dataURL) per stroke", default: "" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  passwordInput: kitTable(passwordInputProps),
+  searchInput: kitTable(searchInputProps),
+  emailInput: kitTable(emailInputProps),
+  phoneInput: kitTable(phoneInputProps),
+  currencyInput: kitTable(currencyInputProps),
+  scrubInput: kitTable(scrubInputProps, { join: [["min", "max", "step"]] }),
+  hotkeyInput: kitTable(hotkeyInputProps),
+  codeInput: kitTable(codeInputProps),
+  inlineEdit: kitTable(inlineEditProps, { join: [["onSave", "onCancel"]] }),
+  tagInput: kitTable(tagInputProps),
+  choiceChips: kitTable(choiceChipsProps),
+  checkboxCard: kitTable(checkboxCardProps, { join: [["label", "description"]] }),
+  keyValueInput: kitTable(keyValueInputProps),
+  mentionInput: kitTable(mentionInputProps),
+  fileInput: kitTable(fileInputProps),
+  listBox: kitTable(listBoxProps),
+  multiSelect: kitTable(multiSelectProps),
+  cascadeSelect: kitTable(cascadeSelectProps),
+  transferList: kitTable(transferListProps, { join: [["sourceLabel", "targetLabel"]] }),
+  languageSelect: kitTable(languageSelectProps),
+  iconPicker: kitTable(iconPickerProps),
+  fontPicker: kitTable(fontPickerProps),
+  calendar: kitTable(calendarProps, { join: [["min", "max"]] }),
+  datePicker: kitTable(datePickerProps, { join: [["min", "max"]] }),
+  monthPicker: kitTable(monthPickerProps),
+  colorSwatch: kitTable(colorSwatchProps),
+  colorPicker: kitTable(colorPickerProps),
+  knob: kitTable(knobProps, { join: [["min", "max", "step"]] }),
+  signaturePad: kitTable(signaturePadProps, { join: [["width", "height"]] }),
 }
 
 export default function FormsDocs() {

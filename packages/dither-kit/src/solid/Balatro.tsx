@@ -11,20 +11,33 @@ export type { BalatroParams }
 export { paintBalatro }
 
 export type BalatroProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#5227FF', '#FF3D2E', '#FFD23D', '#27FF64'] */
   colors?: string[]
   scale?: number
   speed?: number
+  /** @docs number (swirl) */
   spin?: number
   contrast?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
 }
 

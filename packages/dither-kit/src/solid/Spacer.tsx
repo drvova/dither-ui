@@ -2,7 +2,9 @@ import { createMemo, mergeProps } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 export type SpacerProps = {
+  /** @docs "y" | "x" */
   axis?: "x" | "y"
+  /** @docs "xs" | "sm" | "md" | "lg" | "xl" (4–40px) */
   size?: "xs" | "sm" | "md" | "lg" | "xl"
   class?: string
 }

@@ -39,13 +39,17 @@ const styles = stylex.create({
 })
 
 export type CheckboxCardProps = {
-  label?: string
-  description?: string
+  /** @docs boolean (with onUpdateModelValue)
+   * @default false */
   modelValue?: boolean
+  label?: string
+  /** @default "" */
+  description?: string
   onUpdateModelValue?: (value: boolean) => void
   disabled?: boolean
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

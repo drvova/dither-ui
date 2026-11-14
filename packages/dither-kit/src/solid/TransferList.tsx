@@ -2,11 +2,16 @@ import { createMemo, createSignal, For, mergeProps, Show } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 export type TransferListProps = {
+  /** @docs string[] (pool) */
   source?: string[]
+  /** @docs string[] (destination)
+   * @default [] */
   value?: string[]
   onUpdateModelValue?: (value: string[]) => void
   disabled?: boolean
+  /** @default Available */
   sourceLabel?: string
+  /** @default Selected */
   targetLabel?: string
   class?: string
 }

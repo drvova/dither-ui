@@ -5,7 +5,9 @@ import DitherSeparator from "./DitherSeparator"
 export type Step = { label: string; hint?: string }
 
 export type DitherStepperProps = {
+  /** @docs { label; hint? }[] */
   steps: Step[]
+  /** @docs number (active index) */
   current: number // index of the active step
   class?: string
 }

@@ -55,19 +55,60 @@ import { linear, quantize, steps } from "@dither-ui/kit"
 import type { StaggerFrom } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import TransitionSection from "./TransitionSection"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import stageProps from "virtual:dither-props/DitherStage"
+import layerProps from "virtual:dither-props/DitherLayer"
+import sequenceProps from "virtual:dither-props/DitherSequence"
+import containerProps from "virtual:dither-props/DitherContainer"
+import expandTabsProps from "virtual:dither-props/DitherExpandTabs"
+import islandProps from "virtual:dither-props/DitherIsland"
+import cardStackProps from "virtual:dither-props/DitherCardStack"
+import dockProps from "virtual:dither-props/DitherDock"
+import previewRailProps from "virtual:dither-props/DitherPreviewRail"
+import scrollProgressProps from "virtual:dither-props/DitherScrollProgress"
+import snapButtonProps from "virtual:dither-props/DitherSnapButton"
+import gooeyMenuProps from "virtual:dither-props/DitherGooeyMenu"
+import bouncyAccordionProps from "virtual:dither-props/DitherBouncyAccordion"
+import expandingArrowProps from "virtual:dither-props/DitherExpandingArrow"
+import slideActionProps from "virtual:dither-props/DitherSlideAction"
+import holdActionProps from "virtual:dither-props/DitherHoldAction"
+import walletCardProps from "virtual:dither-props/DitherWalletCard"
+import notificationStackProps from "virtual:dither-props/DitherNotificationStack"
+import animatedContentProps from "virtual:dither-props/DitherAnimatedContent"
+import fadeContentProps from "virtual:dither-props/DitherFadeContent"
+import gradualBlurProps from "virtual:dither-props/DitherGradualBlur"
+import starBorderProps from "virtual:dither-props/DitherStarBorder"
+import electricBorderProps from "virtual:dither-props/DitherElectricBorder"
+import glareHoverProps from "virtual:dither-props/DitherGlareHover"
+import magnetProps from "virtual:dither-props/DitherMagnet"
+import clickSparkProps from "virtual:dither-props/DitherClickSpark"
+import blobCursorProps from "virtual:dither-props/DitherBlobCursor"
+import crosshairProps from "virtual:dither-props/DitherCrosshair"
+import ghostCursorProps from "virtual:dither-props/DitherGhostCursor"
+import splashCursorProps from "virtual:dither-props/DitherSplashCursor"
+import targetCursorProps from "virtual:dither-props/DitherTargetCursor"
+import pixelTrailProps from "virtual:dither-props/DitherPixelTrail"
+import imageTrailProps from "virtual:dither-props/DitherImageTrail"
+import metaBallsProps from "virtual:dither-props/DitherMetaBalls"
+import metallicPaintProps from "virtual:dither-props/DitherMetallicPaint"
+import noiseProps from "virtual:dither-props/DitherNoise"
+import cubesProps from "virtual:dither-props/DitherCubes"
+import ribbonsProps from "virtual:dither-props/DitherRibbons"
+import shapeBlurProps from "virtual:dither-props/DitherShapeBlur"
+import strandsProps from "virtual:dither-props/DitherStrands"
+import laserFlowProps from "virtual:dither-props/DitherLaserFlow"
+import antigravityProps from "virtual:dither-props/DitherAntigravity"
+import logoLoopProps from "virtual:dither-props/DitherLogoLoop"
+import magicRingsProps from "virtual:dither-props/DitherMagicRings"
+import magnetLinesProps from "virtual:dither-props/DitherMagnetLines"
+import orbitImagesProps from "virtual:dither-props/DitherOrbitImages"
+import pixelTransitionProps from "virtual:dither-props/DitherPixelTransition"
+import revealProps from "virtual:dither-props/DitherReveal"
+import stickerPeelProps from "virtual:dither-props/DitherStickerPeel"
 import DocSection from "../DocSection"
 import "./AnimationsDocs.css"
 
-const SHARED_CANVAS: PropRow[] = [
-  { prop: "opacity", type: "number (0-1)", default: "1" },
-  { prop: "dither", type: "number (0-1) | boolean", default: "1" },
-  { prop: "paused", type: "boolean", default: "false" },
-  { prop: "mixBlendMode", type: "string", default: "undefined" },
-  { prop: "seed", type: "number", default: "undefined" },
-]
-
-const API: Record<string, PropRow[]> = {
+export const API: Record<string, PropRow[]> = {
   stepTiming: [
     { prop: "steps(n, position?)", type: "(p) => number, css-easing-1 step positions", default: '"jump-end"' },
     { prop: "frameSteps(fps, durationMs)", type: "(p) => number, frame(fps) cadence polyfill", default: "" },
@@ -75,419 +116,140 @@ const API: Record<string, PropRow[]> = {
     { prop: "cssSteps(n, position?)", type: "string: one config serialized for CSS", default: '"jump-end"' },
     { prop: "DitherAurora frameRate", type: "number (fps)", default: "0 (smooth)" },
   ],
-  stage: [
-    { prop: "duration", type: "number (s): the stage clock loops over it; unset, time runs on", default: "" },
-    { prop: "speed", type: "number: clock multiplier", default: "1" },
-    { prop: "paused / frameRate", type: "boolean / number (fps, 0 = smooth)", default: "false / 0" },
-    { prop: "restartKey", type: "unknown: change to restart from 0", default: "" },
-    {
-      prop: "as / class",
-      type: "element tag / passthrough class. Give the stage a height: it is a size query container",
-      default: '"div" / none',
+  stage: kitTable(stageProps, {
+    join: [
+      ["paused", "frameRate"],
+      ["as", "class"],
+    ],
+    // what the stage publishes for CSS
+    add: {
+      rows: [
+        {
+          prop: "data-stage / --cq-w / --cq-h",
+          type: "playing | directed | paused | still, and the box for CSS",
+          default: "",
+        },
+      ],
     },
-    {
-      prop: "children",
-      type: "function of { time, width, height }: the moment and the measured content box",
-      default: "",
+  }),
+  layer: kitTable(layerProps, {
+    join: [
+      ["delay", "loop", "yoyo"],
+      ["as", "class"],
+    ],
+    // what the layer writes on its element, and the engine's functions
+    add: {
+      rows: [
+        {
+          prop: "style / data-layer",
+          type: "transform in the keyframes' own units, opacity, --layer-p and --layer-<name> per property; before | active | done",
+          default: "",
+        },
+        {
+          prop: "sampleKeyframes(track, t), keyframeTransform(sample, box?), resolveSample(sample, box), parseLength / termsToCss / termsToPx",
+          type: "the engine alone, for your own painters and timelines",
+          default: "",
+        },
+      ],
     },
-    {
-      prop: "data-stage / --cq-w / --cq-h",
-      type: "playing | directed | paused | still, and the box for CSS",
-      default: "",
+  }),
+  sequences: kitTable(sequenceProps, {
+    join: [
+      ["duration", "easing"],
+      ["loop", "yoyo", "delay"],
+      ["paused", "restartOnView", "frameRate"],
+      ["restartKey", "onComplete"],
+    ],
+    // the engine's functions, for a timeline of your own
+    add: {
+      rows: [
+        {
+          prop: "planSequence(node | node[])",
+          type: "SequencePlan: flatten serial | parallel | stagger | track once",
+          default: "",
+        },
+        {
+          prop: "sampleSequence(plan, t)",
+          type: "TrackSample[]: { id, index, progress, raw, cycle, state }",
+          default: "",
+        },
+        { prop: "staggerDelay(i, count, each, from)", type: "number: the delay wave, testable alone", default: "" },
+      ],
     },
-  ],
-  layer: [
-    {
-      prop: "keyframes",
-      type: "Keyframe[]: { at? (s or '50%'), easing?, x, y (lengths: px, %, cqw, cqh, cqi, cqb, cqmin, cqmax, vw…, calc()), rotate, skewX, skewY (angles), scale, scaleX, scaleY, opacity, ...custom numbers or lengths }",
-      default: "[]",
+  }),
+  containerQueries: kitTable(containerProps, {
+    join: [["as", "class"]],
+    // the resolver's functions, what the host publishes for CSS and the keyframes it ships
+    add: {
+      rows: [
+        {
+          prop: "resolveCq(width, scale?)",
+          type: "CqState: the pure resolver (active = highest matching min)",
+          default: "CONTAINER_SCALE",
+        },
+        {
+          prop: "quantize(value, step)",
+          type: "number: nearest step, never negative; step ≤ 0 is identity",
+          default: "",
+        },
+        {
+          prop: "data-cq / --cq-w / --cq-h / --cq-i",
+          type: "active bucket attribute + content-box width/height (raw or quantized together) + ordinal, published on the host for CSS",
+          default: "",
+        },
+        {
+          prop: "dither-cq-traverse / dither-cq-rise",
+          type: "shipped @keyframes: translateX(±100cqw) / translateY(±100cqh); motion measured against the container (small-viewport fallback when none)",
+          default: "",
+        },
+      ],
     },
-    { prop: "duration", type: "number (s): unset, the last key's at in seconds, else 1", default: "" },
-    { prop: "delay / loop / yoyo", type: "number (s) / number | true / boolean", default: "0 / 1 / false" },
-    {
-      prop: "easing",
-      type: "'linear' | 'ease-out' | 'ease-in-out' | bezier points | seed | Easing: between keys; a key's own easing wins for the segment it starts",
-      default: "linear",
-    },
-    { prop: "origin", type: "string: transform-origin, container units welcome", default: '"50% 50%"' },
-    { prop: "as / class", type: "element tag / class (the layer is absolute, inset 0)", default: '"div" / none' },
-    {
-      prop: "children",
-      type: "function of every property resolved to px / degrees against the stage box, plus progress, cycle, time, width, height (the state is data-layer)",
-      default: "",
-    },
-    {
-      prop: "style / data-layer",
-      type: "transform in the keyframes' own units, opacity, --layer-p and --layer-<name> per property; before | active | done",
-      default: "",
-    },
-    {
-      prop: "sampleKeyframes(track, t), keyframeTransform(sample, box?), resolveSample(sample, box), parseLength / termsToCss / termsToPx",
-      type: "the engine alone, for your own painters and timelines",
-      default: "",
-    },
-  ],
-  sequences: [
-    { prop: "stagger", type: "number: seconds between neighbouring children", default: "0.06" },
-    { prop: "from", type: '"start" | "center" | "end" | "edges" | literal index', default: '"start"' },
-    { prop: "duration / easing", type: "number (s per cycle) / (p) => number from timing.ts", default: "0.5 / linear" },
-    { prop: "loop / yoyo / delay", type: "number / boolean / seconds before the timeline", default: "1 / false / 0" },
-    {
-      prop: "paused / restartOnView / frameRate",
-      type: "boolean / boolean / fps cadence",
-      default: "false / false / 0",
-    },
-    { prop: "restartKey / onComplete", type: "string | number (bump rebuilds and replays) / () => void", default: "" },
-    {
-      prop: "planSequence(node | node[])",
-      type: "SequencePlan: flatten serial | parallel | stagger | track once",
-      default: "",
-    },
-    {
-      prop: "sampleSequence(plan, t)",
-      type: "TrackSample[]: { id, index, progress, raw, cycle, state }",
-      default: "",
-    },
-    { prop: "staggerDelay(i, count, each, from)", type: "number: the delay wave, testable alone", default: "" },
-  ],
-  containerQueries: [
-    {
-      prop: "scale",
-      type: "CqScale: Record<name, min | { min?, max? }>; min inclusive, max exclusive, order irrelevant",
-      default: "CONTAINER_SCALE (xs 0, sm 240, md 360, lg 520, xl 720)",
-    },
-    { prop: "step", type: "number: quantize --cq-w to this px (0 = continuous)", default: "0" },
-    { prop: "name", type: "string: native container-name for children's @container rules", default: '"dither"' },
-    { prop: "as / class", type: "element tag / passthrough class", default: '"div" / none' },
-    {
-      prop: "children",
-      type: "function of { width, height, size, index, matches }: measured content box (what @container sees), active bucket, its ordinal, every matching bucket",
-      default: "",
-    },
-    {
-      prop: "resolveCq(width, scale?)",
-      type: "CqState: the pure resolver (active = highest matching min)",
-      default: "CONTAINER_SCALE",
-    },
-    {
-      prop: "quantize(value, step)",
-      type: "number: nearest step, never negative; step ≤ 0 is identity",
-      default: "",
-    },
-    {
-      prop: "data-cq / --cq-w / --cq-h / --cq-i",
-      type: "active bucket attribute + content-box width/height (raw or quantized together) + ordinal, published on the host for CSS",
-      default: "",
-    },
-    {
-      prop: "dither-cq-traverse / dither-cq-rise",
-      type: "shipped @keyframes: translateX(±100cqw) / translateY(±100cqh); motion measured against the container (small-viewport fallback when none)",
-      default: "",
-    },
-  ],
-  expandTabs: [
-    { prop: "tabs", type: "{ value, label, color? }[]", default: "required" },
-    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: "required" },
-    { prop: "color", type: "PixelColor: active glyph fallback", default: '"blue"' },
-  ],
-  island: [
-    { prop: "modelValue", type: "boolean (with onUpdateModelValue): expanded", default: "false" },
-    { prop: "label", type: "string: compact row text", default: '"Status"' },
-    { prop: "color", type: "PixelColor: status dot", default: '"green"' },
-    { prop: "live", type: "boolean: pulse the dot while collapsed", default: "true" },
-    { prop: "compact / children", type: "JSX.Element (children: the detail panel)", default: "" },
-  ],
-  cardStack: [
-    { prop: "items", type: "T[]: cycled forever", default: "required" },
-    { prop: "depth", type: "number: visible under-cards", default: "2" },
-    { prop: "children", type: "({ item, index, top }) => JSX.Element", default: "card face fallback" },
-    { prop: "onAdvance", type: "(index) after a card flies out", default: "" },
-  ],
-  dock: [
-    { prop: "items", type: "{ value, label, color? }[]", default: "required" },
-    { prop: "magnify", type: "number: peak scale over the pointer", default: "1.7" },
-    { prop: "range", type: "number (px): gaussian falloff radius", default: "80" },
-    { prop: "onSelect", type: "(value)", default: "" },
-  ],
-  previewRail: [
-    { prop: "items", type: "{ value, label, hint?, color? }[]", default: "required" },
-    { prop: "modelValue", type: "string (with onUpdateModelValue): active destination", default: "undefined" },
-    { prop: "range", type: "number (px): pyramid falloff radius", default: "56" },
-    { prop: "side", type: '"left" | "right": edge the rail hugs', default: '"left"' },
-    { prop: "preview", type: "({ item }) => JSX.Element (custom preview content)", default: "label + hint" },
-  ],
-  scrollProgress: [
-    { prop: "attach", type: '"viewport" | "parent"', default: '"viewport"' },
-    { prop: "edge", type: '"top" | "bottom"', default: '"top"' },
-    { prop: "color", type: "PixelColor", default: '"green"' },
-  ],
-  snapButton: [
-    { prop: "threshold", type: "number (px): displacement that arms the snap", default: "64" },
-    { prop: "axis", type: '"x" | "y" | "both"', default: '"x"' },
-    { prop: "color", type: "PixelColor: armed accent", default: '"green"' },
-    { prop: "onSnap", type: "() on an armed release, or Enter/Space", default: "" },
-    { prop: "children", type: "label content", default: '"Pull to confirm"' },
-  ],
-  gooeyMenu: [
-    { prop: "items", type: "{ value, label, color? }[]", default: "required" },
-    { prop: "modelValue", type: "boolean (with onUpdateModelValue): expanded", default: "false" },
-    { prop: "direction", type: '"up" | "down" | "left" | "right"', default: '"up"' },
-    { prop: "spacing", type: "number (px): gap between item centers", default: "52" },
-    { prop: "onSelect", type: "(value), also collapses", default: "" },
-  ],
-  bouncyAccordion: [
-    { prop: "items", type: "{ value, label, hint?, icon?, color?, content? }[]", default: "required" },
-    { prop: "modelValue", type: 'string (with onUpdateModelValue): open item, "" closes all', default: '""' },
-    { prop: "color", type: "PixelColor: icon fallback tint", default: '"blue"' },
-    { prop: "slots", type: "Record<value, JSX.Element>: rich panel content (else item.content)", default: "" },
-  ],
-  expandingArrow: [
-    { prop: "color", type: "PixelColor: tile and trail accent", default: '"blue"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "children", type: "label content", default: '"Explore the kit"' },
-  ],
-  slideAction: [
-    { prop: "label", type: "string: track text and thumb aria-label", default: '"Slide to confirm"' },
-    { prop: "color", type: "PixelColor: thumb accent", default: '"green"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "onConfirm", type: "() when the thumb reaches the end, or Enter/Space", default: "" },
-  ],
-  holdAction: [
-    { prop: "duration", type: "number (ms): hold time to complete", default: "1200" },
-    { prop: "direction", type: '"vertical" | "horizontal": fill axis', default: '"vertical"' },
-    { prop: "color", type: "PixelColor: fill and crest accent", default: '"orange"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "onComplete", type: "() when the fill reaches full, once per hold", default: "" },
-  ],
-  walletCard: [
-    { prop: "accounts", type: "{ value, label, address, balance, change?, color? }[]", default: "required" },
-    { prop: "modelValue", type: "string (with onUpdateModelValue): selected account", default: "first account" },
-    { prop: "balance / change", type: "number: override the active account's numbers", default: "account data" },
-    { prop: "currency", type: "string: balance prefix", default: '"$"' },
-    { prop: "defaultHidden", type: "boolean: start masked", default: "false" },
-    { prop: "searchPlaceholder", type: "string", default: '"Search…"' },
-    { prop: "recent", type: "string[]: recent queries in the search panel", default: "undefined" },
-    { prop: "notifications", type: "boolean: unread pulse on the bell", default: "false" },
-    { prop: "color", type: "PixelColor: card accent", default: '"green"' },
-    { prop: "onAction", type: '("send" | "deposit" | "swap" | "buy")', default: "" },
-    { prop: "onSearch", type: "(query), live text on every keystroke", default: "" },
-    { prop: "onSubmit", type: "(query) on Enter or a recent row", default: "" },
-    { prop: "onNotify", type: "() when the bell is pressed", default: "" },
-  ],
-  notificationStack: [
-    { prop: "items", type: "{ id, title, body?, time?, icon?, color? }[]", default: "required" },
-    {
-      prop: "modelValue",
-      type: "boolean (with onUpdateModelValue): pinned open; hover/focus expand transiently",
-      default: "false",
-    },
-    { prop: "maxVisible", type: "number: cards shown in the stack and list", default: "3" },
-    { prop: "collapsedLabel", type: "string: header + toggle aria-label", default: '"Notifications"' },
-    { prop: "expandedLabel", type: "string: view-all button text", default: '"View all"' },
-    { prop: "emptyLabel", type: "string: empty-state card", default: '"All caught up"' },
-    { prop: "variant", type: '"stack" | "fan" | "condensed": collapsed silhouette', default: '"stack"' },
-    { prop: "color", type: "PixelColor: icon fallback tint", default: '"blue"' },
-    { prop: "onViewall", type: "() when view-all is pressed", default: "" },
-  ],
-  animatedContent: [
-    { prop: "distance", type: 'number (px) | CSS length: "4cqw" rides the nearest query container', default: "40" },
-    { prop: "direction", type: '"vertical" | "horizontal"', default: '"vertical"' },
-    { prop: "reverse", type: "boolean", default: "false" },
-    { prop: "duration", type: "number (ms)", default: "800" },
-    { prop: "delay", type: "number (ms)", default: "0" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  fadeContent: [
-    { prop: "duration", type: "number (ms)", default: "1000" },
-    { prop: "delay", type: "number (ms)", default: "0" },
-    { prop: "blur", type: "boolean", default: "false" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  gradualBlur: [
-    { prop: "position", type: '"bottom" | "top"', default: '"bottom"' },
-    { prop: "height", type: "number (px)", default: "96" },
-    { prop: "strength", type: "number (px)", default: "4" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  starBorder: [
-    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
-    { prop: "speed", type: "number (s)", default: "6" },
-    { prop: "thickness", type: "number (px)", default: "1" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  electricBorder: [
-    { prop: "color", type: "string (hex)", default: '"#5227FF"' },
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "thickness", type: "number (px)", default: "2" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  glareHover: [{ prop: "children", type: "content", default: "" }],
-  magnet: [
-    { prop: "strength", type: "number (0-1)", default: "0.4" },
-    { prop: "radius", type: "number (px)", default: "200" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  clickSpark: [
-    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
-    { prop: "count", type: "number", default: "8" },
-    { prop: "size", type: "number (px)", default: "16" },
-    { prop: "duration", type: "number (ms)", default: "420" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  blobCursor: [
-    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
-    { prop: "size", type: "number (px)", default: "48" },
-    { prop: "lag", type: "number (0-1)", default: "0.18" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  crosshair: [
-    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
-    { prop: "thickness", type: "number (px)", default: "1" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  ghostCursor: [
-    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
-    { prop: "count", type: "number", default: "18" },
-    { prop: "size", type: "number (px)", default: "10" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  splashCursor: [
-    { prop: "color", type: "string (hex)", default: '"#3DA5FF"' },
-    { prop: "maxRadius", type: "number (px)", default: "60" },
-    { prop: "duration", type: "number (ms)", default: "700" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  targetCursor: [
-    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
-    { prop: "size", type: "number (px)", default: "36" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  pixelTrail: [
-    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
-    { prop: "gap", type: "number (px)", default: "24" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  imageTrail: [
-    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', ...]" },
-    { prop: "size", type: "number (px)", default: "40" },
-    { prop: "duration", type: "number (ms)", default: "650" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  metaBalls: [
-    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#3DA5FF']" },
-    { prop: "count", type: "number", default: "6" },
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "ballSize", type: "number", default: "1" },
-    { prop: "glow", type: "number", default: "1.5" },
-    { prop: "mouseInteraction", type: "boolean", default: "true" },
-    ...SHARED_CANVAS,
-    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
-  ],
-  metallicPaint: [
-    { prop: "colors", type: "string[] (hex)", default: "['#1A1A22', '#8890A0', '#E8ECF4']" },
-    { prop: "scale", type: "number", default: "3" },
-    { prop: "speed", type: "number", default: "0.4" },
-    { prop: "distortion", type: "number", default: "0.6" },
-    ...SHARED_CANVAS,
-    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
-  ],
-  noise: [
-    { prop: "colors", type: "string[] (hex)", default: "['#3DA5FF', '#7CE0FF', '#FFFFFF']" },
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "density", type: "number (0-1)", default: "0.5" },
-    { prop: "opacity", type: "number (0-1)", default: "1" },
-    { prop: "paused", type: "boolean", default: "false" },
-    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
-  ],
-  cubes: [
-    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#CFFFDF']" },
-    { prop: "scale", type: "number", default: "6" },
-    { prop: "speed", type: "number", default: "0.4" },
-    ...SHARED_CANVAS,
-    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
-  ],
-  ribbons: [
-    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67', '#3DA5FF']" },
-    { prop: "count", type: "number", default: "5" },
-    { prop: "thickness", type: "number", default: "0.12" },
-    { prop: "amplitude", type: "number", default: "1" },
-    { prop: "mouseInteraction", type: "boolean", default: "true" },
-    ...SHARED_CANVAS,
-    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
-  ],
-  shapeBlur: [
-    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CFF67']" },
-    { prop: "size", type: "number", default: "0.4" },
-    { prop: "softness", type: "number", default: "0.3" },
-    { prop: "mouseInteraction", type: "boolean", default: "true" },
-    ...SHARED_CANVAS,
-    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
-  ],
-  strands: [
-    { prop: "colors", type: "string[] (hex)", default: "['#5227FF', '#7CE0FF']" },
-    { prop: "count", type: "number", default: "40" },
-    { prop: "sway", type: "number", default: "0.15" },
-    { prop: "lineWidth", type: "number", default: "0.01" },
-    ...SHARED_CANVAS,
-    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
-  ],
-  laserFlow: [
-    { prop: "colors", type: "string[] (hex)", default: "['#FF3D2E', '#FFD23D', '#FFFFFF']" },
-    { prop: "count", type: "number", default: "4" },
-    { prop: "beamWidth", type: "number", default: "0.02" },
-    { prop: "glow", type: "number", default: "1" },
-    ...SHARED_CANVAS,
-    { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
-  ],
-  antigravity: [
-    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
-    { prop: "count", type: "number", default: "40" },
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  logoLoop: [
-    { prop: "items", type: "string[]", default: "['DITHER', 'BAYER', ...]" },
-    { prop: "speed", type: "number (s)", default: "18" },
-    { prop: "gap", type: "number (px)", default: "48" },
-  ],
-  magicRings: [
-    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
-    { prop: "count", type: "number", default: "4" },
-    { prop: "duration", type: "number (s)", default: "3" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  magnetLines: [
-    { prop: "color", type: "string (hex)", default: '"#7CFF67"' },
-    { prop: "gap", type: "number (px)", default: "28" },
-    { prop: "lineLength", type: "number (px)", default: "14" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  orbitImages: [
-    { prop: "items", type: "string[]", default: "['A', 'B', 'C', 'D', 'E']" },
-    { prop: "radius", type: "number (px)", default: "80" },
-    { prop: "duration", type: "number (s)", default: "16" },
-    { prop: "size", type: "number (px)", default: "200" },
-  ],
-  pixelTransition: [
-    { prop: "rows", type: "number", default: "6" },
-    { prop: "cols", type: "number", default: "10" },
-    { prop: "color", type: "string (hex)", default: '"#111318"' },
-    { prop: "children", type: "content", default: "" },
-  ],
-  ditherReveal: [
-    { prop: "progress", type: "number 0–1 (manual; unset plays on the clock)", default: "" },
-    { prop: "duration", type: "number (s)", default: "1.2" },
-    { prop: "delay", type: "number (s)", default: "0" },
-    { prop: "direction", type: "'none' | 'right' | 'left' | 'down' | 'up' | 'iris'", default: "'none' (dissolve)" },
-    { prop: "cell", type: "number (px)", default: "4" },
-    { prop: "band", type: "number (cells; directional wipes)", default: "12" },
-    { prop: "seed", type: "number (a seeded 4×4 matrix)", default: "none (Bayer 8×8)" },
-    { prop: "reverse", type: "boolean (hide instead)", default: "false" },
-    { prop: "easing", type: "EasingInput", default: "'ease-in-out'" },
-    { prop: "restartKey", type: "unknown (change to replay)", default: "" },
-    { prop: "children", type: "content", default: "" },
-  ],
-  stickerPeel: [{ prop: "children", type: "content", default: "" }],
+  }),
+  expandTabs: kitTable(expandTabsProps),
+  island: kitTable(islandProps, { join: [["compact", "children"]] }),
+  cardStack: kitTable(cardStackProps),
+  dock: kitTable(dockProps),
+  previewRail: kitTable(previewRailProps),
+  scrollProgress: kitTable(scrollProgressProps),
+  snapButton: kitTable(snapButtonProps),
+  gooeyMenu: kitTable(gooeyMenuProps),
+  bouncyAccordion: kitTable(bouncyAccordionProps),
+  expandingArrow: kitTable(expandingArrowProps),
+  slideAction: kitTable(slideActionProps),
+  holdAction: kitTable(holdActionProps),
+  walletCard: kitTable(walletCardProps, { join: [["balance", "change"]] }),
+  notificationStack: kitTable(notificationStackProps),
+  animatedContent: kitTable(animatedContentProps),
+  fadeContent: kitTable(fadeContentProps),
+  gradualBlur: kitTable(gradualBlurProps),
+  starBorder: kitTable(starBorderProps),
+  electricBorder: kitTable(electricBorderProps),
+  glareHover: kitTable(glareHoverProps),
+  magnet: kitTable(magnetProps),
+  clickSpark: kitTable(clickSparkProps),
+  blobCursor: kitTable(blobCursorProps),
+  crosshair: kitTable(crosshairProps),
+  ghostCursor: kitTable(ghostCursorProps),
+  splashCursor: kitTable(splashCursorProps),
+  targetCursor: kitTable(targetCursorProps),
+  pixelTrail: kitTable(pixelTrailProps),
+  imageTrail: kitTable(imageTrailProps),
+  metaBalls: kitTable(metaBallsProps),
+  metallicPaint: kitTable(metallicPaintProps),
+  noise: kitTable(noiseProps),
+  cubes: kitTable(cubesProps),
+  ribbons: kitTable(ribbonsProps),
+  shapeBlur: kitTable(shapeBlurProps),
+  strands: kitTable(strandsProps),
+  laserFlow: kitTable(laserFlowProps),
+  antigravity: kitTable(antigravityProps),
+  logoLoop: kitTable(logoLoopProps),
+  magicRings: kitTable(magicRingsProps),
+  magnetLines: kitTable(magnetLinesProps),
+  orbitImages: kitTable(orbitImagesProps),
+  pixelTransition: kitTable(pixelTransitionProps),
+  ditherReveal: kitTable(revealProps),
+  stickerPeel: kitTable(stickerPeelProps),
 }
 
 const SNIPPETS = {

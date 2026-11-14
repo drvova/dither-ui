@@ -7,8 +7,10 @@ import "@dither-ui/kit/solid/ShinyText.css"
 export type ShinyTextProps = {
   speed?: number
   disabled?: boolean
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
+  /** @docs text */
   children?: JSX.Element
 }
 

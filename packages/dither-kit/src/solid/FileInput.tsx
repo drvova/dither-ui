@@ -10,13 +10,17 @@ import "./FileInput.css"
  * per-file remove, one clear-all. The model is `File[]` — read-only in the
  * DOM, owned by the parent through `modelValue`. */
 export type FileInputProps = {
+  /** @docs File[] (with onUpdateModelValue)
+   * @default [] */
   modelValue?: File[]
   multiple?: boolean
+  /** @docs string (input accept) */
   accept?: string
   disabled?: boolean
   buttonLabel?: string
   class?: string
   onUpdateModelValue?: (value: File[]) => void
+  /** @docs (File[]) after pick/remove */
   onChange?: (value: File[]) => void
 }
 

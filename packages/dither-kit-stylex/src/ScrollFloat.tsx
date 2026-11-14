@@ -11,6 +11,7 @@ const styles = stylex.create({
 })
 
 export type ScrollFloatProps = {
+  /** @default required */
   text?: string
   amount?: number
   class?: string

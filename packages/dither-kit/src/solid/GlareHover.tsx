@@ -2,7 +2,11 @@ import type { JSX } from "solid-js"
 import { cn } from "../tailwind/lib"
 import "./GlareHover.css"
 
-export type GlareHoverProps = { class?: string; children?: JSX.Element }
+export type GlareHoverProps = {
+  class?: string
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function GlareHover(props: GlareHoverProps) {
   return (

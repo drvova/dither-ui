@@ -2,10 +2,14 @@ import { createEffect, type JSX, mergeProps, on, onCleanup, onMount } from "soli
 import { cn } from "../tailwind/lib"
 
 export type MagnetLinesProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   gap?: number
+  /** @docs number (px) */
   lineLength?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -46,14 +46,17 @@ const styles = stylex.create({
 })
 
 export type KnobProps = {
+  /** @docs number (with onUpdateModelValue) */
   modelValue?: number
   onUpdateModelValue?: (value: number) => void
   min?: number
   max?: number
   step?: number
+  /** @docs number (px) */
   size?: number
   disabled?: boolean
-  /** What it sets: its accessible name. */
+  /** What it sets: its accessible name.
+   * @docs string (its accessible name) */
   label?: string
   class?: string
   xstyle?: StyleProp

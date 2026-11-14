@@ -65,6 +65,7 @@ function paintUnderline(
 }
 
 export type DitherNavMenuProps = {
+  /** @docs { label: string; href?: string }[] */
   items: NavMenuItem[]
   modelValue: string
   color?: PixelColor

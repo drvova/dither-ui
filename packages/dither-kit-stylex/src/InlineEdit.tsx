@@ -43,13 +43,17 @@ const styles = stylex.create({
  * actually changed), Escape reverts — the revert flag suppresses the blur
  * commit that would otherwise fire as the input unmounts. */
 export type InlineEditProps = {
+  /** @docs string (with onUpdateModelValue)
+   * @default "" */
   modelValue?: string
   placeholder?: string
   disabled?: boolean
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
+  /** @docs (value) */
   onSave?: (value: string) => void
+  /** @docs () */
   onCancel?: () => void
 }
 

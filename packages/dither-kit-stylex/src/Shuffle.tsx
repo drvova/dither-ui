@@ -11,8 +11,11 @@ const styles = stylex.create({
 
 export type ShuffleProps = {
   text?: string
+  /** @docs number (ms) */
   stagger?: number
+  /** @docs number (ms) */
   duration?: number
+  /** @default 0 */
   replayToken?: number
   class?: string
   xstyle?: StyleProp

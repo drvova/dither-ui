@@ -6,10 +6,13 @@ import { cn } from "../tailwind/lib"
 import { latestEntry } from "../engine/visibility"
 
 export type CountUpProps = {
+  /** @default required */
   to: number
   from?: number
+  /** @docs number (ms) */
   duration?: number
   decimals?: number
+  /** @default undefined */
   class?: string
 }
 

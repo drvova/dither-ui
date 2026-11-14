@@ -10,19 +10,32 @@ export type { PrismParams }
 export { paintPrism }
 
 export type PrismProps = {
+  /** @docs number (fan half-angle) */
   spread?: number
   speed?: number
+  /** @docs number 0…1 */
   saturation?: number
+  /** @docs number 0…1 */
   brightness?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
 }
 

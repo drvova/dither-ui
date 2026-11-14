@@ -125,14 +125,19 @@ export type BouncyItem = {
 }
 
 export type BouncyAccordionProps = {
+  /** @docs { value, label, hint?, icon?, color?, content? }[]
+   * @default required */
   items: BouncyItem[]
+  /** @docs string (with onUpdateModelValue): open item, "" closes all */
   modelValue?: string
+  /** @docs PixelColor: icon fallback tint */
   color?: PixelColor
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
   /** A panel's content by its item's `value` (a slot per item);
-   * an item without one shows its `content`. */
+   * an item without one shows its `content`.
+   * @docs Record<value, JSX.Element>: rich panel content (else item.content) */
   slots?: Record<string, JSX.Element>
 }
 

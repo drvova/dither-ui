@@ -4,16 +4,22 @@ import type { PixelColor } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 
 export type IslandProps = {
-  /** Expanded state (with `onUpdateModelValue`). */
+  /** Expanded state (with `onUpdateModelValue`).
+   * @docs boolean (with onUpdateModelValue): expanded */
   modelValue?: boolean
+  /** @docs string: compact row text */
   label?: string
+  /** @docs PixelColor: status dot */
   color?: PixelColor
-  /** Pulse the status dot while collapsed. */
+  /** Pulse the status dot while collapsed.
+   * @docs boolean: pulse the dot while collapsed */
   live?: boolean
   class?: string
   onUpdateModelValue?: (value: boolean) => void
-  /** The compact row's content, in place of `label`. */
+  /** The compact row's content, in place of `label`.
+   * @docs JSX.Element (children: the detail panel) */
   compact?: JSX.Element
+  /** @docs JSX.Element (children: the detail panel) */
   children?: JSX.Element
 }
 

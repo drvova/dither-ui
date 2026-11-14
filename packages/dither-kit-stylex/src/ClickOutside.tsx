@@ -11,7 +11,9 @@ export type ClickOutsideProps = {
   enabled?: boolean
   class?: string
   xstyle?: StyleProp
+  /** @docs (event) => void: pointerdown outside */
   onOutside?: (event: Event) => void
+  /** @docs content */
   children?: JSX.Element
 }
 

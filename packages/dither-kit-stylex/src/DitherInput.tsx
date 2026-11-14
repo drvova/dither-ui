@@ -18,10 +18,13 @@ const styles = stylex.create({
 
 type Own = {
   modelValue?: string
+  /** @default "text" */
   type?: string
   placeholder?: string
   disabled?: boolean
+  /** @default false */
   readonly?: boolean
+  /** @default false */
   invalid?: boolean
   class?: string
   xstyle?: StyleProp

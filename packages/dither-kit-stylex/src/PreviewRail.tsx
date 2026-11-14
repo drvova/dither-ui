@@ -60,16 +60,24 @@ const styles = stylex.create({
 export type PreviewRailItem = { value: string; label: string; hint?: string; color?: PixelColor }
 
 export type PreviewRailProps = {
+  /** @docs { value, label, hint?, color? }[]
+   * @default required */
   items: PreviewRailItem[]
+  /** @docs string (with onUpdateModelValue): active destination
+   * @default undefined */
   modelValue?: string
-  /** Pyramid falloff radius in px. */
+  /** Pyramid falloff radius in px.
+   * @docs number (px): pyramid falloff radius */
   range?: number
-  /** Screen edge the rail hugs; the preview floats toward the other side. */
+  /** Screen edge the rail hugs; the preview floats toward the other side.
+   * @docs "left" | "right": edge the rail hugs */
   side?: "left" | "right"
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
-  /** What the floating preview shows for an item, in place of its label and hint. */
+  /** What the floating preview shows for an item, in place of its label and hint.
+   * @docs ({ item }) => JSX.Element (custom preview content)
+   * @default label + hint */
   preview?: (scope: { item: PreviewRailItem }) => JSX.Element
 }
 

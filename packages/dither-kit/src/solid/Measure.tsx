@@ -6,6 +6,8 @@ import { type JSX, onCleanup, onMount, splitProps } from "solid-js"
  * engines) it simply renders and stays silent rather than guessing. `class`
  * and other attrs fall through to the block untouched. */
 export type MeasureProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "onResize"> & {
+  /** @docs ({ width, height }) => void
+   * @default on box change */
   onResize?: (size: { width: number; height: number }) => void
 }
 

@@ -78,6 +78,7 @@ const CELL = 2
 type Own = {
   modelValue: boolean
   onUpdateModelValue?: (value: boolean) => void
+  /** @default "blue" */
   color?: PixelColor
   seed?: number
   disabled?: boolean

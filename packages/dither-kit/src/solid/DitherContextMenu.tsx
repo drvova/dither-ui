@@ -13,6 +13,7 @@ export type ContextMenuItem = {
 export type DitherContextMenuProps = {
   items: ContextMenuItem[]
   onSelect?: (label: string) => void
+  /** @docs content */
   children?: JSX.Element
 }
 

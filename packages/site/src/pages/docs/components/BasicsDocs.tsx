@@ -18,7 +18,11 @@ import DemoCard from "../DemoCard"
 import { COLORS, VARIANTS } from "../demo-data"
 import DocSection from "../DocSection"
 import { thumbClass, thumbLabel } from "../gallery"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import buttonProps from "virtual:dither-props/DitherButton"
+import avatarProps from "virtual:dither-props/DitherAvatar"
+import gradientProps from "virtual:dither-props/DitherGradient"
+import imageProps from "virtual:dither-props/DitherImage"
 
 // A picked tile or chip wears the site's pressed state (ink in a ring), so
 // the pick reads on either theme, never a fill a shade off the ground.
@@ -31,53 +35,16 @@ const AVATAR_NAMES = ["ada", "linus", "grace", "alan", "edsger", "barbara"]
 const BUTTON_COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red"]
 const DIRECTIONS: GradientDirection[] = ["up", "down", "left", "right"]
 
-const API: Record<string, PropRow[]> = {
-  button: [
-    { prop: "color", type: "PixelColor", default: "seed / blue" },
-    { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: "seed / gradient" },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
-    { prop: "cell", type: "number (px)", default: "seed / 2" },
-    { prop: "seed", type: "number", default: "undefined" },
-    { prop: "type", type: '"button" | "submit" | "reset"', default: '"button"' },
-    { prop: "loading / disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "undefined" },
-    { prop: "renderMode", type: '"live" | "static"', default: '"live"' },
-    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
-    { prop: "maxCols / maxRows", type: "number", default: "960 / 600 live, 320 / 200 static" },
-  ],
-  avatar: [
-    { prop: "name", type: "string", default: "" },
-    { prop: "size", type: "number (px)", default: "" },
-    { prop: "hue", type: "number 0…360", default: "from name" },
-    { prop: "mirror", type: '"auto" | "on" | "off"', default: '"auto"' },
-    { prop: "animate", type: "boolean", default: "true" },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura"', default: '"off"' },
-  ],
-  gradient: [
-    { prop: "from", type: "PixelColor", default: "seed / blue" },
-    { prop: "to", type: 'PixelColor | "transparent"', default: '"transparent"' },
-    { prop: "direction", type: '"up" | "down" | "left" | "right"', default: "seed / up" },
-    { prop: "cell", type: "number (px)", default: "seed / 3" },
-    { prop: "opacity", type: "number 0…1", default: "seed / 1" },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | object | number', default: "seed / off" },
-    { prop: "seed", type: "number", default: "undefined" },
-    { prop: "class", type: "string", default: "undefined" },
-    { prop: "renderMode", type: '"live" | "static"', default: '"live"' },
-    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
-    { prop: "maxCols / maxRows", type: "number", default: "960 / 600 live, 320 / 200 static" },
-  ],
-  image: [
-    { prop: "src", type: "string", default: "required" },
-    { prop: "cell", type: "number (px)", default: "seed / 3" },
-    { prop: "focusY", type: "number 0…1", default: "seed / 0.5" },
-    { prop: "fade", type: "number (px)", default: "seed / 0" },
-    { prop: "seed", type: "number", default: "undefined" },
-    { prop: "alt", type: "string", default: '""' },
-    { prop: "class", type: "string", default: "undefined" },
-    { prop: "renderMode", type: '"live" | "static"', default: '"live"' },
-    { prop: "precompiled", type: "string | { src: string; width?: number; height?: number }", default: "undefined" },
-    { prop: "maxCols / maxRows", type: "number", default: "960 / 600 live, 320 / 200 static" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  button: kitTable(buttonProps, {
+    join: [
+      ["loading", "disabled"],
+      ["maxCols", "maxRows"],
+    ],
+  }),
+  avatar: kitTable(avatarProps),
+  gradient: kitTable(gradientProps, { join: [["maxCols", "maxRows"]] }),
+  image: kitTable(imageProps, { join: [["maxCols", "maxRows"]] }),
 }
 
 const SNIPPETS = {

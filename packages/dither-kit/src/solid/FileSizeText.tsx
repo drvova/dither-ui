@@ -3,7 +3,13 @@ import { cn } from "../tailwind/lib"
 
 /** Bytes → human units. 1024-based (the convention disk tools actually use),
  * sub-KB sizes stay whole numbers, sign preserved. */
-export type FileSizeTextProps = { bytes?: number; decimals?: number; locale?: string; class?: string }
+export type FileSizeTextProps = {
+  bytes?: number
+  /** @docs number (≥ 1KB) */
+  decimals?: number
+  locale?: string
+  class?: string
+}
 
 const UNITS = ["B", "KB", "MB", "GB", "TB", "PB"] as const
 

@@ -12,11 +12,13 @@ const styles = stylex.create({
 })
 
 export type AntigravityProps = {
+  /** @docs string (hex) */
   color?: string
   count?: number
   speed?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

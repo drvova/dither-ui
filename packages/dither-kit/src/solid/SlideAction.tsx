@@ -6,10 +6,13 @@ import { CONTROL_BUTTON } from "../tailwind/control"
 import { cn } from "../tailwind/lib"
 
 export type SlideActionProps = {
+  /** @docs string: track text and thumb aria-label */
   label?: string
+  /** @docs PixelColor: thumb accent */
   color?: PixelColor
   disabled?: boolean
   class?: string
+  /** @docs () when the thumb reaches the end, or Enter/Space */
   onConfirm?: () => void
 }
 

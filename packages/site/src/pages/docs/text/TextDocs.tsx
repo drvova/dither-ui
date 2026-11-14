@@ -26,134 +26,58 @@ import {
   DitherAsciiText,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import gradientTextProps from "virtual:dither-props/DitherGradientText"
+import shinyTextProps from "virtual:dither-props/DitherShinyText"
+import glitchTextProps from "virtual:dither-props/DitherGlitchText"
+import splitTextProps from "virtual:dither-props/DitherSplitText"
+import rotatingTextProps from "virtual:dither-props/DitherRotatingText"
+import countUpProps from "virtual:dither-props/DitherCountUp"
+import numberFlowProps from "virtual:dither-props/DitherNumberFlow"
+import textTypeProps from "virtual:dither-props/DitherTextType"
+import blurTextProps from "virtual:dither-props/DitherBlurText"
+import decryptedTextProps from "virtual:dither-props/DitherDecryptedText"
+import scrambleTextProps from "virtual:dither-props/DitherScrambleText"
+import shuffleProps from "virtual:dither-props/DitherShuffle"
+import fallingTextProps from "virtual:dither-props/DitherFallingText"
+import scrollRevealProps from "virtual:dither-props/DitherScrollReveal"
+import scrollFloatProps from "virtual:dither-props/DitherScrollFloat"
+import scrollVelocityProps from "virtual:dither-props/DitherScrollVelocity"
+import textCursorProps from "virtual:dither-props/DitherTextCursor"
+import textPressureProps from "virtual:dither-props/DitherTextPressure"
+import variableProximityProps from "virtual:dither-props/DitherVariableProximity"
+import trueFocusProps from "virtual:dither-props/DitherTrueFocus"
+import circularTextProps from "virtual:dither-props/DitherCircularText"
+import curvedLoopProps from "virtual:dither-props/DitherCurvedLoop"
+import fuzzyTextProps from "virtual:dither-props/DitherFuzzyText"
+import asciiTextProps from "virtual:dither-props/DitherAsciiText"
 import DocSection from "../DocSection"
 
-const API: Record<string, PropRow[]> = {
-  gradientText: [
-    { prop: "colors", type: "string[] (hex)", default: "['#358ff3', '#7CFF67', '#358ff3']" },
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "class", type: "string", default: "undefined" },
-    { prop: "children", type: "text", default: "" },
-  ],
-  shinyText: [
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "undefined" },
-    { prop: "children", type: "text", default: "" },
-  ],
-  glitchText: [
-    { prop: "text", type: "string", default: '"GLITCH"' },
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  splitText: [
-    { prop: "text", type: "string", default: '"Split text"' },
-    { prop: "stagger", type: "number (ms/char)", default: "40" },
-    { prop: "duration", type: "number (ms)", default: "600" },
-    { prop: "replayToken", type: "number", default: "0" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  rotatingText: [
-    { prop: "texts", type: "string[]", default: "['Solid', 'canvas', 'dither']" },
-    { prop: "interval", type: "number (ms)", default: "2000" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  countUp: [
-    { prop: "to", type: "number", default: "required" },
-    { prop: "from", type: "number", default: "0" },
-    { prop: "duration", type: "number (ms)", default: "1500" },
-    { prop: "decimals", type: "number", default: "0" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  numberFlow: [
-    { prop: "value", type: "number", default: "required" },
-    { prop: "decimals", type: "number", default: "0" },
-    { prop: "duration", type: "number (ms): roll time per change", default: "600" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  textType: [
-    { prop: "texts", type: "string[]", default: "['Type this out.', 'Then this.']" },
-    { prop: "typingSpeed", type: "number (ms)", default: "60" },
-    { prop: "deletingSpeed", type: "number (ms)", default: "35" },
-    { prop: "pause", type: "number (ms)", default: "1400" },
-    { prop: "loop", type: "boolean", default: "true" },
-    { prop: "cursor", type: "boolean", default: "true" },
-  ],
-  blurText: [
-    { prop: "text", type: "string", default: '"Blur into focus"' },
-    { prop: "by", type: '"words" | "chars"', default: '"words"' },
-    { prop: "stagger", type: "number (ms)", default: "90" },
-    { prop: "duration", type: "number (ms)", default: "600" },
-  ],
-  decryptedText: [
-    { prop: "text", type: "string", default: '"DECRYPTED"' },
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "trigger", type: '"view" | "hover"', default: '"view"' },
-  ],
-  scrambleText: [
-    { prop: "text", type: "string", default: '"Hover to scramble"' },
-    { prop: "speed", type: "number", default: "1" },
-  ],
-  shuffle: [
-    { prop: "text", type: "string", default: '"Shuffle in"' },
-    { prop: "stagger", type: "number (ms)", default: "55" },
-    { prop: "duration", type: "number (ms)", default: "650" },
-    { prop: "replayToken", type: "number", default: "0" },
-  ],
-  fallingText: [
-    { prop: "text", type: "string", default: '"Falling text"' },
-    { prop: "stagger", type: "number (ms)", default: "45" },
-    { prop: "duration", type: "number (ms)", default: "700" },
-    { prop: "replayToken", type: "number", default: "0" },
-  ],
-  scrollReveal: [
-    { prop: "text", type: "string", default: "required" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  scrollFloat: [
-    { prop: "text", type: "string", default: "required" },
-    { prop: "amount", type: "number", default: "1" },
-  ],
-  scrollVelocity: [
-    { prop: "text", type: "string", default: '"DITHER · UI · TOOLKIT ·"' },
-    { prop: "baseSpeed", type: "number (px/s)", default: "60" },
-  ],
-  textCursor: [
-    { prop: "text", type: "string", default: '"dither"' },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  textPressure: [
-    { prop: "text", type: "string", default: '"Pressure"' },
-    { prop: "radius", type: "number (px)", default: "140" },
-    { prop: "strength", type: "number", default: "1" },
-  ],
-  variableProximity: [
-    { prop: "text", type: "string", default: "required" },
-    { prop: "radius", type: "number (px)", default: "120" },
-  ],
-  trueFocus: [
-    { prop: "text", type: "string", default: '"True focus mode"' },
-    { prop: "interval", type: "number (ms)", default: "1400" },
-    { prop: "blur", type: "number (px)", default: "5" },
-  ],
-  circularText: [
-    { prop: "text", type: "string", default: '"DITHER · UI · TOOLKIT ·"' },
-    { prop: "duration", type: "number (s)", default: "12" },
-    { prop: "size", type: "number (px)", default: "170" },
-  ],
-  curvedLoop: [
-    { prop: "text", type: "string", default: '"DITHER UI · CANVAS + BAYER ·"' },
-    { prop: "speed", type: "number (units/s)", default: "60" },
-  ],
-  fuzzyText: [
-    { prop: "text", type: "string", default: '"FUZZY"' },
-    { prop: "intensity", type: "number", default: "4" },
-  ],
-  asciiText: [
-    { prop: "text", type: "string", default: '"DITHER"' },
-    { prop: "cols", type: "number", default: "64" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  gradientText: kitTable(gradientTextProps),
+  shinyText: kitTable(shinyTextProps),
+  glitchText: kitTable(glitchTextProps),
+  splitText: kitTable(splitTextProps),
+  rotatingText: kitTable(rotatingTextProps),
+  countUp: kitTable(countUpProps),
+  numberFlow: kitTable(numberFlowProps),
+  textType: kitTable(textTypeProps),
+  blurText: kitTable(blurTextProps),
+  decryptedText: kitTable(decryptedTextProps),
+  scrambleText: kitTable(scrambleTextProps),
+  shuffle: kitTable(shuffleProps),
+  fallingText: kitTable(fallingTextProps),
+  scrollReveal: kitTable(scrollRevealProps),
+  scrollFloat: kitTable(scrollFloatProps),
+  scrollVelocity: kitTable(scrollVelocityProps),
+  textCursor: kitTable(textCursorProps),
+  textPressure: kitTable(textPressureProps),
+  variableProximity: kitTable(variableProximityProps),
+  trueFocus: kitTable(trueFocusProps),
+  circularText: kitTable(circularTextProps),
+  curvedLoop: kitTable(curvedLoopProps),
+  fuzzyText: kitTable(fuzzyTextProps),
+  asciiText: kitTable(asciiTextProps),
 }
 
 const SNIPPETS = {

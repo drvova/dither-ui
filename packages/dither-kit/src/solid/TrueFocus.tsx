@@ -5,7 +5,9 @@ import { createKitTime } from "./runtime/kit-time"
 
 export type TrueFocusProps = {
   text?: string
+  /** @docs number (ms) */
   interval?: number
+  /** @docs number (px) */
   blur?: number
   class?: string
 }

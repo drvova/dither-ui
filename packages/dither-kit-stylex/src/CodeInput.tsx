@@ -11,6 +11,8 @@ const styles = stylex.create({
 })
 
 type Own = {
+  /** @docs string (with onUpdateModelValue)
+   * @default "" */
   modelValue?: string
   placeholder?: string
   rows?: number
@@ -18,6 +20,7 @@ type Own = {
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
+  /** @docs Ctrl/Cmd + Enter */
   onSubmit?: () => void
 }
 const OWN = [

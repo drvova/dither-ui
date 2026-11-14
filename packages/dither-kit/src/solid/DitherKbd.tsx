@@ -1,7 +1,12 @@
 import type { JSX } from "solid-js"
 import { cn } from "../tailwind/lib"
 
-export type DitherKbdProps = { class?: string; children?: JSX.Element }
+export type DitherKbdProps = {
+  /** @default undefined */
+  class?: string
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function DitherKbd(props: DitherKbdProps) {
   return (

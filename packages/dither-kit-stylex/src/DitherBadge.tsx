@@ -32,11 +32,15 @@ export type BadgeVariant = LabelVariant
 const CELL = 2
 
 export type DitherBadgeProps = {
+  /** @default "blue" */
   color?: PixelColor
+  /** @docs "gradient" | "solid" | "dotted" | "hatched"
+   * @default "gradient" */
   variant?: BadgeVariant
   seed?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

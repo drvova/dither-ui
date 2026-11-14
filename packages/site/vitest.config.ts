@@ -6,10 +6,11 @@ import { defineConfig } from "vitest/config"
 import { ALIASES } from "./build/aliases.ts"
 import { siteFacts } from "./build/facts.ts"
 import { kitSources } from "./build/kit-sources.ts"
+import { kitProps } from "./build/props.ts"
 import { utilityMap } from "./build/utilities.ts"
 
 export default defineConfig({
-  plugins: [siteFacts(), solid(), utilityMap(), kitSources()],
+  plugins: [siteFacts(), kitProps(), solid(), utilityMap(), kitSources()],
   resolve: { alias: ALIASES, conditions: ["development", "browser"] },
   test: { environment: "jsdom", include: ["tests/site/**/*.spec.{ts,tsx}"] },
 })

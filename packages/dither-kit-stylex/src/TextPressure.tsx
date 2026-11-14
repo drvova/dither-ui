@@ -14,6 +14,7 @@ const styles = stylex.create({
 
 export type TextPressureProps = {
   text?: string
+  /** @docs number (px) */
   radius?: number
   strength?: number
   class?: string

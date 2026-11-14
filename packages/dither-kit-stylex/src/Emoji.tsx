@@ -8,7 +8,14 @@ const styles = stylex.create({
   text: { display: "inline-block", lineHeight: "1" },
 })
 
-export type EmojiProps = { char?: string; label?: string; class?: string; xstyle?: StyleProp }
+export type EmojiProps = {
+  /** @docs string (unicode) */
+  char?: string
+  /** @docs string (aria) */
+  label?: string
+  class?: string
+  xstyle?: StyleProp
+}
 
 /** An emoji as an IMAGE with a real accessible name: `role="img"` +
  * `aria-label` gives screen readers one predictable announcement instead of

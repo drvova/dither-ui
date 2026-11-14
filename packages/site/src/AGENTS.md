@@ -222,7 +222,12 @@ around this tree (entries, routes, the build, how Solid is written) is
   key). Every prop a row binds is a real prop of its component, every
   setting reaches it or its demo, and the code a frame of each row
   exports, as it comes and edited, type-checks against the kit
-  (`tests/site/registry-props.spec.ts`). A component with a two-way value (a field's
+  (`tests/site/registry-props.spec.ts`). A row holds only what the
+  Studio needs that the props type cannot say (its label, the input's
+  kind, a range, the demo's values, the options it offers): every value a
+  setting hands its prop as it stands (its default, an edit, each option
+  of a select) is one the prop's type takes, by the checker, in the same
+  spec. A component with a two-way value (a field's
   value, the chips' pick; the registry's `model` row, its prop where the
   component names it, `value` for the list pickers) keeps it as `model`;
   a demo's own state (the drawer a swipe area opens) is a `model` with

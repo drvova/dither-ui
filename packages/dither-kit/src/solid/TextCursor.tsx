@@ -5,6 +5,7 @@ import { createInviewLoop } from "./runtime/in-view"
 
 export type TextCursorProps = {
   text?: string
+  /** @default undefined */
   class?: string
 }
 

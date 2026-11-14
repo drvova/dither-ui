@@ -34,17 +34,24 @@ export const STAGE = createContext<StageContext>()
 export type StageSlot = { readonly time: number; readonly width: number; readonly height: number }
 
 export type DitherStageProps = {
-  /** Seconds of one cycle of the stage's clock (it loops); unset, time runs on. */
+  /** Seconds of one cycle of the stage's clock (it loops); unset, time runs on.
+   * @docs number (s): the stage clock loops over it; unset, time runs on */
   duration?: number
-  /** Clock multiplier. */
+  /** Clock multiplier.
+   * @docs number: clock multiplier */
   speed?: number
   paused?: boolean
-  /** Stop-motion cadence in fps (0 = smooth) — see timing.ts. */
+  /** Stop-motion cadence in fps (0 = smooth) — see timing.ts.
+   * @docs number (fps, 0 = smooth) */
   frameRate?: number
-  /** Change to restart from 0. */
+  /** Change to restart from 0.
+   * @docs unknown: change to restart from 0 */
   restartKey?: unknown
+  /** @docs element tag */
   as?: string
+  /** @docs passthrough class. Give the stage a height: it is a size query container */
   class?: string
+  /** @docs function of { time, width, height }: the moment and the measured content box */
   children?: JSX.Element | ((scope: StageSlot) => JSX.Element)
 }
 

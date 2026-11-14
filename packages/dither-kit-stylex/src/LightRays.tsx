@@ -20,21 +20,35 @@ export type { RaysParams }
 export { paintRays }
 
 export type LightRaysProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#FFD23D', '#FF8A3D'] */
   colors?: string[]
   rayCount?: number
   speed?: number
+  /** @docs number (fbm jitter) */
   spread?: number
+  /** @docs number (distance fade) */
   falloff?: number
   glow?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

@@ -17,15 +17,21 @@ export type DitherGaugeProps = {
   value: number
   min?: number
   max?: number
-  /** Intervals between the major ticks. */
+  /** Intervals between the major ticks.
+   * @docs number (intervals between major ticks) */
   ticks?: number
-  /** Where the warning zone starts, as a share of the scale; null: none. */
+  /** Where the warning zone starts, as a share of the scale; null: none.
+   * @docs number | null (where the zone starts, 0..1) */
   warn?: number | null
-  /** What it reads, under the reading (also its accessible name). */
+  /** What it reads, under the reading (also its accessible name).
+   * @docs string (under the reading, its accessible name)
+   * @default undefined */
   label?: string
   decimals?: number
   color?: PixelColor
+  /** @docs PixelColor (the zone and the hub) */
   warnColor?: PixelColor
+  /** @default undefined */
   seed?: number
   class?: string
 }

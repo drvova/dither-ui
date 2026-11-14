@@ -1118,9 +1118,17 @@ generated twin. Inside the kit every import is relative
   and DitherImage for per-instance tuning.
 - Chart composition: root provides context (`cartesian-root` / `polar-root`),
   children register series via contexts. Props are declared with explicit
-  runtime defaults — keep the API tables in `packages/site/src/pages/docs` in
-  sync when defaults change (`packages/site/tests/site/docs-api.spec.ts` checks
-  every row's names against the components).
+  runtime defaults.
+- A component's props type is the one description of its props: the
+  docs' API tables print it (`packages/site/build/props.ts`), the Studio's
+  registry is held to it, and a reader copying the kit reads it in their
+  editor. Each prop the docs show differently from its declared type
+  carries `@docs <the type as a reader reads it, with its note>`; one
+  whose default the component's `mergeProps` literal does not say (or
+  says otherwise for the docs: `seed / blue`) carries `@default <value>`
+  (`none` for no default); an `@` in a tag is escaped, `\@container`.
+  A new prop, an edited type or a changed default reaches its table with
+  no other edit; the order of a props type is its table's order.
 
 ## Work Guidance
 

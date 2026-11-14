@@ -15,24 +15,34 @@ export type FaultyTerminalProps = {
   digitSize?: number
   timeScale?: number
   pause?: boolean
-  frameRate?: number
   scanlineIntensity?: number
   glitchAmount?: number
   flickerAmount?: number
   noiseAmp?: number
+  /** @docs number (px) */
   chromaticAberration?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   curvature?: number
+  /** @docs PixelColor (hex or seed) */
   tint?: PixelColor
   mouseReact?: boolean
   mouseStrength?: number
   pageLoadAnimation?: boolean
   brightness?: number
+  /** @docs string | { src: string; width?: number; height?: number } */
+  precompiled?: PrecompiledDither
+  /** @docs string
+   * @default undefined */
+  mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
-  precompiled?: PrecompiledDither
-  mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   class?: string
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
+  frameRate?: number
 }
 
 // A background cell of ~3px keeps the fbm affordable; low caps because the

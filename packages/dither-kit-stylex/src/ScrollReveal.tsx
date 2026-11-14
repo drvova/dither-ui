@@ -11,7 +11,9 @@ const styles = stylex.create({
 })
 
 export type ScrollRevealProps = {
+  /** @default required */
   text?: string
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

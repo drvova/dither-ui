@@ -99,14 +99,18 @@ const styles = stylex.create({
  * per-file remove, one clear-all. The model is `File[]` — read-only in the
  * DOM, owned by the parent through `modelValue`. */
 export type FileInputProps = {
+  /** @docs File[] (with onUpdateModelValue)
+   * @default [] */
   modelValue?: File[]
   multiple?: boolean
+  /** @docs string (input accept) */
   accept?: string
   disabled?: boolean
   buttonLabel?: string
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: File[]) => void
+  /** @docs (File[]) after pick/remove */
   onChange?: (value: File[]) => void
 }
 

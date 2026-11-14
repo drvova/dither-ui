@@ -2,9 +2,15 @@ import { createMemo, type JSX, mergeProps, splitProps } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 type Own = {
+  /** @docs string (css color) */
   color?: string
+  /** @docs string (aria name)
+   * @default the color */
   label?: string
+  /** @docs boolean (ring)
+   * @default false */
   selected?: boolean
+  /** @docs number (px) */
   size?: number
   disabled?: boolean
   class?: string

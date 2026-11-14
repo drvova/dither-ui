@@ -3,9 +3,12 @@ import { cn } from "../tailwind/lib"
 import "./TargetCursor.css"
 
 export type TargetCursorProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   size?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

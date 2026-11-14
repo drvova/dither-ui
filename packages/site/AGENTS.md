@@ -113,10 +113,21 @@ are from the repository's.
   example's data from the demo's own values). `widgets/source` completes
   a fragment into the module a reader takes (`asTsx`), shows the files
   and runs the example in the page (`src/widgets/source/AGENTS.md`).
-- The docs' API tables and prose are written in Solid's words (a row's
-  names are its component's real props; `tests/site/docs-api.spec.ts`
-  type-checks every row against the kit, with its exceptions listed and
-  commented).
+- The docs' API tables are printed off the kit's own props types, never
+  typed here: `build/props.ts` reads each component's props by the
+  TypeScript compiler (one row a prop the kit declares, in the type's
+  order: its `@docs` tag or else its declared type, its `@default` tag or
+  else the default the component merges) and serves a component's rows
+  as `virtual:dither-props/<Component>` (typed by
+  `src/pages/docs/kit-props.d.ts`), which a docs pack imports, so a table
+  loads with its pack. A pack's `API` (exported) builds each table with
+  `kitTable` (`pages/docs/PropsTable.tsx`): the rows it joins (`a / b`),
+  a family's parts (`prop (Item)`), the props a section is about
+  (`only`), and rows that are not props (`add`, with the reason beside
+  it); a name the kit does not declare, or an added row the kit declares,
+  fails the page. A table that documents functions stays literal rows.
+  The tables and prose are in Solid's words, and a prop added to the kit
+  is in its table with no other edit (`tests/site/docs-api.spec.ts`).
 - The Studio exports a frame as a Solid component: `entities/widget/model/codegen.ts`
   and `entities/chart/model/codegen.ts`, through `entities/artboard/code.ts`
   (`frameCode`: the `.tsx`, and its stylesheet where the styling system has
@@ -140,7 +151,8 @@ are from the repository's.
   film read them; adding a component or a section touches no count. Text
   shipped as written (the README, `public/agent/SKILL.md`) keeps its
   figures, pinned to them by `tests/landing-facts.spec.ts`.
-- Vite plugins, each a file in `build/`: `facts.ts` (above), `utilities.ts` (the utility map
+- Vite plugins, each a file in `build/`: `facts.ts` (above), `props.ts`
+  (the kit's props for the API tables, above), `utilities.ts` (the utility map
   the rewriter reads, compiled by `@dither-ui/restyle/utility-map` from the folders
   `utility-sources.ts` names, which the workspace's `rstack.config.ts`
   reads too), `kit-sources.ts` (the kit's own source at `kit/src/solid/`

@@ -8,7 +8,9 @@ import { cn } from "../tailwind/lib"
 export type ClickOutsideProps = {
   enabled?: boolean
   class?: string
+  /** @docs (event) => void: pointerdown outside */
   onOutside?: (event: Event) => void
+  /** @docs content */
   children?: JSX.Element
 }
 

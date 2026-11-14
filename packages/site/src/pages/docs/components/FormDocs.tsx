@@ -2,7 +2,11 @@ import { createSignal, For } from "solid-js"
 import { createStore } from "solid-js/store"
 import { DitherCheckbox, DitherProgress, DitherSlider, DitherSwitch } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import switchProps from "virtual:dither-props/DitherSwitch"
+import checkboxProps from "virtual:dither-props/DitherCheckbox"
+import sliderProps from "virtual:dither-props/DitherSlider"
+import progressProps from "virtual:dither-props/DitherProgress"
 import DocSection from "../DocSection"
 
 const SLIDER_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
@@ -64,34 +68,11 @@ export default function Example() {
   )
 }`
 
-const API: Record<string, PropRow[]> = {
-  switch: [
-    { prop: "modelValue", type: "boolean", default: "" },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  checkbox: [
-    { prop: "modelValue", type: "boolean", default: "" },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  slider: [
-    { prop: "modelValue", type: "number | [number, number] (array = range)", default: "" },
-    { prop: "min / max / step", type: "number", default: "0 / 100 / 1" },
-    { prop: "variant", type: '"gradient" | "dotted" | "hatched" | "solid"', default: '"gradient"' },
-    { prop: "ticks", type: "boolean (tick columns at steps if ≤25, else tenths)", default: "false" },
-    { prop: "showValue", type: "boolean (bubble while dragging or focused)", default: "false" },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-  ],
-  progress: [
-    { prop: "value", type: "number", default: "0" },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "indeterminate", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  switch: kitTable(switchProps),
+  checkbox: kitTable(checkboxProps),
+  slider: kitTable(sliderProps, { join: [["min", "max", "step"]] }),
+  progress: kitTable(progressProps),
 }
 
 export default function FormDocs() {

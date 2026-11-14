@@ -14,7 +14,9 @@ const styles = stylex.create({
 })
 
 export type ScrollVelocityProps = {
+  /** @default "DITHER · UI · TOOLKIT ·" */
   text?: string
+  /** @docs number (px/s) */
   baseSpeed?: number
   class?: string
   xstyle?: StyleProp

@@ -140,15 +140,21 @@ export type CommandItem = { value: string; label: string; group?: string; kbd?: 
  * leaves. Same open/close contract as the dialog; wire your own hotkey:
  * `window.addEventListener("keydown", e => e.metaKey && e.key === "k" && open())`. */
 export type DitherCommandProps = {
+  /** @docs boolean (onClose asks to leave)
+   * @default required */
   open: boolean
+  /** @docs { value, label, group?, kbd? }[]
+   * @default required */
   items: CommandItem[]
   placeholder?: string
   /** Shown when nothing matches; given as a function (of the query), it
-   * draws that instead. */
+   * draws that instead.
+   * @docs string (no-match line) | ({ query }) => JSX.Element, drawn in its place */
   empty?: string | ((scope: { query: string }) => JSX.Element)
   class?: string
   xstyle?: StyleProp
   onClose?: () => void
+  /** @docs (value), fired before close */
   onSelect?: (value: string) => void
 }
 

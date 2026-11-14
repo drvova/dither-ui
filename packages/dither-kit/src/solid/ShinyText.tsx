@@ -5,7 +5,9 @@ import "./ShinyText.css"
 export type ShinyTextProps = {
   speed?: number
   disabled?: boolean
+  /** @default undefined */
   class?: string
+  /** @docs text */
   children?: JSX.Element
 }
 

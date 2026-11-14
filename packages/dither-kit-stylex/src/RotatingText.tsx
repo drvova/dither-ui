@@ -13,8 +13,11 @@ const styles = stylex.create({
 })
 
 export type RotatingTextProps = {
+  /** @default ['Solid', 'canvas', 'dither'] */
   texts?: string[]
+  /** @docs number (ms) */
   interval?: number
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

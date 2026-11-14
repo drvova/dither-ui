@@ -12,8 +12,11 @@ const styles = stylex.create({
  * where recognition happens. `head`/`tail` are character counts; the full
  * string lands in `title`. Pure text, so it never fights `truncate`. */
 export type MiddleEllipsisProps = {
+  /** @default "…" */
   text?: string
+  /** @docs number (chars) */
   head?: number
+  /** @docs number (chars) */
   tail?: number
   title?: boolean
   class?: string

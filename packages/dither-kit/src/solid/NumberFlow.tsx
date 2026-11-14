@@ -6,10 +6,13 @@ import { cn } from "../tailwind/lib"
  * new figure whenever `value` changes. Separators stay put. Reduced motion
  * snaps columns without the roll. */
 export type NumberFlowProps = {
+  /** @default required */
   value: number
   decimals?: number
-  /** Roll time per change, ms. */
+  /** Roll time per change, ms.
+   * @docs number (ms): roll time per change */
   duration?: number
+  /** @default undefined */
   class?: string
 }
 

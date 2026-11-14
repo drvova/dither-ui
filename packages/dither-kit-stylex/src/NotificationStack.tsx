@@ -150,17 +150,27 @@ const VARIANTS = {
 export type NotificationStackVariant = keyof typeof VARIANTS
 
 export type NotificationStackProps = {
+  /** @docs { id, title, body?, time?, icon?, color? }[]
+   * @default required */
   items: NotificationItem[]
-  /** Pinned-open state (with `onUpdateModelValue`); hover and focus expand transiently. */
+  /** Pinned-open state (with `onUpdateModelValue`); hover and focus expand transiently.
+   * @docs boolean (with onUpdateModelValue): pinned open; hover/focus expand transiently */
   modelValue?: boolean
   onUpdateModelValue?: (expanded: boolean) => void
-  onViewall?: () => void
+  /** @docs number: cards shown in the stack and list */
   maxVisible?: number
+  /** @docs string: header + toggle aria-label */
   collapsedLabel?: string
+  /** @docs string: view-all button text */
   expandedLabel?: string
+  /** @docs string: empty-state card */
   emptyLabel?: string
+  /** @docs "stack" | "fan" | "condensed": collapsed silhouette */
   variant?: NotificationStackVariant
+  /** @docs PixelColor: icon fallback tint */
   color?: PixelColor
+  /** @docs () when view-all is pressed */
+  onViewall?: () => void
   class?: string
   xstyle?: StyleProp
 }

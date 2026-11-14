@@ -5,9 +5,13 @@ import { createKitTime } from "./runtime/kit-time"
 import "./TextType.css"
 
 export type TextTypeProps = {
+  /** @default ['Type this out.', 'Then this.'] */
   texts?: string[]
+  /** @docs number (ms) */
   typingSpeed?: number
+  /** @docs number (ms) */
   deletingSpeed?: number
+  /** @docs number (ms) */
   pause?: number
   loop?: boolean
   cursor?: boolean

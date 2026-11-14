@@ -4,7 +4,10 @@ import { type JSX, mergeProps, splitProps } from "solid-js"
 import { cn, type StyleProp } from "./lib"
 
 type Own = {
+  /** @default required */
   src: string
+  /** @docs string (empty string = decorative)
+   * @default required */
   alt: string
   loading?: "lazy" | "eager"
   decoding?: "async" | "auto" | "sync"

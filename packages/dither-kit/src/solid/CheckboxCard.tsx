@@ -4,12 +4,16 @@ import DitherCheckbox from "./DitherCheckbox"
 import "./CheckboxCard.css"
 
 export type CheckboxCardProps = {
-  label?: string
-  description?: string
+  /** @docs boolean (with onUpdateModelValue)
+   * @default false */
   modelValue?: boolean
+  label?: string
+  /** @default "" */
+  description?: string
   onUpdateModelValue?: (value: boolean) => void
   disabled?: boolean
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

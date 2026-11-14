@@ -18,7 +18,9 @@ const styles = stylex.create({
 
 export type TrueFocusProps = {
   text?: string
+  /** @docs number (ms) */
   interval?: number
+  /** @docs number (px) */
   blur?: number
   class?: string
   xstyle?: StyleProp

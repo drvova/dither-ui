@@ -46,8 +46,13 @@ interface CascadeNode {
 }
 
 export type CascadeSelectProps = {
+  /** @docs { value, children? }[] */
   tree?: CascadeNode[]
+  /** @docs string[] path (with onUpdateModelValue)
+   * @default [] */
   value?: string[]
+  /** @docs string[] per level
+   * @default Level n */
   placeholders?: string[]
   disabled?: boolean
   class?: string

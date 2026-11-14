@@ -14,7 +14,10 @@ const styles = stylex.create({
 /** External link: new-tab semantics done right (`target=_blank rel=noreferrer`)
  * plus the ExternalLink glyph after the label — the pattern every outbound
  * link in this kit follows. */
-export type ExternalLinkProps = Omit<LinkProps, "external"> & { iconSize?: number }
+export type ExternalLinkProps = Omit<LinkProps, "external"> & {
+  /** @docs number (px) */
+  iconSize?: number
+}
 
 export default function ExternalLink(raw: ExternalLinkProps) {
   const merged = mergeProps({ iconSize: 12 }, raw)

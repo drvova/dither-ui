@@ -19,7 +19,9 @@ const styles = stylex.create({
 })
 
 export type SpacerProps = {
+  /** @docs "y" | "x" */
   axis?: "x" | "y"
+  /** @docs "xs" | "sm" | "md" | "lg" | "xl" (4–40px) */
   size?: "xs" | "sm" | "md" | "lg" | "xl"
   class?: string
   xstyle?: StyleProp

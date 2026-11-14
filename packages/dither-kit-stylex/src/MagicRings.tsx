@@ -11,11 +11,14 @@ const styles = stylex.create({
 })
 
 export type MagicRingsProps = {
+  /** @docs string (hex) */
   color?: string
   count?: number
+  /** @docs number (s) */
   duration?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -11,7 +11,14 @@ import {
   DitherOtpField,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import inputProps from "virtual:dither-props/DitherInput"
+import textareaProps from "virtual:dither-props/DitherTextarea"
+import fieldProps from "virtual:dither-props/DitherField"
+import formProps from "virtual:dither-props/DitherForm"
+import fieldsetProps from "virtual:dither-props/DitherFieldset"
+import numberFieldProps from "virtual:dither-props/DitherNumberField"
+import otpFieldProps from "virtual:dither-props/DitherOtpField"
 import DocSection from "../DocSection"
 
 const SNIPPET_INPUT = `import { createSignal } from "solid-js"
@@ -129,42 +136,14 @@ export default function Example() {
   )
 }`
 
-const API: Record<string, PropRow[]> = {
-  input: [
-    { prop: "modelValue", type: "string", default: '""' },
-    { prop: "type", type: "string", default: '"text"' },
-    { prop: "placeholder", type: "string", default: "" },
-    { prop: "disabled / readonly / invalid", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  textarea: [
-    { prop: "modelValue", type: "string", default: '""' },
-    { prop: "placeholder", type: "string", default: "" },
-    { prop: "rows", type: "number", default: "4" },
-    { prop: "resize", type: '"none" | "vertical" | "horizontal" | "both"', default: '"vertical"' },
-    { prop: "disabled / readonly / invalid", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  field: [
-    { prop: "label", type: "string", default: "" },
-    { prop: "description", type: "string", default: "" },
-    { prop: "error", type: "string", default: "" },
-    { prop: "for", type: "string", default: "" },
-  ],
-  fieldset: [{ prop: "legend", type: "string", default: "" }],
-  form: [],
-  numberField: [
-    { prop: "modelValue", type: "number", default: "" },
-    { prop: "min", type: "number", default: "" },
-    { prop: "max", type: "number", default: "" },
-    { prop: "step", type: "number", default: "1" },
-    { prop: "label", type: "string", default: "" },
-    { prop: "disabled", type: "boolean", default: "false" },
-  ],
-  otpField: [
-    { prop: "length", type: "number", default: "6" },
-    { prop: "modelValue", type: "string", default: '""' },
-  ],
+export const API: Record<string, PropRow[]> = {
+  input: kitTable(inputProps, { join: [["disabled", "readonly", "invalid"]] }),
+  textarea: kitTable(textareaProps, { join: [["disabled", "readonly", "invalid"]] }),
+  field: kitTable(fieldProps),
+  fieldset: kitTable(fieldsetProps),
+  form: kitTable(formProps),
+  numberField: kitTable(numberFieldProps),
+  otpField: kitTable(otpFieldProps),
 }
 
 export default function FieldDocs() {

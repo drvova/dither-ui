@@ -8,30 +8,39 @@ import { cn } from "../tailwind/lib"
 import { latestEntry } from "../engine/visibility"
 
 export type SequenceProps = {
-  /** Seconds between neighbouring children's starts. */
+  /** Seconds between neighbouring children's starts.
+   * @docs number: seconds between neighbouring children */
   stagger?: number
-  /** Which end of the group starts first. */
+  /** Which end of the group starts first.
+   * @docs "start" | "center" | "end" | "edges" | literal index */
   from?: StaggerFrom
-  /** One child's cycle, seconds. */
+  /** One child's cycle, seconds.
+   * @docs number (s per cycle) */
   duration?: number
-  /** Progress easing per cycle — timing.ts (`steps(4)` quantizes). */
+  /** Progress easing per cycle — timing.ts (`steps(4)` quantizes).
+   * @docs (p) => number from timing.ts
+   * @default linear */
   easing?: Easing
   /** Whole cycles per child. */
   loop?: number
   /** Odd cycles play in reverse (an even loop settles back at 0). */
   yoyo?: boolean
-  /** Seconds before the timeline starts (children sit at 0 until then). */
+  /** Seconds before the timeline starts (children sit at 0 until then).
+   * @docs seconds before the timeline */
   delay?: number
   paused?: boolean
   /** Replay whenever the group scrolls back into view. */
   restartOnView?: boolean
-  /** Stop-motion cadence in fps (0 = smooth) — the kit-wide knob. */
+  /** Stop-motion cadence in fps (0 = smooth) — the kit-wide knob.
+   * @docs fps cadence */
   frameRate?: number
-  /** Bump to rebuild (children changed) and replay from the start. */
+  /** Bump to rebuild (children changed) and replay from the start.
+   * @docs string | number (bump rebuilds and replays) */
   restartKey?: string | number
   onComplete?: () => void
   as?: string
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

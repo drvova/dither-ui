@@ -54,7 +54,9 @@ function paintDot(ctx: CanvasRenderingContext2D, cells: number, color: PixelColo
 }
 
 export type DitherTimelineProps = {
+  /** @docs { title; time?; body?; color? }[] */
   items: TimelineItem[]
+  /** @docs number (px) */
   dotSize?: number
   class?: string
   xstyle?: StyleProp

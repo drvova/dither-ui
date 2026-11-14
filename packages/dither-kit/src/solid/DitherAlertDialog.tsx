@@ -10,6 +10,7 @@ import "./DitherAlertDialog.css"
 export type DitherAlertDialogProps = {
   open: boolean
   title: string
+  /** @default undefined */
   description?: string
   confirmLabel?: string
   cancelLabel?: string

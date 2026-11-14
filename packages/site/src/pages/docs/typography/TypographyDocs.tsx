@@ -26,7 +26,29 @@ import {
   DitherTruncate,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import headingProps from "virtual:dither-props/DitherHeading"
+import labelProps from "virtual:dither-props/DitherLabel"
+import captionProps from "virtual:dither-props/DitherCaption"
+import overlineProps from "virtual:dither-props/DitherOverline"
+import kbdComboProps from "virtual:dither-props/DitherKbdCombo"
+import truncateProps from "virtual:dither-props/DitherTruncate"
+import lineClampProps from "virtual:dither-props/DitherLineClamp"
+import middleEllipsisProps from "virtual:dither-props/DitherMiddleEllipsis"
+import ellipsisTooltipProps from "virtual:dither-props/DitherEllipsisTooltip"
+import linkProps from "virtual:dither-props/DitherLink"
+import externalLinkProps from "virtual:dither-props/DitherExternalLink"
+import selectableTextProps from "virtual:dither-props/DitherSelectableText"
+import copyableTextProps from "virtual:dither-props/DitherCopyableText"
+import numberTextProps from "virtual:dither-props/DitherNumberText"
+import currencyTextProps from "virtual:dither-props/DitherCurrencyText"
+import percentTextProps from "virtual:dither-props/DitherPercentText"
+import fileSizeTextProps from "virtual:dither-props/DitherFileSizeText"
+import durationTextProps from "virtual:dither-props/DitherDurationText"
+import relativeTimeProps from "virtual:dither-props/DitherRelativeTime"
+import dateTimeTextProps from "virtual:dither-props/DitherDateTimeText"
+import pluralTextProps from "virtual:dither-props/DitherPluralText"
+import emojiProps from "virtual:dither-props/DitherEmoji"
 import DocSection from "../DocSection"
 
 const SNIPPET_HEADING = `<DitherHeading level="2">Section title</DitherHeading>
@@ -112,97 +134,29 @@ const SNIPPET_PLURAL_TEXT = `const [selected, setSelected] = createSignal(7)
 const SNIPPET_EMOJI = `<DitherEmoji char="🚀" label="launch" />
 <DitherEmoji char="🔥" label="trending" class="text-lg" />`
 
-const API: Record<string, PropRow[]> = {
-  heading: [
-    { prop: "level", type: "1 | 2 | 3 | 4 | 5 | 6", default: "2" },
-    { prop: "size", type: "1 | 2 | 3 | 4 | 5 | 6", default: "level" },
-  ],
-  label: [{ prop: "required", type: "boolean", default: "false" }],
-  caption: [{ prop: "tone", type: '"muted" | "faint"', default: '"muted"' }],
-  overline: [{ prop: "tone", type: '"muted" | "faint"', default: '"muted"' }],
-  code: [],
-  kbdCombo: [
-    { prop: "keys", type: "string[]", default: "['⌘', 'K']" },
-    { prop: "separator", type: "string", default: '"+"' },
-  ],
-  blockquote: [],
-  highlight: [],
-  truncate: [
-    { prop: "as", type: "string", default: '"span"' },
-    { prop: "title", type: "string", default: "" },
-  ],
-  lineClamp: [
-    { prop: "lines", type: "1 | 2 | 3 | 4 | 5 | 6", default: "3" },
-    { prop: "as", type: "string", default: '"p"' },
-  ],
-  middleEllipsis: [
-    { prop: "text", type: "string", default: '"…"' },
-    { prop: "head", type: "number (chars)", default: "8" },
-    { prop: "tail", type: "number (chars)", default: "6" },
-    { prop: "title", type: "boolean", default: "true" },
-  ],
-  ellipsisTooltip: [
-    { prop: "enabled", type: "boolean", default: "true" },
-    { prop: "as", type: "string", default: '"span"' },
-  ],
-  link: [
-    { prop: "href", type: "string", default: "required" },
-    { prop: "external", type: "boolean (target + rel)", default: "false" },
-  ],
-  externalLink: [{ prop: "iconSize", type: "number (px)", default: "12" }],
-  selectableText: [{ prop: "as", type: "string", default: '"span"' }],
-  copyableText: [
-    { prop: "value", type: "string", default: "required" },
-    { prop: "label", type: "string (aria)", default: '"Copy"' },
-    { prop: "size", type: "number (px)", default: "14" },
-  ],
-  numberText: [
-    { prop: "value", type: "number", default: "required" },
-    { prop: "decimals", type: "number (min = max)", default: "natural" },
-    { prop: "locale", type: "string", default: '"en-US"' },
-    { prop: "grouping", type: "boolean", default: "true" },
-  ],
-  currencyText: [
-    { prop: "value", type: "number", default: "required" },
-    { prop: "currency", type: "string (ISO 4217)", default: '"USD"' },
-    { prop: "locale", type: "string", default: '"en-US"' },
-    { prop: "decimals", type: "number", default: "2" },
-  ],
-  percentText: [
-    { prop: "value", type: "number (fraction)", default: "required" },
-    { prop: "decimals", type: "number", default: "0" },
-    { prop: "locale", type: "string", default: '"en-US"' },
-  ],
-  fileSizeText: [
-    { prop: "bytes", type: "number", default: "0" },
-    { prop: "decimals", type: "number (≥ 1KB)", default: "1" },
-    { prop: "locale", type: "string", default: '"en-US"' },
-  ],
-  durationText: [{ prop: "ms", type: "number", default: "0" }],
-  relativeTime: [
-    { prop: "date", type: "Date | string | number", default: "required" },
-    { prop: "auto", type: "boolean (re-tick)", default: "true" },
-    { prop: "now", type: "number (frozen clock)", default: "Date.now()" },
-    { prop: "updateInterval", type: "number (ms)", default: "30000" },
-  ],
-  dateTimeText: [
-    { prop: "date", type: "Date | string | number", default: '""' },
-    { prop: "locale", type: "string", default: '"en-US"' },
-    { prop: "options", type: "Intl.DateTimeFormatOptions", default: "medium date + short time" },
-  ],
-  pluralText: [
-    { prop: "count", type: "number", default: "0" },
-    { prop: "locale", type: "string (BCP 47)", default: '"en"' },
-    {
-      prop: "zero / one / two / few / many / other / children",
-      type: "({ count }) => JSX.Element, named by category: one, few, many… + children",
-      default: "children",
-    },
-  ],
-  emoji: [
-    { prop: "char", type: "string (unicode)", default: '"✨"' },
-    { prop: "label", type: "string (aria)", default: '""' },
-  ],
+export const API: Record<string, PropRow[]> = {
+  heading: kitTable(headingProps),
+  label: kitTable(labelProps),
+  caption: kitTable(captionProps),
+  overline: kitTable(overlineProps),
+  kbdCombo: kitTable(kbdComboProps),
+  truncate: kitTable(truncateProps),
+  lineClamp: kitTable(lineClampProps),
+  middleEllipsis: kitTable(middleEllipsisProps),
+  ellipsisTooltip: kitTable(ellipsisTooltipProps),
+  link: kitTable(linkProps),
+  externalLink: kitTable(externalLinkProps),
+  selectableText: kitTable(selectableTextProps),
+  copyableText: kitTable(copyableTextProps),
+  numberText: kitTable(numberTextProps),
+  currencyText: kitTable(currencyTextProps),
+  percentText: kitTable(percentTextProps),
+  fileSizeText: kitTable(fileSizeTextProps),
+  durationText: kitTable(durationTextProps),
+  relativeTime: kitTable(relativeTimeProps),
+  dateTimeText: kitTable(dateTimeTextProps),
+  pluralText: kitTable(pluralTextProps, { join: [["zero", "one", "two", "few", "many", "other", "children"]] }),
+  emoji: kitTable(emojiProps),
 }
 
 export default function TypographyDocs() {

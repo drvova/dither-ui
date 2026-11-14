@@ -2,11 +2,17 @@ import { createMemo, createUniqueId, For, mergeProps, Show } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 export type ChoiceChipsProps = {
+  /** @docs string (names the group, shown over the chips)
+   * @default "" */
   label?: string
   options?: string[]
-  /** The choice; `value` is the older name, still read. */
+  /** The choice; `value` is the older name, still read.
+   * @docs string | string[] (with onUpdateModelValue; `value` still read)
+   * @default "" / [] */
   modelValue?: string | string[]
   value?: string | string[]
+  /** @docs boolean (checkbox mode)
+   * @default false */
   multiple?: boolean
   disabled?: boolean
   class?: string

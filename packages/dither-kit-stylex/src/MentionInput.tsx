@@ -77,6 +77,8 @@ const styles = stylex.create({
  * that moves no caret (Tab coming in, Escape) opens nothing, so Tab always
  * leaves: once to insert, then on. */
 export type MentionInputProps = {
+  /** @docs string (with onUpdateModelValue)
+   * @default "" */
   modelValue?: string
   options?: string[]
   placeholder?: string
@@ -85,6 +87,7 @@ export type MentionInputProps = {
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
+  /** @docs (handle) on insert */
   onMention?: (value: string) => void
 }
 

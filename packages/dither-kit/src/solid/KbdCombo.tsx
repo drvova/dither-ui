@@ -2,7 +2,12 @@ import { createMemo, Index, mergeProps, Show } from "solid-js"
 import { cn } from "../tailwind/lib"
 import DitherKbd from "./DitherKbd"
 
-export type KbdComboProps = { keys?: string[]; separator?: string; class?: string }
+export type KbdComboProps = {
+  /** @default ['⌘', 'K'] */
+  keys?: string[]
+  separator?: string
+  class?: string
+}
 
 /** A key combo as one readable unit: `["⌘", "K"]` renders ⌘ + K with the
  * separators Kbd uses — single keys go through DitherKbd directly. */

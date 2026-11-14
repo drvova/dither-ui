@@ -10,7 +10,8 @@ import {
 import { Area, AreaChart } from "@/shared/ui/charts"
 import DemoCard from "../DemoCard"
 import { dataCode } from "../snippet"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import screenProps from "virtual:dither-props/DitherScreen"
 import DocSection from "../DocSection"
 
 const LABELS: Record<ScreenKind, string> = {
@@ -55,10 +56,7 @@ ${dataCode("config", CHART)}
 {/* or the matrices alone, for your own painter: screenMatrix("dot", seed)
      gives the 4x4 thresholds, read as m[y & 3][x & 3] */}`
 
-const API: PropRow[] = [
-  { prop: "screen", type: "'bayer' | 'line' | 'diagonal' | 'dot' | 'cross'", default: "'diagonal'" },
-  { prop: "children", type: "content (every surface inside prints through the screen)", default: "" },
-]
+export const API: PropRow[] = kitTable(screenProps)
 
 export default function ScreensSection() {
   /* One DitherScreen around three different surfaces: picking a screen

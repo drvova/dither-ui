@@ -2,7 +2,13 @@ import { createSignal, type JSX, mergeProps, onCleanup, onMount } from "solid-js
 import { Dynamic } from "solid-js/web"
 import { cn } from "../tailwind/lib"
 
-export type EllipsisTooltipProps = { as?: string; enabled?: boolean; class?: string; children?: JSX.Element }
+export type EllipsisTooltipProps = {
+  enabled?: boolean
+  as?: string
+  class?: string
+  /** @docs content */
+  children?: JSX.Element
+}
 
 /** Truncation with the tooltip attached only when it earns it: observes its
  * own overflow (ResizeObserver, no forced reads) and — clipped — publishes the

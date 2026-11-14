@@ -42,12 +42,15 @@ const styles = stylex.create({
 /** Search field: leading glyph, one-click clear (shown only when there is
  * something to clear), Escape empties the field. */
 type Own = {
+  /** @docs string (with onUpdateModelValue)
+   * @default "" */
   modelValue?: string
   placeholder?: string
   disabled?: boolean
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
+  /** @docs () on clear/Escape */
   onClear?: () => void
 }
 const OWN = [

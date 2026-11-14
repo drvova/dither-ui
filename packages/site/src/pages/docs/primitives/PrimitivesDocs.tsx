@@ -22,7 +22,26 @@ import { assetPath } from "@/shared/lib"
 import { DitherIcon, DitherIconSet } from "@dither-ui/kit"
 import { ICON_NAMES } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import boxProps from "virtual:dither-props/DitherBox"
+import textProps from "virtual:dither-props/DitherText"
+import dividerProps from "virtual:dither-props/DitherDivider"
+import visuallyHiddenProps from "virtual:dither-props/DitherVisuallyHidden"
+import iconProps from "virtual:dither-props/DitherIcon"
+import iconSetProps from "virtual:dither-props/DitherIconSet"
+import svgProps from "virtual:dither-props/DitherSvg"
+import imgProps from "virtual:dither-props/DitherImg"
+import spacerProps from "virtual:dither-props/DitherSpacer"
+import portalProps from "virtual:dither-props/DitherPortal"
+import overlayProps from "virtual:dither-props/DitherOverlay"
+import measureProps from "virtual:dither-props/DitherMeasure"
+import clipboardProps from "virtual:dither-props/DitherClipboard"
+import clickOutsideProps from "virtual:dither-props/DitherClickOutside"
+import focusScopeProps from "virtual:dither-props/DitherFocusScope"
+import hoverAreaProps from "virtual:dither-props/DitherHoverArea"
+import pressableProps from "virtual:dither-props/DitherPressable"
+import inViewProps from "virtual:dither-props/DitherInView"
+import focusRingProps from "virtual:dither-props/DitherFocusRing"
 import DocSection from "../DocSection"
 
 const SNIPPET_BOX = `<DitherBox as="section" class="rounded-lg border border-border/60 bg-card/40 p-5">
@@ -173,73 +192,29 @@ const SNIPPET_ICON_SET = `{/* once, near the app root */}
   <use href="#di-icon-Star" />
 </svg>`
 
-const API: Record<string, PropRow[]> = {
-  box: [{ prop: "as", type: '"div" | "section" | "span" | "article" | …', default: '"div"' }],
-  text: [
-    { prop: "as", type: '"p" | "span" | "h3" | "li" | …', default: '"p"' },
-    { prop: "tone", type: '"default" | "muted" | "faint"', default: '"default"' },
-    { prop: "size", type: '"xs" | "sm" | "md" | "lg" (11–15px)', default: "" },
-  ],
-  divider: [{ prop: "orientation", type: '"horizontal" | "vertical"', default: '"horizontal"' }],
-  visuallyHidden: [{ prop: "focusable", type: "boolean", default: "false" }],
-  icon: [
-    { prop: "name", type: "IconName (glyph list in icons.ts)", default: "required" },
-    { prop: "size", type: "number (px)", default: "16" },
-    { prop: "label", type: "string (promotes to role=img)", default: "" },
-    { prop: "strokeWidth", type: "number", default: "2" },
-  ],
-  iconSet: [{ prop: "use", type: 'via <use href="#di-icon-Name">', default: "" }],
-  svg: [
-    { prop: "viewBox", type: "string", default: "" },
-    { prop: "label", type: "string (promotes to role=img)", default: "" },
-  ],
-  img: [
-    { prop: "src", type: "string", default: "required" },
-    { prop: "alt", type: "string (empty string = decorative)", default: "required" },
-    { prop: "loading", type: '"lazy" | "eager"', default: '"lazy"' },
-    { prop: "decoding", type: '"async" | "auto" | "sync"', default: '"async"' },
-  ],
-  spacer: [
-    { prop: "axis", type: '"y" | "x"', default: '"y"' },
-    { prop: "size", type: '"xs" | "sm" | "md" | "lg" | "xl" (4–40px)', default: '"md"' },
-  ],
-  portal: [
-    { prop: "to", type: "string (selector)", default: '"body"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "defer", type: "boolean (the target may come later in the markup)", default: "false" },
-  ],
-  overlay: [
-    { prop: "dim", type: '"none" | "soft" | "medium" | "strong"', default: '"soft"' },
-    { prop: "interactive", type: "boolean", default: "false" },
-  ],
-  measure: [{ prop: "onResize", type: "({ width, height }) => void", default: "on box change" }],
-  clipboard: [
-    { prop: "value", type: "string", default: "required" },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "onCopied", type: "(value) => void", default: "on success" },
-  ],
-  clickOutside: [
-    { prop: "enabled", type: "boolean", default: "true" },
-    { prop: "onOutside", type: "(event) => void: pointerdown outside", default: "" },
-  ],
-  focusRing: [],
-  focusScope: [
-    { prop: "autofocus", type: "boolean", default: "true" },
-    { prop: "trapped", type: "boolean", default: "true" },
-    { prop: "restoreFocus", type: "boolean", default: "true" },
-  ],
-  hoverArea: [{ prop: "children", type: "({ hovered, focused }) => JSX.Element", default: "" }],
-  pressable: [
-    { prop: "variant", type: '"solid" | "outline" | "ghost" | "plain"', default: '"solid"' },
-    { prop: "type", type: '"button" | "submit" | "reset"', default: '"button"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-  ],
-  inView: [
-    { prop: "rootMargin", type: "string", default: '"200px"' },
-    { prop: "threshold", type: "number", default: "0" },
-    { prop: "once", type: "boolean", default: "true" },
-    { prop: "children", type: "({ inView }) => JSX.Element", default: "" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  box: kitTable(boxProps),
+  text: kitTable(textProps),
+  divider: kitTable(dividerProps),
+  visuallyHidden: kitTable(visuallyHiddenProps),
+  icon: kitTable(iconProps),
+  iconSet: kitTable(iconSetProps, {
+    // how a sprite of the set is drawn
+    add: { rows: [{ prop: "use", type: 'via <use href="#di-icon-Name">', default: "" }] },
+  }),
+  svg: kitTable(svgProps),
+  img: kitTable(imgProps),
+  spacer: kitTable(spacerProps),
+  portal: kitTable(portalProps),
+  overlay: kitTable(overlayProps),
+  measure: kitTable(measureProps),
+  clipboard: kitTable(clipboardProps),
+  clickOutside: kitTable(clickOutsideProps),
+  focusRing: kitTable(focusRingProps),
+  focusScope: kitTable(focusScopeProps),
+  hoverArea: kitTable(hoverAreaProps),
+  pressable: kitTable(pressableProps),
+  inView: kitTable(inViewProps),
 }
 
 export default function PrimitivesDocs() {

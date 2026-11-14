@@ -8,10 +8,12 @@ import "./CenterMorphModal.css"
 
 export type CenterMorphModalProps = {
   open: boolean
+  /** @docs string (accessible name) */
   label?: string
   closeOnBackdrop?: boolean
   class?: string
   onClose?: () => void
+  /** @docs content */
   children?: JSX.Element
 }
 

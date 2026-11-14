@@ -7,14 +7,20 @@ export type ConsoleLine = { text: string; level?: ConsoleLevel; at?: string }
 /** Monospace log surface — level-tinted lines, an optional blinking caret,
  * and follow mode that keeps the newest line in view. */
 export type DitherConsoleProps = {
+  /** @docs (string | { text, level?, at? })[] (level: info | success | warn | error)
+   * @default [] */
   lines?: (string | ConsoleLine)[]
+  /** @docs string (header caption) */
   title?: string
-  /** Pin the view to the newest line as output arrives. */
+  /** Pin the view to the newest line as output arrives.
+   * @docs boolean (pin the view to the newest line) */
   follow?: boolean
-  /** Blinking block caret after the last line (still under reduced motion). */
+  /** Blinking block caret after the last line (still under reduced motion).
+   * @docs boolean (blinking block caret, still under reduced motion) */
   caret?: boolean
   class?: string
-  /** Controls at the end of the title bar. */
+  /** Controls at the end of the title bar.
+   * @docs JSX.Element (right side of the header) */
   actions?: JSX.Element
 }
 

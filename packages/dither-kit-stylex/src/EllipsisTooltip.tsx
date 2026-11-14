@@ -10,10 +10,11 @@ const styles = stylex.create({
 })
 
 export type EllipsisTooltipProps = {
-  as?: string
   enabled?: boolean
+  as?: string
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

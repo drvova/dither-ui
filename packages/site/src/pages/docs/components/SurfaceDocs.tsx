@@ -27,7 +27,20 @@ import {
   toast,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import accordionProps from "virtual:dither-props/DitherAccordion"
+import alertDialogProps from "virtual:dither-props/DitherAlertDialog"
+import drawerProps from "virtual:dither-props/DitherDrawer"
+import sidebarProps from "virtual:dither-props/DitherSidebar"
+import sidebarGroupProps from "virtual:dither-props/DitherSidebarGroup"
+import sidebarItemProps from "virtual:dither-props/DitherSidebarItem"
+import sidebarSubProps from "virtual:dither-props/DitherSidebarSub"
+import gaugeProps from "virtual:dither-props/DitherGauge"
+import scopeProps from "virtual:dither-props/DitherScope"
+import meterProps from "virtual:dither-props/DitherMeter"
+import scrollAreaProps from "virtual:dither-props/DitherScrollArea"
+import toolbarProps from "virtual:dither-props/DitherToolbar"
+import navMenuProps from "virtual:dither-props/DitherNavMenu"
 import DocSection from "../DocSection"
 
 const FAQ = [
@@ -258,86 +271,27 @@ const items = [
 <DitherNavMenu modelValue={active()} onUpdateModelValue={setActive} items={items} color="blue" />
 <p class="mt-4 text-[12px] text-muted-foreground">Viewing: {active()}</p>`
 
-const API: Record<string, PropRow[]> = {
-  accordion: [
-    { prop: "items", type: "{ value: string; title: string }[]", default: "" },
-    { prop: "modelValue", type: "string | string[]", default: "" },
-    { prop: "type", type: '"single" | "multiple"', default: '"single"' },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-  ],
-  alertDialog: [
-    { prop: "open", type: "boolean", default: "" },
-    { prop: "title", type: "string", default: "" },
-    { prop: "description", type: "string", default: "undefined" },
-    { prop: "confirmLabel", type: "string", default: '"Confirm"' },
-    { prop: "cancelLabel", type: "string", default: '"Cancel"' },
-    { prop: "danger", type: "boolean", default: "false" },
-  ],
-  drawer: [
-    { prop: "open", type: "boolean", default: "" },
-    { prop: "side", type: '"right" | "left" | "bottom"', default: '"right"' },
-    { prop: "title", type: "string", default: "undefined" },
-    { prop: "swipe", type: "boolean: drag to dismiss, momentum decides", default: "true" },
-    { prop: "snapPoints", type: "number[]: ≤1 vh fraction, >1 px (bottom)", default: "undefined" },
-    { prop: "snapPoint", type: "number (with onUpdateSnapPoint)", default: "first snap" },
-    { prop: "modal", type: "boolean (false: no backdrop, page stays live)", default: "true" },
-    { prop: "dismissible", type: "boolean (false: backdrop click ignored)", default: "true" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  accordion: kitTable(accordionProps),
+  alertDialog: kitTable(alertDialogProps),
+  drawer: kitTable(drawerProps),
   sidebar: [
-    { prop: "modelValue (Sidebar)", type: "boolean: collapsed (with onUpdateModelValue)", default: "false" },
-    { prop: "variant (Sidebar)", type: '"default" | "floating" | "inset" | "washed"', default: '"default"' },
-    { prop: "collapse (Sidebar)", type: '"rail" | "hide" | "none"', default: '"rail"' },
-    { prop: "side (Sidebar)", type: '"left" | "right"', default: '"left"' },
-    { prop: "density (Sidebar)", type: '"default" | "compact"', default: '"default"' },
-    { prop: "toggle (Sidebar)", type: "boolean (false: permanent rail)", default: "true" },
-    { prop: "washColor (Sidebar)", type: 'PixelColor (for variant="washed")', default: '"blue"' },
-    { prop: "label (Group)", type: "string: folds to a hairline on the rail", default: "undefined" },
-    { prop: "label / active / color (Item)", type: "string / boolean / PixelColor", default: 'none / false / "blue"' },
-    { prop: "badge (Item)", type: "string | number: dot on the rail", default: "undefined" },
-    { prop: "modelValue / label (Sub)", type: "boolean (with onUpdateModelValue) / string", default: "false / none" },
+    ...kitTable(sidebarProps, { part: "Sidebar" }),
+    ...kitTable(sidebarGroupProps, { part: "Group" }),
+    ...kitTable(sidebarItemProps, { part: "Item", join: [["label", "active", "color"]] }),
+    ...kitTable(sidebarSubProps, { part: "Sub", join: [["modelValue", "label"]] }),
   ],
   toast: [
     { prop: "message", type: "string", default: "" },
     { prop: "opts.color", type: "PixelColor", default: '"blue"' },
     { prop: "opts.duration", type: "number", default: "3500" },
   ],
-  gauge: [
-    { prop: "value", type: "number", default: "" },
-    { prop: "min", type: "number", default: "0" },
-    { prop: "max", type: "number", default: "100" },
-    { prop: "ticks", type: "number (intervals between major ticks)", default: "10" },
-    { prop: "warn", type: "number | null (where the zone starts, 0..1)", default: "0.8" },
-    { prop: "label", type: "string (under the reading, its accessible name)", default: "undefined" },
-    { prop: "decimals", type: "number", default: "0" },
-    { prop: "color", type: "PixelColor", default: '"grey"' },
-    { prop: "warnColor", type: "PixelColor (the zone and the hub)", default: '"orange"' },
-    { prop: "seed", type: "number", default: "undefined" },
-  ],
-  scope: [
-    { prop: "signal", type: '"sine" | "square" | "triangle" | "saw" | number[] (samples, -1..1)', default: '"sine"' },
-    { prop: "cycles", type: "number (of a named wave across the screen)", default: "2" },
-    { prop: "speed", type: "number (cycles a second; 0 holds it)", default: "0.5" },
-    { prop: "gain", type: "number (1 fills the screen)", default: "0.8" },
-    { prop: "afterglow", type: "number (0..1, the trail of earlier phases)", default: "0.6" },
-    { prop: "label", type: "string (in the corner, its accessible name)", default: "undefined" },
-    { prop: "color", type: "PixelColor", default: '"green"' },
-    { prop: "seed", type: "number", default: "undefined" },
-  ],
-  meter: [
-    { prop: "value", type: "number", default: "" },
-    { prop: "min", type: "number", default: "0" },
-    { prop: "max", type: "number", default: "100" },
-    { prop: "low", type: "number", default: "0.5" },
-    { prop: "high", type: "number", default: "0.8" },
-  ],
-  scrollArea: [{ prop: "class", type: "string", default: "undefined" }],
-  toolbar: [{ prop: "label", type: "string", default: "undefined" }],
-  navMenu: [
-    { prop: "items", type: "{ label: string; href?: string }[]", default: "" },
-    { prop: "modelValue", type: "string", default: "" },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "label", type: "string", default: '"Sections"' },
-  ],
+  gauge: kitTable(gaugeProps),
+  scope: kitTable(scopeProps),
+  meter: kitTable(meterProps),
+  scrollArea: kitTable(scrollAreaProps),
+  toolbar: kitTable(toolbarProps),
+  navMenu: kitTable(navMenuProps),
 }
 
 export default function SurfaceDocs() {

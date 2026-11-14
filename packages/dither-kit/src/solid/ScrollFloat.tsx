@@ -4,6 +4,7 @@ import { cn } from "../tailwind/lib"
 import "./ScrollFloat.css"
 
 export type ScrollFloatProps = {
+  /** @default required */
   text?: string
   amount?: number
   class?: string

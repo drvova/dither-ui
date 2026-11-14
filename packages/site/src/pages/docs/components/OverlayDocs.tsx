@@ -12,7 +12,14 @@ import {
   DitherTooltip,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import popoverProps from "virtual:dither-props/DitherPopover"
+import menuProps from "virtual:dither-props/DitherMenu"
+import contextMenuProps from "virtual:dither-props/DitherContextMenu"
+import menubarProps from "virtual:dither-props/DitherMenubar"
+import tooltipProps from "virtual:dither-props/DitherTooltip"
+import previewCardProps from "virtual:dither-props/DitherPreviewCard"
+import commandProps from "virtual:dither-props/DitherCommand"
 import DocSection from "../DocSection"
 
 const COMMAND_ITEMS = [
@@ -141,37 +148,14 @@ const SNIPPET_PREVIEW = `<DitherPreviewCard
   </div>
 </DitherPreviewCard>`
 
-const API: Record<string, PropRow[]> = {
-  popover: [
-    { prop: "open", type: "boolean", default: "" },
-    { prop: "align", type: '"start" | "center" | "end"', default: '"start"' },
-  ],
-  menu: [{ prop: "items", type: "MenuItem[]", default: "" }],
-  contextMenu: [{ prop: "items", type: "ContextMenuItem[]", default: "" }],
-  menubar: [
-    {
-      prop: "menus",
-      type: "{ label: string; items: MenubarItem[] }[]",
-      default: "",
-    },
-  ],
-  tooltip: [
-    { prop: "text", type: "string", default: "" },
-    { prop: "delay", type: "number", default: "300" },
-  ],
-  previewCard: [{ prop: "delay", type: "number", default: "400" }],
-  command: [
-    { prop: "open", type: "boolean (onClose asks to leave)", default: "required" },
-    { prop: "items", type: "{ value, label, group?, kbd? }[]", default: "required" },
-    { prop: "placeholder", type: "string", default: '"Type a command…"' },
-    { prop: "empty", type: "string (no-match line)", default: '"No results."' },
-    {
-      prop: "empty",
-      type: "({ query }) => JSX.Element, drawn in place of the no-match line",
-      default: "the empty line",
-    },
-    { prop: "onSelect", type: "(value), fired before close", default: "" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  popover: kitTable(popoverProps),
+  menu: kitTable(menuProps),
+  contextMenu: kitTable(contextMenuProps),
+  menubar: kitTable(menubarProps),
+  tooltip: kitTable(tooltipProps),
+  previewCard: kitTable(previewCardProps),
+  command: kitTable(commandProps),
 }
 
 export default function OverlayDocs() {

@@ -28,13 +28,16 @@ const styles = stylex.create({
  * context is checked once at mount — a context-less environment (jsdom) keeps
  * the control honest by refusing strokes instead of throwing. */
 export type SignaturePadProps = {
+  /** @docs number (canvas) */
   width?: number
+  /** @docs number (canvas) */
   height?: number
   placeholder?: string
   disabled?: boolean
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
+  /** @docs (dataURL) per stroke */
   onChange?: (value: string) => void
 }
 

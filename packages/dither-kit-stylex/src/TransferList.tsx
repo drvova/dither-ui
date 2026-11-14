@@ -96,11 +96,16 @@ const styles = stylex.create({
 })
 
 export type TransferListProps = {
+  /** @docs string[] (pool) */
   source?: string[]
+  /** @docs string[] (destination)
+   * @default [] */
   value?: string[]
   onUpdateModelValue?: (value: string[]) => void
   disabled?: boolean
+  /** @default Available */
   sourceLabel?: string
+  /** @default Selected */
   targetLabel?: string
   class?: string
   xstyle?: StyleProp

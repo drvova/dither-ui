@@ -11,11 +11,15 @@ const styles = stylex.create({
 })
 
 export type SplashCursorProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   maxRadius?: number
+  /** @docs number (ms) */
   duration?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

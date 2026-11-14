@@ -34,6 +34,7 @@ export type DitherPopoverProps = {
   onClose?: () => void
   /** What opens the popover; it stays in the flow. */
   trigger?: JSX.Element
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -3,9 +3,11 @@ import { cn } from "../tailwind/lib"
 
 export type DitherCanvasProps = {
   pattern?: "dots" | "grid" | "plain"
-  /** Pattern pitch in CSS pixels. */
+  /** Pattern pitch in CSS pixels.
+   * @docs number (pattern pitch in px) */
   cell?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

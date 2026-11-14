@@ -3,11 +3,16 @@ import { cn } from "../tailwind/lib"
 import "./OrbitImages.css"
 
 export type OrbitImagesProps = {
+  /** @default ['A', 'B', 'C', 'D', 'E'] */
   items?: string[]
+  /** @docs number (px) */
   radius?: number
+  /** @docs number (s) */
   duration?: number
+  /** @docs number (px) */
   size?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

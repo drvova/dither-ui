@@ -23,7 +23,13 @@ const styles = stylex.create({
   grid: { display: "grid", gap: "0.125rem" },
 })
 
-export type DitherSidebarGroupProps = { label?: string; children?: JSX.Element }
+export type DitherSidebarGroupProps = {
+  /** @docs string: folds to a hairline on the rail
+   * @default undefined */
+  label?: string
+  /** @docs content */
+  children?: JSX.Element
+}
 
 /** Labelled cluster of sidebar items. On the icon rail the label folds into
  * a hairline separator so the grouping survives the collapse. */

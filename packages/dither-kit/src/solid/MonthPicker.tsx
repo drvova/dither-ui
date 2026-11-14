@@ -2,6 +2,7 @@ import { createMemo, createSignal, For, mergeProps } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 export type MonthPickerProps = {
+  /** @docs string (YYYY-MM, with onUpdateModelValue) */
   modelValue?: string
   onUpdateModelValue?: (value: string) => void
   disabled?: boolean

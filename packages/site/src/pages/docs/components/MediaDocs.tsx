@@ -19,7 +19,13 @@ import { assetPath, routePath } from "@/shared/lib/routes"
 import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import thumbnailProps from "virtual:dither-props/DitherThumbnail"
+import videoPlayerProps from "virtual:dither-props/DitherVideoPlayer"
+import bracketProps from "virtual:dither-props/DitherBracket"
+import scheduleProps from "virtual:dither-props/DitherSchedule"
+import worldProps from "virtual:dither-props/DitherWorld"
+import shaderProps from "virtual:dither-props/DitherShader"
 import DocSection from "../DocSection"
 
 /* The site's own film, as the landing plays it. */
@@ -64,148 +70,38 @@ const CRT = `void mainImage(out vec4 o, in vec2 fc) {
 /* Shader: the seeded sample is real Shadertoy-style GLSL, shown in the code tab. */
 const SHADER = sampleShader(3)
 
-const API: Record<string, PropRow[]> = {
-  thumbnail: [
-    { prop: "src", type: "string: the picture, cover-fit to the frame", default: "required" },
-    { prop: "alt", type: "string: the picture's words and the link's name", default: "required" },
-    { prop: "href", type: "string: where the link goes", default: "required" },
-    { prop: "ratio", type: "string: the frame's width over its height, any CSS aspect-ratio", default: '"1.618"' },
-    { prop: "veilCell", type: "number: the Bayer veil's cell in CSS px", default: "4" },
-    {
-      prop: "class",
-      type: "string: the link's classes; every other link attribute reaches it too",
-      default: "undefined",
+export const API: Record<string, PropRow[]> = {
+  thumbnail: kitTable(thumbnailProps),
+  video: kitTable(videoPlayerProps, {
+    // the player's keys
+    add: {
+      rows: [{ prop: "keyboard", type: "Space/K play, ←→ seek 5s, ↑↓ volume, M mute, F fullscreen", default: "" }],
     },
-  ],
-  video: [
-    { prop: "src", type: "string: no src renders an honest empty face", default: "undefined" },
-    { prop: "poster", type: "string", default: "undefined" },
-    { prop: "label", type: "string: accessible name", default: '"Video"' },
-    { prop: "color", type: "PixelColor: scrubber and volume hue", default: '"blue"' },
-    { prop: "keyboard", type: "Space/K play, ←→ seek 5s, ↑↓ volume, M mute, F fullscreen", default: "" },
-  ],
-  bracket: [
-    { prop: "rounds", type: "{ a, b, winner? }[][]: columns left to right", default: "required" },
-    { prop: "color", type: "PixelColor: winner accent", default: '"green"' },
-    { prop: "interactive", type: "boolean: click a side to pick", default: "false" },
-    { prop: "onPick", type: "(round, match, side): consumer advances the data", default: "" },
-  ],
-  schedule: [
-    { prop: "events", type: "{ start, end, label, color? }[]: fractional hours", default: "required" },
-    { prop: "from / to", type: "number: day window", default: "8 / 18" },
-    { prop: "now", type: "number: draws the now line; omit to hide", default: "undefined" },
-  ],
-  world: [
-    {
-      prop: "src",
-      type: "string: URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply, .off, or a Gaussian capture (.splat, a trained .ply)",
-      default: "undefined",
+  }),
+  bracket: kitTable(bracketProps),
+  schedule: kitTable(scheduleProps, { join: [["from", "to"]] }),
+  world: kitTable(worldProps, {
+    join: [
+      ["grain", "grainScale"],
+      ["animate", "time"],
+      ["yaw", "pitch", "zoom"],
+      ["paused", "renderMode"],
+    ],
+  }),
+  shader: kitTable(shaderProps, {
+    join: [["paused", "renderMode"]],
+    // what a shader's source may read
+    add: {
+      after: "channels",
+      rows: [
+        {
+          prop: "uniforms",
+          type: "iResolution, iTime, iTimeDelta, iFrame, iMouse, iDate, iColor, iSeed, iChannel0..3 and iChannelResolution, plus time/resolution/mouse and u_time/u_resolution/u_mouse; dk_bayer4(fragCoord) is the kit's Bayer threshold",
+          default: "",
+        },
+      ],
     },
-    { prop: "source", type: "string: inline model text; wins over src", default: "undefined" },
-    { prop: "format", type: '"auto" | "vrml" | "x3d" | "gltf" | "obj" | "stl" | "ply" | "off"', default: '"auto"' },
-    {
-      prop: "up",
-      type: '"auto" | "y" | "z" | "-y": the file\'s up axis (STL defaults to z, a capture to -y)',
-      default: '"auto"',
-    },
-    {
-      prop: "engine",
-      type: '"auto" | "cpu" | "gpu": the CPU engine is byte-exact everywhere, the GPU (WebGL) engine rasterizes big meshes; auto picks the GPU above ~40k triangles',
-      default: '"auto"',
-    },
-    { prop: "color", type: "PixelColor: the dither fill", default: '"blue"' },
-    {
-      prop: "colors",
-      type: "PixelColor[]: a toon ramp, dark to light; lighting picks the band, the Bayer cell dithers between bands",
-      default: "undefined",
-    },
-    { prop: "dither", type: "number: ramp mode, 0 smooth → 1 banded", default: "1" },
-    {
-      prop: "material",
-      type: "boolean: the file's own colours (materials, face and vertex colours)",
-      default: "false",
-    },
-    { prop: "wire", type: "boolean: polygon outlines, hidden lines removed", default: "false" },
-    {
-      prop: "shader",
-      type: "string: a GLSL material over the finished target. mainMaterial(out vec4, in vec2) reads dk_shade, dk_depth, dk_covered and dk_color per cell and returns rgb + the shade the Bayer cell thresholds (WebGL)",
-      default: "undefined",
-    },
-    {
-      prop: "channels",
-      type: "ChannelInput[]: kit surfaces (pulled at the same clock time), canvases, images or videos; the first is the model's skin through its texture coordinates, a shader reads them as iChannel0..3 at dk_uv(p)",
-      default: "undefined",
-    },
-    {
-      prop: "grain / grainScale",
-      type: "number: fbm grain over the model's own space, and its frequency",
-      default: "0 / 4",
-    },
-    { prop: "bloom", type: '"off" | "low" | "high" | "aura" | config | seed: the glow layer', default: '"off"' },
-    {
-      prop: "animate / time",
-      type: "boolean / number: play the file's animations (VRML ROUTEs, glTF) on the clock, or pin a moment",
-      default: "true / undefined",
-    },
-    { prop: "seed", type: "number: dither matrix, grain + the sample world", default: "undefined" },
-    { prop: "cell", type: "number: backing cell in CSS px", default: "3" },
-    { prop: "autoRotate", type: "number: degrees per second, 0 holds", default: "12" },
-    {
-      prop: "yaw / pitch / zoom",
-      type: "number: the pose; unset, the file's Viewpoint decides",
-      default: "30 / 20 / 1",
-    },
-    { prop: "fov", type: "number: vertical field of view, degrees", default: "40" },
-    { prop: "shade", type: "number: alpha of unlit cells inside the silhouette", default: "0.18" },
-    { prop: "fog", type: "number: depth fade of the lighting", default: "0.3" },
-    { prop: "interactive", type: "boolean: drag or arrow keys orbit", default: "true" },
-    {
-      prop: "build",
-      type: "number: the model as a build, 0-1; its separate pieces rise from a dotted wire cage bottom to top, each flying in hot until it lands",
-      default: "1",
-    },
-    { prop: "scatter", type: "number: the pieces blown apart and turned, 0 together → 1 apart", default: "0" },
-    { prop: "heat", type: "PixelColor: the colour a piece glows in while it flies in", default: '"orange"' },
-    { prop: "nudge", type: "boolean: pieces under the pointer lean away from it, then settle", default: "false" },
-    { prop: "label", type: "string: accessible name", default: '"3D model"' },
-    { prop: "frameRate", type: "number: stop-motion cadence in fps (0 = smooth)", default: "0" },
-    { prop: "paused / renderMode", type: 'boolean / "live" | "static"', default: 'false / "live"' },
-  ],
-  shader: [
-    { prop: "src", type: "string: URL of a .frag / .glsl file", default: "undefined" },
-    {
-      prop: "source",
-      type: "string: inline GLSL (Shadertoy mainImage or a raw main); wins over src",
-      default: "undefined",
-    },
-    {
-      prop: "channels",
-      type: "(surface | component | canvas | image | video)[]: bound as iChannel0..3; a kit surface is pulled at the same clock time, so the graph seeks and renders as one",
-      default: "undefined",
-    },
-    {
-      prop: "uniforms",
-      type: "iResolution, iTime, iTimeDelta, iFrame, iMouse, iDate, iColor, iSeed, iChannel0..3 and iChannelResolution, plus time/resolution/mouse and u_time/u_resolution/u_mouse; dk_bayer4(fragCoord) is the kit's Bayer threshold",
-      default: "",
-    },
-    { prop: "color", type: "PixelColor: the mono tint and iColor", default: '"blue"' },
-    {
-      prop: "colors",
-      type: "PixelColor[]: a palette ramp; luminance picks the band, the Bayer cell dithers between bands",
-      default: "undefined",
-    },
-    { prop: "mono", type: "boolean: 1-bit luminance in color instead of the shader's colours", default: "false" },
-    { prop: "dither", type: "number: 0 smooth → 1 fully quantized", default: "1" },
-    { prop: "levels", type: "number: colour levels per channel (2 = eight colours)", default: "2" },
-    { prop: "shade", type: "number: in mono, the alpha floor of unlit cells", default: "0" },
-    { prop: "speed", type: "number: multiplies iTime", default: "1" },
-    { prop: "seed", type: "number: dither matrix + the sample shader", default: "undefined" },
-    { prop: "cell", type: "number: backing cell in CSS px; the shader runs at this resolution", default: "3" },
-    { prop: "interactive", type: "boolean: the pointer feeds iMouse", default: "true" },
-    { prop: "label", type: "string: accessible name", default: '"Shader"' },
-    { prop: "frameRate", type: "number: stop-motion cadence in fps (0 = smooth)", default: "0" },
-    { prop: "paused / renderMode", type: 'boolean / "live" | "static"', default: 'false / "live"' },
-  ],
+  }),
 }
 
 const SNIPPET_THUMBNAIL = `{/* a picture that is a link: it rests under a Bayer veil and wakes under a

@@ -22,6 +22,7 @@ const styles = stylex.create({
 
 export type TextCursorProps = {
   text?: string
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

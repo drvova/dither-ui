@@ -113,19 +113,28 @@ const resolveSnap = (s: number) => (s <= 1 ? s * window.innerHeight : s)
 export type DitherDrawerProps = {
   open: boolean
   side?: DrawerSide
+  /** @default undefined */
   title?: string
-  /** Swipe-to-dismiss gesture on the panel. */
+  /** Swipe-to-dismiss gesture on the panel.
+   * @docs boolean: drag to dismiss, momentum decides */
   swipe?: boolean
-  /** Bottom sheets only: preset visible heights (0..1 viewport fraction, >1 px). */
+  /** Bottom sheets only: preset visible heights (0..1 viewport fraction, >1 px).
+   * @docs number[]: ≤1 vh fraction, >1 px (bottom)
+   * @default undefined */
   snapPoints?: number[]
-  /** Active snap point (with `onUpdateSnapPoint`). Defaults to the first. */
+  /** Active snap point (with `onUpdateSnapPoint`). Defaults to the first.
+   * @docs number (with onUpdateSnapPoint)
+   * @default first snap */
   snapPoint?: number
-  /** false renders no backdrop and leaves the page interactive. */
+  /** false renders no backdrop and leaves the page interactive.
+   * @docs boolean (false: no backdrop, page stays live) */
   modal?: boolean
-  /** false keeps the drawer open on backdrop clicks (Escape still closes). */
+  /** false keeps the drawer open on backdrop clicks (Escape still closes).
+   * @docs boolean (false: backdrop click ignored) */
   dismissible?: boolean
   onClose?: () => void
   onUpdateSnapPoint?: (snap: number) => void
+  /** @docs content */
   children?: JSX.Element
 }
 

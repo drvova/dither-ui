@@ -92,11 +92,17 @@ export type ScheduleEvent = { start: number; end: number; label: string; color?:
 /** Day timeline — an hour rail with events placed proportionally, and an
  * optional now line. Hours are fractional (9.5 is half past nine). */
 export type DitherScheduleProps = {
+  /** @docs { start, end, label, color? }[]: fractional hours
+   * @default required */
   events: ScheduleEvent[]
-  /** Day window, fractional hours. */
+  /** Day window, fractional hours.
+   * @docs number: day window */
   from?: number
+  /** @docs number: day window */
   to?: number
-  /** Draw the now line at this hour; omit to hide. */
+  /** Draw the now line at this hour; omit to hide.
+   * @docs number: draws the now line; omit to hide
+   * @default undefined */
   now?: number
   class?: string
   xstyle?: StyleProp

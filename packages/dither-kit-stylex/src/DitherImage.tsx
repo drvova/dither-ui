@@ -79,20 +79,33 @@ function paintImage(
 }
 
 export type DitherImageProps = {
+  /** @default required */
   src: string
-  alt?: string
-  /** css px per dither cell — bigger means chunkier. */
+  /** css px per dither cell — bigger means chunkier.
+   * @docs number (px)
+   * @default seed / 3 */
   cell?: number
-  /** vertical crop focus for cover-fit: 0 top, 0.5 center, 1 bottom. */
+  /** vertical crop focus for cover-fit: 0 top, 0.5 center, 1 bottom.
+   * @docs number 0…1
+   * @default seed / 0.5 */
   focusY?: number
-  /** css px of dithered edge dissolve — 0 keeps hard edges. */
+  /** css px of dithered edge dissolve — 0 keeps hard edges.
+   * @docs number (px)
+   * @default seed / 0 */
   fade?: number
+  /** @default undefined */
   seed?: number
+  alt?: string
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number }
+   * @default undefined */
   precompiled?: PrecompiledDither
+  /** @default 960 / 600 live, 320 / 200 static */
   maxCols?: number
+  /** @default 960 / 600 live, 320 / 200 static */
   maxRows?: number
 }
 

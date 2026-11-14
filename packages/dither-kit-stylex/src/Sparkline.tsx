@@ -20,28 +20,34 @@ const styles = stylex.create({
 export type SparklineProps = {
   /** Plain numeric series — the common sparkline case. */
   data: number[]
+  /** @docs DitherColor */
   color: DitherColor
+  /** @docs "gradient" | "dotted" | "hatched" | "solid" */
   variant?: VariantInput
   seed?: number
   markerIndex?: number | null
   /** Scrubbable: the pointer marks the nearest point with the chart's own
    * crosshair and `onHoverChange` reports its index (null on leave). The
    * chart is then a slider too: focus it and the arrow keys step through
-   * the points (Home and End to the ends, Escape or leaving clears). */
+   * the points (Home and End to the ends, Escape or leaving clears).
+   * @docs boolean (scrub: the crosshair follows the pointer; a slider for the keyboard, arrows, Home, End, Escape) */
   interactive?: boolean
-  /** The slider's name for assistive technology, when interactive. */
+  /** The slider's name for assistive technology, when interactive.
+   * @docs string (the slider's name, when interactive) */
   label?: string
   /** Brighten the fill while the pointer is over it. */
   hoverLift?: boolean
-  /** The idle particle drift along the line; off, the chart holds still. */
+  /** The idle particle drift along the line; off, the chart holds still.
+   * @docs boolean (the idle drift along the line) */
   sparkles?: boolean
   hovered?: boolean
-  bloom?: BloomInput
   bloomOnHover?: boolean
-  animate?: boolean
   class?: string
   xstyle?: StyleProp
   onHoverChange?: (index: number | null) => void
+  /** @docs "off" | "low" | "high" | "aura" */
+  bloom?: BloomInput
+  animate?: boolean
 }
 
 export default function Sparkline(raw: SparklineProps) {

@@ -2,7 +2,13 @@ import { type JSX, mergeProps } from "solid-js"
 import { Dynamic } from "solid-js/web"
 import { cn } from "../tailwind/lib"
 
-export type TruncateProps = { as?: string; title?: string; class?: string; children?: JSX.Element }
+export type TruncateProps = {
+  as?: string
+  title?: string
+  class?: string
+  /** @docs content */
+  children?: JSX.Element
+}
 
 /** One-line ellipsis. Wraps any content in the `truncate` contract —
  * `title` rides through so native tooltips stay available. */

@@ -89,20 +89,32 @@ export type ButtonVariant = "gradient" | "dotted" | "hatched" | "solid"
 export type { DitherRenderMode, PrecompiledDither }
 
 type Own = {
+  /** @default seed / blue */
   color?: PixelColor
+  /** @default seed / gradient */
   variant?: ButtonVariant
+  /** @docs "off" | "low" | "high" | "aura" | object | number
+   * @default seed / off */
   bloom?: PixelBloomInput
-  /** CSS px per dither cell: chunkiness. */
+  /** CSS px per dither cell: chunkiness.
+   * @docs number (px)
+   * @default seed / 2 */
   cell?: number
+  /** @default undefined */
   seed?: number
   type?: "button" | "submit" | "reset"
   loading?: boolean
   disabled?: boolean
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number }
+   * @default undefined */
   precompiled?: PrecompiledDither
+  /** @default 960 / 600 live, 320 / 200 static */
   maxCols?: number
+  /** @default 960 / 600 live, 320 / 200 static */
   maxRows?: number
 }
 const OWN = [

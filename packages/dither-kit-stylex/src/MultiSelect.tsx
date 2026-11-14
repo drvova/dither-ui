@@ -86,13 +86,17 @@ const styles = stylex.create({
  * semantics (keyboard for free), the query narrows the pool, selected chips
  * stay visible and individually removable. `value` is the picked set. */
 export type MultiSelectProps = {
+  /** @default [] */
   options?: string[]
+  /** @docs string[] (with onUpdateModelValue)
+   * @default [] */
   value?: string[]
   placeholder?: string
   disabled?: boolean
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string[]) => void
+  /** @docs (query) as you type */
   onSearch?: (query: string) => void
 }
 

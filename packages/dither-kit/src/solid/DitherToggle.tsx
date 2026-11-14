@@ -36,6 +36,7 @@ export function paintToggleCanvas(
 type Own = {
   modelValue: boolean
   onUpdateModelValue?: (value: boolean) => void
+  /** @default "blue" */
   color?: PixelColor
   seed?: number
   disabled?: boolean

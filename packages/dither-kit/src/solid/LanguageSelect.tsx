@@ -43,7 +43,9 @@ const LANGUAGES: Array<{ code: string; label: string }> = [
 ]
 
 type Own = {
+  /** @docs string (BCP 47 tag) */
   modelValue?: string
+  /** @docs boolean (first entry) */
   includeDefault?: boolean
   defaultLabel?: string
   disabled?: boolean

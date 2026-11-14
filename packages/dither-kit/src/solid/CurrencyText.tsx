@@ -2,7 +2,9 @@ import { createMemo, mergeProps } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 export type CurrencyTextProps = {
+  /** @default required */
   value: number
+  /** @docs string (ISO 4217) */
   currency?: string
   locale?: string
   decimals?: number

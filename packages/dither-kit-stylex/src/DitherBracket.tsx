@@ -94,13 +94,18 @@ export type BracketMatch = { a: string; b: string; winner?: "a" | "b" }
  * rounds. Winners carry the accent; when interactive, clicking a side
  * reports the pick and the consumer advances the data. */
 export type DitherBracketProps = {
-  /** rounds[r] is the list of matches in round r, left to right. */
+  /** rounds[r] is the list of matches in round r, left to right.
+   * @docs { a, b, winner? }[][]: columns left to right
+   * @default required */
   rounds: BracketMatch[][]
+  /** @docs PixelColor: winner accent */
   color?: PixelColor
-  /** Enables picking winners by click. */
+  /** Enables picking winners by click.
+   * @docs boolean: click a side to pick */
   interactive?: boolean
   class?: string
   xstyle?: StyleProp
+  /** @docs (round, match, side): consumer advances the data */
   onPick?: (round: number, match: number, side: "a" | "b") => void
 }
 

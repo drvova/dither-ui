@@ -7,9 +7,33 @@ type PluralSlot = (scope: { count: number }) => JSX.Element
  * picks the slot, the default slot is the fallback, and every slot receives
  * `count` so the sentence can place it. Languages with richer plural
  * categories just get more named slots — no conditionals in the caller. */
-export type PluralTextProps = { count?: number; locale?: string; class?: string; children?: PluralSlot } & Partial<
-  Record<Intl.LDMLPluralRule, PluralSlot>
->
+export type PluralTextProps = {
+  count?: number
+  /** @docs string (BCP 47) */
+  locale?: string
+  class?: string
+  /** @docs ({ count }) => JSX.Element, named by category: one, few, many… + children
+   * @default children */
+  zero?: PluralSlot
+  /** @docs ({ count }) => JSX.Element, named by category: one, few, many… + children
+   * @default children */
+  one?: PluralSlot
+  /** @docs ({ count }) => JSX.Element, named by category: one, few, many… + children
+   * @default children */
+  two?: PluralSlot
+  /** @docs ({ count }) => JSX.Element, named by category: one, few, many… + children
+   * @default children */
+  few?: PluralSlot
+  /** @docs ({ count }) => JSX.Element, named by category: one, few, many… + children
+   * @default children */
+  many?: PluralSlot
+  /** @docs ({ count }) => JSX.Element, named by category: one, few, many… + children
+   * @default children */
+  other?: PluralSlot
+  /** @docs ({ count }) => JSX.Element, named by category: one, few, many… + children
+   * @default children */
+  children?: PluralSlot
+}
 
 export default function PluralText(raw: PluralTextProps) {
   const props = mergeProps({ count: 0, locale: "en" }, raw)

@@ -10,25 +10,41 @@ export type { CircuitParams }
 export { paintCircuit }
 
 export type CircuitProps = {
-  /** The traces, chips and vias. */
+  /** The traces, chips and vias.
+   * @docs PixelColor (the traces, chips and vias)
+   * @default '#a6abb1' */
   ink?: PixelColor
-  /** The signals. */
+  /** The signals.
+   * @docs PixelColor (the signals)
+   * @default '#ff9632' */
   pulse?: PixelColor
-  /** How much of the board carries traces, 0-1. */
+  /** How much of the board carries traces, 0-1.
+   * @docs number 0…1 (how much of the board carries traces) */
   density?: number
-  /** Cells a second a signal travels. */
+  /** Cells a second a signal travels.
+   * @docs number (cells a second a signal travels) */
   speed?: number
-  /** Cells between lattice nodes. */
+  /** Cells between lattice nodes.
+   * @docs number (cells between lattice nodes) */
   pitch?: number
   paused?: boolean
-  dpr?: number
   /** Stop-motion cadence in fps (0 = smooth). Steps the field like film and
-   * skips paints between boundaries (see timing.ts). */
+   * skips paints between boundaries (see timing.ts).
+   * @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
+  dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @docs number (lays out the board)
+   * @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
 }
 

@@ -20,18 +20,31 @@ export type { PixelSnowParams }
 export { paintPixelSnow }
 
 export type PixelSnowProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#CFF6FF', '#7CE0FF'] */
   colors?: string[]
+  /** @docs number (flakes across) */
   density?: number
   speed?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

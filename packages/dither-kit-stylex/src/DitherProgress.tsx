@@ -71,6 +71,7 @@ const CELL = 2
 
 export type DitherProgressProps = {
   value?: number
+  /** @default "blue" */
   color?: PixelColor
   seed?: number
   indeterminate?: boolean

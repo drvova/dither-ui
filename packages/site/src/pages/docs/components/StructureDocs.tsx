@@ -9,7 +9,13 @@ import {
   DitherTabs,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import tabsProps from "virtual:dither-props/DitherTabs"
+import tabPanelProps from "virtual:dither-props/DitherTabPanel"
+import collapsibleProps from "virtual:dither-props/DitherCollapsible"
+import dialogProps from "virtual:dither-props/DitherDialog"
+import centerMorphModalProps from "virtual:dither-props/DitherCenterMorphModal"
+import kbdProps from "virtual:dither-props/DitherKbd"
 import DocSection from "../DocSection"
 
 const TABS = ["Overview", "Metrics", "Logs"]
@@ -101,34 +107,12 @@ const SNIPPET_KBD = `<div class="flex items-center gap-6 text-xs">
   </div>
 </div>`
 
-const API: Record<string, PropRow[]> = {
-  tabs: [
-    { prop: "tabs", type: "(string | { value, label?, badge?, disabled? })[]", default: "" },
-    { prop: "modelValue", type: "string", default: "" },
-    { prop: "variant", type: '"underline" | "segmented" | "washed"', default: '"underline"' },
-    { prop: "orientation", type: '"horizontal" | "vertical"', default: '"horizontal"' },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "value (TabPanel)", type: "string (nests inside DitherTabs)", default: "" },
-  ],
-  collapsible: [
-    { prop: "title", type: "string", default: "" },
-    { prop: "modelValue", type: "boolean", default: "false" },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-  ],
-  dialog: [
-    { prop: "open", type: "boolean", default: "" },
-    { prop: "title", type: "string", default: "undefined" },
-    { prop: "description", type: "string", default: "undefined" },
-    { prop: "closeOnBackdrop", type: "boolean", default: "true" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  centerMorphModal: [
-    { prop: "open", type: "boolean", default: "" },
-    { prop: "label", type: "string (accessible name)", default: '"Modal"' },
-    { prop: "closeOnBackdrop", type: "boolean", default: "true" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  kbd: [{ prop: "class", type: "string", default: "undefined" }],
+export const API: Record<string, PropRow[]> = {
+  tabs: [...kitTable(tabsProps), ...kitTable(tabPanelProps, { part: "TabPanel" })],
+  collapsible: kitTable(collapsibleProps),
+  dialog: kitTable(dialogProps),
+  centerMorphModal: kitTable(centerMorphModalProps),
+  kbd: kitTable(kbdProps),
 }
 
 export default function StructureDocs() {

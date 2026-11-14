@@ -3,10 +3,13 @@ import { cn } from "../tailwind/lib"
 import "./ElectricBorder.css"
 
 export type ElectricBorderProps = {
+  /** @docs string (hex) */
   color?: string
   speed?: number
+  /** @docs number (px) */
   thickness?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

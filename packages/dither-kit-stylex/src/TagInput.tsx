@@ -68,6 +68,8 @@ const styles = stylex.create({
  * input pulls the last chip back in, per-chip × removes. Trimmed, case-
  * deduped, `max`-capped (the oldest chip stays put when full). */
 export type TagInputProps = {
+  /** @docs string[] (with onUpdateModelValue)
+   * @default [] */
   modelValue?: string[]
   placeholder?: string
   max?: number

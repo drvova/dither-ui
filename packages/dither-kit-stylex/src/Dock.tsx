@@ -47,13 +47,18 @@ const styles = stylex.create({
 export type DockItem = { value: string; label: string; color?: PixelColor }
 
 export type DockProps = {
+  /** @docs { value, label, color? }[]
+   * @default required */
   items: DockItem[]
-  /** Peak scale over the pointer. */
+  /** Peak scale over the pointer.
+   * @docs number: peak scale over the pointer */
   magnify?: number
-  /** Falloff radius in px. */
+  /** Falloff radius in px.
+   * @docs number (px): gaussian falloff radius */
   range?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs (value) */
   onSelect?: (value: string) => void
 }
 

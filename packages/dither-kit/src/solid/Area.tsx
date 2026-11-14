@@ -1,15 +1,6 @@
-import type { JSX } from "solid-js"
-import CartesianSeries from "./CartesianSeries"
-import type { StrokeVariant, VariantInput } from "./runtime/chart-context"
+import CartesianSeries, { type SeriesProps } from "./CartesianSeries"
 
-export type AreaProps = {
-  dataKey: string
-  variant?: VariantInput
-  strokeVariant?: StrokeVariant
-  isClickable?: boolean
-  opacity?: number
-  children?: JSX.Element
-}
+export type AreaProps = SeriesProps
 
 export default function Area(props: AreaProps) {
   return <CartesianSeries part="Area" kind="area" {...props} />

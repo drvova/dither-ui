@@ -52,12 +52,17 @@ export type WheelOption = string | { value: string; label: string }
 const ITEM = 28
 
 export type WheelPickerProps = {
+  /** @docs (string | { value, label })[] */
   options: WheelOption[]
+  /** @docs string (with onUpdateModelValue) */
   modelValue?: string
-  /** Visible rows (odd). */
+  /** Visible rows (odd).
+   * @docs number: visible rows (odd) */
   rows?: number
-  /** Accessible name for the wheel. */
+  /** Accessible name for the wheel.
+   * @docs string: accessible name */
   label?: string
+  /** @docs PixelColor: selected notch tint */
   color?: PixelColor
   class?: string
   xstyle?: StyleProp

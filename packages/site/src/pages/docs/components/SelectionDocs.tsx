@@ -11,7 +11,15 @@ import {
   type PixelColor,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import selectProps from "virtual:dither-props/DitherSelect"
+import comboboxProps from "virtual:dither-props/DitherCombobox"
+import autocompleteProps from "virtual:dither-props/DitherAutocomplete"
+import wheelPickerProps from "virtual:dither-props/DitherWheelPicker"
+import radioGroupProps from "virtual:dither-props/DitherRadioGroup"
+import checkboxGroupProps from "virtual:dither-props/DitherCheckboxGroup"
+import toggleProps from "virtual:dither-props/DitherToggle"
+import toggleGroupProps from "virtual:dither-props/DitherToggleGroup"
 import DocSection from "../DocSection"
 
 const CHARTS = [
@@ -219,65 +227,15 @@ export default function Example() {
   )
 }`
 
-const API: Record<string, PropRow[]> = {
-  select: [
-    { prop: "options", type: "Option[]", default: "" },
-    { prop: "modelValue", type: "string", default: "" },
-    { prop: "placeholder", type: "string", default: '"Select…"' },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "disabled / invalid", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  combobox: [
-    { prop: "options", type: "Option[]", default: "" },
-    { prop: "modelValue", type: "string", default: "" },
-    { prop: "placeholder", type: "string", default: '"Select…"' },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  autocomplete: [
-    { prop: "suggestions", type: "string[]", default: "" },
-    { prop: "modelValue", type: "string", default: "" },
-    { prop: "placeholder", type: "string", default: '"Search…"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  wheelPicker: [
-    { prop: "options", type: "(string | { value, label })[]", default: "" },
-    { prop: "modelValue", type: "string (with onUpdateModelValue)", default: "" },
-    { prop: "rows", type: "number: visible rows (odd)", default: "5" },
-    { prop: "label", type: "string: accessible name", default: '"Wheel picker"' },
-    { prop: "color", type: "PixelColor: selected notch tint", default: '"blue"' },
-    { prop: "class", type: "string", default: "" },
-  ],
-  radio: [
-    { prop: "options", type: "Option[]", default: "" },
-    { prop: "modelValue", type: "string", default: "" },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "label", type: "string", default: "" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  checkboxGroup: [
-    { prop: "options", type: "Option[]", default: "" },
-    { prop: "modelValue", type: "string[]", default: "" },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "label", type: "string", default: "" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  toggle: [
-    { prop: "modelValue", type: "boolean", default: "" },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "" },
-  ],
-  toggleGroup: [
-    { prop: "options", type: "Option[]", default: "" },
-    { prop: "modelValue", type: "string | string[]", default: "" },
-    { prop: "type", type: '"single" | "multiple"', default: '"single"' },
-    { prop: "color", type: "PixelColor", default: '"blue"' },
-    { prop: "class", type: "string", default: "" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  select: kitTable(selectProps, { join: [["disabled", "invalid"]] }),
+  combobox: kitTable(comboboxProps),
+  autocomplete: kitTable(autocompleteProps),
+  wheelPicker: kitTable(wheelPickerProps),
+  radio: kitTable(radioGroupProps),
+  checkboxGroup: kitTable(checkboxGroupProps),
+  toggle: kitTable(toggleProps),
+  toggleGroup: kitTable(toggleGroupProps),
 }
 
 export default function SelectionDocs() {

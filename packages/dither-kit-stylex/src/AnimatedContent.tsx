@@ -8,14 +8,18 @@ import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 export type AnimatedContentProps = {
   /** px (number) or any CSS length — `"4cqw"` measures the nearest query
-   * container, making the reveal container-relative. */
+   * container, making the reveal container-relative.
+   * @docs number (px) | CSS length: "4cqw" rides the nearest query container */
   distance?: number | string
   direction?: "vertical" | "horizontal"
   reverse?: boolean
+  /** @docs number (ms) */
   duration?: number
+  /** @docs number (ms) */
   delay?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

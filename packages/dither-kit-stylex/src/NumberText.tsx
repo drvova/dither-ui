@@ -9,7 +9,10 @@ const styles = stylex.create({
 })
 
 export type NumberTextProps = {
+  /** @default required */
   value: number
+  /** @docs number (min = max)
+   * @default natural */
   decimals?: number
   locale?: string
   grouping?: boolean

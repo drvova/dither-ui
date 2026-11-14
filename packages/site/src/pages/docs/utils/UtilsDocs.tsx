@@ -7,9 +7,10 @@ import DemoCard from "../DemoCard"
 import { COLORS, wave } from "../demo-data"
 import DocSection from "../DocSection"
 import PropsTable, { type PropRow } from "../PropsTable"
+
 import ScreensSection from "./ScreensSection"
 
-const API: Record<string, PropRow[]> = {
+export const API: Record<string, PropRow[]> = {
   palette: [
     { prop: "cssColor(c)", type: "(DitherColor | number) → css string", default: "" },
     { prop: "seedFromColor(c)", type: "(DitherColor | number) → Seed", default: "" },

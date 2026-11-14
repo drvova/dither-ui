@@ -101,79 +101,126 @@ export type DitherWorldApi = { surface: DitherSurface }
 
 export type DitherWorldProps = {
   /** URL of a model: .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj (+ .mtl), .stl, .ply, .off, or a
-   * Gaussian capture (.splat, or a trained capture's .ply). */
+   * Gaussian capture (.splat, or a trained capture's .ply).
+   * @docs string: URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply,
+   *   .off, or a Gaussian capture (.splat, a trained .ply)
+   * @default undefined */
   src?: string
-  /** Inline model text (VRML, X3D, glTF JSON, OBJ, ASCII STL / PLY, OFF): wins over `src`. */
+  /** Inline model text (VRML, X3D, glTF JSON, OBJ, ASCII STL / PLY, OFF): wins over `src`.
+   * @docs string: inline model text; wins over src
+   * @default undefined */
   source?: string
-  /** File format; "auto" reads the name, then the bytes. */
+  /** File format; "auto" reads the name, then the bytes.
+   * @docs "auto" | "vrml" | "x3d" | "gltf" | "obj" | "stl" | "ply" | "off" */
   format?: ModelFormat | "auto"
-  /** The file's up axis; "auto" is y, z for STL, -y (a capture's camera space) for splats. */
+  /** The file's up axis; "auto" is y, z for STL, -y (a capture's camera space) for splats.
+   * @docs "auto" | "y" | "z" | "-y": the file's up axis (STL defaults to z, a capture to -y) */
   up?: "y" | "z" | "-y" | "auto"
   /** Rasterizer: the CPU engine is byte-exact everywhere, the GPU engine
-   * (WebGL) rasterizes big meshes fast; "auto" picks the GPU above ~40k triangles. */
+   * (WebGL) rasterizes big meshes fast; "auto" picks the GPU above ~40k triangles.
+   * @docs "auto" | "cpu" | "gpu": the CPU engine is byte-exact everywhere, the GPU (WebGL) engine rasterizes big
+   *   meshes; auto picks the GPU above ~40k triangles */
   engine?: "auto" | "cpu" | "gpu"
+  /** @docs PixelColor: the dither fill */
   color?: PixelColor
-  /** A toon ramp, dark to light: lighting picks the band, the Bayer cell dithers between bands. */
+  /** A toon ramp, dark to light: lighting picks the band, the Bayer cell dithers between bands.
+   * @docs PixelColor[]: a toon ramp, dark to light; lighting picks the band, the Bayer cell dithers between bands
+   * @default undefined */
   colors?: PixelColor[]
-  /** Ramp mode: 0 smooth → 1 fully banded. */
+  /** Ramp mode: 0 smooth → 1 fully banded.
+   * @docs number: ramp mode, 0 smooth → 1 banded */
   dither?: number
-  /** Seeds the dither matrix, the grain, and without src/source the sample world. */
-  seed?: number
-  /** Backing cell size in CSS px: bigger is chunkier. */
-  cell?: number
-  /** Orbit speed in degrees per second; 0 holds the pose. */
-  autoRotate?: number
-  /** Camera angles in degrees; unset, the file's Viewpoint decides. */
-  yaw?: number
-  pitch?: number
-  zoom?: number
-  /** Vertical field of view in degrees. */
-  fov?: number
-  /** Alpha of the unlit dither cells inside the silhouette, 0-1. */
-  shade?: number
-  /** Depth fade of the lighting, 0-1. */
-  fog?: number
-  /** Noise grain over the model's own space, 0-1 (`noise.ts` fbm). */
-  grain?: number
-  /** Grain frequency relative to the model's size. */
-  grainScale?: number
-  /** Use the file's own colours instead of `color`. */
+  /** Use the file's own colours instead of `color`.
+   * @docs boolean: the file's own colours (materials, face and vertex colours) */
   material?: boolean
-  /** Draw polygon outlines, hidden lines removed. */
+  /** Draw polygon outlines, hidden lines removed.
+   * @docs boolean: polygon outlines, hidden lines removed */
   wire?: boolean
   /** A GLSL material over the finished target: `mainMaterial(out vec4, in
    * vec2)` reading dk_shade / dk_depth / dk_covered / dk_color / dk_uv per
-   * cell and returning rgb + the shade the Bayer cell thresholds (needs WebGL). */
+   * cell and returning rgb + the shade the Bayer cell thresholds (needs WebGL).
+   * @docs string: a GLSL material over the finished target. mainMaterial(out vec4, in vec2) reads dk_shade, dk_depth,
+   *   dk_covered and dk_color per cell and returns rgb + the shade the Bayer cell thresholds (WebGL)
+   * @default undefined */
   shader?: string
   /** Up to four sources: other kit surfaces (pulled at the same clock
    * time), canvases, images or videos. Without a shader the first wraps
    * the model through its texture coordinates (primitives, OBJ `vt`, glTF
    * `TEXCOORD_0`, VRML `TextureCoordinate`, PLY `s`/`t`) as its skin on
-   * either engine; a shader reads them as `iChannel0..3` at `dk_uv(p)`. */
+   * either engine; a shader reads them as `iChannel0..3` at `dk_uv(p)`.
+   * @docs ChannelInput[]: kit surfaces (pulled at the same clock time), canvases, images or videos; the first is the
+   *   model's skin through its texture coordinates, a shader reads them as iChannel0..3 at dk_uv(p)
+   * @default undefined */
   channels?: ChannelInput[]
-  /** Glow layer: a preset, a config, or a seed. */
+  /** Noise grain over the model's own space, 0-1 (`noise.ts` fbm).
+   * @docs number: fbm grain over the model's own space, and its frequency */
+  grain?: number
+  /** Grain frequency relative to the model's size.
+   * @docs number: fbm grain over the model's own space, and its frequency */
+  grainScale?: number
+  /** Glow layer: a preset, a config, or a seed.
+   * @docs "off" | "low" | "high" | "aura" | config | seed: the glow layer */
   bloom?: PixelBloomInput
   /** Play the file's own animations (VRML ROUTEs, glTF) on the kit clock. */
   animate?: boolean
-  /** Pin the animation to a moment in seconds instead of the clock. */
+  /** Pin the animation to a moment in seconds instead of the clock.
+   * @docs number: play the file's animations (VRML ROUTEs, glTF) on the clock, or pin a moment
+   * @default undefined */
   time?: number
-  /** Drag, or arrow keys when focused, to orbit. */
+  /** Seeds the dither matrix, the grain, and without src/source the sample world.
+   * @docs number: dither matrix, grain + the sample world
+   * @default undefined */
+  seed?: number
+  /** Backing cell size in CSS px: bigger is chunkier.
+   * @docs number: backing cell in CSS px */
+  cell?: number
+  /** Orbit speed in degrees per second; 0 holds the pose.
+   * @docs number: degrees per second, 0 holds */
+  autoRotate?: number
+  /** Camera angles in degrees; unset, the file's Viewpoint decides.
+   * @docs number: the pose; unset, the file's Viewpoint decides
+   * @default 30 */
+  yaw?: number
+  /** @docs number: the pose; unset, the file's Viewpoint decides
+   * @default 20 */
+  pitch?: number
+  /** @docs number: the pose; unset, the file's Viewpoint decides
+   * @default 1 */
+  zoom?: number
+  /** Vertical field of view in degrees.
+   * @docs number: vertical field of view, degrees */
+  fov?: number
+  /** Alpha of the unlit dither cells inside the silhouette, 0-1.
+   * @docs number: alpha of unlit cells inside the silhouette */
+  shade?: number
+  /** Depth fade of the lighting, 0-1.
+   * @docs number: depth fade of the lighting */
+  fog?: number
+  /** Drag, or arrow keys when focused, to orbit.
+   * @docs boolean: drag or arrow keys orbit */
   interactive?: boolean
   /** The model as a build, 0-1: its separate pieces rise from a dotted
-   * wire cage bottom to top, each flying in hot (`heat`) until it lands. */
+   * wire cage bottom to top, each flying in hot (`heat`) until it lands.
+   * @docs number: the model as a build, 0-1; its separate pieces rise from a dotted wire cage bottom to top, each
+   *   flying in hot until it lands */
   build?: number
-  /** Blow the pieces apart, 0 together → 1 apart (turned as they go). */
+  /** Blow the pieces apart, 0 together → 1 apart (turned as they go).
+   * @docs number: the pieces blown apart and turned, 0 together → 1 apart */
   scatter?: number
-  /** The colour a piece glows in while it flies in. */
+  /** The colour a piece glows in while it flies in.
+   * @docs PixelColor: the colour a piece glows in while it flies in */
   heat?: PixelColor
-  /** Pieces under the pointer lean away from it, and settle back after. */
+  /** Pieces under the pointer lean away from it, and settle back after.
+   * @docs boolean: pieces under the pointer lean away from it, then settle */
   nudge?: boolean
-  /** Accessible name. */
+  /** Accessible name.
+   * @docs string: accessible name */
   label?: string
-  paused?: boolean
   dpr?: number
-  /** Stop-motion cadence in fps (0 = smooth; see timing.ts). */
+  /** Stop-motion cadence in fps (0 = smooth; see timing.ts).
+   * @docs number: stop-motion cadence in fps (0 = smooth) */
   frameRate?: number
+  paused?: boolean
   renderMode?: DitherRenderMode
   class?: string
   xstyle?: StyleProp

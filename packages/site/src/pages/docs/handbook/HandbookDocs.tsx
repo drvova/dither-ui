@@ -12,7 +12,8 @@ import { Area, AreaChart, Bar, BarChart, Line, LineChart, XAxis } from "@/shared
 import DemoCard from "../DemoCard"
 import { config, MONTHS, rows, trafficConfig, trafficRows } from "../demo-data"
 import DocSection, { useOpened } from "../DocSection"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import lineChartProps from "virtual:dither-props/LineChart"
 import { dataCode, docsCode } from "../snippet"
 import type { DitherColor } from "@dither-ui/kit"
 
@@ -20,14 +21,10 @@ const EngineSection = lazyPart(() => import("./EngineSection"))
 const VerificationSection = lazyPart(() => import("./VerificationSection"))
 if (import.meta.env.SSR) await Promise.all([EngineSection.preload(), VerificationSection.preload()])
 
-const API: Record<string, PropRow[]> = {
-  motion: [
-    { prop: "animate", type: "boolean", default: "true" },
-    { prop: "animationDuration", type: "number (ms)", default: "900" },
-    { prop: "animationDelay", type: "number (ms)", default: "0" },
-    { prop: "replayToken", type: "number (bump it to re-run)", default: "0" },
-    { prop: "effect", type: "number (its own edge-motion seed)", default: "master seed / gentle" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  motion: kitTable(lineChartProps, {
+    only: ["animate", "animationDuration", "animationDelay", "replayToken", "effect"],
+  }),
 }
 
 const DURATIONS = [300, 900, 2000]

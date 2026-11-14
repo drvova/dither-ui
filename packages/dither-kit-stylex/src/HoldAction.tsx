@@ -56,13 +56,17 @@ const styles = stylex.create({
  * rises (or slides) toward full; release early and it drains back. Works with
  * pointer or a held Enter/Space; completion fires exactly once per fill. */
 type Own = {
-  /** Hold time to complete, ms. */
+  /** Hold time to complete, ms.
+   * @docs number (ms): hold time to complete */
   duration?: number
+  /** @docs "vertical" | "horizontal": fill axis */
   direction?: "vertical" | "horizontal"
+  /** @docs PixelColor: fill and crest accent */
   color?: PixelColor
   disabled?: boolean
   class?: string
   xstyle?: StyleProp
+  /** @docs () when the fill reaches full, once per hold */
   onComplete?: () => void
 }
 const OWN = [
