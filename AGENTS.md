@@ -395,8 +395,9 @@ Default section order:
   `npm run walk -- --engine chromium|webkit|firefox` walks every page of a
   built site in one engine (every docs section's cards, canvases, Code tab
   and Run in each styling system, in both themes, the Studio's paths, the
-  player; the contrast of the text as painted; every page again at an
-  iPhone's size), by hand, outside the gate (`packages/tasks/AGENTS.md`).
+  player; the contrast of the text as painted; a keyboard and
+  screen-reader pass over every page and its dialogs; every page again at
+  an iPhone's size), by hand, outside the gate (`packages/tasks/AGENTS.md`).
 - Motion in container units: `@dither-ui/kit/engine/keyframes.ts` (lengths as unit
   terms, interpolated with their units kept, resolved to px against a box)
   drives `DitherStage` (a size query container with one kit-clock) and
@@ -672,7 +673,15 @@ Default section order:
   (`ring-ring`, a field's `border-ring`), never a tinted accent or a faded
   foreground, which vanish on some ground;
   `packages/site/tests/focus-ring.spec.ts`
-  scans both, utilities and stylesheet `:focus` rules alike.
+  scans both, utilities and stylesheet `:focus` rules alike. The keyboard
+  and the screen reader meet the same page: every operable element named,
+  ids once, one h1 and one main, no heading level skipped, each landmark
+  of a kind named; Tab reaches every control that shows, never lands on
+  what a reader cannot see, never stays held, and every stop shows its
+  focus; a dialog takes focus in, a modal keeps it, Escape closes it and
+  focus returns to its key. The walk's `--a11y` pass holds it on every
+  page, `packages/site/tests/site/page-reading.spec.tsx` on the built
+  pages in the gate.
 - Studio serves Solid developers and visual designers equally. Use the durable
   audience, interaction, and aesthetic contract in `.impeccable.md` for UI work.
 

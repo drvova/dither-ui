@@ -92,12 +92,22 @@ export default function Toolbar(props: ToolbarProps) {
     })).filter((group) => group.items.length),
   )
 
+  // The library is a dialog: its search focused on open, focus back on its
+  // key when it closes with focus inside it (or nowhere), Escape anywhere in it.
+  let libraryKey: HTMLButtonElement | undefined
+  let libraryPanel: HTMLDivElement | undefined
   createEffect(
     on(
       libraryOpen,
       (open) => {
         if (open) queueMicrotask(() => searchRef?.focus())
-        else setQuery("")
+        else {
+          setQuery("")
+          queueMicrotask(() => {
+            const a = document.activeElement
+            if (!a || a === document.body || libraryPanel?.contains(a)) libraryKey?.focus()
+          })
+        }
       },
       { defer: true },
     ),
@@ -338,6 +348,7 @@ export default function Toolbar(props: ToolbarProps) {
       <div class="flex items-center gap-0.5 justify-self-end">
         <div class="relative mr-1">
           <button
+            ref={(el) => (libraryKey = el)}
             type="button"
             aria-haspopup="dialog"
             aria-expanded={libraryOpen()}
@@ -352,8 +363,10 @@ export default function Toolbar(props: ToolbarProps) {
           </button>
           <Presence when={libraryOpen()} name="pop">
             <div
+              ref={(el) => (libraryPanel = el)}
               role="dialog"
               aria-label="Component library"
+              onKeyDown={(e) => e.key === "Escape" && setLibraryOpen(false)}
               class="absolute right-0 top-full z-40 mt-2 flex max-h-[min(72dvh,640px)] w-[420px] flex-col overflow-hidden rim rounded-2xl bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]"
             >
               <label class="border-b border-border/60 p-2">
@@ -366,7 +379,6 @@ export default function Toolbar(props: ToolbarProps) {
                   placeholder={`Search ${COMPONENT_REGISTRY.length} components…`}
                   class="h-9 w-full rounded-md border border-edge bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
                   onInput={(e) => setQuery(e.currentTarget.value)}
-                  onKeyDown={(e) => e.key === "Escape" && setLibraryOpen(false)}
                 />
               </label>
               <div class="overflow-y-auto p-2">
@@ -483,6 +495,7 @@ export default function Toolbar(props: ToolbarProps) {
         type="file"
         accept="application/json"
         name="open-project"
+        aria-label="Project file"
         class="hidden"
         onChange={openFile}
       />

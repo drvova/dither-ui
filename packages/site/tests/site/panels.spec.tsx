@@ -891,6 +891,19 @@ describe("the title bar", () => {
     expect(editor.artboards[before + 2].widget?.kind).toBe("component")
   })
 
+  it("closes the library on Escape from anywhere in it and hands focus back to its key", async () => {
+    const { container, library } = bar()
+    const open = button(container, "Library")
+    fireEvent.click(open)
+    const dialog = container.querySelector<HTMLElement>('[role="dialog"]')!
+    const item = button(dialog, "area chart")
+    item.focus()
+    fireEvent.keyDown(item, { key: "Escape" })
+    expect(library()).toBe(false)
+    await tick()
+    expect(document.activeElement).toBe(open)
+  })
+
   it("lists the saved presets in the library", () => {
     presets.push({ name: "Mine", chart: createArtboard("line").chart })
     const { container } = bar()

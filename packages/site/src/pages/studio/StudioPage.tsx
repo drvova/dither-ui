@@ -267,7 +267,7 @@ export default function StudioPage() {
         // Small screens: the editor needs a desktop, so guide instead of
         // breaking: a still print of the kit, why, and the link to carry to a
         // wider screen (copied in one tap), the docs beside it.
-        <div class="flex min-h-dvh flex-col items-center justify-center gap-5 bg-background px-6 py-10 text-center font-mono text-foreground antialiased">
+        <main class="flex min-h-dvh flex-col items-center justify-center gap-5 bg-background px-6 py-10 text-center font-mono text-foreground antialiased">
           <div class="aspect-[4/3] w-full max-w-xs overflow-hidden rounded-2xl" aria-hidden="true">
             <DitherPoster seed={5} cell={4} paused />
           </div>
@@ -293,7 +293,7 @@ export default function StudioPage() {
               Browse the docs
             </a>
           </div>
-        </div>
+        </main>
       }
     >
       {/* An agent app's window: the title bar across the top; under it the
@@ -306,6 +306,8 @@ export default function StudioPage() {
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => void onDrop(e)}
       >
+        {/* The page's name, for a reader: the title bar shows the project's. */}
+        <h1 class="sr-only">Studio</h1>
         {/* The title bar first: Tab reads it before the sidebar and the canvas. */}
         <Toolbar
           ref={(api) => (toolbar = api)}

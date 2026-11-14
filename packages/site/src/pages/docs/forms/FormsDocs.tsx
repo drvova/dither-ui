@@ -286,6 +286,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "options", type: "string[]", default: "[]" },
     { prop: "value", type: "string (with onUpdateModelValue)", default: '""' },
     { prop: "onSelect", type: "(value) on commit", default: "" },
+    { prop: "aria-label", type: "string (its name)", default: "" },
   ],
   multiSelect: [
     { prop: "options", type: "string[]", default: "[]" },
@@ -456,8 +457,9 @@ export default function FormsDocs() {
       <section class="mt-16 scroll-mt-24" id="hotkey-input">
         <h2 class="text-lg tracking-tight">HotkeyInput</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Shortcut capture: modifiers hold until a non-modifier key arrives, repeat is ignored, Escape clears. Value
-          shape: <code class="text-foreground/80">Ctrl+Shift+K</code> (order Ctrl, Alt, Shift, Meta, then the key).
+          Shortcut capture: modifiers hold until a non-modifier key arrives, repeat is ignored, Escape clears, Tab moves
+          on as anywhere. Value shape: <code class="text-foreground/80">Ctrl+Shift+K</code> (order Ctrl, Alt, Shift,
+          Meta, then the key).
         </p>
         <DemoCard code={SNIPPET_HOTKEY_INPUT}>
           <div class="mx-auto w-full max-w-xs">
@@ -473,7 +475,8 @@ export default function FormsDocs() {
         <h2 class="text-lg tracking-tight">CodeInput</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Code entry where Tab indents (two spaces), Shift+Tab dedents the selected lines, and Ctrl/Cmd+Enter fires{" "}
-          <code class="text-foreground/80">submit</code>. The browser's tab trap is handled once, here.
+          <code class="text-foreground/80">submit</code>. The browser's tab trap is handled once, here: Escape lets go,
+          and the Tab after it moves on.
         </p>
         <DemoCard code={SNIPPET_CODE_INPUT}>
           <div class="mx-auto w-full max-w-md">
@@ -761,8 +764,9 @@ export default function FormsDocs() {
       <section class="mt-16 scroll-mt-24" id="date-picker">
         <h2 class="text-lg tracking-tight">DatePicker</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Date field + calendar popover: the input shows a human format, the calendar opens on click/focus, select
-          closes, Escape and outside-click dismiss. The model stays ISO.
+          Date field + calendar popover: the input shows a human format, the calendar opens on a click or Enter with its
+          day focused, select closes, Escape and outside-click dismiss, a pick or Escape hands focus back to the field.
+          The model stays ISO.
         </p>
         <DemoCard code={SNIPPET_DATE_PICKER}>
           <div class="mx-auto w-full max-w-xs">

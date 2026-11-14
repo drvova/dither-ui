@@ -105,7 +105,7 @@ function markAll() {
   <For each={days()}>
     {(day) => (
       <section>
-        <h4 class="px-3 text-[10px] text-muted-foreground">{day}</h4>
+        <h3 class="px-3 text-[10px] text-muted-foreground">{day}</h3>
         <For each={byDay(day)}>
           {(n) => (
             <button type="button" onClick={() => read(n.id)}
@@ -184,7 +184,7 @@ export default function NotificationsExamples() {
               <For each={days()}>
                 {(day) => (
                   <section class="mt-1.5 first:mt-0">
-                    <h4 class="px-2 pb-1 text-[11px] text-muted-foreground">{day}</h4>
+                    <h3 class="px-2 pb-1 text-[11px] text-muted-foreground">{day}</h3>
                     <For each={byDay(day)}>
                       {(n) => (
                         <button

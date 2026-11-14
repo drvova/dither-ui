@@ -21,7 +21,9 @@ export default function Play() {
       <Meta name="robots" content="noindex, nofollow" />
       {/* The site's icons, which the shell gives only the pages it knows. */}
       <For each={ICON_HEAD}>{(t) => <Link {...t.attrs} href={assetPath(t.attrs.href)} />}</For>
-      <div id="dither-stage" class="grid min-h-screen place-items-center" />
+      {/* The page's name and its one landmark, for a reader the frame says nothing to. */}
+      <h1 class="sr-only">Studio frame player</h1>
+      <main id="dither-stage" class="grid min-h-screen place-items-center" />
     </>
   )
 }

@@ -139,6 +139,9 @@ describe("the player's page and bundle", () => {
     ))
     const stage = page.container.querySelector("#dither-stage")!
     expect(stage.querySelector(".play-empty")).not.toBeNull()
+    // Its one landmark and its name, for a reader the frame says nothing to.
+    expect(stage.localName).toBe("main")
+    expect(page.container.querySelector("h1")?.textContent).toBe("Studio frame player")
     expect(window.ditherClock?.directed()).toBe(false)
     window.dispatchEvent(new CustomEvent("hf-seek", { detail: { time: 1.5 } }))
     expect(window.ditherClock?.time()).toBe(1.5)

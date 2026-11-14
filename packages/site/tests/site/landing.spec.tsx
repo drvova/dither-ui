@@ -707,6 +707,8 @@ describe("the agent's story", () => {
     // The first step: the first line at work under its spinner, the rest unsaid.
     expect(lines(story)).toEqual(["working", ...DOES.slice(1).map(() => "ahead")])
     expect(all(story, ".part.on")).toHaveLength(0)
+    // a part not laid out yet is out of reach: Tab never lands on its unseen switch
+    expect(all(story, ".part").every((p) => p.inert)).toBe(true)
     expect(story.querySelector(".render")!.className).toBe("render ahead")
     const cross = (i: number, isIntersecting: boolean) =>
       report!([{ target: markers[i], isIntersecting } as unknown as IntersectionObserverEntry], null as never)
@@ -722,6 +724,7 @@ describe("the agent's story", () => {
     cross(STEPS - 1, true)
     expect(lines(story)).toEqual(DOES.map(() => "done"))
     expect(all(story, ".part").every((p) => p.classList.contains("on"))).toBe(true)
+    expect(all(story, ".part").some((p) => p.inert)).toBe(false)
   })
 })
 

@@ -155,8 +155,11 @@ are from the repository's.
   `tests/site/sandbox.spec.ts` runs in a real Chromium) and
   `npm run build` (the static build and the post-build; a prerender error
   or a failed card fails it). The specs that read the built site
-  (`tests/site/heads.spec.tsx`'s built pages) run only when a build
-  stands, so the gate runs `npm test` again after the build. Offline use
+  (`tests/site/heads.spec.tsx`'s built pages, and
+  `tests/site/page-reading.spec.tsx`: the site's pages, the player and each
+  docs family's first section read as a screen reader reads them, by the
+  walk's `auditA11y`) run only when a build stands, so the gate runs
+  `npm test` again after the build. Offline use
   and the video export are checked in a browser.
 - A spec that crosses packages lives here, the highest package it touches
   (`tests/bridge.spec.ts`, `tests/focus-ring.spec.ts`,

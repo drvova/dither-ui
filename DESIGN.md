@@ -291,6 +291,10 @@ A floor, not a feature:
   `pointercancel`; every right-click menu opens on a long press.
 - On a phone the site's menu is a bottom sheet: bands at least 44px tall,
   dragged down by its head to close, Escape and the close key as ever.
+- Every operable element has a name, every page one h1 and one main; Tab
+  reaches every control that shows and leaves every one, each showing its
+  focus; what a scene keeps unseen is out of reach; a dialog takes focus
+  in and gives it back to its key.
 
 ## Performance
 
