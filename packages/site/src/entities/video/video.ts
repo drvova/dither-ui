@@ -1,20 +1,15 @@
-// Delivering a composition: the Studio's own download, the live preview link,
-// and the two agent paths (a browser download for the in-page loop, files for
-// the bridge to write under the harness's project).
+// A frame's video: the frames a reel carries, its length and score, the
+// player's files, the self-contained composition and its download, and the
+// live preview link. The video dialog and the agent's `video.export` and
+// `export_video` all read it.
 import type { Artboard } from "@/entities/artboard"
-import { editor } from "../../entities/editor"
-import { reelDuration, scorePlanOf } from "@/features/reel"
+import { editor } from "@/entities/editor"
+import { reelDuration, scorePlanOf } from "@/entities/widget"
 import { scoreCut, wavBytes } from "@dither-ui/kit"
 import { bytesToBase64, toBase64Url } from "@/shared/lib/base64"
 import { assetPath, routePath } from "@/shared/lib/routes"
 import { download } from "@/shared/lib/files"
-import {
-  compositionHtml,
-  DEFAULT_VIDEO,
-  normalizeVideoOptions,
-  slugOf,
-  type VideoOptions,
-} from "@/features/export-video/composition"
+import { compositionHtml, DEFAULT_VIDEO, slugOf, type VideoOptions } from "./composition"
 
 export const videoFileName = (a: Artboard): string => `${slugOf(a.name)}.hyperframes.html`
 export const renderCommand = (a: Artboard): string =>
@@ -93,55 +88,4 @@ export async function selfContainedComposition(a: Artboard, o: VideoOptions): Pr
 export async function downloadComposition(a: Artboard, o: VideoOptions): Promise<string> {
   download(new Blob([await selfContainedComposition(a, o)], { type: "text/html" }), videoFileName(a))
   return videoFileName(a)
-}
-
-/** The `video.export` protocol result's data. */
-export type VideoExportData = {
-  id: string
-  name: string
-  file: string
-  options: VideoOptions
-  index: string
-  assets: { path: string; url: string }[]
-  /** A reel's score: the file the index plays, as base64. */
-  score?: { path: string; base64: string }
-  render: string
-}
-
-/** Finish an `export_video` tool call. "download": the browser saves the
- * self-contained file for the user (the in-page loop). "files": the
- * composition rides the result to the bridge, which writes it under the
- * harness's project so the agent can render it there. */
-export async function deliverVideo(
-  data: VideoExportData,
-  mode: "download" | "files",
-): Promise<{ ok: true; data: Record<string, unknown> } | { ok: false; error: string }> {
-  const a = editor.artboards.find((x) => x.id === data.id)
-  if (!a) return { ok: false, error: `no frame ${data.id}` }
-  const o = normalizeVideoOptions(data.options)
-  try {
-    if (mode === "download") {
-      const file = await downloadComposition(a, o)
-      return {
-        ok: true,
-        data: {
-          downloaded: file,
-          render: renderCommand(a),
-          note: "The browser saved the composition to the user's downloads; the user renders it with the HyperFrames CLI (Node 22 + FFmpeg).",
-        },
-      }
-    }
-    const slug = slugOf(a.name)
-    const html = await selfContainedComposition(a, o)
-    return {
-      ok: true,
-      data: {
-        files: [{ path: `video/${slug}/index.html`, content: html }],
-        render: `npx hyperframes render video/${slug} -o ${slug}.mp4`,
-        note: "Written under the project by the bridge; render it with the HyperFrames CLI (Node 22 + FFmpeg). Simulation backgrounds need --workers 1.",
-      },
-    }
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : String(e) }
-  }
 }

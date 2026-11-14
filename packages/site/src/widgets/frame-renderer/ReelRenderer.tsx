@@ -40,7 +40,7 @@ import {
   reelDuration,
   reelLoop,
   wipeDirectionOf,
-} from "@/features/reel"
+} from "@/entities/widget"
 import { editor } from "@/entities/editor"
 import ReelBand from "./ReelBand"
 import ReelClip from "./ReelClip"

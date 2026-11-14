@@ -1,10 +1,8 @@
 // One clip of a reel: the referenced frame at its own size, centred and
 // scaled down (never up) to fit the reel's frame, rendered by the same
 // renderers the Studio and the player use.
-import { Show } from "solid-js"
 import type { Artboard } from "@/entities/artboard"
-import { ChartRenderer } from "@/widgets/chart-renderer"
-import WidgetRenderer from "@/widgets/widget-renderer/WidgetRenderer"
+import StillFrame from "./StillFrame"
 
 export default function ReelClip(props: { artboard: Artboard; scale: number }) {
   return (
@@ -17,16 +15,7 @@ export default function ReelClip(props: { artboard: Artboard; scale: number }) {
         transform: `translate(-50%, -50%) scale(${props.scale})`,
       }}
     >
-      <Show
-        when={props.artboard.widget}
-        fallback={
-          <div class="h-full">
-            <ChartRenderer chart={props.artboard.chart} />
-          </div>
-        }
-      >
-        {(widget) => <WidgetRenderer widget={widget()} artboardId={props.artboard.id} />}
-      </Show>
+      <StillFrame artboard={props.artboard} />
     </div>
   )
 }

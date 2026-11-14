@@ -310,7 +310,7 @@ Default section order:
   driving the user's own harness (Claude Code by default) into a video,
   run where that harness is signed in; never with borrowed credentials.
 - Video: every Studio frame exports as a HyperFrames composition
-  (`features/export-video`, the `video` selection action, the
+  (`entities/video`, its dialog `features/export-video`, the `video` selection action, the
   `video.export` command / `export_video` tool) — one self-contained HTML
   file that `npx hyperframes render` turns into a deterministic MP4. The
   kit's clock (`@dither-ui/kit/engine/clock.ts`) makes every animation seekable; the

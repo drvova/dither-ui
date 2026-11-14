@@ -28,7 +28,7 @@ import { paintOf, recordPaint } from "@dither-ui/kit/testing/paint.ts"
 import { createComponent } from "@/entities/widget/model/factory"
 import type { ComponentModel } from "@/entities/widget/model/types"
 import { COMPONENT_REGISTRY, type ComponentEntry, type PropSpec, TEXT_SAMPLES } from "@/entities/widget/model/registry"
-import { WidgetRenderer } from "../../src/widgets/widget-renderer"
+import { WidgetRenderer } from "../../src/widgets/frame-renderer"
 
 /** The kit clock's moment, ms: past every entrance. */
 const MOMENT = 2400

@@ -3,7 +3,7 @@
 // only: the samples are the kit's, the same the video export carries).
 import type { ReelModel } from "@/entities/widget"
 import { scoreCut } from "@dither-ui/kit/engine"
-import { scorePlanOf } from "./reel"
+import { scorePlanOf } from "@/entities/widget"
 
 /** The preview's audio, opened in the click that asks for it, or null where
  * the browser has no audio: iOS WebKit starts a context made outside a

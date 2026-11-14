@@ -40,3 +40,23 @@ export {
   type ScreenModel,
   type ScreenRow,
 } from "./model/screen"
+export {
+  CAMERA_MOVES,
+  type Camera,
+  cameraAt,
+  cameraMoveOf,
+  cameraPoint,
+  cameraTransform,
+  type CalloutState,
+  calloutsAt,
+  chapterAt,
+  type ChapterState,
+  hasChapters,
+  reelAt,
+  reelDuration,
+  reelLoop,
+  type ReelMoment,
+  scorePlanOf,
+  STILL,
+  wipeDirectionOf,
+} from "./model/reel"

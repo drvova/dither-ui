@@ -9,10 +9,9 @@ import { MetaProvider } from "@solidjs/meta"
 import { cleanup, render } from "@solidjs/testing-library"
 import { afterEach, describe, expect, it } from "vitest"
 import { buildKeep, cacheName, inApp, KEEP_DEFINE, OFFLINE, pageAssets, strategyFor } from "@/app/offline"
-import { compositionHtml, DEFAULT_VIDEO } from "@/features/export-video/composition"
+import { compositionHtml, DEFAULT_VIDEO, playerAssetUrls, playerUrl } from "@/entities/video"
 import { type BuiltChunk, PLAYER_ROUTE, studioFiles } from "../../build/standalone"
 import { addArtboard } from "../../src/entities/editor"
-import { playerAssetUrls, playerUrl } from "../../src/features/export-video"
 import Play from "../../src/routes/play"
 
 const read = (path: string) => readFileSync(join(import.meta.dirname, "../..", path), "utf8")

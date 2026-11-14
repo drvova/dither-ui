@@ -23,7 +23,7 @@ import { modelOf, SCOPED_CHILDREN } from "../../src/entities/widget/model/model"
 import { registrySchema } from "../../src/features/agent"
 import { type Compile, compiler, evaluate } from "../../src/widgets/source/model/compile"
 import { PACKAGES } from "../../src/widgets/source/model/run"
-import { WidgetRenderer } from "../../src/widgets/widget-renderer"
+import { WidgetRenderer } from "../../src/widgets/frame-renderer"
 import { world } from "@dither-ui/kit/testing/world.ts"
 
 const HOSTILE = `x" onClick={alert(1)} y='z' {alert(2)} {{ alert(2) }} </script><script>alert(3)</script><img src=x onerror=alert(5)> &amp; \\" */ \` \${alert(6)} ${String.fromCharCode(0x2028)}`

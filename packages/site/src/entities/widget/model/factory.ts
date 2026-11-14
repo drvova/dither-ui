@@ -55,7 +55,7 @@ export function createComponent(entry: ComponentEntry): ComponentModel {
   }
 }
 
-export function createWidget(kind: SimpleWidgetKind): WidgetModel {
+export function createWidget(kind: SimpleWidgetKind): Extract<WidgetModel, { kind: SimpleWidgetKind }> {
   switch (kind) {
     case "avatar":
       return {

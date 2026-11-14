@@ -5,7 +5,7 @@
 // canvas's zoom.
 import type { Artboard } from "@/entities/artboard"
 import { editor } from "../../entities/editor"
-import { surfaceOf } from "@/features/export-image"
+import { surfaceOf } from "@/entities/artboard/picture"
 import { audit, boxOf, focusOrder, nameOf, roleOf, statesOf } from "@/shared/lib/inspect/measure"
 
 /** At most this many controls come back, so a busy screen stays a short answer. */

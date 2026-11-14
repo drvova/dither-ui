@@ -29,7 +29,7 @@ import {
   type Setting,
   type Usage,
 } from "@/features/agent/tools"
-import { artboardPng } from "@/features/export-image"
+import { artboardPng } from "@/entities/artboard/picture"
 import { activeProjectId } from "@/features/persistence"
 import BrandMark from "@/shared/ui/BrandMark"
 import { isMark } from "@/shared/ui/marks"

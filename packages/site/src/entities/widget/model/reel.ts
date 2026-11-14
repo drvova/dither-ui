@@ -5,14 +5,7 @@
 // callouts up, the chapter on screen, and the cut as the score's plan. Pure:
 // the renderer, the inspector and the export all read the same answer for
 // the same time.
-import type {
-  ReelCallout,
-  ReelCameraKey,
-  ReelChapter,
-  ReelClip,
-  ReelModel,
-  ReelTransitionKind,
-} from "@/entities/widget"
+import type { ReelCallout, ReelCameraKey, ReelChapter, ReelClip, ReelModel, ReelTransitionKind } from "./types"
 import { planSequence, resolveEasing, type ScorePlan } from "@dither-ui/kit/engine"
 import type { WipeDirection } from "@dither-ui/kit/engine/wipe.ts"
 

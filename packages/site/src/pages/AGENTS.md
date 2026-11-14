@@ -1230,7 +1230,7 @@ in the page's folder.
   the docs link; on a touch screen whose long side reaches 1024px (an iPad
   held upright) it says to turn the screen instead.
 - The canvas bar's Video opens `VideoDialog`
-  (`features/export-video`, lazy like `ExportDialog`): length, frame rate
+  (`features/export-video` over `entities/video`, lazy like `ExportDialog`): length, frame rate
   and theme, then download the self-contained HyperFrames composition,
   open the live player preview, or copy the render command.
 - The Agent panel (`widgets/agent/AgentPanel.tsx`, the chat column; ⌘I
@@ -1427,7 +1427,7 @@ in the page's folder.
   under its own heading (`withContext`: a message that names a thing is
   never read as the frame's caption), and,
   when it takes images, the first three as pictures (each frame drawn to
-  a PNG by `features/export-image` `artboardPng`; the bubble's chips show
+  a PNG by `artboardPng`, `entities/artboard/picture.ts`; the bubble's chips show
   a picture then). The field grows with what is typed to 176px, then
   scrolls; its placeholder says what sending does now; the unsent message
   and its chips are kept per chat (closing the panel, a reload, another
@@ -1511,7 +1511,8 @@ in the page's folder.
   `routes/play.tsx` is the page (noindex, outside the site's shell,
   prerendered as `play/index.html`) and the
   same `main.ts` (`mountPlayer`) is the entry of the single-file bundle
-  (`build/standalone.ts`). Nothing here reads the
+  (`build/standalone.ts`, whose entry brings `app.css` as the app shell
+  does for the route: a page never imports above the layers). Nothing here reads the
   project store: the
   page provides `REEL_POOL` (its parsed document's artboards) so a reel
   cuts between the frames that travel with it. Besides `hf-seek`, `main.ts`

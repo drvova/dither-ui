@@ -1,6 +1,6 @@
 import { describe, expect, it } from "rstack/test"
 import { createArtboard } from "@/entities/artboard"
-import { compositionHtml, embedJson, normalizeVideoOptions, slugOf } from "@/features/export-video/composition"
+import { compositionHtml, embedJson, normalizeVideoOptions, slugOf } from "@/entities/video"
 
 describe("HyperFrames composition", () => {
   const frame = { ...createArtboard("area"), name: "Sign in / Q3 <draft>", w: 520.4, h: 360 }

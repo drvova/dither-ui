@@ -45,8 +45,11 @@ around this tree (entries, routes, the build, how Solid is written) is
   itself, `WIDGET_PANELS` by its widget's kind, both exhaustive records so
   a kind without a panel is a type error, held by `tests/site/panels.spec.tsx`;
   `ui/` the rows, keys and editors the panels share), canvas,
-  chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
-  clock; a film's camera, callouts and chapter band), data-editor, agent
+  frame-renderer (a frame as drawn wherever it stands, the canvas, the
+  player, a reel's clip: `FrameRenderer`, a reel or `StillFrame`, its chart
+  (`ChartRenderer`) or its widget (`WidgetRenderer`, a screen's cells
+  `ScreenRenderer`); `ReelRenderer`, a reel's clips on the kit clock, a
+  film's camera, callouts and chapter band), data-editor, agent
   (the composer / harness control plane: `AgentPanel.tsx` wires the
   session and lays it out; `bridge.ts` finds, opens and closes the bridge,
   `approvals.ts` asks and settles the permission prompts (both
@@ -63,11 +66,9 @@ around this tree (entries, routes, the build, how Solid is written) is
   the work, not the chats, opened beside the original) and deleted (the
   last one's place taken by a new project under a new name; the page
   then forgets its chats, `forgetProject`)),
-  export-code, export-image, export-video (a frame as a HyperFrames
-  composition: builder, dialog, delivery for the agent path; a film's score
-  as its audio track), reel (the reel's and the film's pure timeline, the
-  score preview, its audio opened in the click that asks for it, as iOS
-  needs), pan-zoom (wheel, middle or Space drag, one finger on empty
+  export-code, export-image (the PNG download), export-video (the video
+  dialog over `entities/video`), reel (the score preview, its audio opened
+  in the click that asks for it, as iOS needs), pan-zoom (wheel, middle or Space drag, one finger on empty
   canvas pans, two fingers pinch about their midpoint; a second finger ends
   the first finger's drag with a `pointercancel`, a third starts nothing,
   and the pinch rebases on whichever pair remains; the canvas touch cases
@@ -92,7 +93,12 @@ around this tree (entries, routes, the build, how Solid is written) is
   which every zoom holds), chart, widget (`SIMPLE_WIDGET_KINDS`, the one
   list of the kinds `createWidget` builds whole, its type
   `SimpleWidgetKind` and guard `isSimpleWidgetKind`, from its index; the
-  artboard factory and the library's widget keys read it), artboard.
+  artboard factory and the library's widget keys read it; `model/reel.ts`,
+  the reel's and the film's pure timeline), artboard (`picture.ts`, a
+  frame's drawn surface, `surfaceOf`, and its PNG, `artboardPng`, imported
+  by path), video (a frame as a HyperFrames composition: the builder,
+  `composition.ts`, and what the dialog and the agent take from it,
+  `video.ts`).
 - `shared/fonts/` — the display face: `michroma-latin.woff2` (the Latin
   subset, self-hosted), its license `OFL.txt` (keep them together) and
   `display.css` (its `@font-face`, `font-display: swap`; the mono and
@@ -196,7 +202,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   context (DitherInput, Textarea, Select and the Email, Password, Search,
   Phone and Currency inputs, which wrap DitherInput) is `labelled`: a `label`
   text setting (empty by default) that is not the component's prop but the
-  visible label of the `DitherField` the canvas (`widget-renderer/FieldWrap`)
+  visible label of the `DitherField` the canvas (`frame-renderer/FieldWrap`)
   and the code export put it in, so the label is tied to the control;
   `boundProps` is the ONE way a registry component's props are bound
   (mapped, the label left out), for the canvas, a screen's cells and the
@@ -224,8 +230,19 @@ around this tree (entries, routes, the build, how Solid is written) is
 ## Local Contracts
 
 - Layer imports flow downward only: pages → widgets → features → entities →
-  shared. The kit (`@dither-ui/kit`) may be imported from any layer; nothing
-  imports back into it.
+  shared, never up (nor into the files above the layers: the entries, the
+  shell, `app.tsx`, `app.css`, `routes/`), never sideways into another
+  slice of the same layer, and no module reaches itself again through the
+  values it imports (a type-only import is erased). Two layers rank their
+  slices, each rank a real dependency: entities chart and widget (a
+  frame's two contents) under artboard (a frame) under editor (the
+  frames) under video (a frame of the document and its reel's clips);
+  widgets frame-renderer (what draws a frame) under the rest. What
+  features share sits in entities (a frame's picture, its video, the reel
+  timeline, the document and its history), so no feature imports another.
+  `tests/fsd.spec.ts` holds all of it, with no exemption. The kit
+  (`@dither-ui/kit`) may be imported from any layer; nothing imports back
+  into it.
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`, plus the
   `noindex` player at `/play/`; legacy
   `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported.
@@ -352,7 +369,7 @@ around this tree (entries, routes, the build, how Solid is written) is
     (`view`: fit every frame, the selection or one, step, 100%, a zoom),
     `inspect` (`inspect.ts`: the frame's controls in Tab order and the
     audit's findings, read off its drawn surface (`surfaceOf`,
-    `features/export-image`) at the canvas's zoom), `export_png`
+    `entities/artboard/picture.ts`) at the canvas's zoom), `export_png`
     (`image.export` names `image/<slug>.png`); frame summaries carry
     their `group`; the `AgentEvent` union the
     composer renders (delta, thought, assistant, tool, activity with the
@@ -511,7 +528,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   `release()`, `directed()`, `time()`), so a screenshot from any driver —
   CDP, WebDriver, Playwright, a DOM event from an extension world — lands on
   a held moment in any engine.
-- Video: `features/export-video` turns ONE frame into a HyperFrames
+- Video: `entities/video` turns ONE frame into a HyperFrames
   composition (hyperframes.dev — HTML that `npx hyperframes render` turns
   into a deterministic MP4). `compositionHtml` writes the root contract
   (`data-composition-id/width/height/duration/fps`; the frame IS the video
@@ -543,11 +560,11 @@ around this tree (entries, routes, the build, how Solid is written) is
   seed 3s clips coming in over a 0.6s dissolve; `addReelArtboard(ids)`
   (editor) cuts frames in order (reels and unknown ids dropped) into a frame
   sized like its first clip; `removeArtboard`/`removeSelected` prune
-  dangling clips; `evolve` leaves a reel alone. `features/reel` is the pure
+  dangling clips; `evolve` leaves a reel alone. `entities/widget/model/reel.ts` is the pure
   timeline on the kit's `planSequence`: `reelAt(clips, t)` → the clip on
   screen, the outgoing clip while its transition runs (none under the first,
   which comes in over the frame's background), the eased progress;
-  `reelDuration`, `reelLoop`, `wipeDirectionOf`. `widgets/reel-renderer`
+  `reelDuration`, `reelLoop`, `wipeDirectionOf`. `widgets/frame-renderer`
   plays it: one `DitherReveal` layer per clip on screen, keyed by its slot
   so a clip's surfaces survive going from incoming to outgoing, masked by
   the transition's progress; time is the kit clock (free-running it loops
@@ -555,10 +572,9 @@ around this tree (entries, routes, the build, how Solid is written) is
   held past the end); reduced motion cuts; `data-reel-clip/time/total` and
   `data-reel-layer` are the walk's probes. Clips resolve from the
   `REEL_POOL` context (the player provides its document's frames) or the
-  editor's artboards; `ReelClip` renders a clip through `WidgetRenderer` /
-  `ChartRenderer` at its own size, scaled down (never up) to fit — the
-  import cycle `WidgetRenderer` → `ReelRenderer` → `ReelClip` →
-  `WidgetRenderer` is render-time only. Export: `compositionHtml(…, extra)`
+  editor's artboards; `ReelClip` renders a clip through `StillFrame` (a
+  clip is never a reel, so the renderers import no cycle) at its own size,
+  scaled down (never up) to fit. Export: `compositionHtml(…, extra)`
   embeds the reel's clips (`reelClips(a)`) in the composition's document and
   `defaultSeconds(a)` makes a reel's video as long as its cut (the dialog,
   `video.export` and `export_video` default to it). Protocol: `reel.add {
@@ -582,7 +598,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   a blank line is none); the reel carries `score: { seed } | null`.
   `createClip`/`createReel` start them empty and `normalizeArtboard` fills
   and sanitizes them (control characters out), so reels from before films
-  load as still reels. `features/reel` adds the film's pure timeline:
+  load as still reels. The reel's timeline adds the film's:
   `cameraAt(keys, t)` (eased like the transitions, the first key held
   before and the last after), `cameraTransform(cam, w, h, lens)` (the CSS
   transform about the stage's centre: `perspective() rotateY() translate()
@@ -594,7 +610,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   to `to`), `chapterAt(clips, moment)` (the last chapter at or before the
   clip on screen, the one before it while it comes in over 0.5s),
   `hasChapters`, `scorePlanOf(reel, seconds)` (clip starts, chapter turns,
-  callout landings, the seed) and `playScore` (the Studio's preview: the
+  callout landings, the seed); `features/reel`'s `playScore` (the Studio's preview: the
   kit's samples through Web Audio, once). `ReelRenderer` (opaque, the page
   background) runs each clip layer through its camera, draws the callouts
   over a stage that is a size container (an SVG leader drawn by its dash,

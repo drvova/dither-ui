@@ -10,9 +10,7 @@
 import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js"
 import type { Artboard } from "@/entities/artboard"
 import { parseDocument } from "@/entities/editor"
-import { ChartRenderer } from "@/widgets/chart-renderer"
-import { REEL_POOL } from "@/widgets/reel-renderer"
-import { WidgetRenderer } from "@/widgets/widget-renderer"
+import { FrameRenderer, REEL_POOL } from "@/widgets/frame-renderer"
 import type { PlaySource } from "./source"
 import "./PlayPage.css"
 
@@ -65,16 +63,7 @@ export default function PlayPage(props: { source: PlaySource }) {
                   transform: scale() < 1 ? `scale(${scale()})` : undefined,
                 }}
               >
-                <Show
-                  when={a().widget}
-                  fallback={
-                    <div class="h-full">
-                      <ChartRenderer chart={a().chart} />
-                    </div>
-                  }
-                >
-                  {(widget) => <WidgetRenderer widget={widget()} artboardId={a().id} />}
-                </Show>
+                <FrameRenderer artboard={a()} />
               </div>
             </div>
           )

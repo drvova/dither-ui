@@ -2,9 +2,16 @@ import { copyText, DitherFocusScope, DitherIcon } from "@dither-ui/kit"
 import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
 import { createEffect, createSignal, For, on, Show } from "solid-js"
 import { createStore } from "solid-js/store"
-import { DEFAULT_VIDEO, type VideoOptions } from "@/features/export-video/composition"
-import { selectedArtboard } from "../../entities/editor"
-import { defaultSeconds, downloadComposition, playerUrl, renderCommand, videoFileName } from "./exportVideo"
+import { selectedArtboard } from "@/entities/editor"
+import {
+  DEFAULT_VIDEO,
+  defaultSeconds,
+  downloadComposition,
+  playerUrl,
+  renderCommand,
+  type VideoOptions,
+  videoFileName,
+} from "@/entities/video"
 import "./VideoDialog.css"
 
 export type VideoDialogProps = { open: boolean; onClose?: () => void }

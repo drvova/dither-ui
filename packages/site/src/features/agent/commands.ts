@@ -64,7 +64,7 @@ import {
   scoreWav,
   slugOf,
   videoFileName,
-} from "../export-video"
+} from "@/entities/video"
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { bytesToBase64 } from "@/shared/lib/base64"
 import { isStyling, type Styling, STYLINGS } from "../../shared/lib/restyle"

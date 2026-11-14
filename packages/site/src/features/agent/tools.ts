@@ -8,8 +8,8 @@
 // (`bridge/dither-bridge.mjs`), and reaches the canvas through an MCP server
 // made of the tools below (`acp.ts` is the browser side).
 import { editor } from "../../entities/editor"
-import { artboardPng } from "@/features/export-image"
-import { deliverVideo, type VideoExportData } from "../export-video"
+import { artboardPng } from "@/entities/artboard/picture"
+import { normalizeVideoOptions, selfContainedComposition, slugOf, type VideoOptions } from "@/entities/video"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
 import { type CommandResult, commandRows, type CommandType, runCommand, type ToolDef } from "./commands"
 
@@ -46,9 +46,30 @@ export function callStudioTool(
  * project. */
 export async function finishStudioTool(name: string, result: CommandResult): Promise<CommandResult> {
   if (!result.ok) return result
-  if (name === "export_video") return deliverVideo(result.data as VideoExportData, "files")
+  if (name === "export_video") return deliverVideo(result.data as { id: string; options: VideoOptions })
   if (name === "export_png") return deliverPng(result.data as { id: string; file: string; scale: number })
   return result
+}
+
+/** The composition, self-contained, as a file the bridge writes under the
+ * harness's project, so the agent renders it there. */
+async function deliverVideo(d: { id: string; options: VideoOptions }): Promise<CommandResult> {
+  const a = editor.artboards.find((x) => x.id === d.id)
+  if (!a) return { ok: false, error: `no frame ${d.id}` }
+  try {
+    const slug = slugOf(a.name)
+    const html = await selfContainedComposition(a, normalizeVideoOptions(d.options))
+    return {
+      ok: true,
+      data: {
+        files: [{ path: `video/${slug}/index.html`, content: html }],
+        render: `npx hyperframes render video/${slug} -o ${slug}.mp4`,
+        note: "Written under the project by the bridge; render it with the HyperFrames CLI (Node 22 + FFmpeg). Simulation backgrounds need --workers 1.",
+      },
+    }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) }
+  }
 }
 
 async function deliverPng(d: { id: string; file: string; scale: number }): Promise<CommandResult> {

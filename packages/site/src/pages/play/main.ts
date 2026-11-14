@@ -1,7 +1,9 @@
 // The player page's mount — for both the site's `/play/` page and the
 // single-file bundle an exported HyperFrames composition carries inline.
 // Nothing runs as the module loads: mounting is one call, `mountPlayer`,
-// so the module can be read on a server.
+// so the module can be read on a server. The app's stylesheet is the
+// entry's to bring (the site's app shell, the bundle's entry in
+// `build/standalone.ts`), never a page's.
 //
 // HyperFrames' runtime dispatches `hf-seek` for every frame it captures and
 // waits on `window.__hf.buildReady` before the first one. The hold here is
@@ -13,7 +15,6 @@
 import { directedTime, directFromHyperframes, isDirected, release, seek } from "@dither-ui/kit"
 import { createComponent } from "solid-js"
 import { render } from "solid-js/web"
-import "@/app.css"
 import PlayPage from "./PlayPage"
 import { readPlaySource } from "./source"
 

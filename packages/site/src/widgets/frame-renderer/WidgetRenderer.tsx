@@ -11,21 +11,22 @@ import {
 import * as kit from "@dither-ui/kit"
 import { DitherAvatar, DitherButton, DitherGradient, DitherImage, toast } from "@dither-ui/kit"
 import { editor } from "@/entities/editor"
-import ReelRenderer from "@/widgets/reel-renderer/ReelRenderer"
 import { modelOf, slotChildren } from "../../entities/widget/model/model"
 import { FieldWrap } from "./FieldWrap"
 import ScreenRenderer from "./ScreenRenderer"
 import "./WidgetRenderer.css"
 
-type Kind = WidgetModel["kind"]
-type Of<K extends Kind> = Extract<WidgetModel, { kind: K }>
+/** A widget that plays no other frames: a reel is `FrameRenderer`'s. */
+type StillWidget = Exclude<WidgetModel, { kind: "reel" }>
+type Kind = StillWidget["kind"]
+type Of<K extends Kind> = Extract<StillWidget, { kind: K }>
 
 /** The surface made anew whenever `by` changes. */
 function Keyed(props: { by: string; children: () => JSX.Element }) {
   return <For each={[props.by]}>{() => props.children()}</For>
 }
 
-export default function WidgetRenderer(props: { widget: WidgetModel; artboardId: string }) {
+export default function WidgetRenderer(props: { widget: StillWidget; artboardId: string }) {
   const rt = createMemo(() => editor.replayToken)
   /** The widget, when it is of `kind`. */
   const as =
@@ -302,9 +303,6 @@ export default function WidgetRenderer(props: { widget: WidgetModel; artboardId:
           </div>
         )}
       </Match>
-
-      {/* REEL — plays other frames with dither transitions */}
-      <Match when={as("reel")()}>{(w) => <ReelRenderer reel={w()} artboardId={props.artboardId} />}</Match>
 
       {/* IMAGE — fills the frame */}
       <Match when={as("image")()}>

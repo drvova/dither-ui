@@ -4,8 +4,7 @@ import type { Artboard as ArtboardModel } from "@/entities/artboard"
 import { editor, placeFrames, selectArtboard, setFrameBox, setGuides } from "@/entities/editor"
 import { handoff, togglePicked } from "@/features/agent/handoff"
 import { startDrag } from "@/features/artboard-transform"
-import { ChartRenderer } from "@/widgets/chart-renderer"
-import { WidgetRenderer } from "@/widgets/widget-renderer"
+import { FrameRenderer } from "@/widgets/frame-renderer"
 import "./Artboard.css"
 
 // 8-direction resize with shift-to-constrain (corner handles keep the aspect
@@ -231,16 +230,7 @@ export default function Artboard(props: { artboard: ArtboardModel }) {
           selected() ? "ring-2 ring-accent" : "border border-border",
         )}
       >
-        <Show
-          when={props.artboard.widget}
-          fallback={
-            <div data-canvas-interactive class="h-full">
-              <ChartRenderer chart={props.artboard.chart} />
-            </div>
-          }
-        >
-          {(widget) => <WidgetRenderer widget={widget()} artboardId={props.artboard.id} />}
-        </Show>
+        <FrameRenderer artboard={props.artboard} canvas />
       </div>
 
       <Show when={picked()}>

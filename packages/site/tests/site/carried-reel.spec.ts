@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 import { widgetCode } from "@/entities/widget/model/codegen"
 import { addArtboard, addReelArtboard, editor, removeArtboard } from "@/entities/editor"
 import { registrySchema, runCommand } from "@/features/agent"
-import { defaultSeconds, reelClips } from "@/features/export-video"
+import { defaultSeconds, reelClips } from "@/entities/video"
 
 beforeEach(() => {
   editor.artboards = []

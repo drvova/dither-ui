@@ -1,21 +1,22 @@
 // @rstest-environment jsdom
 import { describe, expect, it } from "rstack/test"
 import { createArtboard, normalizeArtboard } from "@/entities/artboard"
-import { createClip, createReel } from "@/entities/widget"
 import {
+  calloutsAt,
   CAMERA_MOVES,
   cameraAt,
   cameraMoveOf,
   cameraPoint,
   cameraTransform,
-  calloutsAt,
   chapterAt,
+  createClip,
+  createReel,
   reelAt,
   reelDuration,
   reelLoop,
   scorePlanOf,
   wipeDirectionOf,
-} from "@/features/reel"
+} from "@/entities/widget"
 
 const clips = [
   createClip("a", 3),

@@ -6,7 +6,7 @@ import { DitherReveal } from "@dither-ui/kit"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { createMemo, For, Index, Show } from "solid-js"
 import type { ReelChapter } from "@/entities/widget"
-import type { ChapterState } from "@/features/reel"
+import type { ChapterState } from "@/entities/widget"
 import "./ReelBand.css"
 
 type BandLayer = "previous" | "current"

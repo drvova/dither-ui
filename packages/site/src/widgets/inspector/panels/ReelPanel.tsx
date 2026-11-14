@@ -3,10 +3,18 @@
 // picker. The film over it: per clip a camera move, a chapter (a line and
 // figure-first spec rows) and spec callouts; for the reel, a score made
 // from the cut, previewed here with the reel replayed from its start. The
-// timeline itself is features/reel; this panel only edits the model.
+// timeline itself is entities/widget's (`model/reel.ts`); this panel only edits the model.
 import { createMemo, createSignal, For, onCleanup, Show } from "solid-js"
-import { createClip, REEL_TRANSITIONS, type ReelClip, type ReelTransitionKind } from "@/entities/widget"
-import { CAMERA_MOVES, cameraMoveOf, openScoreAudio, playScore, reelDuration } from "@/features/reel"
+import {
+  CAMERA_MOVES,
+  cameraMoveOf,
+  createClip,
+  REEL_TRANSITIONS,
+  type ReelClip,
+  reelDuration,
+  type ReelTransitionKind,
+} from "@/entities/widget"
+import { openScoreAudio, playScore } from "@/features/reel"
 import { editor, replay } from "@/entities/editor"
 import { NumberField, Toggle } from "@/shared/ui"
 import { ROW } from "../ui/fields"
