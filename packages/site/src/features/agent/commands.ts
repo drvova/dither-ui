@@ -47,6 +47,9 @@ import {
   sanitizeComponentProps,
   sanitizeModel,
   type ScreenRow,
+  isSimpleWidgetKind,
+  SIMPLE_WIDGET_KINDS,
+  type SimpleWidgetKind,
 } from "@/entities/widget"
 import {
   compositionHtml,
@@ -87,8 +90,6 @@ import { inspectFrame } from "./inspect"
 export const PROTOCOL_VERSION = 1
 export const SITE = "https://dither-ui.com"
 
-const WIDGET_KINDS = ["avatar", "button", "gradient", "image"] as const
-type BespokeKind = (typeof WIDGET_KINDS)[number]
 /** Where `view` can look: every frame, the selection, a zoom step, 100%. */
 export const VIEW_TO = ["all", "selection", "in", "out", "actual"] as const
 export type ViewTo = (typeof VIEW_TO)[number]
@@ -139,7 +140,7 @@ export type StudioCommand =
       data?: { labels: string[]; series: { key: string; label?: string; color?: string; values: number[] }[] }
       frame?: { w?: number; h?: number }
     }
-  | { type: "widget.add"; widget: BespokeKind; name?: string; props?: Record<string, unknown> }
+  | { type: "widget.add"; widget: SimpleWidgetKind; name?: string; props?: Record<string, unknown> }
   | {
       type: "component.add"
       is: string
@@ -585,9 +586,9 @@ export const COMMANDS = {
   }),
   "widget.add": command({
     parse: (raw) => {
-      if (!WIDGET_KINDS.includes(raw.widget as BespokeKind))
-        return refuse(`widget must be one of ${WIDGET_KINDS.join(", ")}`)
-      return { widget: raw.widget as BespokeKind, name: nameOf(raw.name), props: isPlain(raw.props) ? raw.props : {} }
+      if (typeof raw.widget !== "string" || !isSimpleWidgetKind(raw.widget))
+        return refuse(`widget must be one of ${SIMPLE_WIDGET_KINDS.join(", ")}`)
+      return { widget: raw.widget, name: nameOf(raw.name), props: isPlain(raw.props) ? raw.props : {} }
     },
     run: (cmd) => {
       const a = addArtboard(cmd.widget as ArtboardKind)
@@ -605,7 +606,7 @@ export const COMMANDS = {
           "Add a bespoke widget: avatar, button, gradient or image, with optional model props (button: label, color, variant; avatar: name, grid; gradient: from, to, direction; image: src, alt).",
         parameters: obj(
           {
-            widget: { type: "string", enum: ["avatar", "button", "gradient", "image"] },
+            widget: { type: "string", enum: [...SIMPLE_WIDGET_KINDS] },
             name: str("frame name"),
             props: obj({}),
           },
@@ -1176,7 +1177,7 @@ export function registrySchema() {
     site: SITE,
     skill: `${SITE}/agent/SKILL.md`,
     charts: CHART_TYPES,
-    widgets: WIDGET_KINDS,
+    widgets: SIMPLE_WIDGET_KINDS,
     components: COMPONENT_REGISTRY.map((e) => ({
       is: e.is,
       label: e.label,
