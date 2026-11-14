@@ -1044,8 +1044,9 @@ in the page's folder.
 - Chrome: the header is the site's one `SiteHeader` (Header, above),
   with Search and the sections key in its `tools`; the toggles under it
   are tracks, the picked one `.ring-on`. The search
-  hint names the visitor's modifier (`⌘K` on Apple platforms, `Ctrl K`
-  elsewhere — the handler accepts both). The styling switch carries the
+  hint names the visitor's modifier (`⌘K` on Apple platforms, an iPad or
+  iPhone known by its agent where the platform is not its own, `Ctrl K`
+  elsewhere — the handler accepts both; `isApple` in `shared/lib/keys.ts`). The styling switch carries the
   systems' names (`STYLING_LABELS`), sound
   and theme the kit's glyphs (Volume/VolumeOff, Sun/Moon), GitHub its
   mark. The section list is ONE component, `DocsNav.tsx` (the sidebar
