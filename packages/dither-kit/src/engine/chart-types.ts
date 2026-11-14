@@ -65,8 +65,7 @@ export type Margins = { top: number; right: number; bottom: number; left: number
 
 type Row = Record<string, unknown>
 
-export type AreaVariant = "gradient" | "dotted" | "hatched" | "solid"
-export type { TextureConfig, VariantInput } from "./dither-paint"
+export type { AreaVariant, TextureConfig, VariantInput } from "./dither-paint"
 export type StrokeVariant = "solid" | "dashed"
 export type SeriesKind = "area" | "line" | "bar"
 

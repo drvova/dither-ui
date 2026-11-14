@@ -2,7 +2,6 @@
 // (area, line, bar). Keeping the Bayer threshold loop in one place means every
 // chart type reads with the exact same pixel texture.
 
-import type { AreaVariant } from "./chart-types"
 import { rgb, type Rgb, type Seed } from "./palette"
 import { clamp01, xorshift32 } from "./pixel"
 import { setOrBlendRasterPixel, type RasterBuffer } from "./raster"
@@ -26,6 +25,9 @@ export const BORDER_ALPHA = 0.72
 // between these two tiers of the *same* colour instead of leaving holes, so the
 // background never shows through as stark white on a light theme.
 export const OFF_TIER = 0.4
+
+/** The four named dither textures a series fills with. */
+export type AreaVariant = "gradient" | "dotted" | "hatched" | "solid"
 
 /** Fully granular dither texture — the four named variants are presets over
  * this. Every field is optional; missing fields take the gradient defaults. */

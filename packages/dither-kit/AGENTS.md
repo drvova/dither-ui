@@ -43,7 +43,10 @@ generated twin. Inside the kit every import is relative
   palette, pixel, raster, the painters and backgrounds' renderers, the
   chart paint loops (`cartesian-loop.ts`, `bar-loop.ts`, `pie-loop.ts`,
   `radar-loop.ts`: `startCartesianLoop`, `startBarLoop`, `startPieLoop`,
-  `startRadarLoop`), the one rule for when a chart's held fill is stale
+  `startRadarLoop`, over `chart-loop.ts`: the canvases at the backing
+  size, the timed entrance, the frames a loop is driven on, and the
+  bar, pie and radar charts' whole draw, `startChartLoop`, around a
+  family's own `paint`), the one rule for when a chart's held fill is stale
   (`chart-fill.ts`) and the chart family's types (`chart-types.ts`),
   timing, sequence, clock, wipe, keyframes, score, parsers and GL engines,
   `copy-text.ts`, `theme.css`, `theme.ts` and `base.css` (the scoped
@@ -81,9 +84,13 @@ generated twin. Inside the kit every import is relative
   names, `<name>-enter-from` / `-enter-active` / `-enter-to` and the three
   `-leave-*`, so a transition is a plain stylesheet), and the chart
   family's (`chart-context.ts`, `common-context.ts`, `polar-context.ts`,
-  `series-context.ts`, `use-chart-dimensions.ts`, the four `*-canvas.tsx`
-  over the engine's loops, `chart-layer.tsx`, which sorts a chart root's
-  children into its back, drawing and DOM layers).
+  `series-context.ts`, `use-chart-dimensions.ts`, `plot-canvas.tsx`
+  (`PlotCanvas`: every family's dither and bloom canvases, or the
+  precompiled image, and its loop started, restarted and woken) under
+  `cartesian-canvas.tsx`, `bar-canvas.tsx` and `polar-canvas.tsx` (the
+  pie's and the radar's, one canvas over each one's loop and fill), and
+  `chart-layer.tsx`, which sorts a chart root's children into its back,
+  drawing and DOM layers).
   Conventions: props are never destructured (defaults through `mergeProps`,
   a control's own props apart from the element's through `splitProps`, the
   rest spread on the element so listeners and ARIA reach it); elements are
