@@ -190,7 +190,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   and the code export put it in, so the label is tied to the control;
   `boundProps` is the ONE way a registry component's props are bound
   (mapped, the label left out), `fieldLabel` the label or null.
-  `tests/field-label.spec.ts`. A component with a two-way value (a field's
+  `tests/field-label.spec.ts`. Every key a row edits and every prop it
+  binds is a real prop of its component, by the type checker
+  (`tests/site/registry-props.spec.ts`, its exceptions listed with the
+  reason). A component with a two-way value (a field's
   value, the chips' pick; the registry's `model` row) keeps it as `model`, which `sanitizeModel` takes
   from untrusted input (a file, `component.add`'s or a screen cell's
   `value`, `artboard.update`'s `widget.value`) only in the kind of the
