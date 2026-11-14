@@ -638,7 +638,8 @@ export function hiddenFocus(el) {
 /** Which of the elements a page puts in its tab order Tab never reached:
  * `stops` the operable elements in view (with `roving`, the composite
  * widget each one is a member of, whose one stop stands for the members
- * it keeps out of the tab order, `out`),
+ * it keeps out of the tab order, `out`: a native radio group's unchecked
+ * radios too),
  * `reached` the ones focus landed on, `widgetsReached` the composite
  * widgets focus landed on themselves (a listbox holding its options by
  * `aria-activedescendant`). */
@@ -740,7 +741,7 @@ for (const el of document.querySelectorAll(INTERACTIVE)) {
   if (r.width < 1 || r.height < 1) continue
   const key = W.stops.length
   W.keyOf.set(el, key)
-  W.stops.push({ key, el, roving: widgetOf(el), out: el.tabIndex < 0, where: describe(el), marks: focusMarks(el) })
+  W.stops.push({ key, el, roving: widgetOf(el), out: el.tabIndex < 0 || (el.localName === "input" && el.type === "radio"), where: describe(el), marks: focusMarks(el) })
 }
 W.focusLog = []
 W.tabLog = []

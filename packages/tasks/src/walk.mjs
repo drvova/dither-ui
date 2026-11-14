@@ -773,14 +773,20 @@ async function walkA11y(s, rec, ready, page, issue, url) {
       issue("a11y-hidden-focus", `focus lands on ${h.where} (${h.why})`)
     }
     // a stop whose style focus left alone: on screen, focused against unfocused
+    // (looked at twice before it is a finding: a busy machine can shoot before a mark is drawn)
     for (const u of end.unmarked.slice(0, 40)) {
-      const there = await arrive(u.key)
-      if (!there.arrived || !there.inView || there.hidden) continue
-      const on = decodePng(await s.shot())
-      await s.run(FOCUS_OFF, null)
-      const off = decodePng(await s.shot())
-      if (changedPixels(on, off, there.box, on.width / ready.w || ready.ratio) < 6)
-        issue("a11y-focus-mark", `${u.where} shows no mark of focus`)
+      let seen = false
+      let looked = false
+      for (let attempt = 0; attempt < 2 && !seen; attempt++) {
+        const there = await arrive(u.key)
+        if (!there.arrived || !there.inView || there.hidden) break
+        looked = true
+        const on = decodePng(await s.shot())
+        await s.run(FOCUS_OFF, null)
+        const off = decodePng(await s.shot())
+        seen = changedPixels(on, off, there.box, on.width / ready.w || ready.ratio) >= 6
+      }
+      if (looked && !seen) issue("a11y-focus-mark", `${u.where} shows no mark of focus`)
     }
     if (end.unmarked.length > 40)
       issue("a11y-focus-mark", `${end.unmarked.length - 40} more stops whose style focus leaves alone, not looked at`)
