@@ -594,7 +594,8 @@ describe("the docs' routes", () => {
     expect(read("src/routes/docs/index.tsx")).toContain('<DocsPage section="" />')
     const section = read("src/routes/docs/[section].tsx")
     expect(section).toContain("SECTION_IDS.includes(params.section")
-    expect(section).toContain("Missing()")
+    expect(section).toContain("<Missing />")
+    expect(section).toContain('lazyPart(() => import("../[...404]"))')
     expect(section).toContain("preloadOpenPacks(params.section")
     // the missing page it falls back to answers 404
     expect(read("src/routes/[...404].tsx")).toContain("<HttpStatusCode code={404} />")
