@@ -332,7 +332,11 @@ in the page's folder.
   The shader's WebGL engine, the
   translator's utility map and the fluid's engine are async chunks a
   card loads as it nears the viewport (one IntersectionObserver, 600px
-  ahead; without one, at once); their card art keeps a wrapper so the
+  ahead; without one, at once); the world engine with its model parsers
+  (the model card, `#build`: `landing/parts.tsx`) and the charts (the
+  area and stat cards, the Deploys screen: `shared/ui/charts.tsx`) are
+  chunks too, out of the page's first load, loaded with the page and
+  rendered whole by the server (`tests/site/budget.spec.ts`); their card art keeps a wrapper so the
   flush rule never stretches the pause chip. The demos speak the kit's
   blue, the ember for a second voice and grey for a third (the silk on
   blue stops; the button's hues are its subject); no chart grid. Under 1024px the bento is a rail the
@@ -474,7 +478,9 @@ in the page's folder.
   in sync, `tests/marks.spec.ts` checks it; then "or any command you hand
   the bridge"), "Your models" (every format the kit reads, in
   `MODEL_FORMATS` order, named by `MODEL_NAMES`, a `Record` keyed by the
-  kit's own type, each after an ember cell; then GLSL).
+  kit's own type and written in that order (the page lists its names, so
+  the model parsers stay out of the first load), each after an ember cell;
+  then GLSL).
 - The brand's moment (`brand.ts` + `BrandGather.tsx`, decorative): the
   brand as `LOCKUP`, the mark's `MARK_CELLS` (the diamond's 25 cells
   around its ember core, ONE table in `shared/ui/brand-mark.ts` that the
@@ -747,7 +753,10 @@ in the page's folder.
   reader's browser as the section nears, one check per task, again on
   "Measure again", the engine and time as its conditions, the results
   copied as a Markdown table; the static page ships it unmeasured, and
-  linked from the landing footer) · Examples ·
+  linked from the landing footer; both read the model parsers and the
+  world engine, so each is a lazy part DocsPage holds in its own section
+  (`Own`), loaded only where it opens, its arrival read for "On this page"
+  by the flow's watcher) · Examples ·
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 in ink,

@@ -91,7 +91,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   dithered or put in the kit; imported by path, never through the `shared/ui`
   barrel, which would pull every shared component into the landing's first
   load; `Segmented` takes `labels` where an option's value is not how a reader
-  writes it), config (CHART_TYPES; `titles.ts`, the routes' titles, a leaf the
+  writes it; `charts.tsx`, the kit's charts as lazy parts (`lazyPart`, each
+  loaded before a server renders it), so their scales (d3) and engines stay out
+  of a page's first load, read by the landing's cards and the docs' chart
+  sections in place of the kit's index), config (CHART_TYPES; `titles.ts`, the routes' titles, a leaf the
   landing can load without the docs IA), lib (theme, routes (with `safeUrl`,
   the ONE test of a URL a document may carry into an href or a src: http(s),
   mailto, a raster `data:` image or a relative path, read as the browser reads
@@ -708,12 +711,13 @@ around this tree (entries, routes, the build, how Solid is written) is
   `AGENTS.md`, `pages/landing/chapters.css`): its keys, picked segments,
   cards and panels are fills on one raised ground, never rings or tags;
   its only hairlines are the frame's.
-- Entry (`src/entry-client.tsx`) mounts the app, deliberately
-  NOT hydration: the prerendered page is what a crawler reads and what
-  paints first, and kit components gate on measured state (chart
-  `ctx.ready`, mount flags), so a first client render never matches the
-  settled bytes. Don't try hydration without first making first render
-  equal settled state. The display face is preloaded with each page's
+- Entry (`src/entry-client.tsx`) mounts the app with SolidStart's
+  `mount`, which takes the prerendered page over in place where the
+  address is the one it was rendered at (`renderedAt`: a static host's
+  trailing slash is that address) and renders it anew over its bytes
+  elsewhere: the prerendered page is what a crawler reads and what paints
+  first, and kit components gate on measured state (chart `ctx.ready`,
+  mount flags), settling after the take-over. The display face is preloaded with each page's
   HTML, and each page's head carries the site's speculation rules
   (`speculationRules` in `app/page-reveal.ts`: the landing and the docs
   rendered ahead when a pointer rests on a link to them, the Studio only

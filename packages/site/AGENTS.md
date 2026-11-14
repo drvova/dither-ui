@@ -53,17 +53,28 @@ are from the repository's.
   links crawled, a link to nothing fails the build). Components therefore
   render on a server: nothing touches `window`, `document` or a canvas
   outside `onMount`, an effect or an event handler. In the browser the
-  app mounts over those bytes (`mount` in `entry-client.tsx`), it does not
-  hydrate them.
+  app takes those bytes over in place (SolidStart's `mount` in
+  `entry-client.tsx` hydrates) when the address is the one they were
+  rendered at, a static host's trailing slash included (`renderedAt` in
+  `shared/lib/routes.ts`; without it every docs section was rendered anew
+  over its emptied page); at another address (the missing page's file
+  served for an unknown one) it renders the page anew over them.
 - The missing page is `src/routes/[...404].tsx`. It answers 404 and is
   `noindex`; the build keeps it as `404.html` for a static host (the one
   route whose 404 the prerender hook lets through, `MISSING_PAGE`).
 - `BASE_PATH` sets Vite's `base` for a project-page deploy; the post-build
   reads it too.
+- A route imports its page by path (`pages/landing/LandingPage`,
+  `pages/docs/DocsPage`), never through a slice's index: a barrel whose
+  modules import stylesheets keeps every export, so the landing once
+  loaded the docs and a docs section the landing. The section route's
+  preload ships in every page's entry, so it imports the pack table on
+  demand.
 - Routes: `routes/index.tsx` (the landing), `routes/studio.tsx`,
   `routes/docs/index.tsx` and `routes/docs/[section].tsx` (one docs
   section a page; the prerender list is derived from `GROUPS`, never kept
-  by hand; an unknown id renders the missing page), `routes/[...404].tsx`.
+  by hand; an unknown id renders the missing page, a lazy part there so a
+  section's page never carries it), `routes/[...404].tsx`.
   `routes/play.tsx` is the player (never indexed, outside the site's
   shell; nothing links to it, so the prerender is told: `PLAYER_ROUTE`). A
   page's head is one table, `pages/docs/heads.ts` (`pageTags`, held by
@@ -172,6 +183,10 @@ are from the repository's.
   nothing changed fail as `<Component>.<none>`: a timer the kit clock
   does not drive). The kit's component specs are the
   kit's (`packages/dither-kit/tests/solid/`).
+- A page's first load (`tests/site/budget.spec.ts`, over the built site):
+  the gzipped script the landing's and a docs section's HTML start, with
+  every static import, under a budget, and neither carrying the other's
+  page nor the kit's world engine, model parsers or charts.
 
 ## Child DOX Index
 
