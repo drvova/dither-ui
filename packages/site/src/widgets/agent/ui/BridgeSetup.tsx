@@ -2,9 +2,8 @@
 // to copy, and the panel looking for it until it does (or a while passes).
 import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js"
 import { copyText, DitherIcon } from "@dither-ui/kit"
-import { BRIDGE_FILE } from "@/features/agent/bridge-file"
+import { BRIDGE_FILE, bridgeCommand } from "@/features/agent/acp"
 import { assetPath } from "@/shared/lib/routes"
-import { bridgeCommand } from "@/features/agent/acp"
 import Mascot from "@/shared/ui/Mascot"
 import "./BridgeSetup.css"
 

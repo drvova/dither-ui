@@ -1,10 +1,17 @@
 import { type Component, For, Show } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import { boundProps, componentEntry, fieldLabel, type ScreenCell, type ScreenModel } from "@/entities/widget"
+import {
+  boundProps,
+  componentEntry,
+  fieldLabel,
+  modelOf,
+  type ScreenCell,
+  type ScreenModel,
+  slotChildren,
+} from "@/entities/widget"
 import * as kit from "@dither-ui/kit"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { editor, selectLayer } from "@/entities/editor"
-import { modelOf, slotChildren } from "../../entities/widget/model/model"
 import { FieldWrap } from "./FieldWrap"
 
 const JUSTIFY: Record<string, string> = {

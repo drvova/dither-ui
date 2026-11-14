@@ -2,10 +2,34 @@
 // frames on `@`) and the option each highlights, what Up and Down recall,
 // the queue of messages written while a turn runs, and what the field says
 // sending will do now. Pure: `ui/Composer.tsx` holds the field and its keys.
+import type { AgentConfig, Setting, Usage } from "@/features/agent"
+import type { BridgeHello } from "@/features/agent/acp"
 import { moved, type Queued } from "./compose"
+import type { Harness } from "./session"
 import type { Slash } from "./slash"
 
 /* ---------------------------------- menus --------------------------------- */
+
+/** Which menu over the composer is open, beside the field's own (`/`, `@`). */
+export type Pops = { harness: boolean; settings: boolean; model: boolean }
+
+/** The composer's props its menus (`ui/ComposerMenus.tsx`) take: the
+ * harness they show and what they do to it. */
+export type HarnessMenus = {
+  config: AgentConfig
+  pops: Pops
+  /** Who answers, and the bridge as it last said hello. */
+  agentName: string
+  hello: BridgeHello | null
+  connecting: boolean
+  harness: Harness
+  usage: Usage
+  lastTurnMs: number
+  onStart: (choice: string | { command: string }) => void
+  onStopHarness: () => void
+  onModel: (id: string) => void
+  onSetting: (s: Setting, id: string) => void
+}
 
 /** The command menu shows while the field is one /word, until Esc. */
 export const slashOpenOf = (text: string, dismissed: boolean) => !dismissed && /^\/[\w-]*$/.test(text)

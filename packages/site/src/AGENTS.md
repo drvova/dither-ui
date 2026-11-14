@@ -58,7 +58,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   over the input (`TurnTrays.tsx`, the changes bar `ChangesBar.tsx`);
   `model/` is framework-free: the session's states and the fold of the
   harness's events (`session.ts`), the changes bar (`changes.ts`), the
-  composer's menus, recall, queue and keys (`composer.ts`), and the
+  composer's menus (and the share of its props they take, `HarnessMenus`),
+  recall, queue and keys (`composer.ts`), and the
   readings of the thread, the reply's prose and the tool steps in words).
 - `features/` — user actions: keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave,
@@ -95,8 +96,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   `SimpleWidgetKind` and guard `isSimpleWidgetKind`, from its index; the
   artboard factory and the library's widget keys read it; `model/reel.ts`,
   the reel's and the film's pure timeline), artboard (`picture.ts`, a
-  frame's drawn surface, `surfaceOf`, and its PNG, `artboardPng`, imported
-  by path), video (a frame as a HyperFrames composition: the builder,
+  frame's drawn surface, `surfaceOf`, and its PNG, `artboardPng`; `code.ts`,
+  the frame as code, its second entry), video (a frame as a HyperFrames composition: the builder,
   `composition.ts`, and what the dialog and the agent take from it,
   `video.ts`).
 - `shared/fonts/` — the display face: `michroma-latin.woff2` (the Latin
@@ -239,8 +240,10 @@ around this tree (entries, routes, the build, how Solid is written) is
 - Layer imports flow downward only: pages → widgets → features → entities →
   shared, never up (nor into the files above the layers: the entries, the
   shell, `app.tsx`, `app.css`, `routes/`), never sideways into another
-  slice of the same layer, and no module reaches itself again through the
-  values it imports (a type-only import is erased). Two layers rank their
+  slice of the same layer, and no module reaches itself again through what
+  it imports, types included (a type cycle is two files that should share
+  a third: the composer's menus take their share of its props from
+  `widgets/agent/model/composer.ts`, `HarnessMenus`). Two layers rank their
   slices, each rank a real dependency: entities chart and widget (a
   frame's two contents) under artboard (a frame) under editor (the
   frames) under video (a frame of the document and its reel's clips);
@@ -250,6 +253,24 @@ around this tree (entries, routes, the build, how Solid is written) is
   `tests/fsd.spec.ts` holds all of it, with no exemption. The kit
   (`@dither-ui/kit`) may be imported from any layer; nothing imports back
   into it.
+- A slice is entered only through its public entry, its `index.ts`, from
+  anywhere outside it (another layer, the routes, the shell); inside a
+  slice files import each other freely. Where a module behind an
+  index would pull weight into a page that loads the index without using
+  it (the bundler places a module by the imports that reach it, used or
+  not), the slice names a second entry, listed in the spec's `ENTRIES`:
+  `features/agent/acp.ts` (the ACP client, the lazily loaded agent panel's
+  alone), `entities/artboard/code.ts` and the chart's and the widget's
+  `model/codegen.ts` (the frame as code: the player and the canvas never
+  reach the styling rewriter). A page is entered file by file where the
+  routes, the shell and the build take it (`pages/docs`: `DocsPage`,
+  `PageHead`, `heads`, `pages`, `pack-loaders`, `crawler-files`;
+  `pages/landing`: `LandingPage`, `MissingPage`; `pages/play`: `main`; the
+  Studio's index), never through a barrel (`../AGENTS.md`). `app/` and
+  `shared/` hold no slices: their files are imported by path, a segment's
+  index (`shared/lib`, `shared/config`, `shared/ui`) only a short way to
+  its light modules, never the one door (the tools' marks, a stylesheet
+  or a heavy engine stay out of it, as `shared/ui/marks.ts` does).
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`, plus the
   `noindex` player at `/play/`; legacy
   `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported.
@@ -417,8 +438,7 @@ around this tree (entries, routes, the build, how Solid is written) is
     request reaching a local server; no document, parent or storage; an
     endless loop stopped while the page answers; parse and throw errors
     reported).
-  - `chats.ts` (imported by path, so the page never pulls the protocol):
-    a project's chats, the `chats` store shared by the Studio's
+  - `chats.ts`: a project's chats, the `chats` store shared by the Studio's
     sidebar, its search and the agent panel (`project`, `list` newest
     first as `{id, title, at, named?, pinned?}`, parsed once where the
     index is read, the `active` chat). `openProject` (a no-op when open;
@@ -443,7 +463,8 @@ around this tree (entries, routes, the build, how Solid is written) is
     `NoBridge`, which the panel answers with its setup card, never a raw
     error; `bridgeCommand(page, file, bridgeUrl)` is that card's line
     (the file the site serves at `BRIDGE_FILE`, from `bridge-file.ts`,
-    which imports nothing so `build/site-files.ts` reads it too; `--origin`
+    which imports nothing so `build/site-files.ts` reads it too, and which
+    the panel takes through `acp.ts`, the slice's second entry; `--origin`
     only when `bridgeKnows` says the bridge would refuse the page, pinned
     against the real bridge by `tests/bridge.spec.ts`). `connectAcp`
     sends the Studio tools

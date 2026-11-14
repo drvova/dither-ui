@@ -17,6 +17,7 @@
 import { modifyMutable, reconcile } from "solid-js/store"
 import { type IconName, release, seek } from "@dither-ui/kit"
 import { type Artboard, type ArtboardKind, createArtboard, normalizeArtboard } from "@/entities/artboard"
+import { frameCode } from "@/entities/artboard/code"
 import {
   actualSize,
   addArtboard,
@@ -44,13 +45,14 @@ import {
 import {
   COMPONENT_REGISTRY,
   componentEntry,
+  isSimpleWidgetKind,
+  modelOf,
   REEL_TRANSITIONS,
   type ReelScore,
   type ReelTransitionKind,
   sanitizeComponentProps,
   sanitizeModel,
   type ScreenRow,
-  isSimpleWidgetKind,
   SIMPLE_WIDGET_KINDS,
   type SimpleWidgetKind,
 } from "@/entities/widget"
@@ -68,8 +70,6 @@ import {
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { bytesToBase64 } from "@/shared/lib/base64"
 import { isStyling, type Styling, STYLINGS } from "../../shared/lib/restyle"
-import { frameCode } from "../../entities/artboard/code"
-import { modelOf } from "../../entities/widget/model/model"
 import { evolveArtboard } from "@/features/agent/evolve"
 import {
   applyFrame,

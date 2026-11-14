@@ -1,6 +1,6 @@
 import { createMemo } from "solid-js"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
-import type { ContextUse } from "@/features/agent/tools"
+import type { ContextUse } from "@/features/agent"
 import "./ContextMeter.css"
 
 // How full the harness's context is, as it reports it: a ring by the send

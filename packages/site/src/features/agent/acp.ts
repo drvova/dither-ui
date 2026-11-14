@@ -16,7 +16,7 @@
 // `bridge/exit` (the agent died), `studio/call` (a Studio tool call).
 import { type CommandResult, runCommand } from "./commands"
 import { type Built, callDither, DITHER_TOOL, ditherDef } from "./dither"
-import { bridgeKnows } from "@/features/agent/bridge-file"
+import { bridgeKnows } from "./bridge-file"
 import { runSandboxed } from "./sandbox"
 import {
   type AgentCommand,
@@ -28,6 +28,9 @@ import {
   STUDIO_SERVER,
   type Usage,
 } from "./tools"
+
+/** The file the site serves the bridge as, for the setup card's line. */
+export { BRIDGE_FILE } from "./bridge-file"
 
 type JsonRpcId = string | number
 type Message = {

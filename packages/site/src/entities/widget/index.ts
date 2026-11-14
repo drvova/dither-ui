@@ -40,6 +40,7 @@ export {
   type ScreenModel,
   type ScreenRow,
 } from "./model/screen"
+export { modelOf, slotChildren } from "./model/model"
 export {
   CAMERA_MOVES,
   type Camera,

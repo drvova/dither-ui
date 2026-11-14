@@ -5,7 +5,7 @@
 import { createEffect, createMemo, createSignal, For, on, Show } from "solid-js"
 import { DitherIcon, type IconName } from "@dither-ui/kit"
 import { editor, frame, selectArtboard } from "@/entities/editor"
-import { chats, chatsOf, newChat, openChat, openProject } from "@/features/agent/chats"
+import { chats, chatsOf, newChat, openChat, openProject } from "@/features/agent"
 import { activeProjectId, createProject, projects, switchProject } from "@/features/persistence"
 import Mascot from "@/shared/ui/Mascot"
 import "./SearchPalette.css"

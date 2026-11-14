@@ -1,7 +1,6 @@
 import { createMemo, createSignal, onCleanup } from "solid-js"
+import type { AgentConfig, AgentEvent, Built } from "@/features/agent"
 import { type AcpClient, type AcpPermissionRequest, connectAcp, NoBridge } from "@/features/agent/acp"
-import type { Built } from "@/features/agent/dither"
-import type { AgentConfig, AgentEvent } from "@/features/agent/tools"
 import {
   CLOSED,
   clientOf,

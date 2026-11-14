@@ -8,7 +8,7 @@
 // (`bridge/dither-bridge.mjs`), and reaches the canvas through an MCP server
 // made of the tools below (`acp.ts` is the browser side).
 import { editor } from "../../entities/editor"
-import { artboardPng } from "@/entities/artboard/picture"
+import { artboardPng } from "@/entities/artboard"
 import { normalizeVideoOptions, selfContainedComposition, slugOf, type VideoOptions } from "@/entities/video"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
 import { type CommandResult, commandRows, type CommandType, runCommand, type ToolDef } from "./commands"

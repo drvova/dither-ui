@@ -18,8 +18,7 @@ import {
   zoomIn,
   zoomOut,
 } from "@/entities/editor"
-import { evolveSelected } from "@/features/agent"
-import { handoff } from "@/features/agent/handoff"
+import { evolveSelected, handoff } from "@/features/agent"
 import "@/widgets/toolbar/tool.css"
 import "./CanvasBar.css"
 

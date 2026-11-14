@@ -4,8 +4,8 @@
 // harness's events folded into the thread by one pure reducer. The panel
 // holds the state and applies what the reducer returns; nothing here
 // touches a store, a socket or the clock (the moment comes in as `now`).
+import type { AgentCommand, AgentEvent, ContextUse, Mode, ModelChoice, Setting, Usage } from "@/features/agent"
 import type { BridgeHello } from "@/features/agent/acp"
-import type { AgentCommand, AgentEvent, ContextUse, Mode, ModelChoice, Setting, Usage } from "@/features/agent/tools"
 import type { Changed } from "./steps"
 import { type Entry, secondsOf, toolEntry } from "./thread"
 

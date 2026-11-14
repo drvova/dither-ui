@@ -1,7 +1,8 @@
 // The app's layers, held by construction (`src/AGENTS.md`): imports flow
 // down, pages → widgets → features → entities → shared, never up, never
-// sideways into another slice of the same layer, and no module reaches
-// itself again through what it imports. Read the way the workspace's spec
+// sideways into another slice of the same layer, never past a slice's
+// public entry, and no module reaches itself again through what it
+// imports, types included. Read the way the workspace's spec
 // reads every package's imports (TypeScript's own pre-processor), so an
 // `import` inside a snippet's string is text.
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
@@ -12,8 +13,9 @@ import ts from "typescript"
 const SRC = join(import.meta.dirname, "../src")
 
 /** The layers, highest first. `app` is one slice; `shared` is segments, not
- * slices, so its parts may use each other. What stands at the tree's top
- * (the entries, the shell, `app.tsx`, `app.css`, `routes/`) is above them all. */
+ * slices, so its parts may use each other. Both are taken file by file.
+ * What stands at the tree's top (the entries, the shell, `app.tsx`,
+ * `app.css`, `routes/`) is above them all. */
 const LAYERS = ["app", "pages", "widgets", "features", "entities", "shared"] as const
 type Layer = (typeof LAYERS)[number]
 
@@ -30,6 +32,29 @@ const RANKS: Partial<Record<Layer, readonly (readonly string[])[]>> = {
   // player, a reel's clip): the one widget the others draw with.
   widgets: [["frame-renderer"]],
 }
+
+/** A slice's public entries, its one surface: `index.ts` (or `.tsx`) unless
+ * named here. A second entry keeps a heavy module out of the pages that load
+ * the index: the bundler places a module by the imports that reach it, used
+ * or not. */
+const ENTRIES: Record<string, readonly string[]> = {
+  // A page is entered where the routes, the shell and the build take it, a
+  // file each: a barrel keeps every module whose stylesheet it imports, and
+  // the landing once loaded the docs through one (`../AGENTS.md`).
+  "pages/docs": ["DocsPage.tsx", "PageHead.tsx", "heads.ts", "pages.ts", "pack-loaders.ts", "crawler-files.ts"],
+  "pages/landing": ["LandingPage.tsx", "MissingPage.tsx"],
+  "pages/play": ["main.ts"],
+  // the frame as code (a chart's, a widget's, and the frame's over the
+  // styling rewriter): never reached from what draws a frame (the player,
+  // the canvas)
+  "entities/chart": ["index.ts", "model/codegen.ts"],
+  "entities/widget": ["index.ts", "model/codegen.ts"],
+  "entities/artboard": ["index.ts", "code.ts"],
+  // the ACP client, the lazily loaded agent panel's alone: never in the
+  // Studio's first load
+  "features/agent": ["index.ts", "acp.ts"],
+}
+const DEFAULT_ENTRIES = ["index.ts", "index.tsx"]
 
 const walk = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
@@ -53,34 +78,26 @@ function target(from: string, written: string): string | null {
   throw new Error(`${relative(SRC, from)}: ${spec} names no file`)
 }
 
-/** What a module takes for its types alone (`import type`, `export type`):
- * erased before it runs, so it orders no module's loading. */
-const typesOnly = (text: string) =>
-  new Set([...text.matchAll(/^\s*(?:import|export) type\b[^;]*?\bfrom\s+"([^"]+)"/gm)].map((m) => m[1]))
-
-/** Every import of every module of the tree: where it is written, the file
- * it names and whether it brings a value. */
+/** Every import of every module of the tree, for its types or its values:
+ * where it is written and the file it names. */
 const IMPORTS = FILES.flatMap((file) => {
   const text = readFileSync(file, "utf8")
-  const types = typesOnly(text)
-  const specs = ts.preProcessFile(text, true, true).importedFiles.map((f) => f.fileName)
-  return specs.flatMap((spec) => {
+  return ts.preProcessFile(text, true, true).importedFiles.flatMap(({ fileName: spec }) => {
     const to = target(file, spec)
-    // a specifier imported for types and for values too brings a value
-    const value = !types.has(spec) || specs.filter((s) => s === spec).length > 1
-    return to ? [{ file, spec, to, value, at: `${relative(SRC, file)}: ${spec}` }] : []
+    return to ? [{ file, spec, to, at: `${relative(SRC, file)}: ${spec}` }] : []
   })
 })
 
 /** The layer and slice a file stands in, or null above the layers. */
-function sliceOf(file: string): { layer: Layer; slice: string; rank: number } | null {
-  const [top, slice] = relative(SRC, file).split("/")
+function sliceOf(file: string): { layer: Layer; slice: string; rank: number; inner: string } | null {
+  const [top, slice, ...rest] = relative(SRC, file).split("/")
   const layer = LAYERS.find((l) => l === top)
   if (!layer || (!slice && layer !== "app")) return null
-  const name = layer === "app" || layer === "shared" ? layer : slice
+  const whole = layer === "app" || layer === "shared"
+  const name = whole ? layer : slice
   const ranks = RANKS[layer] ?? []
   const rank = ranks.findIndex((r) => r.includes(name))
-  return { layer, slice: name, rank: rank < 0 ? ranks.length : rank }
+  return { layer, slice: name, rank: rank < 0 ? ranks.length : rank, inner: whole ? "" : rest.join("/") }
 }
 
 describe("the app's layers", () => {
@@ -111,9 +128,22 @@ describe("the app's layers", () => {
     expect(sideways.map((i) => i.at)).toEqual([])
   })
 
-  it("has no cycle: no module reaches itself through the values it imports", () => {
+  it("enters another slice only through its public entry", () => {
+    for (const [slice, files] of Object.entries(ENTRIES))
+      for (const f of files) expect(existsSync(join(SRC, slice, f)), `${slice}/${f}`).toBe(true)
+    const deep = IMPORTS.filter((i) => {
+      const to = sliceOf(i.to)
+      if (!to?.inner) return false
+      const from = sliceOf(i.file)
+      if (from && from.layer === to.layer && from.slice === to.slice) return false
+      return !(ENTRIES[`${to.layer}/${to.slice}`] ?? DEFAULT_ENTRIES).includes(to.inner)
+    })
+    expect(deep.map((i) => i.at)).toEqual([])
+  })
+
+  it("has no cycle: no module reaches itself through what it imports, types included", () => {
     const next = new Map<string, string[]>()
-    for (const i of IMPORTS) if (i.value) next.set(i.file, [...(next.get(i.file) ?? []), i.to])
+    for (const i of IMPORTS) next.set(i.file, [...(next.get(i.file) ?? []), i.to])
     const done = new Set<string>()
     const path: string[] = []
     const cycles: string[] = []

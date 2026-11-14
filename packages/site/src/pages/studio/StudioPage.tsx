@@ -4,15 +4,21 @@ import { firstVisitTour, type GuideStop } from "@/pages/studio/guide"
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { readJson, writeJson } from "@/shared/lib/storage"
 import { addArtboard, editor, frame, startHistory, stopHistory, stopInspecting } from "@/entities/editor"
-import { addLaunchFilm, installStudioAgentApi } from "@/features/agent"
-import { forgetProject, openProject, stepChat } from "@/features/agent/chats"
-import { askAgent, handoff } from "@/features/agent/handoff"
-import type { AgentActivity } from "@/features/agent/tools"
+import {
+  addLaunchFilm,
+  type AgentActivity,
+  askAgent,
+  forgetProject,
+  handoff,
+  installStudioAgentApi,
+  openProject,
+  stepChat,
+} from "@/features/agent"
 import { ShortcutsHelp, usePanelShortcuts } from "@/features/keyboard"
 import { activeProjectId, hydrate, importDocument, projects, startAutosave, stopAutosave } from "@/features/persistence"
 import { installLongPress, lazyPart, modKey, routePath } from "@/shared/lib"
 import Mascot from "@/shared/ui/Mascot"
-import type { AgentPanelApi } from "@/widgets/agent/AgentPanel"
+import type { AgentPanelApi } from "@/widgets/agent"
 import { Canvas, type CanvasApi } from "@/widgets/canvas"
 import { DataEditor } from "@/widgets/data-editor"
 import { CanvasBar, Toolbar, type ToolbarApi } from "@/widgets/toolbar"

@@ -65,7 +65,8 @@ are from the repository's.
 - `BASE_PATH` sets Vite's `base` for a project-page deploy; the post-build
   reads it too.
 - A route imports its page by path (`pages/landing/LandingPage`,
-  `pages/docs/DocsPage`), never through a slice's index: a barrel whose
+  `pages/docs/DocsPage`, entries `tests/fsd.spec.ts` names), never through
+  a slice's index: a barrel whose
   modules import stylesheets keeps every export, so the landing once
   loaded the docs and a docs section the landing. The section route's
   preload ships in every page's entry, so it imports the pack table on

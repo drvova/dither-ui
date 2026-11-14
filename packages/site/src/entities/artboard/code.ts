@@ -2,10 +2,10 @@
 // their styling system, and the stylesheet it imports when that system
 // keeps one (CSS, CSS Modules). One writer for the export dialog and the
 // agent's `code.get`.
-import type { Artboard } from "@/entities/artboard"
 import { restyleSolid, type Sheet, type Styling } from "@dither-ui/restyle"
-import { chartCode } from "../chart/model/codegen"
-import { widgetCode } from "../widget/model/codegen"
+import { chartCode } from "@/entities/chart/model/codegen"
+import { widgetCode } from "@/entities/widget/model/codegen"
+import type { Artboard } from "./model/types"
 
 export type FrameCode = { file: string; code: string; sheet: Sheet | null }
 

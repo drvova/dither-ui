@@ -1,5 +1,4 @@
-import type { Artboard } from "@/entities/artboard"
-import { artboardPng } from "@/entities/artboard/picture"
+import { type Artboard, artboardPng } from "@/entities/artboard"
 
 /** Download an artboard as a PNG named after it. */
 export async function exportArtboardPng(artboard: Artboard, scale = 2): Promise<boolean> {

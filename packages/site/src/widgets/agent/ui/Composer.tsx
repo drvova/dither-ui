@@ -12,9 +12,8 @@ import {
 } from "solid-js"
 import { DitherIcon } from "@dither-ui/kit"
 import { editor } from "@/entities/editor"
-import { type BridgeHello, modelName } from "@/features/agent/acp"
-import { handoff, togglePicked } from "@/features/agent/handoff"
-import type { AgentConfig, Setting, Usage } from "@/features/agent/tools"
+import { handoff, togglePicked } from "@/features/agent"
+import { modelName } from "@/features/agent/acp"
 import { modKey } from "@/shared/lib"
 import { type Attachment, foldsPaste, intake, pastedText } from "../model/compose"
 import {
@@ -23,6 +22,7 @@ import {
   atQueryOf,
   completion,
   folderOf,
+  type HarnessMenus,
   listboxOf,
   type Queue,
   recall,
@@ -31,7 +31,6 @@ import {
   stepped,
   withoutAt,
 } from "../model/composer"
-import type { Harness } from "../model/session"
 import { hintOf, type Slash } from "../model/slash"
 import type { Changed } from "../model/steps"
 import type { Entry } from "../model/thread"
@@ -57,30 +56,19 @@ export type Draft = {
   notice: Accessor<string>
   setNotice: (text: string) => void
 }
-/** Which menu over the composer is open, beside the field's own (`/`, `@`). */
-export type Pops = { harness: boolean; settings: boolean; model: boolean }
 /** Your earlier message, taken back to change and send again from there. */
 export type Editing = { at: number; turn: number; was: string; restore: boolean; restorable: boolean }
 type Approval = Extract<Entry, { kind: "approval" }>
 
-export type ComposerProps = {
+export type ComposerProps = HarnessMenus & {
   draft: Draft
-  config: AgentConfig
-  pops: Pops
   /** What sending does now, in the field's words. */
   placeholder: string
   busy: boolean
   /** A turn runs or a prompt waits: Esc stops. */
   stoppable: boolean
   touch: boolean
-  /** Who answers, and the bridge as it last said hello. */
-  agentName: string
   bridgeOpen: boolean
-  hello: BridgeHello | null
-  connecting: boolean
-  harness: Harness
-  usage: Usage
-  lastTurnMs: number
   commands: Slash[]
   /** The frames handed over with the message. */
   context: Changed[]
@@ -108,10 +96,6 @@ export type ComposerProps = {
   onToggleSteps: () => void
   onDropContext: (id: string) => void
   onConnect: () => void
-  onStart: (choice: string | { command: string }) => void
-  onStopHarness: () => void
-  onModel: (id: string) => void
-  onSetting: (s: Setting, id: string) => void
   onMode: (id: string) => void
 }
 

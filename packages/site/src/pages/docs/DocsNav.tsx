@@ -2,7 +2,7 @@ import { createEffect, createSignal, For, on, Show } from "solid-js"
 import { DitherIcon, type IconName } from "@dither-ui/kit"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { GROUPS } from "@/pages/docs/groups"
-import { bandFill, seamStyle } from "@/widgets/site-header/menu"
+import { bandFill, seamStyle } from "@/widgets/site-header"
 import { routePath } from "@/shared/lib"
 import "./DocsNav.css"
 

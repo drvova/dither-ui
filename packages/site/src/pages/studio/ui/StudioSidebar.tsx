@@ -2,16 +2,17 @@ import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-j
 import { DitherAlertDialog, DitherAvatar, DitherIcon } from "@dither-ui/kit"
 import {
   agoOf,
+  built,
   chatGroups,
+  type ChatMeta,
   chats,
   newChat,
   openChat,
   pinChat,
+  removeBuilt,
   removeChat,
   renameChat,
-  type ChatMeta,
-} from "@/features/agent/chats"
-import { built, removeBuilt } from "@/features/agent/dither"
+} from "@/features/agent"
 import {
   activeProjectId,
   createProject,

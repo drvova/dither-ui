@@ -1,1 +1,1 @@
-export { default as AgentPanel } from "./AgentPanel"
+export { default as AgentPanel, type AgentPanelApi } from "./AgentPanel"

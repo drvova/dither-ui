@@ -2,29 +2,14 @@ import { createSignal, For, Match, onMount, Show, Switch } from "solid-js"
 import { DitherIcon } from "@dither-ui/kit"
 import { isMark } from "@/shared/ui/marks"
 import ToolMark from "@/shared/ui/ToolMark"
-import { msOf, tokensOf } from "../model/composer"
+import { type HarnessMenus, msOf, tokensOf } from "../model/composer"
 import type { Slash } from "../model/slash"
-import type { ComposerProps } from "./Composer"
 
 // The menus over the composer, one at a time: the commands on `/` and the
 // frames on `@` (listboxes the field announces; their option is the
 // composer's), the model the harness runs, the harness to start, and the
 // settings (the bridge's address and the harness's own).
-export type ComposerMenusProps = Pick<
-  ComposerProps,
-  | "config"
-  | "pops"
-  | "agentName"
-  | "hello"
-  | "connecting"
-  | "harness"
-  | "usage"
-  | "lastTurnMs"
-  | "onStart"
-  | "onStopHarness"
-  | "onModel"
-  | "onSetting"
-> & {
+export type ComposerMenusProps = HarnessMenus & {
   /** The command menu shows (open, with a match). */
   slash: boolean
   slashMatches: Slash[]

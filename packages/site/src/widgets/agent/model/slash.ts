@@ -1,7 +1,7 @@
 // The composer's slash commands: the panel's own, then whatever the harness
 // advertises (sent to it as text), what a picked command still takes, and
 // a /word that is no command at all.
-import type { AgentCommand } from "@/features/agent/tools"
+import type { AgentCommand } from "@/features/agent"
 
 export type Slash = { name: string; args?: string; desc: string; harness?: boolean }
 export const OURS: Slash[] = [

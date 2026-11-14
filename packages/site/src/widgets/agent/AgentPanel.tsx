@@ -13,23 +13,31 @@ import {
   selectedArtboard,
   undo,
 } from "@/entities/editor"
-import { evolveSelected, runCommand } from "@/features/agent"
-import type { AcpClient, PromptImage } from "@/features/agent/acp"
-import { chats, loadThread, newChat, openProject, saveThread, titleOf } from "@/features/agent/chats"
-import { handoff, takeAsk, togglePicked } from "@/features/agent/handoff"
 import {
   type AgentActivity,
   type AgentConfig,
   type AgentEvent,
+  chats,
   DEFAULT_BRIDGE_URL,
+  evolveSelected,
+  handoff,
   loadAgentConfig,
   loadDraft,
+  loadThread,
+  newChat,
+  openProject,
+  runCommand,
   saveAgentConfig,
   saveDraft,
+  saveThread,
   type Setting,
+  takeAsk,
+  titleOf,
+  togglePicked,
   type Usage,
-} from "@/features/agent/tools"
-import { artboardPng } from "@/entities/artboard/picture"
+} from "@/features/agent"
+import type { AcpClient, PromptImage } from "@/features/agent/acp"
+import { artboardPng } from "@/entities/artboard"
 import { activeProjectId } from "@/features/persistence"
 import BrandMark from "@/shared/ui/BrandMark"
 import { isMark } from "@/shared/ui/marks"
@@ -57,7 +65,17 @@ import {
   quoteOf,
   withContext,
 } from "./model/compose"
-import { enqueued, movedUp, NO_QUEUE, placeholderOf, type Queue, tokensOf, toFront, without } from "./model/composer"
+import {
+  enqueued,
+  movedUp,
+  NO_QUEUE,
+  placeholderOf,
+  type Pops,
+  type Queue,
+  tokensOf,
+  toFront,
+  without,
+} from "./model/composer"
 import {
   busyOf,
   type Effect,
@@ -80,7 +98,7 @@ import type { Changed } from "./model/steps"
 import { nextPrompts } from "./model/suggest"
 import { type Block, changesOf, type Entry, runLabel, sentOf, threadBlocks, todosOf } from "./model/thread"
 import BridgeSetup from "./ui/BridgeSetup"
-import Composer, { type ComposerApi, type Editing, type Pops } from "./ui/Composer"
+import Composer, { type ComposerApi, type Editing } from "./ui/Composer"
 import ThreadEntry from "./ui/ThreadEntry"
 import TurnTrays from "./ui/TurnTrays"
 import { createApprovals } from "./approvals"

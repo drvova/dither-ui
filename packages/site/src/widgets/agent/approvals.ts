@@ -1,8 +1,7 @@
 import { type Accessor, createMemo, createSignal } from "solid-js"
 import { unwrap } from "solid-js/store"
+import type { AgentConfig, Built } from "@/features/agent"
 import type { AcpPermissionRequest } from "@/features/agent/acp"
-import type { Built } from "@/features/agent/dither"
-import type { AgentConfig } from "@/features/agent/tools"
 import { askTitle } from "./model/steps"
 import type { Entry } from "./model/thread"
 
