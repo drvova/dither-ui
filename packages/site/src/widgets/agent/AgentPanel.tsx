@@ -1,89 +1,96 @@
-import { createMemo, createSignal, For, Match, onCleanup, onMount, Show, Switch, untrack } from "solid-js"
+import { createMemo, createSignal, For, Match, onCleanup, onMount, Show, Switch } from "solid-js"
 import { createMutable, unwrap } from "solid-js/store"
 import { Portal } from "solid-js/web"
 import { copyText, DitherIcon, type IconName } from "@dither-ui/kit"
-import { artboardPng } from "@/features/export-image"
-import { isMark } from "@/shared/ui/marks"
-import {
-  type Attachment,
-  attachmentsOf,
-  chipOf,
-  foldsPaste,
-  imagesOf,
-  intake,
-  moved,
-  pastedText,
-  promptText,
-  type Queued,
-  quoteOf,
-  withContext,
-} from "@/widgets/agent/model/compose"
-import { hintOf, type Slash, slashList, unknownOf } from "./model/slash"
-import { nextPrompts } from "./model/suggest"
-import { boundsOf, centreOn, editor, selectArtboard, selectedArtboard, watch } from "@/entities/editor"
+import { boundsOf, centreOn, editor, selectArtboard, selectedArtboard } from "@/entities/editor"
 import { evolveSelected, runCommand } from "@/features/agent"
-import {
-  type AcpClient,
-  type AcpPermissionRequest,
-  type BridgeHello,
-  connectAcp,
-  modelName,
-  NoBridge,
-  type PromptImage,
-} from "@/features/agent/acp"
+import type { AcpClient, PromptImage } from "@/features/agent/acp"
 import { chats, loadThread, newChat, openProject, saveThread, titleOf } from "@/features/agent/chats"
-import type { Built } from "@/features/agent/dither"
 import { handoff, takeAsk, togglePicked } from "@/features/agent/handoff"
 import {
   type AgentActivity,
-  type AgentCommand,
   type AgentConfig,
   type AgentEvent,
-  type ContextUse,
   DEFAULT_BRIDGE_URL,
   loadAgentConfig,
   loadDraft,
-  type Mode,
-  type ModelChoice,
   saveAgentConfig,
   saveDraft,
   type Setting,
   type Usage,
 } from "@/features/agent/tools"
+import { artboardPng } from "@/features/export-image"
 import { checkpoint, restoreCheckpoint, restoreFrame, undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
-import { modKey } from "@/shared/lib"
 import BrandMark from "@/shared/ui/BrandMark"
+import { isMark } from "@/shared/ui/marks"
 import Mascot from "@/shared/ui/Mascot"
 import ToolMark from "@/shared/ui/ToolMark"
-import { askTitle, type Changed } from "./model/steps"
 import {
-  type Block,
-  changesOf,
-  type Entry,
-  runLabel,
-  secondsOf,
-  sentOf,
-  threadBlocks,
-  todosOf,
-  toolEntry,
-} from "./model/thread"
+  barChanges,
+  forgotPutBack,
+  keptFrame,
+  NO_BAR,
+  nextTurn,
+  putBack,
+  restoredTo,
+  settledThrough,
+  settledTurn,
+  undoneFrame,
+} from "./model/changes"
+import {
+  type Attachment,
+  attachmentsOf,
+  chipOf,
+  imagesOf,
+  promptText,
+  type Queued,
+  quoteOf,
+  withContext,
+} from "./model/compose"
+import { enqueued, movedUp, NO_QUEUE, placeholderOf, type Queue, tokensOf, toFront, without } from "./model/composer"
+import {
+  busyOf,
+  type Effect,
+  type Fold,
+  fold,
+  hushed,
+  IDLE,
+  NO_HARNESS,
+  orphaned,
+  QUIET,
+  runOf,
+  running,
+  setupOf,
+  stopAsked,
+  type Stream,
+  type Turn,
+} from "./model/session"
+import { slashList, unknownOf } from "./model/slash"
+import type { Changed } from "./model/steps"
+import { nextPrompts } from "./model/suggest"
+import { type Block, changesOf, type Entry, runLabel, sentOf, threadBlocks, todosOf } from "./model/thread"
 import BridgeSetup from "./ui/BridgeSetup"
-import Attached from "./ui/Attached"
-import ContextMeter from "./ui/ContextMeter"
+import Composer, { type ComposerApi, type Editing, type Pops } from "./ui/Composer"
 import ThreadEntry from "./ui/ThreadEntry"
 import TurnTrays from "./ui/TurnTrays"
+import { createApprovals } from "./approvals"
+import { createBridge } from "./bridge"
+import { watching } from "./watching"
 import "./AgentPanel.css"
 
 // The agent panel is a CONTROL PLANE for the harness the user already has.
 // One local bridge, one pick: Claude Code, Codex, Gemini CLI, oh-my-pi,
 // Goose, OpenCode, or any command that speaks the Agent Client Protocol.
 // The harness runs as the user's own signed-in process; the panel is its
-// client, set as a composer. This file holds the session (the bridge, the
-// turns and their checkpoints, the queue, the context) and lays it out; the
-// thread's entries draw in `ui/ThreadEntry.tsx`, the trays over the input in
-// `ui/TurnTrays.tsx`, and every reading of the thread is `model/thread.ts`.
-// Nothing here is a key or a model setting.
+// client, set as a composer. This file wires the session (the bridge, the
+// turns and their checkpoints, the queue, the approvals) and lays it out:
+// the session's states and the fold of the harness's events are
+// `model/session.ts`, the changes bar's `model/changes.ts`, the composer's
+// `model/composer.ts` and `ui/Composer.tsx`, the thread's entries draw in
+// `ui/ThreadEntry.tsx`, the trays over the input in `ui/TurnTrays.tsx`, and
+// every reading of the thread is `model/thread.ts`. Nothing here is a key
+// or a model setting.
 export type AgentPanelApi = { focus: () => void }
 export type AgentPanelProps = {
   onClose?: () => void
@@ -99,38 +106,12 @@ const STARTERS: { icon: IconName; text: string }[] = [
 ]
 
 type TextEntry = Extract<Entry, { text: string }>
-type PlanEntry = Extract<Entry, { kind: "plan" }>
-type Thought = Extract<Entry, { kind: "thought" }>
-type Approval = Extract<Entry, { kind: "approval" }>
-type Reply = { kind: "assistant"; text: string }
-type Editing = { at: number; turn: number; was: string; restore: boolean; restorable: boolean }
-const isPlan = (e: Entry): e is PlanEntry => e.kind === "plan"
 const isAssistant = (e: Entry): e is TextEntry => e.kind === "assistant"
 
 /** After this turn's writes have landed. */
 const nextTick = (then: () => void) => queueMicrotask(then)
 
 export default function AgentPanel(props: AgentPanelProps) {
-  /** A watcher over a getter: `changed` some time after the
-   * value it returns has changed (with `deep`, anything under it), once for
-   * every write of a turn, never for the first read. */
-  function watching<T>(source: () => T, changed: (value: T) => void, opts: { deep?: boolean } = {}) {
-    let was: T
-    onMount(() => (was = untrack(source)))
-    onCleanup(
-      watch(
-        source,
-        () => {
-          const value = untrack(source)
-          if (!opts.deep && Object.is(value, was)) return
-          was = value
-          changed(value)
-        },
-        opts,
-      ),
-    )
-  }
-
   /* ------------------------------ configuration ----------------------------- */
 
   // What the page kept comes back once it is a page: a server renders the
@@ -145,7 +126,6 @@ export default function AgentPanel(props: AgentPanelProps) {
   })
   onMount(() => {
     Object.assign(config, loadAgentConfig())
-    setCustomCommand(config.command)
     setTouch(window.matchMedia?.("(pointer: coarse)").matches ?? false)
     if (activeProjectId.value) openProject(activeProjectId.value)
     if (chats.project && chats.active && (chats.project !== loadedFor || chats.active !== loadedChat))
@@ -156,25 +136,30 @@ export default function AgentPanel(props: AgentPanelProps) {
     (c) => saveAgentConfig({ ...c }),
     { deep: true },
   )
-  const [menuOpen, setMenuOpen] = createSignal(false)
+  /** The menus over the composer besides the field's own. */
+  const pops = createMutable<Pops>({ harness: false, settings: false, model: false })
 
   /* ------------------------------- transcript ------------------------------- */
 
-  /** The message being written, and its field (declared first: the session
-   * restore below brings back the project's draft). */
+  /** The message being written, what it carries besides its words (pastes,
+   * dropped files, pictures), and a line about what could not come in
+   * (declared first: the session restore below brings back the draft). */
   const [input, setInput] = createSignal("")
-  /** What the message carries besides its words (pastes, dropped files,
-   * pictures), and a line about what could not come in. */
   const [attachments, setAttachments] = createSignal<Attachment[]>([])
   const [notice, setNotice] = createSignal("")
   watching(input, () => setNotice(""))
-  let box: HTMLTextAreaElement | undefined
+  const draft = { text: input, setText: setInput, attachments, setAttachments, notice, setNotice }
+  let field: ComposerApi | undefined
   /** The thread: a store, so an entry changed in place (a reply as it
    * streams, a fold opened, a prompt answered) draws again. */
   const thread = createMutable({ entries: [] as Entry[] })
   const [usage, setUsage] = createSignal<Usage>({ input: 0, output: 0 })
-  /** The harness's other choice settings (effort, thinking, ...), as it reports them. */
-  const [settings, setSettings] = createSignal<Setting[]>([])
+  /** The harness's own state as it reports it (modes, model, commands,
+   * context, settings). */
+  const [harness, setHarness] = createSignal(NO_HARNESS)
+  const [lastTurnMs, setLastTurnMs] = createSignal(0)
+  /** What streams now (the reply, or the thought), by its place in the thread. */
+  const [stream, setStream] = createSignal<Stream>(QUIET)
   /** A setting to one of its values, asked of the harness (which answers
    * with what it now holds). */
   async function setSetting(s: Setting, id: string) {
@@ -182,10 +167,6 @@ export default function AgentPanel(props: AgentPanelProps) {
     if (!client || id === s.current) return
     await client.setOption(s.configId, id).catch((e: Error) => push({ kind: "error", text: e.message }))
   }
-  /** How full the harness says its context is (none until it reports). */
-  const [contextUse, setContextUse] = createSignal<ContextUse | null>(null)
-  /** The newest entry, as the thread holds it. */
-  const newest = () => thread.entries[thread.entries.length - 1]
   /** Newest entry matching a guard (lib is ES2020: no findLast). */
   function lastEntry<T extends Entry>(is: (e: Entry) => e is T): T | undefined {
     for (let i = thread.entries.length - 1; i >= 0; i--) {
@@ -228,10 +209,12 @@ export default function AgentPanel(props: AgentPanelProps) {
 
   /** Each prompt is a turn; the canvas as it stood before it is the turn's
    * checkpoint (kept in memory: a document per turn is too large to save). */
-  const [turn, setTurn] = createSignal(0)
+  const [turnNo, setTurnNo] = createSignal(0)
   const checkpoints = new Map<number, string>()
-  /** Turns whose changes were kept (or undone): their bar is gone. */
-  const [settled, setSettled] = createSignal(new Set<number>())
+  /** The changes bar: the turns settled, the latest one's frames settled one
+   * by one, and the frame just undone, which can be put back. */
+  const [bar, setBar] = createSignal(NO_BAR)
+  watching(turnNo, () => setBar(nextTurn(bar())))
 
   // The conversation is the open chat of the active project (`chats`): it
   // follows the project, and the chat picked in the sidebar.
@@ -247,20 +230,21 @@ export default function AgentPanel(props: AgentPanelProps) {
     loadedChat = chatId
     const s = loadThread<Entry>(projectId, chatId)
     thread.entries = s?.entries ?? []
+    setStream(orphaned(stream(), 0))
     setUsage(s?.usage ?? { input: 0, output: 0 })
-    setTurn(Math.max(0, ...thread.entries.map((e) => ("turn" in e && e.turn) || 0)))
+    setTurnNo(Math.max(0, ...thread.entries.map((e) => ("turn" in e && e.turn) || 0)))
     checkpoints.clear()
-    setSettled(new Set(Array.from({ length: turn() + 1 }, (_, i) => i)))
+    setBar({ ...bar(), settled: settledThrough(turnNo()) })
     keptCount = thread.entries.length
     setOpened(new Map())
-    const draft = loadDraft(projectId, chatId)
-    setInput(draft.text)
-    setAttachments(attachmentsOf(draft.attachments))
+    const kept = loadDraft(projectId, chatId)
+    setInput(kept.text)
+    setAttachments(attachmentsOf(kept.attachments))
     scrollLog(true)
     // Another chat is another session with the harness.
     const client = acp()
     if (fresh && client?.hello?.agent) {
-      setContextUse(null)
+      setHarness({ ...harness(), context: null })
       client.newSession().catch((e: Error) => push({ kind: "error", text: e.message }))
     }
   }
@@ -274,26 +258,11 @@ export default function AgentPanel(props: AgentPanelProps) {
     if (boxes.length) centreOn(boundsOf(boxes))
   }
 
-  /** The latest turn's frames settled one by one (kept or undone), and the
-   * one just undone, which can be put back until the canvas changes again. */
-  const [settledFrames, setSettledFrames] = createSignal(new Set<string>())
-  const [putBack, setPutBack] = createSignal<{ id: string; name: string; after: string } | null>(null)
-  watching(turn, () => {
-    setSettledFrames(new Set<string>())
-    setPutBack(null)
-  })
   /** What the latest turn changed on the canvas, until kept or undone (all at
    * once, or frame by frame). */
-  const changes = createMemo(() => {
-    if (!turn() || settled().has(turn())) return null
-    const c = changesOf(thread.entries, turn())
-    if (!c) return null
-    const frames = c.frames.filter((f) => !settledFrames().has(f.id))
-    return frames.length || putBack() ? { ...c, frames } : null
-  })
+  const changes = createMemo(() => barChanges(thread.entries, turnNo(), bar()))
   function settleFrame(id: string) {
-    setSettledFrames(new Set(settledFrames()).add(id))
-    setPutBack(null)
+    setBar(keptFrame(bar(), id))
     refocus()
   }
   /** One frame back to where the turn found it (one undoable step). */
@@ -303,26 +272,22 @@ export default function AgentPanel(props: AgentPanelProps) {
     const f = c?.frames.find((x) => x.id === id)
     if (!c || !cp || !f) return
     restoreFrame(cp, id)
-    setSettledFrames(new Set(settledFrames()).add(id))
-    setPutBack({ id, name: f.name, after: checkpoint() })
+    setBar(undoneFrame(bar(), f, checkpoint()))
     refocus()
   }
   /** The frame just undone, as the turn left it: the history's undo of that
    * step, offered only while nothing else changed since. */
   function putFrameBack() {
-    const p = putBack()
-    setPutBack(null)
-    if (!p || checkpoint() !== p.after) return
+    const p = bar().putBack
+    if (!p || checkpoint() !== p.after) return setBar(forgotPutBack(bar()))
     undo()
-    const left = new Set(settledFrames())
-    left.delete(p.id)
-    setSettledFrames(left)
+    setBar(putBack(bar()))
     refocus()
   }
 
   function keep() {
     const c = changes()
-    if (c) setSettled(new Set(settled()).add(c.turn))
+    if (c) setBar(settledTurn(bar(), c.turn))
     refocus()
   }
   /** The canvas back to where the turn found it (one undoable step). */
@@ -331,7 +296,7 @@ export default function AgentPanel(props: AgentPanelProps) {
     const cp = c && checkpoints.get(c.turn)
     if (!c || !cp) return
     restoreCheckpoint(cp)
-    setSettled(new Set(settled()).add(c.turn))
+    setBar(settledTurn(bar(), c.turn))
     refocus()
     system("Put the canvas back to before that message")
   }
@@ -340,7 +305,7 @@ export default function AgentPanel(props: AgentPanelProps) {
     const cp = checkpoints.get(at)
     if (!cp || busy()) return
     restoreCheckpoint(cp)
-    setSettled(new Set([...settled(), ...Array.from({ length: turn() - at + 1 }, (_, i) => at + i)]))
+    setBar(restoredTo(bar(), at, turnNo()))
     system("Restored the checkpoint")
   }
   const canRestore = (e: Entry) => "turn" in e && !!e.turn && checkpoints.has(e.turn) && !busy()
@@ -371,6 +336,7 @@ export default function AgentPanel(props: AgentPanelProps) {
     const cp = ed.restore ? checkpoints.get(ed.turn) : undefined
     if (cp) restoreCheckpoint(cp)
     thread.entries = thread.entries.slice(0, ed.at)
+    setStream(orphaned(stream(), ed.at))
     const first = ed.was.split("\n")[0].slice(0, 80)
     return `I am changing my earlier message ("${first}"); ${cp ? "the canvas is back to how it stood before it" : "the canvas stays as it is now"}. What I want instead:\n\n`
   }
@@ -392,6 +358,12 @@ export default function AgentPanel(props: AgentPanelProps) {
   /** A fold the reader opened or closed (a thought, a step) keeps it. */
   function setFold(e: Entry, open: boolean) {
     if ((e.kind === "thought" || e.kind === "tool") && e.open !== open) e.open = open
+  }
+  /** Ctrl+O: every step open, or every one closed. */
+  let stepsOpen = false
+  function toggleSteps() {
+    stepsOpen = !stepsOpen
+    for (const x of thread.entries) if (x.kind === "tool") x.open = stepsOpen
   }
   watching(
     () => activeProjectId.value,
@@ -417,19 +389,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 
   /* --------------------------------- status --------------------------------- */
 
-  const [busy, setBusy] = createSignal(false)
-  /** A stop asked for and not yet answered by the harness (declared here:
-   * the field's placeholder reads it). */
-  const [stopping, setStopping] = createSignal(false)
-  const [started, setStarted] = createSignal(0)
+  const [turn, setTurn] = createSignal<Turn>(IDLE)
+  const busy = () => busyOf(turn())
   const [now, setNow] = createSignal(Date.now())
   let clock: ReturnType<typeof setInterval> | undefined
-  const elapsed = createMemo(() => (busy() ? Math.max(0, now() - started()) : 0))
-  const [lastTurnMs, setLastTurnMs] = createSignal(0)
-  const fmtTokens = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k` : String(n))
-  const fmtMs = (ms: number) => (ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`)
-  /** The folder's own name out of a path, either separator. */
-  const folderOf = (path: string) => path.split(/[\\/]/).filter(Boolean).pop() ?? path
   /** The reply just copied, by its place in the thread. */
   const [copied, setCopied] = createSignal<number | null>(null)
   let copiedTimer: ReturnType<typeof setTimeout> | undefined
@@ -442,111 +405,25 @@ export default function AgentPanel(props: AgentPanelProps) {
 
   /* -------------------------------- the bridge ------------------------------ */
 
-  const [acp, setAcp] = createSignal<AcpClient | null>(null)
-  const [hello, setHello] = createSignal<BridgeHello | null>(null)
-  const [connecting, setConnecting] = createSignal(false)
-  const harnesses = createMemo(() => hello()?.harnesses ?? [])
-  const agent = createMemo(() => hello()?.agent ?? null)
+  const { conn, acp, hello, harnesses, agent, agentName, nameIt, connect, lookForBridge, disconnect } = createBridge({
+    config,
+    onEvent: (e) => onEvent(e),
+    permission: (req) => askPermission(req),
+    approveTool: (tool) => approveTool(tool),
+    say: push,
+    onLooking: () => scrollLog(true),
+    onFound: () => refocus(),
+    onBare: () => setHarness(NO_HARNESS),
+  })
   /** The mark of who answers, when the site draws one for it. */
   const agentMark = createMemo(() => {
     const id = agent()?.id
     return id && isMark(id) ? id : null
   })
-  /** Who answers, as a person reads it: a harness picked from the bridge's
-   * list goes by that name (Claude Code, not its adapter's package), any
-   * other command by the name it introduced itself with. */
-  const [agentName, setAgentName] = createSignal("")
-  const nameIt = () =>
-    setAgentName(
-      (agent() && harnesses().find((h) => h.id === agent()?.id)?.name) || acp()?.agent || agent()?.name || "",
-    )
-  const [modes, setModes] = createSignal<Mode[]>([])
-  const [mode, setMode] = createSignal("")
-  /** The model the harness runs, as its session says; switched only among
-   * the harness's own. */
-  const [model, setModel] = createSignal<ModelChoice | null>(null)
-  const [modelOpen, setModelOpen] = createSignal(false)
-  const [commands, setCommands] = createSignal<AgentCommand[]>([])
-  const [pickerOpen, setPickerOpen] = createSignal(false)
-  const [customCommand, setCustomCommand] = createSignal(config.command)
-
-  /** No bridge answered: the chat shows how to start it while the panel
-   * looks again every few seconds ("looking"), for a while ("stopped"
-   * after), until one answers ("none" again). */
-  const [setup, setSetup] = createSignal<"none" | "looking" | "stopped">("none")
-  const LOOK_EVERY = 2500
-  const LOOK_FOR = 5 * 60_000
-  let lookTimer: ReturnType<typeof setInterval> | undefined
-  function stopLooking(next: "none" | "stopped") {
-    clearInterval(lookTimer)
-    lookTimer = undefined
-    setSetup(next)
-  }
-  function lookForBridge() {
-    setSetup("looking")
-    scrollLog(true)
-    clearInterval(lookTimer)
-    const until = Date.now() + LOOK_FOR
-    lookTimer = setInterval(async () => {
-      if (acp()) return stopLooking("none")
-      if (Date.now() > until) return stopLooking("stopped")
-      if (await connect(config.bridgeUrl, true)) {
-        stopLooking("none")
-        system("bridge connected")
-        refocus()
-      }
-    }, LOOK_EVERY)
-  }
-
-  /** Open the bridge at `url`. When none answers, the setup shows and the
-   * panel keeps looking; a `quiet` try (one of those looks) says nothing. */
-  async function connect(url = config.bridgeUrl, quiet = false): Promise<AcpClient | null> {
-    const open = acp()
-    if (open) return open
-    if (connecting()) return null
-    setConnecting(true)
-    config.bridgeUrl = url
-    try {
-      const client = await connectAcp({
-        url,
-        onEvent,
-        permission: askPermission,
-        approveTool,
-        onHello: (h) => {
-          setHello(h)
-          if (!h.agent) {
-            setModes([])
-            setMode("")
-            setModel(null)
-            setCommands([])
-            setContextUse(null)
-            setSettings([])
-          }
-          nameIt()
-        },
-        onClose: () => {
-          if (acp()) system("bridge closed")
-          setAcp(null)
-          setHello(null)
-        },
-      })
-      setAcp(client)
-      if (setup() !== "none") stopLooking("none")
-      nameIt()
-      return client
-    } catch (e) {
-      if (e instanceof NoBridge) {
-        if (!quiet && setup() !== "looking") lookForBridge()
-      } else if (!quiet) push({ kind: "error", text: e instanceof Error ? e.message : String(e) })
-      return null
-    } finally {
-      setConnecting(false)
-    }
-  }
 
   /** Start a harness by preset id or command line through the bridge. */
   async function start(choice: string | { command: string }) {
-    setPickerOpen(false)
+    pops.harness = false
     refocus()
     const client = acp() ?? (await connect())
     if (!client) return
@@ -575,7 +452,7 @@ export default function AgentPanel(props: AgentPanelProps) {
     if (client.hello?.agent) return client
     const choice = savedChoice()
     if (!choice) {
-      setPickerOpen(true)
+      pops.harness = true
       system("pick a harness above")
       return null
     }
@@ -583,189 +460,45 @@ export default function AgentPanel(props: AgentPanelProps) {
     return client.hello?.agent ? client : null
   }
 
-  function disconnect() {
-    acp()?.close()
-    setAcp(null)
-    setHello(null)
+  /** The harness's events, folded into the thread and the session
+   * (`model/session.ts`); the panel patches the entries that changed, in
+   * place, and does what the fold asks besides. */
+  const folded = (): Fold => ({
+    entries: unwrap(thread.entries),
+    stream: stream(),
+    turnNo: turnNo(),
+    harness: harness(),
+    usage: usage(),
+    lastTurnMs: lastTurnMs(),
+  })
+  function commit(next: Fold, effects: readonly Effect[] = []) {
+    const raw = unwrap(thread.entries)
+    next.entries.forEach((e, i) => {
+      if (raw[i] === e) return
+      if (i < raw.length) Object.assign(thread.entries[i], e)
+      else thread.entries.push(e)
+    })
+    setStream(next.stream)
+    setHarness(next.harness)
+    setUsage(next.usage)
+    setLastTurnMs(next.lastTurnMs)
+    for (const f of effects)
+      if (f.kind === "scroll") scrollLog()
+      else if (config.follow) follow(f.frames)
   }
-
-  /** The reply streaming now, as the thread holds it. */
-  const [live, setLive] = createSignal<Reply | null>(null)
-  /** The thought streaming now, and when it began. */
-  const [thinking, setThinking] = createSignal<Thought | null>(null)
-  let thoughtAt = 0
-  /** Anything else the harness does ends its thought. */
-  function endThought() {
-    const t = thinking()
-    if (!t) return
-    t.ms = Date.now() - thoughtAt
-    t.open = false
-    setThinking(null)
-  }
-
   function onEvent(e: AgentEvent) {
-    if (e.type !== "thought" && e.type !== "mode" && e.type !== "commands" && e.type !== "plan") endThought()
-    switch (e.type) {
-      case "thought": {
-        setLive(null)
-        let t = thinking()
-        if (!t) {
-          thoughtAt = Date.now()
-          thread.entries.push({ kind: "thought", text: "", open: true })
-          t = newest() as Thought
-          setThinking(t)
-        }
-        t.text += e.text
-        scrollLog()
-        break
-      }
-      case "delta": {
-        let reply = live()
-        if (!reply) {
-          thread.entries.push({ kind: "assistant", text: "" })
-          reply = newest() as Reply
-          setLive(reply)
-        }
-        reply.text += e.text
-        scrollLog()
-        break
-      }
-      case "assistant": {
-        const reply = live()
-        if (reply) reply.text = e.text
-        else push({ kind: "assistant", text: e.text })
-        setLive(null)
-        break
-      }
-      case "tool": {
-        setLive(null)
-        const step = toolEntry(e.name, e.args, e.result, turn(), e.built)
-        push(step)
-        if (config.follow && step.kind === "tool" && step.changed?.length) follow(step.changed)
-        break
-      }
-      case "activity": {
-        setLive(null)
-        const existing = thread.entries.find(
-          (x): x is Extract<Entry, { kind: "activity" }> => x.kind === "activity" && x.id === e.id,
-        )
-        if (existing) {
-          existing.status = e.status
-          if (e.title) existing.title = e.title
-          // A call with no title yet waits for the update that names it (a
-          // Studio tool's is drawn as its own step, so it never shows here).
-        } else if (e.title) push({ kind: "activity", id: e.id, title: e.title, status: e.status, tool: e.kind })
-        break
-      }
-      case "plan": {
-        const existing = lastEntry(isPlan)
-        if (existing) existing.entries = e.entries
-        else push({ kind: "plan", entries: e.entries })
-        break
-      }
-      case "mode":
-        setMode(e.current)
-        if (e.modes.length) setModes(e.modes)
-        break
-      case "model":
-        setModel(e.model)
-        break
-      case "commands":
-        setCommands(e.commands)
-        break
-      case "context":
-        setContextUse(e.context)
-        break
-      case "settings":
-        setSettings(e.settings)
-        break
-      case "turn":
-        setLastTurnMs(e.elapsedMs)
-        if (e.usage) setUsage({ input: usage().input + e.usage.input, output: usage().output + e.usage.output })
-        break
-      case "error":
-        setLive(null)
-        push({ kind: "error", text: e.message })
-        break
-      case "stopped":
-        setLive(null)
-        break
-      case "done":
-        setLive(null)
-        break
-    }
+    const { state, effects } = fold(folded(), e, Date.now())
+    commit(state, effects)
   }
 
   /* -------------------------------- approvals ------------------------------- */
 
-  /** Every open permission prompt and how it is settled, keyed by its own
-   * transcript entry: two prompts at once are each answered on their row. */
-  const pending = new Map<Approval, (id: string | null) => void>()
-  /** How many of them wait (the map itself tells nothing when it changes). */
-  const [waiting, setWaiting] = createSignal(0)
-
-  function ask(
-    title: string,
-    options: { id: string; label: string; primary?: boolean; reject?: boolean }[],
-    code?: string,
-  ): Promise<string | null> {
-    askedAt = Date.now()
-    push({ kind: "approval", title, options, answered: null, ...(code ? { code } : {}) })
-    const entry = newest() as Approval
-    return new Promise((resolve) => {
-      pending.set(unwrap(entry), (id) => {
-        entry.answered = id ?? "cancelled"
-        pending.delete(unwrap(entry))
-        setWaiting(pending.size)
-        resolve(id)
-      })
-      setWaiting(pending.size)
-    })
-  }
-
-  /** A tool the harness built runs only when you say so, every time: its
-   * code is on the prompt, and Auto never answers it. */
-  const approveTool = async (tool: Built): Promise<boolean> =>
-    (await ask(
-      `Run ${tool.name.replace(/_/g, " ")}, a tool ${agentName() || "your harness"} built`,
-      [
-        { id: "run", label: "Run it", primary: true },
-        { id: "no", label: "Don't run" },
-      ],
-      tool.code,
-    )) === "run"
-
-  const askPermission = async (req: AcpPermissionRequest): Promise<string | null> => {
-    const options = req.options.map((o) => ({
-      id: o.optionId,
-      label: o.name,
-      primary: o.kind.startsWith("allow"),
-      reject: o.kind.startsWith("reject"),
-    }))
-    if (config.auto) return options.find((o) => o.primary)?.id ?? options[0]?.id ?? null
-    return ask(
-      askTitle(req.title, (req.raw as { toolCall?: { rawInput?: unknown } } | null)?.toolCall?.rawInput),
-      options.length
-        ? options
-        : [
-            { id: "allow", label: "allow", primary: true },
-            { id: "reject", label: "reject", reject: true },
-          ],
-    )
-  }
-
-  /** When the newest permission prompt came up, and when a key was last
-   * typed in the field: the number keys wait out `TYPING_GUARD` between. */
-  let askedAt = 0
-  let typedAt = 0
-  const TYPING_GUARD = 1500
-  /** The newest permission prompt still waiting for its answer. */
-  const openApproval = createMemo(() => {
-    for (let i = thread.entries.length - 1; i >= 0; i--) {
-      const e = thread.entries[i]
-      if (e.kind === "approval" && e.answered === null) return e
-    }
-    return null
+  const { waiting, askedAt, openApproval, approveTool, askPermission, answer, cancelAll } = createApprovals({
+    config,
+    thread,
+    push,
+    agentName,
+    refocus: () => refocus(),
   })
 
   /* One quiet voice for a screen reader: what the turn needs or how it
@@ -778,39 +511,16 @@ export default function AgentPanel(props: AgentPanelProps) {
   onMount(() => props.onActivity?.(activity()))
   watching(activity, (a) => props.onActivity?.(a))
 
-  function answer(entry: Approval, id: string | null) {
-    pending.get(unwrap(entry))?.(id)
-    refocus()
-  }
-
   /* -------------------------------- composer -------------------------------- */
 
-  /* Up walks back through what was sent (read off the thread, so it survives
-   * a reload), only from an empty field; editing a recalled message makes it
-   * a draft again; Down past the newest empties the field. */
+  /** What Up walks back through (read off the thread, so it survives a reload). */
   const sent = createMemo(() => sentOf(thread.entries))
-  let cursor = -1
-  watching(input, (text) => {
-    if (cursor !== -1 && text !== sent()[cursor]) cursor = -1
-  })
-  /** Messages written while a turn runs, in the order they go; `paused`
-   * after a stop, until you send one or press Send next. */
-  const [followUps, setFollowUps] = createSignal<Queued[]>([])
-  const [paused, setPaused] = createSignal(false)
+  /** Messages written while a turn runs, in the order they go, paused after a stop. */
+  const [queue, setQueue] = createSignal<Queue>(NO_QUEUE)
   let qn = 0
   const queueOf = (text: string, atts: Attachment[]): Queued => ({ id: `q${++qn}`, text, attachments: atts })
   let controller: AbortController | null = null
-  let toolsOpen = false
 
-  /* The field grows with what is typed, up to a cap, then scrolls. */
-  const FIELD_MAX = 176
-  function fit() {
-    const el = box
-    if (!el) return
-    el.style.height = "auto"
-    el.style.height = `${Math.min(el.scrollHeight, FIELD_MAX)}px`
-  }
-  watching(input, () => nextTick(fit))
   // The unsent message, with what it carries, is kept per chat (closing the
   // panel, a reload, another chat keep it).
   let draftTimer: ReturnType<typeof setTimeout> | undefined
@@ -825,20 +535,7 @@ export default function AgentPanel(props: AgentPanelProps) {
    * the keyboard over the canvas. */
   const [touch, setTouch] = createSignal(false)
   /** Back to the field after a key elsewhere in the panel did its job. */
-  const refocus = () => !touch() && nextTick(() => box?.focus())
-  /** iPad Safari ends a composition and then delivers its Enter as a key of
-   * its own: an Enter this soon after a composition ended is the
-   * composition's. */
-  let composedAt = 0
-  /** The field's words come in once a composition has ended, never while
-   * it runs. */
-  const onCompositionEnd = (e: CompositionEvent) => {
-    composedAt = Date.now()
-    setInput((e.currentTarget as HTMLTextAreaElement).value)
-  }
-  const onInput = (e: InputEvent & { currentTarget: HTMLTextAreaElement }) => {
-    if (!e.isComposing) setInput(e.currentTarget.value)
-  }
+  const refocus = () => !touch() && nextTick(() => field?.focus())
   /* The panel is its own keyboard scope: a key pressed in it never reaches
    * the canvas (whose arrows nudge and whose Backspace deletes frames), and a
    * character typed with a key of the panel focused lands in the field. The
@@ -848,38 +545,21 @@ export default function AgentPanel(props: AgentPanelProps) {
     e.stopPropagation()
     const t = e.target as HTMLElement
     if (t.closest("input, textarea, select, [contenteditable]") || e.isComposing) return
-    if (e.key.length === 1 || e.key === "Backspace") box?.focus()
+    if (e.key.length === 1 || e.key === "Backspace") field?.focus()
   }
 
   /** Ours plus whatever the harness advertises; a harness command is sent to it as text. */
-  const slashAll = createMemo(() => slashList(commands()))
+  const slashAll = createMemo(() => slashList(harness().commands))
   /** The field says what sending will do now. */
-  const placeholder = createMemo(() => {
-    const asking = openApproval()
-    return asking
-      ? `Answer 1 to ${Math.min(9, asking.options.length)}, or redirect`
-      : stopping()
-        ? "Queue for after the stop"
-        : busy()
-          ? "Queue a follow-up"
-          : !acp()
-            ? "Ask; this starts the bridge"
-            : !agent()
-              ? "Ask; this starts your harness"
-              : "Ask, / for commands"
-  })
-  /** Esc puts the command menu away until the field changes. */
-  const [slashDismissed, setSlashDismissed] = createSignal(false)
-  watching(input, () => setSlashDismissed(false))
-  const slashOpen = createMemo(() => !slashDismissed() && /^\/[\w-]*$/.test(input()))
-  const slashMatches = createMemo(() => {
-    const q = input().slice(1).toLowerCase()
-    return slashAll().filter((c) => c.name.startsWith(q))
-  })
-  const [slashIndex, setSlashIndex] = createSignal(0)
-  watching(slashMatches, () => setSlashIndex(0))
-  /** A command picked and waiting for what it takes: what that is, in words. */
-  const slashHint = createMemo(() => hintOf(input(), slashAll()))
+  const placeholder = createMemo(() =>
+    placeholderOf({
+      asking: openApproval(),
+      stopping: turn().kind === "stopping",
+      busy: busy(),
+      bridge: !!acp(),
+      agent: !!agent(),
+    }),
+  )
   /** A /word that is no command here, sent as words on a second Enter (a
    * path, say); the first keeps it in the field and says so. */
   let unknownOnce = ""
@@ -895,6 +575,7 @@ export default function AgentPanel(props: AgentPanelProps) {
   async function slash(line: string): Promise<boolean> {
     const [cmd, ...rest] = line.slice(1).trim().split(/\s+/)
     const arg = rest.join(" ").trim()
+    const { modes, mode, commands } = harness()
     switch (cmd) {
       case "help":
         system(
@@ -907,12 +588,12 @@ export default function AgentPanel(props: AgentPanelProps) {
         )
         return true
       case "harness":
-        if (!arg) setPickerOpen(true)
+        if (!arg) pops.harness = true
         else await start(harnesses().some((h) => h.id === arg) ? arg : { command: arg })
         return true
       case "connect":
         await connect(arg || config.bridgeUrl)
-        if (acp() && !acp()?.hello?.agent) setPickerOpen(true)
+        if (acp() && !acp()?.hello?.agent) pops.harness = true
         return true
       case "disconnect":
         disconnect()
@@ -923,17 +604,9 @@ export default function AgentPanel(props: AgentPanelProps) {
         return true
       case "mode": {
         const client = acp()
-        if (!client || !modes().length) return (system("the harness has no modes"), true)
-        const m = modes().find((x) => x.id === arg || x.name.toLowerCase() === arg.toLowerCase())
-        if (!m)
-          return (
-            system(
-              `modes: ${modes()
-                .map((x) => x.id)
-                .join(", ")}`,
-            ),
-            true
-          )
+        if (!client || !modes.length) return (system("the harness has no modes"), true)
+        const m = modes.find((x) => x.id === arg || x.name.toLowerCase() === arg.toLowerCase())
+        if (!m) return (system(`modes: ${modes.map((x) => x.id).join(", ")}`), true)
         await client.setMode(m.id).catch((e: Error) => push({ kind: "error", text: e.message }))
         system(`mode ${m.name}`)
         return true
@@ -971,8 +644,8 @@ export default function AgentPanel(props: AgentPanelProps) {
         system(
           [
             agentName() || "no harness",
-            mode(),
-            `${fmtTokens(usage().input)} in / ${fmtTokens(usage().output)} out`,
+            mode,
+            `${tokensOf(usage().input)} in / ${tokensOf(usage().output)} out`,
             `${editor.artboards.length} frames`,
             acp()?.sessionId && `acp ${acp()?.sessionId}`,
             at && `cwd ${at.cwd}`,
@@ -988,17 +661,18 @@ export default function AgentPanel(props: AgentPanelProps) {
         return true
       case "clear":
         thread.entries = []
+        setStream(orphaned(stream(), 0))
         setOpened(new Map())
         setUsage({ input: 0, output: 0 })
-        setTurn(0)
+        setTurnNo(0)
         checkpoints.clear()
         return true
       case "stop":
-        stop()
+        stopTurn()
         return true
       default:
         // The harness's own command goes to it as text.
-        if (commands().some((c) => c.name === cmd)) return false
+        if (commands.some((c) => c.name === cmd)) return false
         system(`unknown command /${cmd}. Try /help.`)
         return true
     }
@@ -1037,60 +711,12 @@ export default function AgentPanel(props: AgentPanelProps) {
     return out
   }
 
-  /* The @ picker: typed at a word's start, or opened from the card's @ key. */
-  const atQuery = createMemo(() => /(?:^|\s)@([^\s@]*)$/.exec(input())?.[1] ?? null)
-  const [atForced, setAtForced] = createSignal(false)
-  const atOpen = createMemo(() => atForced() || atQuery() !== null)
-
-  /* A menu over the composer (commands, frames, the harness, the model, the
-     bridge) is as tall as the room above the composer: measured whenever one
-     opens and when the panel resizes, so it never runs past the thread's top
-     (the composer stands mid-panel in an empty chat). */
-  let composerEl: HTMLDivElement | undefined
-  const [room, setRoom] = createSignal("16rem")
-  function measureRoom() {
-    const top = log?.getBoundingClientRect().top
-    const at = composerEl?.getBoundingClientRect().top
-    if (top === undefined || at === undefined) return
-    setRoom(`${Math.max(96, Math.floor(at - top - 10))}px`)
-  }
-  watching(
-    () => [slashOpen(), atOpen(), pickerOpen(), menuOpen(), modelOpen()].join(),
-    () => nextTick(measureRoom),
-  )
-  const atMatches = createMemo(() => {
-    const q = (atQuery() ?? "").toLowerCase()
-    return editor.artboards.filter((a) => a.name.toLowerCase().includes(q) && !context().some((c) => c.id === a.id))
-  })
-  const [atIndex, setAtIndex] = createSignal(0)
-  watching(atMatches, () => setAtIndex(0))
-  function pickAt(id: string) {
-    if (!handoff.picked.includes(id)) togglePicked(id)
-    if (atQuery() !== null) setInput(input().replace(/(^|\s)@[^\s@]*$/, "$1"))
-    setAtForced(false)
-    box?.focus()
-  }
-
-  /** The open listbox and its highlighted option, which the field announces
-   * (`aria-activedescendant`) and keeps in view while the arrows move it. */
-  const listbox = createMemo(() =>
-    slashOpen() && slashMatches().length
-      ? { id: "agent-commands", active: `agent-command-${slashIndex()}` }
-      : atOpen() && atMatches().length
-        ? { id: "agent-frames", active: `agent-frame-${atIndex()}` }
-        : null,
-  )
-  watching(
-    () => listbox()?.active,
-    (id) => id && nextTick(() => document.getElementById(id)?.scrollIntoView?.({ block: "nearest" })),
-  )
-
   /** After a turn that finished on its own, a few next prompts from the
    * frames it touched (else the frames in hand), while the field is empty. */
   const suggestions = createMemo(() => {
     const last = thread.entries[thread.entries.length - 1]
     if (busy() || input() || openApproval() || last?.kind !== "worked" || last.end) return []
-    return nextPrompts(changesOf(thread.entries, turn())?.frames ?? context())
+    return nextPrompts(changesOf(thread.entries, turnNo())?.frames ?? context())
   })
 
   /* A message asked at the selection on the canvas: its frames join the
@@ -1113,7 +739,7 @@ export default function AgentPanel(props: AgentPanelProps) {
     const atts = text === input().trim() ? attachments() : []
     if (!text && !atts.length) return
     // A finger's send puts the keyboard away; a pointer's keeps the field.
-    if (touch()) box?.blur()
+    if (touch()) field?.blur()
     else refocus()
     if (text.startsWith("/") && !atts.length) {
       // The second Enter on a refused /word sends it as words.
@@ -1121,7 +747,6 @@ export default function AgentPanel(props: AgentPanelProps) {
       if (refusesUnknown(text)) return
       if (!words) {
         setInput("")
-        cursor = -1
         if (await slash(text)) return
       }
     }
@@ -1132,7 +757,6 @@ export default function AgentPanel(props: AgentPanelProps) {
     }
     setInput("")
     setAttachments([])
-    cursor = -1
     if (busy()) {
       // Words typed while a permission prompt waits are the answer: it is
       // declined and they go next, in its place.
@@ -1142,14 +766,12 @@ export default function AgentPanel(props: AgentPanelProps) {
         now = true
       }
       const q = queueOf(text, atts)
-      if (now) {
-        setFollowUps([q, ...followUps()])
-        sendNow(q.id)
-      } else setFollowUps([...followUps(), q])
+      setQueue(enqueued(queue(), q, now))
+      if (now) sendNow(q.id)
       setAnnounced(now ? "Stopping to send it" : "Queued")
       return
     }
-    setPaused(false)
+    setQueue({ ...queue(), paused: false })
     const ed = editing()
     setEditing(null)
     await run(text, atts, ed ? rewind(ed) : "")
@@ -1166,14 +788,13 @@ export default function AgentPanel(props: AgentPanelProps) {
       return
     }
     const frames = context()
-    setTurn(turn() + 1)
-    checkpoints.set(turn(), checkpoint())
+    setTurnNo(turnNo() + 1)
+    checkpoints.set(turnNo(), checkpoint())
     handoff.picked.splice(0)
     handoff.picking = false
     // Whatever the harness said before (while its session opened) is its own
     // entry: this turn's reply starts under its message.
-    setLive(null)
-    endThought()
+    commit(hushed(folded(), Date.now()))
     const framePictures = client.acceptsImages ? await picturesOf(frames) : []
     const pictures = [
       ...framePictures,
@@ -1182,15 +803,15 @@ export default function AgentPanel(props: AgentPanelProps) {
     push({
       kind: "user",
       text,
-      turn: turn(),
+      turn: turnNo(),
       context: frames,
       pictured: framePictures.length > 0,
       ...(atts.length ? { attached: atts.map((a) => ({ kind: a.kind, ...chipOf(a) })) } : {}),
     })
     scrollLog(true)
-    setBusy(true)
-    setStarted(Date.now())
-    setNow(started())
+    const started = Date.now()
+    setTurn(running(started))
+    setNow(started)
     clock = setInterval(() => setNow(Date.now()), 1000)
     controller = new AbortController()
     const { stopReason } = await client.prompt(
@@ -1199,26 +820,24 @@ export default function AgentPanel(props: AgentPanelProps) {
       pictures,
     )
     clearInterval(clock)
-    setBusy(false)
-    setStopping(false)
+    setTurn(IDLE)
     controller = null
-    setLive(null)
-    endThought()
+    commit(hushed(folded(), Date.now()))
     const end = stopReason === "cancelled" ? "stopped" : stopReason === "error" ? "failed" : undefined
     setAnnounced(end === "stopped" ? "Stopped" : end === "failed" ? "Failed" : "Done")
-    push({ kind: "worked", ms: Date.now() - started(), ...(end ? { end } : {}) })
+    push({ kind: "worked", ms: Date.now() - started, ...(end ? { end } : {}) })
     // Follow-ups run one at a time, in order, each its own turn; a stop pauses
     // them (a Send now stops on purpose and goes on).
-    if (end === "stopped" && !sendingNow) setPaused(true)
+    if (end === "stopped" && !sendingNow) setQueue({ ...queue(), paused: true })
     sendingNow = false
-    if (!paused()) await runNext()
+    if (!queue().paused) await runNext()
   }
 
   /** The next queued message, as its own turn. */
   async function runNext() {
-    const [next, ...rest] = followUps()
+    const [next, ...rest] = queue().items
     if (!next) return
-    setFollowUps(rest)
+    setQueue({ ...queue(), items: rest })
     await run(next.text, next.attachments)
   }
   /** Try again after a failed turn: the same words and what they carried. */
@@ -1229,10 +848,9 @@ export default function AgentPanel(props: AgentPanelProps) {
   let sendingNow = false
   /** Send a queued message now: to the front, and a running turn stops for it. */
   function sendNow(id: string) {
-    const at = followUps().findIndex((q) => q.id === id)
-    if (at < 0) return
-    setFollowUps([followUps()[at], ...followUps().filter((q) => q.id !== id)])
-    setPaused(false)
+    const q = toFront(queue(), id)
+    if (!q) return
+    setQueue(q)
     if (busy()) {
       sendingNow = true
       stopTurn()
@@ -1240,83 +858,36 @@ export default function AgentPanel(props: AgentPanelProps) {
   }
   /** Take a queued message back into the composer, to change and send again. */
   function editQueued(id: string) {
-    const q = followUps().find((x) => x.id === id)
+    const q = queue().items.find((x) => x.id === id)
     if (!q) return
-    setFollowUps(followUps().filter((x) => x.id !== id))
+    setQueue(without(queue(), id))
     setInput(input() ? `${q.text}\n${input()}` : q.text)
     setAttachments([...q.attachments, ...attachments()])
     refocus()
   }
   /** Go on with a paused queue. */
   function resume() {
-    setPaused(false)
+    setQueue({ ...queue(), paused: false })
     if (!busy()) void runNext()
   }
-  const moveQueued = (id: string) => {
-    const at = followUps().findIndex((q) => q.id === id)
-    setFollowUps(moved(followUps(), at, -1))
+  function unqueue() {
+    const items = queue().items
+    if (items.length) editQueued(items[items.length - 1].id)
   }
 
-  /** A stop the harness has not answered in `STUCK_MS`: the tray offers to
-   * stop the harness itself (the bridge ends its process, which ends the
-   * turn). */
-  const STUCK_MS = 5000
-  const [stoppedAt, setStoppedAt] = createSignal(0)
-  const stuck = createMemo(() => stopping() && now() - stoppedAt() >= STUCK_MS)
+  /** A stop the harness has not answered in a while: the tray offers to stop
+   * the harness itself (the bridge ends its process, which ends the turn). */
   function forceStop() {
     acp()?.stop()
     refocus()
   }
   /** Stop the turn. The queue stays, paused (Send next or a new message goes on). */
-  function stop() {
-    stopTurn()
-  }
   function stopTurn() {
-    for (const settle of [...pending.values()]) settle(null)
-    if (busy() && !stopping()) {
-      setStopping(true)
-      setStoppedAt(Date.now())
-    }
+    cancelAll()
+    setTurn(stopAsked(turn(), Date.now()))
     controller?.abort()
   }
 
-  function unqueue() {
-    const last = followUps()[followUps().length - 1]
-    if (last) editQueued(last.id)
-  }
-
-  /* What comes in by paste or drop. A long text folds into a chip (the
-   * field stays a field); Cmd/Ctrl+Shift+V pastes it as typed text. Files:
-   * pictures and text files; anything else says why not. */
-  let rawPasteUntil = 0
-  async function takeFiles(files: File[]) {
-    for (const f of files) {
-      const got = await intake(f, attachments())
-      if (typeof got === "string") setNotice(got)
-      else setAttachments([...attachments(), got])
-    }
-  }
-  function onPaste(e: ClipboardEvent) {
-    const files = [...(e.clipboardData?.files ?? [])]
-    if (files.length) {
-      e.preventDefault()
-      void takeFiles(files)
-      return
-    }
-    const text = e.clipboardData?.getData("text/plain") ?? ""
-    if (Date.now() < rawPasteUntil || !foldsPaste(text)) return
-    e.preventDefault()
-    setAttachments([...attachments(), pastedText(text, attachments())])
-  }
-  const [dropping, setDropping] = createSignal(false)
-  function onDrop(e: DragEvent) {
-    setDropping(false)
-    const files = [...(e.dataTransfer?.files ?? [])]
-    if (!files.length) return
-    e.preventDefault()
-    void takeFiles(files)
-    refocus()
-  }
   /* Quoting the harness's reply: a selection inside a reply shows a Quote key
    * beside it; each reply's own Quote key takes all of it. */
   const [quoteAt, setQuoteAt] = createSignal<{ x: number; y: number; text: string } | null>(null)
@@ -1340,163 +911,24 @@ export default function AgentPanel(props: AgentPanelProps) {
     const r = range.getBoundingClientRect()
     setQuoteAt({ x: Math.round(r.right), y: Math.round(r.top), text })
   }
-  const unattach = (id: string) => setAttachments(attachments().filter((a) => a.id !== id))
-  /** A folded text back into the field, as typed text. */
-  function unfold(id: string) {
-    const a = attachments().find((x) => x.id === id)
-    if (a?.kind !== "text") return
-    unattach(id)
-    setInput(input() ? `${input()}\n${a.text}` : a.text)
-    refocus()
-  }
-
-  function onKey(e: KeyboardEvent) {
-    // A key that ends an IME composition (Japanese, Chinese, Korean) is the
-    // composition's, never a send.
-    if (e.isComposing || e.keyCode === 229) return
-    if (e.key === "Enter" && (e.repeat || Date.now() - composedAt < 500)) return
-    const typedBefore = typedAt
-    typedAt = Date.now()
-    // An open permission prompt takes 1 to 9 from an empty field, unless it
-    // came up under your typing: then only once you have paused (so a digit
-    // meant for the message never answers it).
-    const asking = openApproval()
-    const settledIn = !asking || askedAt - typedBefore >= TYPING_GUARD || typedAt - typedBefore >= TYPING_GUARD
-    if (asking && settledIn && !input() && /^[1-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
-      const option = asking.options[Number(e.key) - 1]
-      if (option) {
-        e.preventDefault()
-        answer(asking, option.id)
-        return
-      }
-    }
-    if (atOpen() && atMatches().length) {
-      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-        e.preventDefault()
-        const n = atMatches().length
-        setAtIndex((atIndex() + (e.key === "ArrowDown" ? 1 : n - 1)) % n)
-        return
-      }
-      if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
-        e.preventDefault()
-        pickAt(atMatches()[atIndex()].id)
-        return
-      }
-    }
-    if (atForced() && e.key === "Escape") {
-      setAtForced(false)
-      return
-    }
-    if (slashOpen() && slashMatches().length) {
-      if (e.key === "ArrowDown") {
-        e.preventDefault()
-        setSlashIndex((slashIndex() + 1) % slashMatches().length)
-        return
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault()
-        setSlashIndex((slashIndex() - 1 + slashMatches().length) % slashMatches().length)
-        return
-      }
-      if (e.key === "Escape") {
-        setSlashDismissed(true)
-        return
-      }
-      if (
-        e.key === "Tab" ||
-        (e.key === "Enter" && !e.shiftKey && `/${slashMatches()[slashIndex()].name}` !== input())
-      ) {
-        e.preventDefault()
-        const c = slashMatches()[slashIndex()]
-        setInput(`/${c.name}${c.args ? " " : ""}`)
-        return
-      }
-    }
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "v" || e.key === "V" || e.code === "KeyV")) {
-      rawPasteUntil = Date.now() + 1000
-      return
-    }
-    if (e.key === "Enter" && !e.shiftKey && !touch()) {
-      e.preventDefault()
-      // An empty field on a paused queue: Enter goes on with it.
-      if (!input().trim() && !attachments().length && paused() && followUps().length) return resume()
-      void send(undefined, busy() && (e.metaKey || e.ctrlKey))
-      return
-    }
-    if (e.key === "ArrowUp" && e.altKey) {
-      e.preventDefault()
-      unqueue()
-      return
-    }
-    if (e.key === "Escape") {
-      if (handoff.picking) {
-        handoff.picking = false
-        return
-      }
-      if (pickerOpen() || menuOpen() || modelOpen()) {
-        setPickerOpen(false)
-        setMenuOpen(false)
-        setModelOpen(false)
-        return
-      }
-      if (busy() || pending.size) {
-        e.preventDefault()
-        stop()
-      } else if (editing()) cancelEdit()
-      else box?.blur()
-      return
-    }
-    if (e.ctrlKey && (e.key === "o" || e.key === "O")) {
-      e.preventDefault()
-      toolsOpen = !toolsOpen
-      for (const x of thread.entries) if (x.kind === "tool") x.open = toolsOpen
-      return
-    }
-    const recalling = cursor !== -1
-    if (e.key === "ArrowUp" && !e.shiftKey && sent().length && (recalling || !input())) {
-      e.preventDefault()
-      cursor = recalling ? Math.max(0, cursor - 1) : sent().length - 1
-      setInput(sent()[cursor])
-    } else if (e.key === "ArrowDown" && !e.shiftKey && recalling) {
-      e.preventDefault()
-      const next = cursor + 1
-      cursor = next < sent().length ? next : -1
-      setInput(cursor === -1 ? "" : sent()[cursor])
-    }
-  }
-
-  function pickSlash(c: Slash) {
-    setInput(`/${c.name}${c.args ? " " : ""}`)
-    box?.focus()
-  }
 
   async function pickModel(id: string) {
-    setModelOpen(false)
+    pops.model = false
     refocus()
     const client = acp()
-    if (!client || id === model()?.current) return
+    if (!client || id === harness().model?.current) return
     await client.setModel(id).catch((e: Error) => push({ kind: "error", text: e.message }))
-  }
-
-  async function togglePicker() {
-    setPickerOpen(!pickerOpen())
-    setMenuOpen(false)
-    setModelOpen(false)
-    if (pickerOpen() && !acp()) await connect()
   }
 
   function keepDraft() {
     if (loadedFor && loadedChat) saveDraft(loadedFor, loadedChat, { text: input(), attachments: attachments() })
   }
   onMount(() => {
-    window.addEventListener("resize", measureRoom)
     document.addEventListener("selectionchange", onSelection)
     takeAsks()
     window.addEventListener("pagehide", keepDraft)
-    fit()
     refocus()
     onCleanup(() => {
-      window.removeEventListener("resize", measureRoom)
       document.removeEventListener("selectionchange", onSelection)
       window.removeEventListener("pagehide", keepDraft)
       clearTimeout(draftTimer)
@@ -1504,13 +936,17 @@ export default function AgentPanel(props: AgentPanelProps) {
       keepDraft()
       controller?.abort()
       clearInterval(clock)
-      clearInterval(lookTimer)
       disconnect()
     })
   })
   props.ref?.({ focus: refocus })
 
-  const empty = () => !thread.entries.length && setup() === "none"
+  const empty = () => !thread.entries.length && setupOf(conn()) === "none"
+  /** The entry streaming now, by its place. */
+  const streaming = (at: number) => {
+    const s = stream()
+    return s.kind !== "quiet" && s.at === at
+  }
 
   return (
     <div class={`agent-panel-scope agent${empty() ? " is-empty" : ""}`} on:keydown={onPanelKey}>
@@ -1589,7 +1025,7 @@ export default function AgentPanel(props: AgentPanelProps) {
                   {(b) => (
                     <ThreadEntry
                       entry={b().entry}
-                      live={live() === b().entry || thinking() === b().entry}
+                      live={streaming(at)}
                       copied={copied() === at}
                       restorable={canRestore(b().entry)}
                       editable={!busy() && (b().entry.kind === "user" || b().entry.kind === "followup")}
@@ -1644,8 +1080,8 @@ export default function AgentPanel(props: AgentPanelProps) {
             )
           }}
         </For>
-        <Show when={setup() !== "none"}>
-          <BridgeSetup looking={setup() === "looking"} url={config.bridgeUrl} onLook={lookForBridge} />
+        <Show when={setupOf(conn()) !== "none"}>
+          <BridgeSetup looking={setupOf(conn()) === "looking"} url={config.bridgeUrl} onLook={lookForBridge} />
         </Show>
       </div>
 
@@ -1656,468 +1092,74 @@ export default function AgentPanel(props: AgentPanelProps) {
             Latest
           </button>
         </Show>
-        <div ref={(el) => (composerEl = el)} class="composer" style={{ "--room": room() }}>
-          <Switch>
-            <Match when={slashOpen() && slashMatches().length}>
-              <div id="agent-commands" class="pop" role="listbox" aria-label="Commands">
-                <For each={slashMatches()}>
-                  {(c, i) => (
-                    <button
-                      id={`agent-command-${i()}`}
-                      type="button"
-                      tabindex="-1"
-                      role="option"
-                      aria-selected={i() === slashIndex()}
-                      class={`pop-row${i() === slashIndex() ? " is-active" : ""}`}
-                      onClick={() => pickSlash(c)}
-                    >
-                      <span class="pop-name">
-                        /{c.name}
-                        <Show when={c.args}>
-                          <span class="dim"> {c.args}</span>
-                        </Show>
-                      </span>
-                      <span class="dim">
-                        {c.harness ? `${agentName()}: ` : ""}
-                        {c.desc}
-                      </span>
-                    </button>
-                  )}
-                </For>
-              </div>
-            </Match>
-            <Match when={atOpen()}>
-              <div id="agent-frames" class="pop" role="listbox" aria-label="Frames">
-                <For each={atMatches()}>
-                  {(a, i) => (
-                    <button
-                      id={`agent-frame-${i()}`}
-                      type="button"
-                      tabindex="-1"
-                      role="option"
-                      aria-selected={i() === atIndex()}
-                      class={`pop-row${i() === atIndex() ? " is-active" : ""}`}
-                      onClick={() => pickAt(a.id)}
-                    >
-                      <span class="pop-name">
-                        <DitherIcon name="Layout" size={11} strokeWidth={1.5} />
-                        {a.name}
-                      </span>
-                    </button>
-                  )}
-                </For>
-                <Show when={!atMatches().length}>
-                  <p class="note">No frame left to add</p>
-                </Show>
-              </div>
-            </Match>
-            <Match when={modelOpen() && model()}>
-              {(m) => (
-                <div id="agent-model-picker" class="pop" role="group" aria-label="Model">
-                  <For each={m().options}>
-                    {(o) => (
-                      <button
-                        type="button"
-                        class="pop-row"
-                        aria-pressed={o.id === m().current}
-                        onClick={() => pickModel(o.id)}
-                      >
-                        <span class="pop-name">
-                          {o.name}
-                          <Show when={o.id === m().current}>
-                            <DitherIcon name="Check" size={11} strokeWidth={1.5} />
-                          </Show>
-                        </span>
-                        <Show when={o.description}>
-                          <span class="dim">{o.description}</span>
-                        </Show>
-                      </button>
-                    )}
-                  </For>
-                </div>
-              )}
-            </Match>
-            <Match when={pickerOpen()}>
-              <div id="agent-harness-picker" class="pop" role="group" aria-label="Harness">
-                <Show
-                  when={hello()}
-                  fallback={
-                    <p class="note">
-                      {connecting()
-                        ? "Connecting the bridge…"
-                        : "No bridge yet: the chat shows the line that starts it."}{" "}
-                      Then pick Claude Code, Codex, Gemini CLI, oh-my-pi, Goose, OpenCode, or any ACP command here.
-                    </p>
-                  }
-                >
-                  <For each={harnesses()}>
-                    {(h) => (
-                      <button
-                        type="button"
-                        class="pop-row"
-                        aria-pressed={agent()?.id === h.id}
-                        title={h.command}
-                        onClick={() => start(h.id)}
-                      >
-                        <span class="pop-name">
-                          {isMark(h.id) ? <ToolMark id={h.id} size={12} /> : null}
-                          {h.name}
-                          <Show when={agent()?.id === h.id}>
-                            <DitherIcon name="Check" size={11} strokeWidth={1.5} />
-                          </Show>
-                        </span>
-                        <span class="dim">{h.installed ? (h.note ?? "on this path") : "not on the path"}</span>
-                      </button>
-                    )}
-                  </For>
-                  <div class="pop-foot">
-                    <form
-                      class="custom"
-                      onSubmit={(e) => {
-                        e.preventDefault()
-                        if (customCommand().trim()) void start({ command: customCommand().trim() })
-                      }}
-                    >
-                      <input
-                        value={customCommand()}
-                        onInput={(e) => setCustomCommand(e.currentTarget.value)}
-                        type="text"
-                        name="agent-command"
-                        class="input"
-                        placeholder="any ACP command, e.g. omp --mode acp"
-                        autocomplete="off"
-                        spellcheck={false}
-                        aria-label="Custom harness command"
-                      />
-                      <button type="submit" class="key" disabled={!customCommand().trim()}>
-                        <span class="row-label">Start</span>
-                      </button>
-                    </form>
-                    <Show when={agent()}>
-                      {(a) => (
-                        <button type="button" class="pop-row text-destructive" onClick={() => acp()?.stop()}>
-                          <span class="pop-name">Stop {a().name}</span>
-                        </button>
-                      )}
-                    </Show>
-                  </div>
-                </Show>
-              </div>
-            </Match>
-            <Match when={menuOpen()}>
-              <div class="pop menu" role="group" aria-label="Settings">
-                <div class="fields">
-                  <label class="field">
-                    <span>bridge</span>
-                    <input
-                      value={config.bridgeUrl}
-                      onInput={(e) => (config.bridgeUrl = e.currentTarget.value.trim())}
-                      onChange={(e) => (e.currentTarget.value = e.currentTarget.value.trim())}
-                      name="agent-bridge-url"
-                      type="text"
-                      class="input"
-                      placeholder="ws://127.0.0.1:8790"
-                      autocomplete="off"
-                      spellcheck={false}
-                    />
-                  </label>
-                  {/* The harness's own settings, asked of it; nothing kept here. */}
-                  <For each={settings()}>
-                    {(o) => (
-                      <label class="field">
-                        <span>{o.name.toLowerCase()}</span>
-                        <select
-                          class="input"
-                          name={`agent-setting-${o.configId}`}
-                          value={o.current}
-                          onChange={(e) => setSetting(o, e.currentTarget.value)}
-                        >
-                          <For each={o.options}>
-                            {(v) => (
-                              <option value={v.id} title={v.description}>
-                                {v.name}
-                              </option>
-                            )}
-                          </For>
-                        </select>
-                      </label>
-                    )}
-                  </For>
-                </div>
-                <p class="note">
-                  {fmtTokens(usage().input)} in, {fmtTokens(usage().output)} out
-                  <Show when={lastTurnMs()}>, last turn {fmtMs(lastTurnMs())}</Show>
-                  <Show when={hello()}>{(at) => <>, in {at().cwd}</>}</Show>
-                </p>
-                <p class="note">
-                  The harness runs on your machine behind the bridge; the Studio only sends prompts and answers its tool
-                  calls. No key lives here; the harness's settings above are its own, asked of it.
-                </p>
-              </div>
-            </Match>
-          </Switch>
-
-          <TurnTrays
-            next={suggestions()}
-            todos={todos()}
-            queue={followUps()}
-            paused={paused()}
-            run={
-              busy()
-                ? {
-                    doing: stopping() ? "Stopping" : thinking() ? "Thinking" : live() ? "Writing" : "Working",
-                    time: secondsOf(Math.max(1000, elapsed())),
-                    stopping: stopping(),
-                    stuck: stuck(),
-                  }
-                : null
-            }
-            changes={changes()}
-            putBack={putBack()?.name ?? null}
-            shown={(id) => editor.artboards.some((a) => a.id === id)}
-            onStop={stop}
-            onForceStop={forceStop}
-            onUnqueue={(id) => setFollowUps(followUps().filter((q) => q.id !== id))}
-            onEditQueued={editQueued}
-            onSendNow={sendNow}
-            onMoveUp={moveQueued}
-            onClearQueue={() => {
-              setFollowUps([])
-              setPaused(false)
-            }}
-            onResume={resume}
-            onUndo={undoTurn}
-            onKeep={keep}
-            onUndoFrame={undoFrame}
-            onKeepFrame={settleFrame}
-            onPutBack={putFrameBack}
-            onShow={(id) => selectArtboard(id)}
-            onAsk={(s) => send(s)}
-          />
-
-          <Show when={editing()}>
-            {(ed) => (
-              <div class="editing" role="status">
-                <p class="editing-line">
-                  <DitherIcon name="Edit" size={12} strokeWidth={1.5} />
-                  <span class="row-label is-wrap">
-                    Editing an earlier message. Sending goes back there: the messages after it leave the thread.
-                  </span>
-                </p>
-                <div class="editing-keys">
-                  <Show when={ed().restorable}>
-                    <label class="editing-choice">
-                      <input
-                        checked={ed().restore}
-                        onChange={(e) => setEditing({ ...ed(), restore: e.currentTarget.checked })}
-                        type="checkbox"
-                        name="edit-restore"
-                      />
-                      <span class="row-label">Canvas back to before it</span>
-                    </label>
-                  </Show>
-                  <button type="button" class="editing-cancel" onClick={cancelEdit}>
-                    <span class="row-label">Cancel</span>
-                    <kbd class="row-label">esc</kbd>
-                  </button>
-                </div>
-              </div>
-            )}
-          </Show>
-          <div
-            class={`card${dropping() ? " is-dropping" : ""}`}
-            onDragOver={(e) => {
-              e.preventDefault()
-              setDropping(true)
-            }}
-            onDragLeave={(e) => e.target === e.currentTarget && setDropping(false)}
-            onDrop={onDrop}
-          >
-            <Show when={context().length || attachments().length}>
-              <div class="chips">
-                <For each={context()}>
-                  {(c) => (
-                    <span class="ctx first-line">
-                      <DitherIcon name="Layout" size={11} strokeWidth={1.5} />
-                      <span class="row-label is-wrap">{c.name}</span>
-                      <button
-                        type="button"
-                        class="ctx-x"
-                        aria-label={`Leave ${c.name} out`}
-                        onClick={() => dropContext(c.id)}
-                      >
-                        <DitherIcon name="Close" size={10} strokeWidth={1.5} />
-                      </button>
-                    </span>
-                  )}
-                </For>
-                <Attached attachments={attachments()} onRemove={unattach} onUnfold={unfold} />
-              </div>
-            </Show>
-            <Switch>
-              <Match when={notice()}>
-                <p class="notice" role="status">
-                  {notice()}
-                </p>
-              </Match>
-              <Match when={slashHint()}>
-                <p class="slash-hint">{slashHint()}</p>
-              </Match>
-            </Switch>
-            <textarea
-              ref={(el) => (box = el)}
-              value={input()}
-              onInput={onInput}
-              name="agent-goal"
-              rows="1"
-              class="prompt"
-              placeholder={placeholder()}
-              enterkeyhint={touch() ? "enter" : "send"}
-              aria-label="Message the agent"
-              aria-autocomplete="list"
-              aria-expanded={listbox() !== null}
-              aria-controls={listbox()?.id}
-              aria-activedescendant={listbox()?.active}
-              spellcheck={false}
-              on:keydown={onKey}
-              onPaste={onPaste}
-              onCompositionEnd={onCompositionEnd}
+        <Composer
+          draft={draft}
+          config={config}
+          pops={pops}
+          placeholder={placeholder()}
+          busy={busy()}
+          stoppable={busy() || waiting() > 0}
+          touch={touch()}
+          agentName={agentName()}
+          bridgeOpen={!!acp()}
+          hello={hello()}
+          connecting={conn().kind === "connecting"}
+          harness={harness()}
+          usage={usage()}
+          lastTurnMs={lastTurnMs()}
+          commands={slashAll()}
+          context={context()}
+          editing={editing()}
+          sent={sent()}
+          queue={queue()}
+          asking={openApproval()}
+          askedAt={askedAt}
+          roomTop={() => log?.getBoundingClientRect().top}
+          ref={(api) => (field = api)}
+          refocus={refocus}
+          onSend={(text, now) => void send(text, now)}
+          onAnswer={answer}
+          onResume={resume}
+          onUnqueue={unqueue}
+          onStop={stopTurn}
+          onCancelEdit={cancelEdit}
+          onEditing={setEditing}
+          onToggleSteps={toggleSteps}
+          onDropContext={dropContext}
+          onConnect={() => void connect()}
+          onStart={(choice) => void start(choice)}
+          onStopHarness={() => acp()?.stop()}
+          onModel={(id) => void pickModel(id)}
+          onSetting={(s, id) => void setSetting(s, id)}
+          onMode={(id) => void slash(`/mode ${id}`)}
+          trays={
+            <TurnTrays
+              next={suggestions()}
+              todos={todos()}
+              queue={queue().items}
+              paused={queue().paused}
+              run={runOf(turn(), stream(), now())}
+              changes={changes()}
+              putBack={bar().putBack?.name ?? null}
+              shown={(id) => editor.artboards.some((a) => a.id === id)}
+              onStop={stopTurn}
+              onForceStop={forceStop}
+              onUnqueue={(id) => setQueue(without(queue(), id))}
+              onEditQueued={editQueued}
+              onSendNow={sendNow}
+              onMoveUp={(id) => setQueue(movedUp(queue(), id))}
+              onClearQueue={() => setQueue(NO_QUEUE)}
+              onResume={resume}
+              onUndo={undoTurn}
+              onKeep={keep}
+              onUndoFrame={undoFrame}
+              onKeepFrame={settleFrame}
+              onPutBack={putFrameBack}
+              onShow={(id) => selectArtboard(id)}
+              onAsk={(s) => send(s)}
             />
-            <div class="foot">
-              <button
-                type="button"
-                class="foot-key"
-                aria-pressed={handoff.picking}
-                aria-label="Pick frames on the canvas"
-                title="Pick frames on the canvas (esc when done)"
-                onClick={() => (handoff.picking = !handoff.picking)}
-              >
-                <DitherIcon name="Crosshair" size={13} strokeWidth={1.5} />
-              </button>
-              <button
-                type="button"
-                class="foot-key"
-                aria-label="Add a frame by name"
-                title="Add a frame by name (@)"
-                aria-pressed={atForced()}
-                onClick={() => setAtForced(!atForced())}
-              >
-                @
-              </button>
-              <button
-                type="button"
-                class="pill"
-                aria-expanded={pickerOpen()}
-                aria-controls="agent-harness-picker"
-                title={hello() ? `${agentName() || "Harness"}, bridge ${config.bridgeUrl}` : config.bridgeUrl}
-                onClick={togglePicker}
-              >
-                <span class="led" data-on={String(!!agent())} aria-hidden="true"></span>
-                <span class="row-label">{agentName() || (acp() ? "Pick a harness" : "Harness")}</span>
-                <DitherIcon name="ChevronDown" size={10} strokeWidth={1.5} />
-              </button>
-              <Show when={model()}>
-                {(m) => (
-                  <button
-                    type="button"
-                    class="pill"
-                    aria-expanded={modelOpen()}
-                    aria-controls="agent-model-picker"
-                    title={`${agentName() || "The harness"} runs ${modelName(m())}`}
-                    disabled={m().options.length < 2}
-                    onClick={() => {
-                      setModelOpen(!modelOpen())
-                      setPickerOpen(false)
-                      setMenuOpen(false)
-                    }}
-                  >
-                    <span class="row-label">{modelName(m())}</span>
-                    <Show when={m().options.length > 1}>
-                      <DitherIcon name="ChevronDown" size={10} strokeWidth={1.5} />
-                    </Show>
-                  </button>
-                )}
-              </Show>
-              <button
-                type="button"
-                class={`send ${input().trim() || attachments().length ? "key-chrome" : "is-idle"}`}
-                disabled={!input().trim() && !attachments().length}
-                aria-label={busy() ? `Queue (enter), or send now (${modKey("enter")})` : "Send (enter)"}
-                title={busy() ? `Queue (enter), or stop and send now (${modKey("enter")})` : "Send (enter)"}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={(ev) => ev.detail > 1 || send()}
-              >
-                <DitherIcon name="ArrowUp" size={13} strokeWidth={2} />
-              </button>
-            </div>
-          </div>
-
-          <div class="status">
-            <button
-              type="button"
-              class="status-key"
-              aria-pressed={config.auto}
-              title={
-                config.auto
-                  ? "Permission prompts are answered with their allow option"
-                  : "Permission prompts wait for you"
-              }
-              onClick={() => (config.auto = !config.auto)}
-            >
-              <DitherIcon name={config.auto ? "Unlock" : "Lock"} size={11} strokeWidth={1.5} />
-              <span class="row-label">{config.auto ? "Auto" : "Ask"}</span>
-            </button>
-            <Show when={modes().length}>
-              <button
-                type="button"
-                class="status-key"
-                title={modes().find((m) => m.id === mode())?.description || "Switch mode"}
-                onClick={() =>
-                  slash(`/mode ${modes()[(modes().findIndex((m) => m.id === mode()) + 1) % modes().length].id}`)
-                }
-              >
-                <DitherIcon name="Bot" size={11} strokeWidth={1.5} />
-                <span class="row-label">{modes().find((m) => m.id === mode())?.name || mode()}</span>
-              </button>
-            </Show>
-            <button
-              type="button"
-              class="status-key is-glyph"
-              aria-label="Follow the agent"
-              title={
-                config.follow
-                  ? "Following the agent: the canvas pans to each frame it changes"
-                  : "Follow the agent: pan the canvas to each frame it changes"
-              }
-              aria-pressed={config.follow}
-              onClick={() => (config.follow = !config.follow)}
-            >
-              <DitherIcon name="Eye" size={12} strokeWidth={1.5} />
-            </button>
-            <Show when={hello()}>
-              {(at) => (
-                <span class="status-key is-static" title={at().cwd}>
-                  <DitherIcon name="Folder" size={11} strokeWidth={1.5} />
-                  <span class="row-label">{folderOf(at().cwd)}</span>
-                </span>
-              )}
-            </Show>
-            <Show when={contextUse()}>{(use) => <ContextMeter class="status-meter" use={use()} />}</Show>
-            <button
-              type="button"
-              class="status-key is-icon"
-              aria-pressed={menuOpen()}
-              aria-label="Settings"
-              title="Settings: the bridge and the harness's own"
-              onClick={() => {
-                setMenuOpen(!menuOpen())
-                setPickerOpen(false)
-              }}
-            >
-              <DitherIcon name="Settings" size={12} strokeWidth={1.5} />
-            </button>
-          </div>
-        </div>
+          }
+        />
       </div>
 
       <Show when={empty()}>

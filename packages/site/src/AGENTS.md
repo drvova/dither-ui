@@ -47,10 +47,16 @@ around this tree (entries, routes, the build, how Solid is written) is
   `ui/` the rows, keys and editors the panels share), canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
   clock; a film's camera, callouts and chapter band), data-editor, agent
-  (the composer / harness control plane: `AgentPanel.tsx` holds the
-  session and lays it out, `ui/` draws the thread's entries and the trays
-  over the input, `model/` reads the thread, the reply's prose and the
-  tool steps in words).
+  (the composer / harness control plane: `AgentPanel.tsx` wires the
+  session and lays it out; `bridge.ts` finds, opens and closes the bridge,
+  `approvals.ts` asks and settles the permission prompts (both
+  Solid-bound, beside the panel); `ui/` draws the thread's entries, the
+  composer (`Composer.tsx`, its menus `ComposerMenus.tsx`) and the trays
+  over the input (`TurnTrays.tsx`, the changes bar `ChangesBar.tsx`);
+  `model/` is framework-free: the session's states and the fold of the
+  harness's events (`session.ts`), the changes bar (`changes.ts`), the
+  composer's menus, recall, queue and keys (`composer.ts`), and the
+  readings of the thread, the reply's prose and the tool steps in words).
 - `features/` — user actions: history (undo/redo), keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave,
   projects created, switched, renamed, duplicated (`duplicateProject`:

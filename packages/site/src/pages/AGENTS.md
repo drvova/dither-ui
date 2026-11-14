@@ -1238,11 +1238,23 @@ in the page's folder.
   chat is hidden: breathing while it works, the signal ink while a
   permission prompt waits, still when a turn ended unseen,
   `AgentActivity`) is a CONTROL PLANE for the user's own harness, set as an
-  agent app's composer, over `features/agent/acp.ts`. The panel holds the
-  session; `ui/ThreadEntry.tsx` draws one entry, `ui/TurnTrays.tsx` the
-  trays over the input, `model/thread.ts` every reading of the thread
-  (title, to-dos, a turn's changes, the blocks it draws; one shared set
-  of keys, folds, chips and the spinner lives unscoped under `.agent`).
+  agent app's composer, over `features/agent/acp.ts`. The panel wires the
+  session; its states are unions, never flags that must agree
+  (`model/session.ts`: the bridge `closed | connecting | open`, the setup
+  card's `none | looking | stopped` riding on the first two; the turn
+  `idle | running | stopping`; what streams `quiet | reply | thought`, by
+  its place in the thread), and the harness's events reach the thread
+  through ONE pure reducer, `fold(state, event, now)` (copy on write: the
+  panel patches the entries that changed in place and does the effects it
+  returns, a scroll or a follow). `bridge.ts` holds the connection and the
+  looks for a bridge, `approvals.ts` the prompts, `model/changes.ts` the
+  changes bar, `model/composer.ts` the composer's menus, recall, queue
+  and keys; `ui/ThreadEntry.tsx` draws one entry, `ui/Composer.tsx` the
+  composer (`ui/ComposerMenus.tsx` its menus), `ui/TurnTrays.tsx` the
+  trays over the input (`ui/ChangesBar.tsx` the changes), `model/thread.ts`
+  every reading of the thread (title, to-dos, a turn's changes, the
+  blocks it draws; one shared set of keys, folds, chips and the spinner
+  lives unscoped under `.agent`).
   It shows the project's open chat (`features/agent/chats.ts`): a new
   chat, or one picked in the sidebar, restores its thread and starts a
   new session with the harness.
@@ -1456,6 +1468,9 @@ in the page's folder.
   session opened. The conversation persists per project and follows the
   active project; unanswered approvals are not saved. Pinned by
   `tests/agent-composer.spec.ts` (the reply's prose),
+  `tests/site/agent-session.spec.tsx` (the fold replayed over the panel
+  spec's event sequences, each union state read as the panel shows it,
+  the changes bar, the queue, recall and the answer keys),
   `tests/site/agent-panel.spec.tsx` (steps, the
   thread's readings, the panel mounted:
   its setup in order, the draft back, history, IME, Esc, the key scope,
