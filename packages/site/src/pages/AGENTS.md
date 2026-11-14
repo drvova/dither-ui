@@ -339,7 +339,10 @@ in the page's folder.
   reader swipes (scroll-snapped, a card `min(86%, 440px)` wide with the
   next one's edge in view, every card the rail's height, the rail running
   out past the page's gutter), so it takes one screen on a tablet or a
-  phone. A card is the raised ground (`--surface`, no border, 20px
+  phone; one card a flick (`scroll-snap-stop: always`), and under it a
+  dot a card (`rail.ts`, the user's call): a 6px cell in the muted ink,
+  the card at the rail's start a long cell in the ink, each a 24px key
+  that takes the rail to its card. A card is the raised ground (`--surface`, no border, 20px
   radius) holding its art over its name at page type (17px; a card's copy
   is the page's, never the size of the UI inside it), the link into
   `/docs/<id>` (no family label). Interactive art keeps its own controls, so the card

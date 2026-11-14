@@ -39,6 +39,7 @@ import { spotlight } from "@/pages/landing/spotlight"
 import { SCENES } from "@/pages/landing/scenes"
 import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "@/pages/landing/stat"
 import { lazyPart, rise, routePath } from "@/shared/lib"
+import { railIndex, railStarts } from "./rail"
 import { scene } from "@/shared/lib/scroll-scene-ref"
 import PauseChip from "./PauseChip"
 import RiseWords from "./RiseWords"
@@ -178,6 +179,27 @@ export default function Examples() {
     observers.push(io)
   }
   const movingOf = (el: HTMLElement) => el.dataset.moving as Moving
+
+  // The rail under 1024px: the card standing at its start, and a dot that
+  // takes the reader to any other (rail.ts).
+  const [atCard, setAtCard] = createSignal(0)
+  let railFrame = 0
+  const onRail = () => {
+    if (railFrame || !bento) return
+    railFrame = requestAnimationFrame(() => {
+      railFrame = 0
+      if (!bento) return
+      const end = bento.scrollLeft + bento.clientWidth >= bento.scrollWidth - 2
+      setAtCard(railIndex(bento.scrollLeft, railStarts(bento), end))
+    })
+  }
+  onCleanup(() => railFrame && cancelAnimationFrame(railFrame))
+  const toCard = (i: number) => {
+    if (!bento) return
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches
+    bento.scrollTo({ left: railStarts(bento)[i] ?? 0, behavior: still ? "auto" : "smooth" })
+    setAtCard(i)
+  }
   // Each card's reveal delay, read from the laid-out bento before any reveal
   // plays (a reveal starts as its card comes into view, after this).
   const [delays, setDelays] = createSignal<number[]>([])
@@ -554,7 +576,7 @@ export default function Examples() {
         </div>
       </div>
 
-      <ul ref={(el) => (bento = el)} class="bento" aria-label="Examples from the docs">
+      <ul ref={(el) => (bento = el)} class="bento" aria-label="Examples from the docs" onScroll={onRail}>
         <For each={BENTO}>
           {(t, i) => (
             <li
@@ -585,6 +607,18 @@ export default function Examples() {
           )}
         </For>
       </ul>
+      <div class="rail-dots" role="group" aria-label="Go to an example">
+        <For each={BENTO}>
+          {(t, i) => (
+            <button
+              type="button"
+              aria-label={t.label}
+              aria-current={atCard() === i() ? "true" : undefined}
+              onClick={() => toCard(i())}
+            />
+          )}
+        </For>
+      </div>
     </section>
   )
 }
