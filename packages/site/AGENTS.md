@@ -73,8 +73,9 @@ are from the repository's.
   every site page shares: `data-page` on `<html>` from the request's
   path, the icons, the display face's preload, the page-reveal and rise
   scripts, the speculation rules and the `#page-end` marker.
-  `entry-client.tsx` takes the page transition the head script parks, and
-  sends a legacy hash address (`/#/docs/<id>`, `/#/studio…`;
+  `entry-client.tsx` takes the page transition the head script parks,
+  installs the press (`shared/lib/press.ts`, one listener for every page),
+  and sends a legacy hash address (`/#/docs/<id>`, `/#/studio…`;
   `shared/lib/legacy.ts`) to its page before mounting.
 - State: the editor store and the stores around it are `createMutable`;
   `watch` from the editor barrel (`entities/editor/model/watch.ts`) calls

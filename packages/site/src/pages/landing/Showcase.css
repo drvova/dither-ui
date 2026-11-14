@@ -173,3 +173,26 @@
     padding-inline: 16px;
   }
 }
+
+/* The scene (`SCENES.hero`, `--scene` 0 to 1 as the page leaves the hero):
+   the statement recedes and fades (the brand's moment with it, its cells
+   inside the same box), shrinking into its own box so no line passes the
+   hero's clipped edge; the print drifts down behind it, slower than the
+   page, and fades. Nothing moves under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .showcase-scope .statement {
+    transform-origin: 0 50%;
+    scale: calc(1 - 0.08 * var(--scene, 0));
+    opacity: calc(1 - 0.8 * var(--scene, 0));
+  }
+  .showcase-scope .print-col {
+    translate: 0 calc(var(--scene, 0) * 14%);
+    opacity: calc(1 - 0.6 * var(--scene, 0));
+  }
+  .showcase-scope.hero[data-scene="live"] .statement {
+    will-change: scale, opacity;
+  }
+  .showcase-scope.hero[data-scene="live"] .print-col {
+    will-change: translate, opacity;
+  }
+}

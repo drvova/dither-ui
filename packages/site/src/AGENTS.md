@@ -32,8 +32,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   (`entry-client.tsx`, `entry-server.tsx`, `app.tsx`, `routes/`).
 - `pages/` — landing, docs, studio, play (see `pages/AGENTS.md`).
 - `widgets/` — the site's one `site-header` (the landing's and the docs'
-  capsule, a page's tools in its slot, the menu sheet of tone bands under
-  lg; see `pages/AGENTS.md`, Header), the docs previews' and the Studio canvas's `workbench` (inspect, measure,
+  capsule, a page's tools in its slot, the menu's bottom sheet of tone
+  bands under lg; see `pages/AGENTS.md`, Header), the docs previews' and the Studio canvas's `workbench` (inspect, measure,
   annotate, capture; see `widgets/workbench/AGENTS.md`) and `source` (the
   preview's files, edited and run in the page; see
   `widgets/source/AGENTS.md`) and the studio
@@ -109,6 +109,38 @@ around this tree (entries, routes, the build, how Solid is written) is
   the click its release makes (a cancelled touch makes none, and a press on
   nothing keeps its click); a moving finger, a mouse, a text field and the
   platform's own menu (Android) are left alone (`tests/long-press.spec.ts`) —
+  `glide.ts` — the hover ground (the user's call, after a page they made):
+  one filled ground travels under the pointer from link to link in a row
+  (`ref={glide}`, `glide-ref.ts`; the header's nav), placed at once on the
+  first entry, a hand's movement on the glide, fading on a colour's time;
+  a finger never drives it, a keyboard keeps the focus ring
+  (`.glide-ground` in `app/styles.css`; `tests/site/glide.spec.tsx`) —
+  `spring.ts` — the hand's spring (`HAND_SPRING`: response 0.35s, bounce
+  0.25; the user's lift of the glide for direct manipulation only):
+  `springAt` (the closed form from a position and a velocity),
+  `springLinear` (its CSS `linear()` over `SPRING_MS`, copied into
+  `app/styles.css` as `--ease-spring` behind `@supports`) and `springTo`
+  (on the frame clock, for a drag let go; `tests/spring.spec.ts`) —
+  `press.ts` — `installPress`, set once by `entry-client.tsx`: a pointer
+  down on a key (`PRESSABLE`: `.key`, `.key-chrome`, `.nav-a`,
+  `.seg > button`, or what opts in with `data-press`, `"card"` giving
+  less) marks it `data-pressed="down"`, let go (or cancelled) `"up"` once
+  its 90ms travel has played, unmarked when its spring ends; a card only
+  where none of its controls, links or canvases took the press; nothing
+  under reduced motion; `app/styles.css` moves it, a `scale` of its own,
+  so a key's transitions and layout stay (`tests/site/press.spec.tsx`) —
+  `scroll-scene.ts` — scroll scenes: `scrollScene(el, range)`
+  (`scroll-scene-ref.ts`: `ref={scene(range)}`) writes `--scene`, 0 to 1
+  on the glide, from where the element is laid out (its own transform
+  left out) between two moments of its passage, or through the span its
+  sticky first child (never moved itself) is pinned; one driver: an
+  IntersectionObserver holds the scenes near the viewport (`SCENE_NEAR`),
+  and only while one is near does the scroll read their boxes in the
+  frame, then write; a scene gone past stands at its end above the view,
+  its start below; nothing under reduced motion, and a scene's stylesheet
+  moves only by transform and opacity under
+  `prefers-reduced-motion: no-preference` (`tests/scroll-scene.spec.ts`,
+  `tests/site/scroll-scene.spec.tsx`) —
   `files.ts` — `download()` and a stored .zip of text files, the ONE download
   path for the Studio's exports, the workbench and the source panel —
   `words.ts` — `breakable`, a camelCase name with a break point at each hump,
@@ -564,7 +596,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   `vh`, which hides their foot under Safari's toolbar. The Studio's canvas
   is `touch-none` and the Studio installs the long press for its menus;
   keys shown on hover show on a screen without hover
-  (`[@media(hover:none)]`).
+  (`[@media(hover:none)]`). A press gives under a finger as under a mouse
+  (`shared/lib/press.ts`, pointer events, so WebKit's missing `:active`
+  on a tap never matters), and the site's menu under lg is a bottom sheet
+  a finger drags down (`pages/AGENTS.md`, Header).
 - The inspector's names (and the shared fields' it uses: NumberField,
   Segmented, Toggle, BloomField, TextureField) stand in ONE column,
   `.prop-name` (`--prop-name`, 5.5rem, `app/styles.css`, unlayered), so
@@ -619,7 +654,11 @@ around this tree (entries, routes, the build, how Solid is written) is
   `GLIDE_BEZIER`; also Tailwind's default transition curve, so every
   `transition-*` utility glides; `tests/motion.spec.ts` holds both
   sites' copies to the kit and finds no other curve or linear wipe in the
-  site's motion), `--cut` (16px), `--display-face`
+  site's motion), `--ease-spring` and `--spring-time` (the hand's spring
+  as `linear()`, the glide where it is not supported; only what the hand
+  moves directly), `--press-time` (a press's travel down), the press's
+  rules (`[data-pressed]`, `@keyframes press-down` and `press-up`,
+  `--press-scale`), `--cut` (16px), `--display-face`
   (Michroma, then the mono; the `font-display` utility reads it; its
   `@font-face` is `shared/fonts/display.css`, imported by the landing and
   the docs only, never by the player, whose bundle inlines every asset).

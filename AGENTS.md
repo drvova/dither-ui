@@ -205,7 +205,10 @@ Default section order:
   small in a wide field between them (after the bento and after the
   three parts, each its own proportion and printer's screen, each a sheet
   of the heat that builds up through the page to the close, the pointer
-  printing on every section's ground): a bento of live
+  printing on every section's ground; scroll scenes, the user's call: the
+  hero eases back as the page leaves it, the bento's cards slide up into
+  place and each plate holds mid-screen while it scales into place, in
+  step with the scroll; keys and cards give under a press): a bento of live
   components, the brand's lockup built cell by cell from the wire as the
   page scrolls (`#build`), one agent session played as the page scrolls (a pinned
   stage: the ask, what the agent does said in words, the screen building
@@ -374,7 +377,8 @@ Default section order:
   `scrollbar-*`). iOS (every browser there is WebKit) is a first-class
   target for the whole site, iPhone and iPad: fingers drag every control
   (`touch-action` set, `pointercancel` handled), the Studio canvas pans
-  under a finger and pinches under two, and every right-click menu opens on
+  under a finger and pinches under two, the site's menu is a bottom sheet
+  a finger drags down to close, and every right-click menu opens on
   a long press (`packages/site/src/shared/lib/long-press.ts`); fields read at
   16px there
   so focusing one never zooms the page (pinch zoom stays the reader's);
@@ -534,9 +538,14 @@ Default section order:
   user's call): one curve that leaves at full speed and settles long and
   soft, never past its mark (the kit's `GLIDE_BEZIER`, its "glide"
   easing, the site's `--ease-settle`) eases every transition and every
-  driven wipe, reveal, rise and page transition alike, 150ms for a colour
-  (the industrial brief's micro feedback), 350ms for a hand's movement,
-  500ms for a sheet; one moving layer at a
+  driven wipe, reveal, rise, scroll scene and page transition alike, 150ms
+  for a colour (the industrial brief's micro feedback), 350ms for a hand's
+  movement, 500ms for a sheet, save one lift (the user's call): what the
+  hand moves directly (a key or a card pressed and let go, a sheet a
+  finger drags and lets go) settles on the hand's spring, which may pass
+  its mark a little (`HAND_SPRING` in
+  `packages/site/src/shared/lib/spring.ts`, its CSS `--ease-spring`;
+  nothing that moves by itself springs); one moving layer at a
   time against a still ground (the user's call after the still ground
   study). Alignment matters (the user's call): what stands under the
   header stands on its lines (a sheet's words start on the brand mark's

@@ -392,3 +392,16 @@
     --gutter: 16px;
   }
 }
+
+/* The scene (`SCENES.tile`): from 1024px, where the bento is a grid, each
+   card slides up into place in step with the scroll as it comes in, a row
+   together. The rail under 1024px moves only under the finger; nothing
+   moves under reduced motion. */
+@media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
+  .examples-scope .card {
+    translate: 0 calc((1 - var(--scene, 1)) * 56px);
+  }
+  .examples-scope .card[data-scene="live"] {
+    will-change: translate;
+  }
+}

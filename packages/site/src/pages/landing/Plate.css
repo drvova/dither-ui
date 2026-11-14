@@ -1,10 +1,20 @@
-.plate-scope.plate {
+/* The run: the plate, then the hold (`.plate-hold`) the reader scrolls
+   through while it stands pinned in the viewport's middle (a size
+   container, so the plate reads its height from the run's width). */
+.plate-scope.plate-run {
+  --hold: 40svh;
+  /* on a phone the sheet keeps room for its clouds to billow, never scraps */
+  --plate-h: max(240px, 100cqw / var(--aspect));
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+}
+
+.plate-scope .plate {
   position: relative;
   isolation: isolate;
   width: 100%;
-  max-width: 100%;
-  /* on a phone the sheet keeps room for its clouds to billow, never scraps */
-  min-height: 240px;
+  height: var(--plate-h);
   overflow: hidden;
 }
 
@@ -15,4 +25,23 @@
 
 .plate-scope .plate-lockup {
   position: absolute;
+}
+
+/* The scene (`SCENES.plate`): the pin stands through the hold and the
+   plate it holds scales up into place on the glide; no hold, no pin and
+   no scale under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .plate-scope .plate-hold {
+    height: var(--hold);
+  }
+  .plate-scope .plate-pin {
+    position: sticky;
+    top: max(var(--head, 64px), calc(50svh - var(--plate-h) / 2));
+  }
+  .plate-scope .plate {
+    scale: calc(0.88 + 0.12 * var(--scene, 1));
+  }
+  .plate-scope.plate-run[data-scene="live"] .plate {
+    will-change: scale;
+  }
 }

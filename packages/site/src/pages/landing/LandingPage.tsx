@@ -377,7 +377,7 @@ export default function LandingPage() {
             <ul ref={rise} class="inside">
               <For each={INSIDE}>
                 {(c) => (
-                  <li data-rise ref={(el) => c.art === "circuit" && (boardCard = el)}>
+                  <li data-rise data-press="card" ref={(el) => c.art === "circuit" && (boardCard = el)}>
                     {/* The strip is decoration: what the kit prints in it is
                         hidden from assistive technology by itself. */}
                     <DitherScreen screen={c.screen}>
@@ -413,7 +413,7 @@ export default function LandingPage() {
                 <For each={BIGGEST}>
                   {(f) => (
                     <li data-rise>
-                      <a href={routePath(`/docs/${f.first}`)} class="family-t">
+                      <a href={routePath(`/docs/${f.first}`)} class="family-t" data-press="key">
                         <span class="family-n">
                           {f.count}
                           <span class="family-u"> sections</span>

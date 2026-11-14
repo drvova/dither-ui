@@ -24,6 +24,18 @@ describe("DESIGN.md", () => {
     expect(read("packages/site/src/app/styles.css")).toContain(`--ease-settle: ${curve};`)
   })
 
+  it("names the hand's spring and the press as the site's stylesheet sets them", () => {
+    const css = read("packages/site/src/app/styles.css")
+    const [, time] = css.match(/--spring-time: (\d+ms);/)!
+    const [, press] = css.match(/--press-time: (\d+ms);/)!
+    const [, key] = css.match(/scale: var\(--press-scale, ([\d.]+)\)/)!
+    const [, card] = css.match(/\[data-press="card"\] \{\s*--press-scale: ([\d.]+);/)!
+    for (const value of [time, press, key, card]) expect(doc).toContain(`\`${value}\``)
+    const spring = read("packages/site/src/shared/lib/spring.ts")
+    const [, response, bounce] = spring.match(/HAND_SPRING = \{ response: ([\d.]+), bounce: ([\d.]+) \}/)!
+    expect(doc).toContain(`a response of ${response}s and a bounce of ${bounce}`)
+  })
+
   it("gives the print's ground, inks and placeholder as the landing sets them", () => {
     const print = block(
       read("packages/site/src/pages/landing/chapters.css"),

@@ -12,15 +12,8 @@ import { MARK_CELLS } from "@/shared/ui/brand-mark"
 import { drivenCells, toRuns } from "@/shared/ui/car"
 import { MARKS } from "@/shared/ui/marks"
 import { mascotCells } from "@/shared/ui/mascot"
-import {
-  BAND_INK,
-  CLOSE_CELLS,
-  MENU_LINKS,
-  SEAM_HEIGHT,
-  SHEET_WIPE,
-  STUDIO_LINK,
-  bandFill,
-} from "@/widgets/site-header/menu"
+import { BAND_INK, CLOSE_CELLS, MENU_LINKS, SEAM_HEIGHT, STUDIO_LINK, bandFill } from "@/widgets/site-header/menu"
+import { SHEET_DRAG, SHEET_SLIDE } from "@/widgets/site-header/sheet"
 import { RISE, rise, riseDelays, useTheme } from "../../src/shared/lib"
 import { CUES, play, restoreSounds, schedule, setSounds, sounds } from "../../src/shared/lib/sound"
 import {
@@ -108,7 +101,7 @@ describe("site header", () => {
     expect(document.activeElement).toBe(key)
   })
 
-  it("rolls the sheet back up before it shuts, from the close key and from Escape", () => {
+  it("slides the sheet back down before it shuts, from the close key, Escape and the page above it", () => {
     vi.useFakeTimers()
     const w = render(() => <SiteHeader current="landing" />)
     const key = w.container.querySelector<HTMLElement>(".menu-key")!
@@ -116,16 +109,17 @@ describe("site header", () => {
     for (const close of [
       () => fireEvent.click(w.container.querySelector('[aria-label="Close menu"]')!),
       () => fireEvent(dialog, new Event("cancel", { cancelable: true })),
+      () => fireEvent.click(dialog),
     ]) {
       fireEvent.click(key)
       expect(w.container.querySelector("[data-phase]")?.getAttribute("data-phase")).toBe("open")
       close()
-      // Leaving: the sheet still up, playing its wipe back; the key says shut.
+      // Leaving: the sheet still up, sliding down; the key says shut.
       expect(w.container.querySelector("[data-phase]")?.getAttribute("data-phase")).toBe("leaving")
       expect(w.container.querySelector(".menu-sheet")).not.toBeNull()
       expect(key.getAttribute("aria-expanded")).toBe("false")
       expect(document.documentElement.style.overflow).toBe("hidden")
-      vi.advanceTimersByTime(SHEET_WIPE.duration * 1000)
+      vi.advanceTimersByTime(SHEET_SLIDE.duration)
       expect(w.container.querySelector("[data-phase]")).toBeNull()
       expect(w.container.querySelector(".menu-sheet")).toBeNull()
       expect(document.documentElement.style.overflow).toBe("")
@@ -149,9 +143,90 @@ describe("site header", () => {
   it("closes a sheet under an X drawn in the brand's pixel, clear of the seam", () => {
     const w = render(() => <SiteHeader current="landing" />)
     fireEvent.click(w.container.querySelector(".menu-key")!)
-    const head = w.container.querySelector<HTMLElement>(".sheet-head")!
-    expect(all(head, '[aria-label="Close menu"] svg rect')).toHaveLength(CLOSE_CELLS.length)
+    const head = w.container.querySelector<HTMLElement>(".menu-grab")!
+    const close = head.querySelector<HTMLElement>('[aria-label="Close menu"]')!
+    expect(all(close, "svg rect")).toHaveLength(CLOSE_CELLS.length)
+    expect(close.hasAttribute("autofocus")).toBe(true)
+    expect(head.querySelector(".menu-handle")?.getAttribute("aria-hidden")).toBe("true")
     expect(head.style.paddingBottom).toBe(`${8 + SEAM_HEIGHT}px`)
+  })
+
+  // The sheet under a finger: dragged down by its head it follows, and let
+  // go it closes past the distance or on a throw, else springs back.
+  describe("the sheet under the hand", () => {
+    const pointer = (el: Element, type: string, y: number, t: number) => {
+      const e = Object.assign(new Event(type, { bubbles: true, cancelable: true }), {
+        clientY: y,
+        pointerId: 1,
+        isPrimary: true,
+        button: 0,
+      })
+      Object.defineProperty(e, "timeStamp", { value: t })
+      el.dispatchEvent(e)
+    }
+    function open() {
+      vi.useFakeTimers({
+        toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame", "performance"],
+      })
+      const w = render(() => <SiteHeader current="landing" />)
+      fireEvent.click(w.container.querySelector(".menu-key")!)
+      const sheet = w.container.querySelector<HTMLElement>(".menu-sheet")!
+      Object.defineProperty(sheet, "offsetHeight", { value: 400 })
+      return { w, sheet, head: w.container.querySelector<HTMLElement>(".menu-grab")! }
+    }
+    const phase = (w: ReturnType<typeof render>) =>
+      w.container.querySelector("[data-phase]")?.getAttribute("data-phase")
+
+    it("follows a drag down and closes when let go past its share", () => {
+      const { w, sheet, head } = open()
+      pointer(head, "pointerdown", 100, 0)
+      pointer(head, "pointermove", 100 + SHEET_DRAG.slop - 1, 200)
+      expect(sheet.style.transform).toBe("")
+      pointer(head, "pointermove", 260, 400)
+      expect(sheet.style.transform).toBe("translateY(160px)")
+      pointer(head, "pointerup", 260, 600)
+      expect(phase(w)).toBe("leaving")
+      vi.advanceTimersByTime(2000)
+      expect(phase(w)).toBeUndefined()
+      expect(w.container.querySelector(".menu-sheet")).toBeNull()
+      expect(document.documentElement.style.overflow).toBe("")
+    })
+
+    it("closes on a throw, and springs back from a short slow drag or a cancel", () => {
+      const thrown = open()
+      pointer(thrown.head, "pointerdown", 100, 0)
+      pointer(thrown.head, "pointermove", 130, 20)
+      pointer(thrown.head, "pointerup", 160, 40)
+      expect(phase(thrown.w)).toBe("leaving")
+      cleanup()
+      for (const end of ["pointerup", "pointercancel"]) {
+        const { w, sheet, head } = open()
+        pointer(head, "pointerdown", 100, 0)
+        pointer(head, "pointermove", 160, 400)
+        pointer(head, end, 160, 800)
+        expect(phase(w)).toBe("open")
+        vi.advanceTimersByTime(2000)
+        expect(sheet.style.transform).toBe("")
+        expect(phase(w)).toBe("open")
+        cleanup()
+      }
+    })
+
+    it("gives a little to a pull up, and a tap on the close key stays a tap", () => {
+      const { w, sheet, head } = open()
+      pointer(head, "pointerdown", 300, 0)
+      pointer(head, "pointermove", 0, 100)
+      expect(sheet.style.transform).toBe(`translateY(-${SHEET_DRAG.reach}px)`)
+      pointer(head, "pointerup", 0, 1000)
+      vi.advanceTimersByTime(2000)
+      const close = head.querySelector<HTMLElement>('[aria-label="Close menu"]')!
+      pointer(close, "pointerdown", 100, 3000)
+      pointer(close, "pointermove", 102, 3010)
+      pointer(close, "pointerup", 102, 3020)
+      fireEvent.click(close)
+      expect(phase(w)).toBe("leaving")
+      expect(sheet.style.transform).toBe("")
+    })
   })
 
   it("heads any sheet: what it is in the middle, its close key named and first", () => {

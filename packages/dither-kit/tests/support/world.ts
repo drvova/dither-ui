@@ -15,9 +15,15 @@ export function world() {
     "IntersectionObserver",
     class {
       constructor(private callback: IntersectionObserverCallback) {}
-      observe() {
-        shows.push(() => this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as never))
+      observe(target: Element) {
+        shows.push(() =>
+          this.callback(
+            [{ isIntersecting: true, target, boundingClientRect: new DOMRect() } as IntersectionObserverEntry],
+            this as never,
+          ),
+        )
       }
+      unobserve() {}
       disconnect() {}
     },
   )

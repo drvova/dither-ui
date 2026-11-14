@@ -171,7 +171,25 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
 - **One curve**: the glide, `cubic-bezier(0.22, 1, 0.36, 1)`
   (`GLIDE_BEZIER` in the kit, `--ease-settle` on the site). It leaves at
   full speed and settles long and soft, never past its mark. Every
-  transition, wipe, reveal, rise and page transition moves on it.
+  transition, wipe, reveal, rise, scroll scene and page transition moves
+  on it.
+- **One lift, for the hand**: what the reader moves directly (a key or a
+  card pressed and let go, a sheet dragged and let go) settles on the
+  hand's spring, which may pass its mark a little and come back (the
+  user's call). One definition, a response of 0.35s and a bounce of 0.25
+  (`HAND_SPRING`, about 3% past its mark, settled in `500ms`), as CSS
+  `linear()` (`--ease-spring` over `--spring-time`, the glide where
+  `linear()` is not supported) and, for a drag let go, run from the
+  finger's own velocity. Nothing that moves by itself springs.
+- **The press**: a key gives to `0.97` in `90ms` on the glide and springs
+  back as it is let go; a card that opts in gives to `0.985`. A scale of
+  its own, so nothing is laid out again. Mouse, pen and finger alike.
+- **Scroll scenes**: a section's art moves in step with the scroll, on the
+  glide, then lets go: the hero eases back as the page leaves it, the
+  bento's cards slide up into place as they come in, and each plate holds
+  in the middle of the screen while it scales up into place. Transform
+  and opacity only, read only near the viewport; still under reduced
+  motion.
 - **Three durations**: 150ms for a colour (micro feedback), 350ms for a
   hand's movement, 500ms for a sheet.
 - **One moving layer at a time** against a still ground.
@@ -266,10 +284,13 @@ A floor, not a feature:
   included; controls and focus rings at 3:1.
 - One focus colour everywhere: the theme's ring ink.
 - Targets of 24px, or spaced to it (WCAG 2.5.8).
-- Reduced motion and reduced transparency honoured in every change.
+- Reduced motion and reduced transparency honoured in every change: no
+  press, no scroll scene, a sheet that comes and goes at once.
 - Fields read at 16px on iOS, so focusing one never zooms the page.
 - Every control a finger drags sets `touch-action` and ends on
   `pointercancel`; every right-click menu opens on a long press.
+- On a phone the site's menu is a bottom sheet: bands at least 44px tall,
+  dragged down by its head to close, Escape and the close key as ever.
 
 ## Performance
 
@@ -299,7 +320,8 @@ Smoothness is part of the look, so these are design rules too:
 | Site materials, chrome, motion | `packages/site/src/app/styles.css` |
 | The landing's print | `packages/site/src/pages/landing/chapters.css`, `packages/site/src/pages/landing/LandingPage.tsx` |
 | The docs' materials | `packages/site/src/pages/docs/` |
-| Motion curves | `@dither-ui/kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `@dither-ui/kit/engine/spring.ts` |
+| Motion curves | `@dither-ui/kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `@dither-ui/kit/engine/spring.ts`, the hand's spring `packages/site/src/shared/lib/spring.ts` |
+| The press, scroll scenes | `packages/site/src/shared/lib/press.ts`, `scroll-scene.ts`; the landing's scenes `packages/site/src/pages/landing/scenes.ts` |
 | Print screens | `@dither-ui/kit/engine/pixel.ts` (`SCREENS`) |
 | The heat and the plates | `packages/site/src/pages/landing/heat.ts`, `plate.ts` |
 | The display face | `packages/site/src/shared/fonts/` |

@@ -124,6 +124,7 @@ describe("the rise of a head", () => {
           seen = cb
         }
         observe() {}
+        unobserve() {}
         disconnect() {}
       },
     )
@@ -232,15 +233,18 @@ describe("the small parts", () => {
     expect(sheet.querySelector("canvas")!.style.imageRendering).toBe("pixelated")
   })
 
-  it("sets a plate as a hidden sheet of its proportion, the brand in its band", () => {
+  it("sets a plate as a hidden sheet of its proportion, the brand in its band, held as it scrolls", () => {
     const plate = PLATES.afterExamples
     // jsdom's style parser drops a clamp(): what the lockup is given is read
     // as it is set.
     const set = vi.spyOn(CSSStyleDeclaration.prototype, "setProperty")
     const w = render(() => <Plate plate={plate} />)
-    const sheet = w.container.querySelector<HTMLElement>(".plate")!
-    expect(sheet.getAttribute("aria-hidden")).toBe("true")
-    expect(parseFloat(sheet.style.aspectRatio)).toBe(plate.aspect)
+    // the run: the pin holding the sheet, then the hold it stands through
+    const run = w.container.querySelector<HTMLElement>(".plate-run")!
+    expect(run.getAttribute("aria-hidden")).toBe("true")
+    expect([...run.children].map((c) => c.className)).toEqual(["plate-pin", "plate-hold"])
+    expect(set.mock.calls.filter((c) => c[0] === "--aspect").map((c) => Number(c[1]))).toContain(plate.aspect)
+    const sheet = run.querySelector<HTMLElement>(".plate-pin > .plate")!
     expect(sheet.querySelector(".plate-print .heat-print canvas")).not.toBeNull()
     const lockup = sheet.querySelector<HTMLElement>(".plate-lockup.brand-gather")!
     expect(set.mock.calls.filter((c) => c[0] === "left").map((c) => c[1])).toContain(
@@ -353,6 +357,7 @@ describe("the brand's moment", () => {
           reveal = () => callback([{ isIntersecting: true } as IntersectionObserverEntry], this as never)
         }
         observe() {}
+        unobserve() {}
         disconnect() {}
       },
     )
@@ -688,6 +693,7 @@ describe("the agent's story", () => {
         observe(el: Element) {
           if (this.init?.rootMargin === "-50% 0px -50% 0px") watched.push(el)
         }
+        unobserve() {}
         disconnect() {}
       },
     )

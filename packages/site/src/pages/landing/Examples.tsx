@@ -4,7 +4,9 @@
 // component itself, hands on, in the kit's blue with the ember for a second
 // voice. Each card's art prints itself once as it comes into view; of the
 // surfaces that move by themselves one plays at a time; everything that
-// moves has its pause.
+// moves has its pause. From 1024px each card slides up into place in step
+// with the scroll (`SCENES.tile`); a press on a card's ground gives under
+// the hand (`data-press="card"`).
 import { createEffect, createMemo, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import {
@@ -34,8 +36,10 @@ import {
 import { COMPONENT_COUNT } from "@/pages/landing/facts"
 import { BENTO, staggers } from "@/pages/landing/hub"
 import { spotlight } from "@/pages/landing/spotlight"
+import { SCENES } from "@/pages/landing/scenes"
 import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "@/pages/landing/stat"
 import { lazyPart, rise, routePath } from "@/shared/lib"
+import { scene } from "@/shared/lib/scroll-scene-ref"
 import PauseChip from "./PauseChip"
 import RiseWords from "./RiseWords"
 import "./Examples.css"
@@ -554,7 +558,9 @@ export default function Examples() {
         <For each={BENTO}>
           {(t, i) => (
             <li
+              ref={scene(SCENES.tile)}
               class={`card t-${t.id}`}
+              data-press="card"
               data-lazy={LAZY.has(t.id) ? t.id : undefined}
               data-moving={isMoving(t.id) ? t.id : undefined}
               onPointerEnter={(e) => hover(e, t.id)}

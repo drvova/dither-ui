@@ -105,31 +105,45 @@ in the page's folder.
   from lg; the page's own link `aria-current`), a page's
   `tools` (the docs' search and, under lg, its sections key under the
   Book glyph) and the `.key-chrome` "Open studio" (from md). Under lg the
-  menu key (the sheet's bands in miniature + "Menu") opens the menu: a
-  native modal `<dialog>` filling the window, itself clear so the page
-  shows wherever the wipe has not reached (focus on its close key, focus
-  back on the key, the page held still), arriving as the kit's wipe down
-  the screen on the glide (`DitherReveal`, `SHEET_WIPE`: 0.5s,
-  `"glide"`). Every sheet's words stand on the header's lines (`--sheet-start`
-  and `--sheet-end` in `site-header.css`, from the capsule's own gutter,
-  width and padding: the brand mark's edge and the key word's, centred
-  capsule included). The close key and Escape (the
-  dialog's `cancel`, prevented) play that wipe back, the sheet rolling up
-  from its foot before it shuts (`MenuPhase`: shut, open, leaving; at once
-  under reduced motion); a taken link and the window reaching lg shut it
-  at once. While a sheet stands it covers the page (`coverPage`, the kit's
-  `engine/cover.ts`): every kit loop under it holds its frame and wakes as
-  the sheet starts to leave, so the wipe is the one moving layer (the
-  landing's menu went from 10 frames in its opening 900ms at 4x CPU to
-  22). Its head is the header itself, standing where it stood
-  (`SheetHead`, the one head of every full-screen sheet: the capsule and
-  the brand unmoved, the key that opened the sheet turned to the close
-  mark and "Close" in the menu key's place, on the ground, the sheet's
-  first stop; the close mark is an X on the brand diamond's 7x7 grid in
-  its hand, `CLOSE_CELLS` drawn by `BrandMark`'s `cells`, the ember at its
-  crossing; the head keeps `SHEET_HEAD_FOOT` under the capsule so the
-  first band's seam never bites into it); under it a band per link sharing the height,
-  its name at its foot over a line of what is behind it (`note`; the
+  menu key (the sheet's bands in miniature + "Menu") opens the menu as a
+  BOTTOM SHEET (the user's call, after a phone's bottom sheet; `sheet.ts`):
+  a native modal `<dialog>` filling the window, itself clear so the page
+  shows above the sheet, held still (focus on its close key, focus back
+  on the key), the sheet at its foot as wide as the header's lines (the
+  capsule's width and its gutters), its top a soft shell (20px) on the
+  raised ground, sliding up from the window's foot on the glide
+  (`SHEET_SLIDE`: 500ms). Every sheet's words stand on the header's lines
+  (`--sheet-start` and `--sheet-end` in `site-header.css`, from the
+  capsule's own gutter, width and padding: the brand mark's edge and the
+  key word's, centred capsule included). Its head (`.menu-grab`, the
+  sheet's first stop: a handle, "Menu", the close key, 44px, under the
+  close mark, an X on the brand diamond's 7x7 grid, `CLOSE_CELLS` drawn
+  by `BrandMark`'s `cells`, the ember at its crossing; `SHEET_HEAD_FOOT`
+  under it so the first band's seam never bites into it) is where a
+  finger, a pen or a mouse drags the sheet (`touch-action: none`; a drag
+  only past `SHEET_DRAG.slop`, so a tap on the close key stays a tap):
+  down it follows whole, up it gives a fifth, 24px at most (`pullOf`); let
+  go past 30% of its height or thrown down (0.5px a ms) it closes on the
+  hand's spring from the finger's velocity, else it springs back up
+  (`releaseOf`, `velocityOf`); a `pointercancel` springs it back. The
+  sheet reaches 40px under the window's foot (`--sheet-reach`), so a
+  spring past its rest never shows a gap; the dialog clips, never
+  scrolls (`overflow: clip`: WebKit scrolled a hidden overflow to the
+  focused key). The close key, Escape (the dialog's `cancel`, prevented)
+  and a tap on the page above it slide it back down from where it stands
+  before it shuts (`MenuPhase`: shut, open, leaving; at once under
+  reduced motion, and a drag let go there lands at once); a taken link
+  and the window reaching lg shut it at once. While a sheet stands it
+  covers the page (`coverPage`, the kit's `engine/cover.ts`): every kit
+  loop under it holds its frame and wakes as the sheet starts to leave,
+  so the sheet is the one moving layer. The docs' sections sheet stays a
+  full-screen sheet arriving as the kit's wipe down the screen
+  (`DitherReveal`, `SHEET_WIPE`: 0.5s, `"glide"`) under `SheetHead` (the
+  head of a full-screen sheet: the capsule and the brand unmoved, the key
+  that opened it turned to the close mark and "Close" in its place). In
+  the menu a band per link, at least 72px tall (the bands scroll inside
+  the sheet on a short screen, the last running on under the window's
+  foot), its name at its foot over a line of what is behind it (`note`; the
   studio's says it wants 1024px), each a step of the ink
   toward the ground (`bandInk(i, n)`: even steps from the full ink to
   `BAND_FLOOR` 64%, so the menu's four are 100/88/76/64%; the ground's
@@ -142,8 +156,11 @@ in the page's folder.
   (8px, 12px pressed, on the glide, 350ms; the hover only under
   `(hover: hover)`, since a tap's hover sticks on a phone) and the menu key's bands
   part on a hover (none of it under reduced motion). A focused band rings
-  in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css`
-  (the capsule and the sheet) are the one table and stylesheet. It stays positioned
+  in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe), `sheet.ts` (the
+  sheet under the hand) and `site-header.css` (the capsule and the sheet)
+  are the one tables and stylesheet; `tests/site/shared.spec.tsx` drags
+  it, `tests/spring.spec.ts` holds its release. The nav's links share
+  one hover ground (`shared/lib/glide.ts`, `ref={glide}`). It stays positioned
   (`z-40`): `main` is `relative isolate`, so a positioned sibling paints
   over a static header.
 - Hero (`Showcase.tsx`, our own): the first screen's height under the
@@ -189,7 +206,14 @@ in the page's folder.
   above it, clear of the copy; it plays as the page opens and again under
   a resting mouse (`replay`), and the print (and its floor) hold their
   frame until it is home each time (`moving` holds, `settled` frees), one
-  moving layer at a time. No
+  moving layer at a time. As the page leaves it the hero eases back in
+  step with the scroll (`SCENES.hero` in `scenes.ts`, a scroll scene from
+  its top at the viewport's top to its foot leaving it, on the glide): the
+  statement recedes (to 92%, about its left edge, inside its own box so
+  no line passes the hero's clipped edge) and fades (to a fifth), the brand's
+  moment in it, the print drifts down behind it (14% of its column, the
+  hero clipping it) and fades (to two fifths); the print never scales, so
+  its cells stay whole. No
   component tour, slides or picker in the hero (the user's call: they
   took the love out of it); the components live in the bento. Under
   900px the statement comes first and the print takes the width under
@@ -320,7 +344,12 @@ in the page's folder.
   is the page's, never the size of the UI inside it), the link into
   `/docs/<id>` (no family label). Interactive art keeps its own controls, so the card
   itself is never a link; on flush art the pause chip comes before the
-  tools in the DOM, as it sits above them.
+  tools in the DOM, as it sits above them. From 1024px each card slides
+  up into place in step with the scroll as it comes in (`SCENES.tile`:
+  56px, from its top at the viewport's foot to six tenths of the way up,
+  on the glide; a row together); the rail moves only under the finger.
+  A press on a card's ground gives (`data-press="card"`), never one on its
+  controls, links or canvases, which take the press themselves.
 - `hub.ts` is static data (the landing never loads the docs IA): `FAMILIES`
   (every docs family and its size), `DOCS_FAMILIES` (the five big
   families, a line each and the section each opens on) and `BENTO`, held
@@ -527,7 +556,13 @@ in the page's folder.
   ends (`plateau`), so no edge of a box ever shows, and the brand's moment
   in the band, pulled in from the right edge (16px clear) where the plate
   is narrow, while the heat prints in through `DitherReveal` (0.72s on the
-  glide, the lights coming on). `tests/landing-facts.spec.ts` holds every
+  glide, the lights coming on). Each holds as a scroll scene
+  (`SCENES.plate`, the user's call): a run of the plate and a hold
+  (`.plate-hold`, 40svh), the plate pinned mid-screen through it (sticky,
+  under the header at least) and scaling up from 88% into place on the
+  glide, then let go; under reduced motion no hold, no pin, no scale. The
+  plate reads its height from the run's width (a size container,
+  `--plate-h`). `tests/landing-facts.spec.ts` holds every
   plate's mark inside its band; `tests/heat.spec.ts` its clouds full in
   their middles, nothing at the sheet's edges and nothing in the band,
   and a phone's sheet as inked as the page's.
@@ -595,7 +630,13 @@ in the page's folder.
 - No entrance choreography but the bento's art printing itself once as it
   nears and the brand's moment (the hero's sign-off as the page opens,
   each plate's and the footer's brand as it nears); the hero's print waits for it, and the type
-  simply is. Motion is the live kit
+  simply is. Scroll scenes (`scenes.ts`, `shared/lib/scroll-scene.ts`)
+  move only under the reader's scroll: the hero easing back, the bento's
+  cards sliding in, the plates holding while they scale in; never a
+  section's head or the blocks under it, which the rise moves (two
+  motions on one thing read as neither). Pressed keys and cards give and
+  spring back (`shared/lib/press.ts`: the hand's spring, the one motion
+  past its mark, the user's lift for direct manipulation). Motion is the live kit
   surfaces, one moving layer at a time in the bento. Pause chips
   (`PauseChip.tsx`, WCAG 2.2.2): every surface that moves by itself for
   more than five seconds carries one in its corner, named for it ("Pause
@@ -881,13 +922,13 @@ in the page's folder.
   every card anyway) returns at lg. Under lg the header's tools add a key,
   "Browse sections" (the Book glyph, `aria-haspopup="dialog"`,
   `aria-expanded`, `aria-controls` = `SHEET_ID`), opens the sections sheet
-  from anywhere on the page (`DocsSheet.tsx`), the site menu's kind of
-  sheet: the whole screen, `SheetHead` at its top ("Sections" and the
+  from anywhere on the page (`DocsSheet.tsx`), a sheet of the site
+  menu's bands but the whole screen, `SheetHead` at its top ("Sections" and the
   count in the capsule, "Close sections"), the families under it as bands
   (`DocsNav`'s sheet place, read like the menu: one step of the ink per
   family, `bandFill(i, GROUPS.length)`, seamed into the one above, the
   seam riding over the band above's heading and the first one climbing
-  into the head's foot room as the menu's does; folded, the bands share
+  into the head's foot room (`SHEET_HEAD_FOOT`); folded, the bands share
   the screen, each family's name at its foot at the menu's 20px with its
   glyph beside it as GitHub carries its mark, over a line of what it
   holds ("100 sections"; the rail shows the figure alone) and a chevron,
