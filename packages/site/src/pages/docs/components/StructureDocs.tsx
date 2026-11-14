@@ -10,6 +10,7 @@ import {
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const TABS = ["Overview", "Metrics", "Logs"]
 const PANEL: Record<string, string> = {
@@ -143,8 +144,7 @@ export default function StructureDocs() {
 
   return (
     <>
-      <section id="tabs" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Tabs</h2>
+      <DocSection id="tabs">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A roving-tabindex tablist with a dithered underline that slides to the active tab. Arrow keys move selection.
         </p>
@@ -206,10 +206,9 @@ export default function StructureDocs() {
           </DitherTabs>
         </div>
         <PropsTable rows={API.tabs} />
-      </section>
+      </DocSection>
 
-      <section id="collapsible" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Collapsible</h2>
+      <DocSection id="collapsible">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A disclosure row animated through grid-template-rows; when open, a 2px dithered rail runs down the left edge
           of the content.
@@ -231,10 +230,9 @@ export default function StructureDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.collapsible} />
-      </section>
+      </DocSection>
 
-      <section id="dialog" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Dialog</h2>
+      <DocSection id="dialog">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A portalled modal with labelled title and description, trapped focus, Escape/backdrop dismissal, focus
           restoration, and an optional action footer.
@@ -258,10 +256,9 @@ export default function StructureDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.dialog} />
-      </section>
+      </DocSection>
 
-      <section id="center-morph-modal" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Center morph modal</h2>
+      <DocSection id="center-morph-modal">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A composable modal whose full-size surface unfolds from its exact center toward every edge, then folds back
           the same way with an inset close control. Same focus trap, Escape, and backdrop contract as Dialog.
@@ -281,10 +278,9 @@ export default function StructureDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.centerMorphModal} />
-      </section>
+      </DocSection>
 
-      <section id="kbd" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Kbd</h2>
+      <DocSection id="kbd">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An honest keyboard key: no canvas, just the house border and a 2px bottom edge. Pairs with shortcut listings.
         </p>
@@ -304,7 +300,7 @@ export default function StructureDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.kbd} />
-      </section>
+      </DocSection>
     </>
   )
 }

@@ -5,6 +5,7 @@
 import { For, Show } from "solid-js"
 import { INSTALL_DEPS, INSTALL_STEPS } from "@/pages/docs/install"
 import CodeBlock from "@/shared/ui/CodeBlock"
+import DocSection from "../DocSection"
 import "./QuickStart.css"
 
 const COUNT = ["no", "one", "two", "three", "four", "five", "six"]
@@ -30,8 +31,7 @@ export default function QuickStart() {
   const deps = COUNT[INSTALL_DEPS.length] ?? String(INSTALL_DEPS.length)
 
   return (
-    <section id="getting-started" class="quick-start-scope mt-16 scroll-mt-24">
-      <h2 class="text-lg tracking-tight">Quick start</h2>
+    <DocSection id="getting-started" class="quick-start-scope">
       <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
         The kit is a folder, not a package. Copy <code class={CODE}>dither-kit/</code> from the{" "}
         <a href="https://github.com/drvova/dither-ui" target="_blank" rel="noreferrer" class={LINK}>
@@ -89,6 +89,6 @@ export default function QuickStart() {
         </a>
         . No build step, no black box.
       </p>
-    </section>
+    </DocSection>
   )
 }

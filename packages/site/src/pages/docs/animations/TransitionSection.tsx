@@ -2,6 +2,7 @@ import { createSignal, For, onCleanup, onMount } from "solid-js"
 import { DitherIcon, ditherTransition, type WipeDirection } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 /* Three scenes on one stage. Every change between them is a dithered view
    transition of the stage alone; the transport steps, plays and picks at
@@ -113,8 +114,7 @@ export default function TransitionSection() {
   })
 
   return (
-    <section id="dither-transition" class="mt-16 scroll-mt-24">
-      <h2 class="text-lg tracking-tight">Page transition</h2>
+    <DocSection id="dither-transition">
       <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
         One state turns into the next through the same masks. <code class="text-foreground/80">ditherTransition</code>{" "}
         runs any DOM change as a view transition and dithers its two snapshots, the old one breaking up as the new one
@@ -180,6 +180,6 @@ export default function TransitionSection() {
         </div>
       </DemoCard>
       <PropsTable rows={API} />
-    </section>
+    </DocSection>
   )
 }

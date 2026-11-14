@@ -3,6 +3,7 @@ import { createStore } from "solid-js/store"
 import { DitherCheckbox, DitherProgress, DitherSlider, DitherSwitch } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const SLIDER_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
 
@@ -110,8 +111,7 @@ export default function FormDocs() {
 
   return (
     <>
-      <section id="switch" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Switch</h2>
+      <DocSection id="switch">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A toggle whose track is a dithered canvas: the accent gradient fills in when on, fades to a muted wash when
           off.
@@ -125,10 +125,9 @@ export default function FormDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.switch} />
-      </section>
+      </DocSection>
 
-      <section id="checkbox" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Checkbox</h2>
+      <DocSection id="checkbox">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A pixel-border box that fills with the Bayer texture and draws a chunky near-white checkmark when checked.
           Label goes in as children.
@@ -147,10 +146,9 @@ export default function FormDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.checkbox} />
-      </section>
+      </DocSection>
 
-      <section id="slider" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Slider</h2>
+      <DocSection id="slider">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Drag or arrow-key the square thumb. The filled side of the track dithers denser toward the value, and the rest
           stays a muted rail.
@@ -218,10 +216,9 @@ export default function FormDocs() {
           </For>
         </div>
         <PropsTable rows={API.slider} />
-      </section>
+      </DocSection>
 
-      <section id="progress" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Progress</h2>
+      <DocSection id="progress">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A dithered fill that grows with <code class="text-foreground/80">value</code>; set{" "}
           <code class="text-foreground/80">indeterminate</code> to scroll a texture band instead (static under reduced
@@ -243,7 +240,7 @@ export default function FormDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.progress} />
-      </section>
+      </DocSection>
     </>
   )
 }

@@ -745,7 +745,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   and each is prerendered as its own page (`routes/docs/[section].tsx`).
   A section a pack renders is mounted only once opened (`docs/packs.ts`,
   `packOpen`; the last `PACKS_KEPT` packs read stay mounted): a new pack
-  is a row in `PACKS` and a `mounted(...)` gate in `DocsPage.tsx`.
+  is a row in `DOCS` (`docs/groups.ts`) and its loader, every section a
+  pack's `DocSection`.
   New section wrappers must stay direct children of `.docs-flow`.
 - Page transitions: the routes (`/`, `/docs`, `/studio` and the section
   pages) opt into cross-document view transitions in `app/styles.css`

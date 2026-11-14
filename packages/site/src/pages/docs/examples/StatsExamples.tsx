@@ -2,6 +2,7 @@ import { createMemo, createSignal, For } from "solid-js"
 import { DitherMeter, Sparkline } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import { dataCode } from "../snippet"
+import DocSection from "../DocSection"
 
 type Kpi = { label: string; icon: string; value: string; delta: number; note: string }
 
@@ -98,8 +99,7 @@ export default function StatsExamples() {
   return (
     <>
       {/* Stat cards */}
-      <section class="mt-16 scroll-mt-24" id="stats-cards">
-        <h2 class="text-lg tracking-tight">Stat cards</h2>
+      <DocSection id="stats-cards">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The classic KPI grid: label, corner glyph, a big tabular number, and a signed delta that knows churn falling
           is good news. The period picker swaps the whole dataset live.
@@ -158,10 +158,9 @@ export default function StatsExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Stats with charts */}
-      <section class="mt-16 scroll-mt-24" id="stats-charts">
-        <h2 class="text-lg tracking-tight">Stats with charts</h2>
+      <DocSection id="stats-charts">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Numbers with their shape: sparkline cards for trends, a meter card for progress toward a goal. Twelve points
           is plenty; the dither does the rest.
@@ -211,7 +210,7 @@ export default function StatsExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
     </>
   )
 }

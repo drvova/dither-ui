@@ -3,6 +3,7 @@ import { createMutable } from "solid-js/store"
 import { DitherAvatar, DitherBadge, DitherButton, DitherInput } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import { dataCode } from "../snippet"
+import DocSection from "../DocSection"
 
 type Msg = { from: "me" | "them"; text: string; at: string }
 
@@ -520,8 +521,7 @@ export default function ChatExamples() {
 
   return (
     <>
-      <section class="mt-16 scroll-mt-24" id="chat-thread">
-        <h2 class="text-lg tracking-tight">Chat thread</h2>
+      <DocSection id="chat-thread">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Conversation list beside a live thread: unread badges clear when you open them, sending appends your bubble,
           and the other side types back. The typing dots hold still under reduced motion.
@@ -622,10 +622,9 @@ export default function ChatExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* AI assistant */}
-      <section class="mt-16 scroll-mt-24" id="chat-assistant">
-        <h2 class="text-lg tracking-tight">AI assistant</h2>
+      <DocSection id="chat-assistant">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An assistant thread: suggestion chips ask for you, replies stream in character by character, and Stop cancels
           mid-sentence. Under reduced motion the answer lands whole.
@@ -717,10 +716,9 @@ export default function ChatExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Support chat */}
-      <section class="mt-16 scroll-mt-24" id="chat-support">
-        <h2 class="text-lg tracking-tight">Support chat</h2>
+      <DocSection id="chat-support">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A support widget: online status in the header and quick-reply chips that really answer. “Talk to a human”
           escalates: the agent replies, then a system line opens the ticket.
@@ -821,10 +819,9 @@ export default function ChatExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Team channel */}
-      <section class="mt-16 scroll-mt-24" id="chat-channel">
-        <h2 class="text-lg tracking-tight">Team channel</h2>
+      <DocSection id="chat-channel">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A channel, not bubbles: flat rows where consecutive messages from one author group under a single name, and
           reactions toggle with a click. Post something and watch your rows group too.
@@ -905,7 +902,7 @@ export default function ChatExamples() {
             </form>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
     </>
   )
 }

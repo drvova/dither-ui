@@ -23,6 +23,7 @@ import { DitherIcon, DitherIconSet } from "@dither-ui/kit"
 import { ICON_NAMES } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const SNIPPET_BOX = `<DitherBox as="section" class="rounded-lg border border-border/60 bg-card/40 p-5">
   <span class="text-[13px]">Content lands in a typed container.</span>
@@ -254,8 +255,7 @@ export default function PrimitivesDocs() {
   return (
     <>
       {/* Box */}
-      <section class="mt-16 scroll-mt-24" id="box">
-        <h2 class="text-lg tracking-tight">Box</h2>
+      <DocSection id="box">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           One element, one job: a typed container whose whole style arrives as{" "}
           <code class="text-foreground/80">class</code>. Swap the tag with <code class="text-foreground/80">as</code>{" "}
@@ -267,10 +267,9 @@ export default function PrimitivesDocs() {
           </DitherBox>
         </DemoCard>
         <PropsTable rows={API.box} />
-      </section>
+      </DocSection>
       {/* Text */}
-      <section class="mt-16 scroll-mt-24" id="text">
-        <h2 class="text-lg tracking-tight">Text</h2>
+      <DocSection id="text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The type scale the whole site speaks: three token tones, four sizes from 11 to 15px, and{" "}
           <code class="text-foreground/80">as</code> for the element. Leading, tracking and weight stay yours in{" "}
@@ -290,10 +289,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.text} />
-      </section>
+      </DocSection>
       {/* Divider */}
-      <section class="mt-16 scroll-mt-24" id="divider">
-        <h2 class="text-lg tracking-tight">Divider</h2>
+      <DocSection id="divider">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A hairline rule with real separator semantics. Horizontal renders an{" "}
           <code class="text-foreground/80">hr</code>; vertical lives in flex rows and stretches to their height. Both
@@ -316,10 +314,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.divider} />
-      </section>
+      </DocSection>
       {/* VisuallyHidden */}
-      <section class="mt-16 scroll-mt-24" id="visually-hidden">
-        <h2 class="text-lg tracking-tight">VisuallyHidden</h2>
+      <DocSection id="visually-hidden">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Content for screen readers only: labels that must exist in the reading order without painting anything. Flip
           on <code class="text-foreground/80">focusable</code> for the skip-link pattern: Tab reveals it, styled as a
@@ -341,10 +338,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.visuallyHidden} />
-      </section>
+      </DocSection>
       {/* Svg */}
-      <section class="mt-16 scroll-mt-24" id="svg">
-        <h2 class="text-lg tracking-tight">Svg</h2>
+      <DocSection id="svg">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A neutral SVG shell: no imposed stroke language, so the kit's art direction stays inside the components.
           Decorative by default (<code class="text-foreground/80">aria-hidden</code>); a{" "}
@@ -362,10 +358,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.svg} />
-      </section>
+      </DocSection>
       {/* Image */}
-      <section class="mt-16 scroll-mt-24" id="img">
-        <h2 class="text-lg tracking-tight">Image</h2>
+      <DocSection id="img">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The plain <code class="text-foreground/80">img</code> with the modern loading contract baked in: lazy, async
           decode, and a required <code class="text-foreground/80">alt</code> (empty string is the explicit decorative
@@ -386,10 +381,9 @@ export default function PrimitivesDocs() {
           />
         </DemoCard>
         <PropsTable rows={API.img} />
-      </section>
+      </DocSection>
       {/* Spacer */}
-      <section class="mt-16 scroll-mt-24" id="spacer">
-        <h2 class="text-lg tracking-tight">Spacer</h2>
+      <DocSection id="spacer">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Sized empty space for flex and grid rows, the alternative to magic margins. Two axes, five steps from 4 to
           40px, always decorative.
@@ -404,10 +398,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.spacer} />
-      </section>
+      </DocSection>
       {/* Portal */}
-      <section class="mt-16 scroll-mt-24" id="portal">
-        <h2 class="text-lg tracking-tight">Portal</h2>
+      <DocSection id="portal">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Portal by name: render children elsewhere in the DOM so popovers and toasts escape{" "}
           <code class="text-foreground/80">overflow: hidden</code>. <code class="text-foreground/80">disabled</code>{" "}
@@ -432,10 +425,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.portal} />
-      </section>
+      </DocSection>
       {/* Overlay */}
-      <section class="mt-16 scroll-mt-24" id="overlay">
-        <h2 class="text-lg tracking-tight">Overlay</h2>
+      <DocSection id="overlay">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A full-cover layer in four dim weights. Decorative and click-transparent by default;{" "}
           <code class="text-foreground/80">interactive</code> makes it catch presses (dismissible scrims) and lifts the
@@ -456,10 +448,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.overlay} />
-      </section>
+      </DocSection>
       {/* Measure */}
-      <section class="mt-16 scroll-mt-24" id="measure">
-        <h2 class="text-lg tracking-tight">Measure</h2>
+      <DocSection id="measure">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Reports its own box: a plain block that calls <code class="text-foreground/80">onResize</code> with width and
           height on every change. ResizeObserver only: without it the children still render and it simply stays silent.
@@ -473,10 +464,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.measure} />
-      </section>
+      </DocSection>
       {/* Clipboard */}
-      <section class="mt-16 scroll-mt-24" id="clipboard">
-        <h2 class="text-lg tracking-tight">Clipboard</h2>
+      <DocSection id="clipboard">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Clipboard behavior around any trigger: the function child gets <code class="text-foreground/80">copied</code>{" "}
           and <code class="text-foreground/80">copy</code>, and a polite live region announces the result. Your trigger
@@ -497,10 +487,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.clipboard} />
-      </section>
+      </DocSection>
       {/* ClickOutside */}
-      <section class="mt-16 scroll-mt-24" id="click-outside">
-        <h2 class="text-lg tracking-tight">ClickOutside</h2>
+      <DocSection id="click-outside">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           One <code class="text-foreground/80">outside</code> event when a primary press lands anywhere beyond the
           wrapped content: capture-phase <code class="text-foreground/80">pointerdown</code>, so nested scroll
@@ -527,10 +516,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.clickOutside} />
-      </section>
+      </DocSection>
       {/* FocusRing */}
-      <section class="mt-16 scroll-mt-24" id="focus-ring">
-        <h2 class="text-lg tracking-tight">FocusRing</h2>
+      <DocSection id="focus-ring">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Container-level focus: wraps a control group and rings while anything inside holds focus, so keyboard users
           see which group is active. The individual control keeps the global{" "}
@@ -555,10 +543,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.focusRing} />
-      </section>
+      </DocSection>
       {/* FocusScope */}
-      <section class="mt-16 scroll-mt-24" id="focus-scope">
-        <h2 class="text-lg tracking-tight">FocusScope</h2>
+      <DocSection id="focus-scope">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The modal focus contract in one component: focus enters on mount, <code class="text-foreground/80">Tab</code>{" "}
           cycles inside the scope, and closing hands focus back to whatever had it. Every dialog in the kit obeys
@@ -592,10 +579,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.focusScope} />
-      </section>
+      </DocSection>
       {/* HoverArea */}
-      <section class="mt-16 scroll-mt-24" id="hover-area">
-        <h2 class="text-lg tracking-tight">HoverArea</h2>
+      <DocSection id="hover-area">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Hover state as function-child data: no refs, no listener bookkeeping. Keyboard focus tracks alongside the
           pointer so the reveal is the same for everyone.
@@ -612,10 +598,9 @@ export default function PrimitivesDocs() {
           </DitherHoverArea>
         </DemoCard>
         <PropsTable rows={API.hoverArea} />
-      </section>
+      </DocSection>
       {/* Pressable */}
-      <section class="mt-16 scroll-mt-24" id="pressable">
-        <h2 class="text-lg tracking-tight">Pressable</h2>
+      <DocSection id="pressable">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A native button (never submits a form by accident) with the house press affordance and the theme's focus ring
           that looks like a button out of the box: solid ink by default, outline or ghost beside it, and plain for the
@@ -640,10 +625,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.pressable} />
-      </section>
+      </DocSection>
       {/* InView */}
-      <section class="mt-16 scroll-mt-24" id="in-view">
-        <h2 class="text-lg tracking-tight">InView</h2>
+      <DocSection id="in-view">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The taxonomy's IntersectionObserver primitive, named for what it does: visibility as function-child state.{" "}
           <code class="text-foreground/80">once</code> latches after the first enter (the lazy-reveal shape this whole
@@ -663,13 +647,17 @@ export default function PrimitivesDocs() {
           </DitherInView>
         </DemoCard>
         <PropsTable rows={API.inView} />
-      </section>
+      </DocSection>
       {/* Icon */}
-      <section class="mt-16 scroll-mt-24" id="icon">
-        <div class="flex items-baseline justify-between gap-4">
-          <h2 class="text-lg tracking-tight">Icon</h2>
-          <span class="text-[11px] tabular-nums text-muted-foreground">{ICON_NAMES.length} glyphs</span>
-        </div>
+      <DocSection
+        id="icon"
+        head={(heading) => (
+          <div class="flex items-baseline justify-between gap-4">
+            {heading}
+            <span class="text-[11px] tabular-nums text-muted-foreground">{ICON_NAMES.length} glyphs</span>
+          </div>
+        )}
+      >
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The hand-rolled set: 24×24 stroke geometry, currentColor, round caps. One source in{" "}
           <code class="text-foreground/80">icons.ts</code>, no dependencies. Decorative by default; a{" "}
@@ -689,10 +677,9 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.icon} />
-      </section>
+      </DocSection>
       {/* IconSet */}
-      <section class="mt-16 scroll-mt-24" id="icon-set">
-        <h2 class="text-lg tracking-tight">IconSet</h2>
+      <DocSection id="icon-set">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The same set as <code class="text-foreground/80">&lt;symbol&gt;</code> sheets: mount once and reference glyphs
           with <code class="text-foreground/80">&lt;use href="#di-icon-Name"&gt;</code> when a screen repeats icons
@@ -719,7 +706,7 @@ export default function PrimitivesDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.iconSet} />
-      </section>
+      </DocSection>
     </>
   )
 }

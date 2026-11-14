@@ -4,7 +4,7 @@ export const PRIMITIVES_NAV = [
   { id: "divider", label: "Divider" },
   { id: "visually-hidden", label: "VisuallyHidden" },
   { id: "svg", label: "Svg" },
-  { id: "img", label: "Image (plain)" },
+  { id: "img", label: "Image (plain)", title: "Image" },
   { id: "spacer", label: "Spacer" },
   { id: "portal", label: "Portal" },
   { id: "overlay", label: "Overlay" },
@@ -18,4 +18,4 @@ export const PRIMITIVES_NAV = [
   { id: "in-view", label: "InView" },
   { id: "icon", label: "Icon" },
   { id: "icon-set", label: "IconSet" },
-]
+] as const

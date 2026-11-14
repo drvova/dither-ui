@@ -28,6 +28,7 @@ import {
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const FAQ = [
   { value: "what", title: "What is dithering?" },
@@ -416,8 +417,7 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
 
   return (
     <>
-      <section id="accordion" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Accordion</h2>
+      <DocSection id="accordion">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A stack of disclosure rows animated through grid-template-rows, each with the 2px dithered rail. Single type
           closes siblings on open.
@@ -444,10 +444,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.accordion} />
-      </section>
+      </DocSection>
 
-      <section id="alert-dialog" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Alert dialog</h2>
+      <DocSection id="alert-dialog">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A modal that demands an answer: overlay clicks do nothing, Escape cancels, and focus lands on the safe Cancel
           button. Danger seeds the confirm fill red.
@@ -470,10 +469,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.alertDialog} />
-      </section>
+      </DocSection>
 
-      <section id="drawer" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Drawer</h2>
+      <DocSection id="drawer">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A side panel that slides in over a scrim. Escape or scrim click closes, the close button takes focus on open.
         </p>
@@ -604,10 +602,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </DitherDrawer>
         </div>
         <PropsTable rows={API.drawer} />
-      </section>
+      </DocSection>
 
-      <section id="sidebar" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Sidebar</h2>
+      <DocSection id="sidebar">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An app sidebar that collapses to an icon rail: items keep their hit area, labels fold away, the active item
           carries a dithered rail.
@@ -751,10 +748,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </div>
         <PropsTable rows={API.sidebar} />
-      </section>
+      </DocSection>
 
-      <section id="toast" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Toast</h2>
+      <DocSection id="toast">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A module-level toast() call feeds a portalled bottom-right stack; each toast carries a 3px dithered rail in
           its color and dismisses itself after its duration. API table below documents the toast() function.
@@ -771,10 +767,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.toast} />
-      </section>
+      </DocSection>
 
-      <section id="meter" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Meter</h2>
+      <DocSection id="meter">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A static gauge on the progress track. The fill seed picks itself: green below the low mark, orange between,
           red above the high mark.
@@ -795,10 +790,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.meter} />
-      </section>
+      </DocSection>
 
-      <section id="gauge" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Gauge</h2>
+      <DocSection id="gauge">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An instrument dial. The band prints cell by cell through the threshold matrix, filled to the needle; past the
           warn mark the zone is in the warning ink. A changed value settles on the spring, and under reduced motion the
@@ -830,10 +824,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.gauge} />
-      </section>
+      </DocSection>
 
-      <section id="scope" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Scope</h2>
+      <DocSection id="scope">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An oscilloscope screen. The beam prints through the threshold matrix, bright where it moves slowly and faint
           on its edges, and a named wave drifts with a trail of its earlier phases. Give it samples and it traces those.
@@ -849,10 +842,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.scope} />
-      </section>
+      </DocSection>
 
-      <section id="scroll-area" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Scroll area</h2>
+      <DocSection id="scroll-area">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An honest overflow container: no canvas, just thin token-colored scrollbars that match the house border.
         </p>
@@ -868,10 +860,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </DitherScrollArea>
         </DemoCard>
         <PropsTable rows={API.scrollArea} />
-      </section>
+      </DocSection>
 
-      <section id="toolbar" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Toolbar</h2>
+      <DocSection id="toolbar">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A roving-tabindex strip: one Tab stop for the whole bar, arrow keys walk the buttons, Home and End jump to the
           edges.
@@ -902,10 +893,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.toolbar} />
-      </section>
+      </DocSection>
 
-      <section id="nav-menu" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Navigation menu</h2>
+      <DocSection id="nav-menu">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           DitherTabs' sliding dithered underline with nav semantics: anchors instead of tabs, aria-current on the active
           page.
@@ -917,7 +907,7 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.navMenu} />
-      </section>
+      </DocSection>
     </>
   )
 }

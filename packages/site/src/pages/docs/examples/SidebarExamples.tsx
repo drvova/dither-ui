@@ -17,6 +17,7 @@ import {
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import { dataCode } from "../snippet"
+import DocSection from "../DocSection"
 
 const CAT_COUNTS: Record<string, number> = { Prints: 125, Frames: 89, Zines: 34, Stickers: 67 }
 
@@ -701,8 +702,7 @@ export default function SidebarExamples() {
   return (
     <>
       {/* Basic dashboard */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-dashboard">
-        <h2 class="text-lg tracking-tight">Basic dashboard</h2>
+      <DocSection id="sidebar-dashboard">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The workhorse frame: washed sidebar with a Main group, count badge, an upgrade card pinned above the user row,
           and a breadcrumb topbar whose toggle owns the icon rail.
@@ -814,10 +814,9 @@ export default function SidebarExamples() {
             </div>
           </AppFrame>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Admin with profile */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-admin">
-        <h2 class="text-lg tracking-tight">Admin with profile</h2>
+      <DocSection id="sidebar-admin">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A floating admin panel with a quick-actions group, a storage meter card, and the signed-in profile pinned to
           the footer. The topbar hamburger hides the whole panel; the red badge keeps triage loud.
@@ -936,10 +935,9 @@ export default function SidebarExamples() {
             </div>
           </AppFrame>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* E-commerce filters */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-filters">
-        <h2 class="text-lg tracking-tight">E-commerce filters</h2>
+      <DocSection id="sidebar-filters">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A filter rail for a storefront: search, category and brand checkboxes with result counts, a two-thumb price
           range, and apply/reset pinned to the footer. The topbar echoes the live filter count.
@@ -1055,10 +1053,9 @@ export default function SidebarExamples() {
             </div>
           </AppFrame>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Documentation nav */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-docs">
-        <h2 class="text-lg tracking-tight">Documentation nav</h2>
+      <DocSection id="sidebar-docs">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A docs tree: version chip, ⌘K search, one section open with the active page, the rest folded behind chevrons,
           and a help card in the footer. Compact rows, no icon rail: a docs tree needs its labels.
@@ -1137,10 +1134,9 @@ export default function SidebarExamples() {
             </div>
           </AppFrame>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Dual layout */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-dual">
-        <h2 class="text-lg tracking-tight">Dual layout</h2>
+      <DocSection id="sidebar-dual">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Two tiers: a permanent icon rail picks the context, a second panel shows that context's tree. The rail is a
           Sidebar pinned to its rail state; the panel is a plain inset Sidebar beside it.
@@ -1202,10 +1198,9 @@ export default function SidebarExamples() {
             </div>
           </AppFrame>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Personal dashboard */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-personal">
-        <h2 class="text-lg tracking-tight">Personal dashboard</h2>
+      <DocSection id="sidebar-personal">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A personal hub: avatar header, a mini month at a glance, and two todo lists whose done items strike through.
           Everything is live: tick a box and the footer count follows.
@@ -1316,10 +1311,9 @@ export default function SidebarExamples() {
             </div>
           </AppFrame>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Floating left */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-floating">
-        <h2 class="text-lg tracking-tight">Floating left</h2>
+      <DocSection id="sidebar-floating">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A detached card over the canvas: workspace switcher up top, search, primary rows with an inbox badge, and
           favorites that truncate gracefully. Collapses to the icon rail like any other Sidebar.
@@ -1406,10 +1400,9 @@ export default function SidebarExamples() {
             </DitherSidebar>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Right side */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-right">
-        <h2 class="text-lg tracking-tight">Right side</h2>
+      <DocSection id="sidebar-right">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The same Sidebar flipped to the right edge: a profile header, the mini month, and calendar toggles with their
           color dots. The topbar button hides the whole panel when the content needs the room.
@@ -1499,10 +1492,9 @@ export default function SidebarExamples() {
             </DitherSidebar>
           </AppFrame>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Team switcher */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-teams">
-        <h2 class="text-lg tracking-tight">Team switcher</h2>
+      <DocSection id="sidebar-teams">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           One sidebar, three workspaces. The header dropdown swaps the whole identity: wash color, accent, groups,
           badges. Arrow keys walk the menu; Escape returns focus to the trigger.
@@ -1556,10 +1548,9 @@ export default function SidebarExamples() {
             </div>
           </AppFrame>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* File tree */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-tree">
-        <h2 class="text-lg tracking-tight">File tree</h2>
+      <DocSection id="sidebar-tree">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Sub-menus nest: an explorer three levels deep with expand/collapse all, rail guides on every level, and a
           selected file the header echoes.
@@ -1685,10 +1676,9 @@ export default function SidebarExamples() {
             </div>
           </AppFrame>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Mobile drawer */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-drawer">
-        <h2 class="text-lg tracking-tight">Mobile drawer</h2>
+      <DocSection id="sidebar-drawer">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Below the breakpoint the sidebar rides in a drawer: hamburger opens, picking a destination closes, swipe
           dismisses. Groups and items work standalone inside any panel.
@@ -1736,10 +1726,9 @@ export default function SidebarExamples() {
             </DitherDrawer>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Icon rail */}
-      <section class="mt-16 scroll-mt-24" id="sidebar-rail">
-        <h2 class="text-lg tracking-tight">Icon rail</h2>
+      <DocSection id="sidebar-rail">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The whole nav in 56 pixels: a permanent rail where tooltips carry the labels, badges fold to colored dots, and
           the footer keeps the person.
@@ -1779,7 +1768,7 @@ export default function SidebarExamples() {
             <div class="grid min-w-0 flex-1 place-items-center text-[12px] text-muted-foreground">{railOnly()}</div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
     </>
   )
 }

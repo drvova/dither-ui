@@ -11,6 +11,7 @@ import { Area, AreaChart } from "@/shared/ui/charts"
 import DemoCard from "../DemoCard"
 import { dataCode } from "../snippet"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const LABELS: Record<ScreenKind, string> = {
   bayer: "Bayer",
@@ -65,8 +66,7 @@ export default function ScreensSection() {
   const [screen, setScreen] = createSignal<ScreenKind>("diagonal")
 
   return (
-    <section id="print-screens" class="mt-16 scroll-mt-24">
-      <h2 class="text-lg tracking-tight">Print screens</h2>
+    <DocSection id="print-screens">
       <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
         Every surface thresholds its density through a 4x4 matrix, the Bayer one unless told otherwise.{" "}
         <code class="text-foreground/80">DitherScreen</code> swaps it for a printer's screen for everything inside it:
@@ -109,6 +109,6 @@ export default function ScreensSection() {
         </div>
       </DemoCard>
       <PropsTable rows={API} />
-    </section>
+    </DocSection>
   )
 }

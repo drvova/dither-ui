@@ -754,16 +754,20 @@ in the page's folder.
   "Measure again", the engine and time as its conditions, the results
   copied as a Markdown table; the static page ships it unmeasured, and
   linked from the landing footer; both read the model parsers and the
-  world engine, so each is a lazy part DocsPage holds in its own section
-  (`Own`), loaded only where it opens, its arrival read for "On this page"
-  by the flow's watcher) · Examples ·
+  world engine, so each is a chunk of its own the Handbook pack
+  (`handbook/HandbookDocs.tsx`) mounts only once its section opens
+  (`useOpened`, from the shown section `DocsPage` provides as
+  `SHOWN_SECTION`), its arrival read for "On this page" by the flow's
+  watcher) · Examples ·
   Components · Backgrounds · Text · Animations · Utils. Section ids are permanent deep links — relabel freely
   (`motion` → "Animation") but never rename an id.
 - Component section anatomy: `<section id>` → heading row (h2 in ink,
   `text-lg` in the display face, Michroma at its one weight and no
-  negative tracking, set by DocsPage for the section's own heading only,
-  never a demo's; its name in sentence case like its nav label: "Area chart",
-  "OTP field", + optional "Open in the Studio") → muted description →
+  negative tracking, set by `DocSection` for the section's own heading
+  only, never a demo's; its words its nav item's, `title` where the
+  heading says more than the sidebar's `label` ("Dashboard example"), in
+  sentence case: "Area chart", "OTP field", + optional "Open in the
+  Studio" in the heading's row, `head`) → muted description →
   `DemoCard` (Preview/Code tabs as machined segments in a `.track`, the
   picked one `.ring-on`; Inspect → the workbench, Code → the source panel, a
   `.flat-shell`: the page's one shaped panel is the demo's gel well) → optional picker gallery (an `h3` in
@@ -908,11 +912,11 @@ in the page's folder.
   renders (`preloadOpenPacks`, from the section route's preload), so it never shows
   empty, and a pack's sections, arriving after the page, are hidden and
   read for "On this page" as they come (a MutationObserver on the flow's
-  children; once missed, a family's every section showed at once); the sections DocsPage writes itself keep their element but
-  render their contents only while open or among the last read (`opened`,
-  `PACKS_KEPT`; they held 3,000 of a section page's 4,200 nodes and all
-  its canvases, hidden); `tests/docs-packs.spec.ts` holds every pack to its nav,
-  `tests/site/docs-page.spec.tsx` the page's own sections), pushes a history
+  children; once missed, a family's every section showed at once);
+  every section is a pack's, DocsPage writing none (the 24 it once wrote
+  itself, a second path, held 3,000 of a section page's 4,200 nodes);
+  `tests/docs-packs.spec.ts` holds the packs kept,
+  `tests/site/docs-page.spec.tsx` every pack's sections to its nav), pushes a history
   entry and reads from the top; back and forward walk them (`popstate`).
   The sidebar, search, the sheet and the pager all open through it. Over
   the section a breadcrumb (the docs, then its group, linking to the
@@ -999,13 +1003,36 @@ in the page's folder.
   under Discord's 3,000 byte cap with link buttons only and no accent bar,
   the oEmbed photo, each route head carrying its card's tags, the bans,
   the renderer as a build page).
-- Section IA lives in `docs/groups.ts` — the single source for the sidebar,
-  the `/docs/<id>` deep links, and the build-time crawl files
-  (`crawler-files.ts` generates `sitemap.xml`, `robots.txt` and
-  `llms.txt`, emitted by the `siteFiles` plugin in
-  `build/site-files.ts`; no hand-maintained
-  public copies). New sections are added to a `*-nav.ts` pack and spread
-  into a group there — never to the sitemap or llms.txt.
+- Section IA lives in ONE table, `DOCS` in `docs/groups.ts`: each family
+  (a sidebar group) its packs in order, each pack (by its component's
+  name) its sibling `*-nav.ts`, the sections it renders (`{ id, label,
+  title? }`, `as const`, so `SectionId` and `PackName` are the table's
+  literal unions). `GROUPS` (the sidebar, the `/docs/<id>` deep links, the
+  pager, the build-time crawl files: `crawler-files.ts` generates
+  `sitemap.xml`, `robots.txt` and `llms.txt`, emitted by the `siteFiles`
+  plugin in `build/site-files.ts`; no hand-maintained public copies),
+  `PACKS`/`PACK_NAMES` (`packs.ts`) and the flow's order are derived from
+  it. The build reads it under Node, so it names no chunk: each pack's
+  chunk is `PACK_LOADERS` in `pack-loaders.ts`, held to the table's packs
+  by `satisfies Record<PackName, …>` (its bundler follows a chunk named
+  in a config's graph, and fails on the packs' stylesheets). Adding a
+  section is one nav row plus its `<DocSection id>` in that nav's pack;
+  a new pack is a nav file, a row in `DOCS` and its loader; never the
+  sitemap, llms.txt or DocsPage.
+- `DocSection.tsx` is every section's element: `<section id>` from its nav
+  item (`id: SectionId`, so a typo fails the type check), the shell
+  (`mt-16 scroll-mt-24`, after an optional `class` scope hook) and the h2
+  (`headingOf`: `title`, else `label`); `head` wraps the heading in a row
+  of its own (the charts' "Open in the Studio", the icon count, the
+  Verification's keys); `defer` renders its contents only once the section
+  has been shown (`useOpened`, latched while its pack stays): the heavy
+  packs that were DocsPage's own sections (charts, basics, the example
+  pages, the Handbook, Utils) keep their siblings' demos out of a page,
+  as before (all rendered hidden, a chart's page held twice its nodes).
+  No docs source writes a `<section id>` or the
+  section heading by hand (`tests/site/docs-page.spec.tsx`, which also
+  renders every pack and holds each section's id and heading to its nav
+  item).
 - Search metadata: `docs/seo.ts` derives per-section title, canonical,
   description, and BreadcrumbList JSON-LD from `GROUPS`. `DocsPage` renders
   them through `PageHead` (the one head table, `docs/heads.ts`) for its
@@ -1044,13 +1071,23 @@ in the page's folder.
 - Chart sections link to `/studio#new/<type>` — keep in sync with `CHART_TYPES`;
   Studio also accepts legacy `#/studio/new/<type>` links.
 - Section packs live in subfolders as self-contained components (sections +
-  snippets + local state) with a sibling `*-nav.ts` exporting nav items;
-  DocsPage imports both and spreads the nav into the right group.
-  `docs/examples/` = Examples packs (the sidebar pack's app windows,
+  snippets + local state) with a sibling `*-nav.ts` exporting nav items,
+  both named in `DOCS`; DocsPage is the shell and renders the packs from
+  the table (`PACK_NAMES`). Data several packs' demos print (the
+  dashboard rows, the stat cards, the palette's colours) is
+  `docs/demo-data.ts`; the gallery tiles' pressed classes `docs/gallery.ts`.
+  `docs/handbook/` = the Handbook (`HandbookDocs.tsx`), `docs/overview/` =
+  the Quick start pack, `docs/utils/` = Utils (`UtilsDocs.tsx`: the
+  palette, then `ScreensSection.tsx`).
+  `docs/examples/` = Examples packs (`PageExamples.tsx`, the whole
+  screens: dashboard, app shell, monitoring, team, usage, sign in; the
+  sidebar pack's app windows,
   `AppFrame`, keep a desktop's width and scroll in their card on a phone,
   as the bracket does, rather than crush the page beside the sidebar),
   `docs/components/` = component-doc
-  packs (form/feedback/structure), `docs/backgrounds/` = the full-bleed
+  packs (`ChartDocs.tsx`: the charts and the sparkline; `BasicsDocs.tsx`:
+  button, avatar, gradient, image; form/feedback/structure, ...),
+  `docs/backgrounds/` = the full-bleed
   generative canvas surfaces (aurora, faulty-terminal, ferrofluid, ...),
   `docs/text/` = DOM/CSS text animations (gradient/shiny/glitch/split/...),
   `docs/animations/` = interaction/motion effects (content reveals, animated
@@ -1060,7 +1097,7 @@ in the page's folder.
   the poster with a seed to roll and its screens, and
   `utils/ScreensSection.tsx`, `print-screens`: one `DitherScreen` around a
   chart, an avatar and a gradient, its screen picked by chips). New
-  packs follow this shape instead of growing DocsPage. `docs/overview/` =
+  packs follow this shape; DocsPage writes no section. `docs/overview/` =
   the Quick start (`QuickStart.tsx`, `getting-started`): the install as
   steps from `docs/install.ts` (`INSTALL_STEPS`; `INSTALL_DEPS`, the packages the kit needs), one at a
   time, each its title, why where a reader would ask, and its own

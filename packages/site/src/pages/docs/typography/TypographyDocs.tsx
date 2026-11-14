@@ -27,6 +27,7 @@ import {
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const SNIPPET_HEADING = `<DitherHeading level="2">Section title</DitherHeading>
 <DitherHeading level="3">Part title</DitherHeading>
@@ -208,8 +209,7 @@ export default function TypographyDocs() {
   return (
     <>
       {/* Heading */}
-      <section class="mt-16 scroll-mt-24" id="heading">
-        <h2 class="text-lg tracking-tight">Heading</h2>
+      <DocSection id="heading">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Semantic h1–h6 on the site's scale: level picks the size and weight,{" "}
           <code class="text-foreground/80">size</code> draws it at another step when the outline and the look part (a
@@ -226,10 +226,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.heading} />
-      </section>
+      </DocSection>
       {/* Label */}
-      <section class="mt-16 scroll-mt-24" id="label">
-        <h2 class="text-lg tracking-tight">Label</h2>
+      <DocSection id="label">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A real <code class="text-foreground/80">&lt;label&gt;</code> that pairs with controls through{" "}
           <code class="text-foreground/80">for</code> (or by nesting), which is the whole point over a styled span. A
@@ -244,10 +243,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.label} />
-      </section>
+      </DocSection>
       {/* Caption */}
-      <section class="mt-16 scroll-mt-24" id="caption">
-        <h2 class="text-lg tracking-tight">Caption</h2>
+      <DocSection id="caption">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Supporting text in the caption register: 11px and muted, at AA contrast in either tone.
         </p>
@@ -259,10 +257,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.caption} />
-      </section>
+      </DocSection>
       {/* Overline */}
-      <section class="mt-16 scroll-mt-24" id="overline">
-        <h2 class="text-lg tracking-tight">Overline</h2>
+      <DocSection id="overline">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The tiny uppercase eyebrow above a section: 10px, open tracking, muted. Editorial structure without a
           heading's weight.
@@ -276,10 +273,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.overline} />
-      </section>
+      </DocSection>
       {/* Code */}
-      <section class="mt-16 scroll-mt-24" id="code">
-        <h2 class="text-lg tracking-tight">Code</h2>
+      <DocSection id="code">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Inline code: the <code class="text-foreground/80">&lt;code&gt;</code> element in house chrome. For the
           copyable block form, that's CodeBlock in the app layer; this one lives inside prose.
@@ -291,10 +287,9 @@ export default function TypographyDocs() {
           </p>
         </DemoCard>
         {/* no props: the element or behavior is the API */}
-      </section>
+      </DocSection>
       {/* KbdCombo */}
-      <section class="mt-16 scroll-mt-24" id="kbd-combo">
-        <h2 class="text-lg tracking-tight">KbdCombo</h2>
+      <DocSection id="kbd-combo">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A shortcut as one readable unit: keys in Kbd chips with the separator between them. Single keys go through
           DitherKbd directly.
@@ -306,10 +301,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.kbdCombo} />
-      </section>
+      </DocSection>
       {/* Blockquote */}
-      <section class="mt-16 scroll-mt-24" id="blockquote">
-        <h2 class="text-lg tracking-tight">Blockquote</h2>
+      <DocSection id="blockquote">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Real <code class="text-foreground/80">&lt;blockquote&gt;</code> semantics with the editorial treatment:
           hairline left rule, muted register. Citations ride in the children.
@@ -321,10 +315,9 @@ export default function TypographyDocs() {
           </DitherBlockquote>
         </DemoCard>
         {/* no props: the element or behavior is the API */}
-      </section>
+      </DocSection>
       {/* Highlight */}
-      <section class="mt-16 scroll-mt-24" id="highlight">
-        <h2 class="text-lg tracking-tight">Highlight</h2>
+      <DocSection id="highlight">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The <code class="text-foreground/80">&lt;mark&gt;</code> element with a neutral token wash. Colored variants
           belong in <code class="text-foreground/80">class</code> because house color comes from palette seeds.
@@ -335,10 +328,9 @@ export default function TypographyDocs() {
           </p>
         </DemoCard>
         {/* no props: the element or behavior is the API */}
-      </section>
+      </DocSection>
       {/* Truncate */}
-      <section class="mt-16 scroll-mt-24" id="truncate">
-        <h2 class="text-lg tracking-tight">Truncate</h2>
+      <DocSection id="truncate">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           One-line ellipsis around any content. The native <code class="text-foreground/80">title</code> attr rides
           through, so native tooltips stay one attribute away.
@@ -351,10 +343,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.truncate} />
-      </section>
+      </DocSection>
       {/* LineClamp */}
-      <section class="mt-16 scroll-mt-24" id="line-clamp">
-        <h2 class="text-lg tracking-tight">LineClamp</h2>
+      <DocSection id="line-clamp">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A block clamped after N lines (1–6) with a real ellipsis: excerpts, card bodies, previews that must not grow.
         </p>
@@ -368,10 +359,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.lineClamp} />
-      </section>
+      </DocSection>
       {/* MiddleEllipsis */}
-      <section class="mt-16 scroll-mt-24" id="middle-ellipsis">
-        <h2 class="text-lg tracking-tight">MiddleEllipsis</h2>
+      <DocSection id="middle-ellipsis">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Center-ellipsis for identifiers: paths, keys and hashes keep both ends, which is where recognition happens.
           The full string stays in <code class="text-foreground/80">title</code>.
@@ -393,10 +383,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.middleEllipsis} />
-      </section>
+      </DocSection>
       {/* EllipsisTooltip */}
-      <section class="mt-16 scroll-mt-24" id="ellipsis-tooltip">
-        <h2 class="text-lg tracking-tight">EllipsisTooltip</h2>
+      <DocSection id="ellipsis-tooltip">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Truncation with a tooltip that only earns itself: observes its own overflow (ResizeObserver, zero forced
           reads) and publishes <code class="text-foreground/80">title</code> only while clipped. Unclipped content gets
@@ -410,10 +399,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.ellipsisTooltip} />
-      </section>
+      </DocSection>
       {/* Link */}
-      <section class="mt-16 scroll-mt-24" id="link">
-        <h2 class="text-lg tracking-tight">Link</h2>
+      <DocSection id="link">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The anchor, dressed in house chrome: hairline underline that grows its offset and brightens on hover, color
           inherited from wherever it sits.
@@ -425,10 +413,9 @@ export default function TypographyDocs() {
           </p>
         </DemoCard>
         <PropsTable rows={API.link} />
-      </section>
+      </DocSection>
       {/* ExternalLink */}
-      <section class="mt-16 scroll-mt-24" id="external-link">
-        <h2 class="text-lg tracking-tight">ExternalLink</h2>
+      <DocSection id="external-link">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           New-tab semantics done right: <code class="text-foreground/80">_blank</code> with{" "}
           <code class="text-foreground/80">rel=noreferrer</code>, plus the ExternalLink glyph after the label.
@@ -441,10 +428,9 @@ export default function TypographyDocs() {
           </p>
         </DemoCard>
         <PropsTable rows={API.externalLink} />
-      </section>
+      </DocSection>
       {/* SelectableText */}
-      <section class="mt-16 scroll-mt-24" id="selectable-text">
-        <h2 class="text-lg tracking-tight">SelectableText</h2>
+      <DocSection id="selectable-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Text that selects itself on click (<code class="text-foreground/80">user-select: all</code>) for license keys,
           tokens and one-tap copy targets. Wraps any inline content.
@@ -456,10 +442,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.selectableText} />
-      </section>
+      </DocSection>
       {/* CopyableText */}
-      <section class="mt-16 scroll-mt-24" id="copyable-text">
-        <h2 class="text-lg tracking-tight">CopyableText</h2>
+      <DocSection id="copyable-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           One-tap copy around a piece of text. The value goes through the shared Clipboard primitive (live region
           included); the trigger flips from Copy to Check.
@@ -470,10 +455,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.copyableText} />
-      </section>
+      </DocSection>
       {/* NumberText */}
-      <section class="mt-16 scroll-mt-24" id="number-text">
-        <h2 class="text-lg tracking-tight">NumberText</h2>
+      <DocSection id="number-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Locale-aware numbers: grouping, decimals and locale through Intl, and{" "}
           <code class="text-foreground/80">tabular-nums</code> so columns line up.
@@ -486,10 +470,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.numberText} />
-      </section>
+      </DocSection>
       {/* CurrencyText */}
-      <section class="mt-16 scroll-mt-24" id="currency-text">
-        <h2 class="text-lg tracking-tight">CurrencyText</h2>
+      <DocSection id="currency-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Money through Intl. Symbol placement and grammar are the runtime's job; ours is picking currency, locale and
           decimals.
@@ -502,10 +485,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.currencyText} />
-      </section>
+      </DocSection>
       {/* PercentText */}
-      <section class="mt-16 scroll-mt-24" id="percent-text">
-        <h2 class="text-lg tracking-tight">PercentText</h2>
+      <DocSection id="percent-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Ratio to percent. The input is the <b>fraction</b> (<code class="text-foreground/80">0.42</code> becomes 42%)
           because that is what Intl's percent style expects; decimals default to zero for the clean read.
@@ -518,10 +500,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.percentText} />
-      </section>
+      </DocSection>
       {/* FileSizeText */}
-      <section class="mt-16 scroll-mt-24" id="file-size-text">
-        <h2 class="text-lg tracking-tight">FileSizeText</h2>
+      <DocSection id="file-size-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Bytes to human units, 1024-based the way disk tools actually count. Sub-KB sizes stay whole numbers, signs
           survive.
@@ -540,10 +521,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.fileSizeText} />
-      </section>
+      </DocSection>
       {/* DurationText */}
-      <section class="mt-16 scroll-mt-24" id="duration-text">
-        <h2 class="text-lg tracking-tight">DurationText</h2>
+      <DocSection id="duration-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Milliseconds to a smart human duration: precision drops as magnitude grows. No zero-padding, no clutter.
         </p>
@@ -561,10 +541,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.durationText} />
-      </section>
+      </DocSection>
       {/* RelativeTime */}
-      <section class="mt-16 scroll-mt-24" id="relative-time">
-        <h2 class="text-lg tracking-tight">RelativeTime</h2>
+      <DocSection id="relative-time">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           <code class="text-foreground/80">&lt;time&gt;</code> in the relative register: Intl.RelativeTimeFormat picks
           the largest sane unit and <code class="text-foreground/80">numeric: "auto"</code> turns zero into "now". It
@@ -579,10 +558,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.relativeTime} />
-      </section>
+      </DocSection>
       {/* DateTimeText */}
-      <section class="mt-16 scroll-mt-24" id="date-time-text">
-        <h2 class="text-lg tracking-tight">DateTimeText</h2>
+      <DocSection id="date-time-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Date to localized text with the medium-date + short-time register by default; any Intl.DateTimeFormatOptions
           shape overrides it (bring <code class="text-foreground/80">timeZone</code> in the options for deterministic
@@ -600,10 +578,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.dateTimeText} />
-      </section>
+      </DocSection>
       {/* PluralText */}
-      <section class="mt-16 scroll-mt-24" id="plural-text">
-        <h2 class="text-lg tracking-tight">PluralText</h2>
+      <DocSection id="plural-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Intl.PluralRules as a prop switch: the plural category picks the prop, children is the fallback, and every one
           receives <code class="text-foreground/80">count</code>. Richer plural languages just get more named props. No
@@ -628,10 +605,9 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.pluralText} />
-      </section>
+      </DocSection>
       {/* Emoji */}
-      <section class="mt-16 scroll-mt-24" id="emoji">
-        <h2 class="text-lg tracking-tight">Emoji</h2>
+      <DocSection id="emoji">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An emoji as an <b>image</b> with a real accessible name: <code class="text-foreground/80">role="img"</code> +{" "}
           <code class="text-foreground/80">aria-label</code> gives screen readers one predictable announcement instead
@@ -646,7 +622,7 @@ export default function TypographyDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.emoji} />
-      </section>
+      </DocSection>
     </>
   )
 }

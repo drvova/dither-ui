@@ -2,6 +2,7 @@ import { createMemo, createSignal, For, Show } from "solid-js"
 import { DitherButton, DitherCheckbox, DitherInput, DitherPagination } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import { dataCode } from "../snippet"
+import DocSection from "../DocSection"
 
 type Member = { name: string; email: string; role: string; status: "active" | "away" | "offline"; joined: string }
 
@@ -195,8 +196,7 @@ export default function TableExamples() {
 
   return (
     <>
-      <section class="mt-16 scroll-mt-24" id="table-members">
-        <h2 class="text-lg tracking-tight">Data table</h2>
+      <DocSection id="table-members">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The whole table contract in one block: filter, sortable columns with aria-sort, page-scoped select-all, a bulk
           remove that really removes, presence dots, and dithered pagination. Filter and sort compose; the range label
@@ -314,7 +314,7 @@ export default function TableExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
     </>
   )
 }

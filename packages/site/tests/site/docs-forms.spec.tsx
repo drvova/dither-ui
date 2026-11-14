@@ -277,12 +277,8 @@ describe("the Quick start", () => {
 
 describe("the Engine section", () => {
   it("names each part once, with a figure and a link to a real section", () => {
-    // the page's own section holds it, as DocsPage's does
-    const { container } = render(() => (
-      <section id="engine">
-        <EngineSection />
-      </section>
-    ))
+    // its own section, as the Handbook pack mounts it once opened
+    const { container } = render(() => <EngineSection />)
     const section = container.querySelector("section#engine")!
     expect(section.querySelector("h2")!.textContent).toBe("Engine")
     const rows = [...section.querySelectorAll("dl > div")]
@@ -311,11 +307,7 @@ describe("the Engine section", () => {
 
 describe("the Verification section", () => {
   const mount = () => {
-    const { container, unmount } = render(() => (
-      <section id="verification">
-        <VerificationSection />
-      </section>
-    ))
+    const { container, unmount } = render(() => <VerificationSection />)
     const section = container.querySelector("section#verification")!
     const status = () => section.querySelector("p[aria-live]")!.textContent!.replace(/\s+/g, " ").trim()
     const keys = () => [...section.querySelectorAll<HTMLButtonElement>("button")]

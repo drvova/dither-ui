@@ -2,6 +2,7 @@ import { createSignal, For } from "solid-js"
 import { DitherIcon, DitherPoster, SCREEN_KINDS, type ScreenKind } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const CHIP = "rounded border px-2 py-1 text-[11px]"
 const PICKED = "border-accent bg-accent text-accent-foreground"
@@ -41,8 +42,7 @@ export default function PosterSection() {
   const roll = () => setSeed(Math.floor(Math.random() * 100_000))
 
   return (
-    <section id="poster" class="mt-16 scroll-mt-24">
-      <h2 class="text-lg tracking-tight">Poster</h2>
+    <DocSection id="poster">
       <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
         The palette printed as tone. Columns of tiles each run one ink along a ramp through the screen into a second ink
         or the paper, so neighbouring fields dissolve into each other cell by cell, and the kit's diamond sits over them
@@ -79,6 +79,6 @@ export default function PosterSection() {
         </div>
       </DemoCard>
       <PropsTable rows={API} />
-    </section>
+    </DocSection>
   )
 }

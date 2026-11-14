@@ -6,4 +6,4 @@ export const OVERLAY_NAV = [
   { id: "tooltip", label: "Tooltip" },
   { id: "preview-card", label: "Preview card" },
   { id: "command", label: "Command" },
-]
+] as const

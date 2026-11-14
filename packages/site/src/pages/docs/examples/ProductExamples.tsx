@@ -9,6 +9,7 @@ import {
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import { dataCode } from "../snippet"
+import DocSection from "../DocSection"
 
 const TIERS: {
   name: string
@@ -131,8 +132,7 @@ export default function ProductExamples() {
   return (
     <>
       {/* Pricing */}
-      <section class="mt-16 scroll-mt-24" id="pricing">
-        <h2 class="text-lg tracking-tight">Pricing</h2>
+      <DocSection id="pricing">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Three tiers from tokens and kit primitives. The popular plan gets a dither wash, and nothing else shouts.
         </p>
@@ -174,10 +174,9 @@ export default function ProductExamples() {
             </For>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Activity feed */}
-      <section class="mt-16 scroll-mt-24" id="activity">
-        <h2 class="text-lg tracking-tight">Activity feed</h2>
+      <DocSection id="activity">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A team feed: deterministic avatars, one accent dot per unread row, times right-aligned.
         </p>
@@ -203,10 +202,9 @@ export default function ProductExamples() {
             </For>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Changelog */}
-      <section class="mt-16 scroll-mt-24" id="changelog">
-        <h2 class="text-lg tracking-tight">Changelog</h2>
+      <DocSection id="changelog">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A release timeline: square markers on a thin rail, the newest release seeded green.
         </p>
@@ -247,7 +245,7 @@ export default function ProductExamples() {
             </For>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
     </>
   )
 }

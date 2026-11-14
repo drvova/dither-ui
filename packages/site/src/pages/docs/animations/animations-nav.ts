@@ -49,4 +49,4 @@ export const ANIMATIONS_NAV = [
   { id: "hold-action", label: "Hold action" },
   { id: "wallet-card", label: "Wallet card" },
   { id: "notification-stack", label: "Notification stack" },
-]
+] as const

@@ -2,6 +2,7 @@ import { createSignal, For, Index } from "solid-js"
 import { DitherBadge, DitherButton, DitherSeparator, DitherSkeleton, DitherSpinner } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const VARIANTS = ["gradient", "solid", "dotted", "hatched"] as const
 
@@ -87,8 +88,7 @@ export default function FeedbackDocs() {
   return (
     <>
       {/* Badge */}
-      <section id="badge" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Badge</h2>
+      <DocSection id="badge">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A small label chip: the button's dither fill at rest, no hover machinery, any palette color and texture
           variant.
@@ -113,11 +113,10 @@ export default function FeedbackDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.badge} />
-      </section>
+      </DocSection>
 
       {/* Skeleton */}
-      <section id="skeleton" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Skeleton</h2>
+      <DocSection id="skeleton">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A loading placeholder that shimmers pixel-by-pixel: the field's density breathes through the Bayer matrix
           instead of a gradient sweep. Size it with classes and compose it into any layout.
@@ -135,11 +134,10 @@ export default function FeedbackDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.skeleton} />
-      </section>
+      </DocSection>
 
       {/* Spinner */}
-      <section id="spinner" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Spinner</h2>
+      <DocSection id="spinner">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A dithered loader, repainted at 30fps. It's not one shape. A seed samples three axes at once: the{" "}
           <em class="text-foreground/80 not-italic">silhouette</em> (circle ring, square box-ring, or bar), the{" "}
@@ -169,11 +167,10 @@ export default function FeedbackDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.spinner} />
-      </section>
+      </DocSection>
 
       {/* Separator */}
-      <section id="separator" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Separator</h2>
+      <DocSection id="separator">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A 2px rule whose pixels dissolve toward both ends through the Bayer matrix: the image component's edge fade,
           applied to a divider.
@@ -191,7 +188,7 @@ export default function FeedbackDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.separator} />
-      </section>
+      </DocSection>
     </>
   )
 }

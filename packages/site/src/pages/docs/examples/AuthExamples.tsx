@@ -2,6 +2,7 @@ import { createSignal, For, Show } from "solid-js"
 import { createMutable } from "solid-js/store"
 import { DitherButton, DitherGradient } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
+import DocSection from "../DocSection"
 
 const PLANS = ["Free", "Pro", "Scale"] as const
 
@@ -90,8 +91,7 @@ export default function AuthExamples() {
 
   return (
     <>
-      <section class="mt-16 scroll-mt-24" id="signup">
-        <h2 class="text-lg tracking-tight">Sign up</h2>
+      <DocSection id="signup">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A signup card with a working plan picker: a segmented control from plain aria-pressed buttons, over a purple
           wash.
@@ -154,9 +154,8 @@ export default function AuthExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
-      <section class="mt-16 scroll-mt-24" id="magic-link">
-        <h2 class="text-lg tracking-tight">Magic link</h2>
+      </DocSection>
+      <DocSection id="magic-link">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Passwordless in two states: send the link, then echo the address back with a pixel checkmark. Green wash,
           green button.
@@ -234,9 +233,8 @@ export default function AuthExamples() {
             </Show>
           </div>
         </DemoCard>
-      </section>
-      <section class="mt-16 scroll-mt-24" id="twofactor">
-        <h2 class="text-lg tracking-tight">Two-factor</h2>
+      </DocSection>
+      <DocSection id="twofactor">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Six code cells with auto-advancing focus: plain inputs, token borders, blue wash behind.
         </p>
@@ -286,7 +284,7 @@ export default function AuthExamples() {
             </p>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
     </>
   )
 }

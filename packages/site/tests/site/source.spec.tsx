@@ -34,12 +34,10 @@ import {
 import { PACKAGES } from "../../src/widgets/source/model/run"
 import { asTsx, snippetKind } from "../../src/widgets/source/model/snippet"
 import { world } from "@dither-ui/kit/testing/world.ts"
-import { MetaProvider } from "@solidjs/meta"
-import { createMemoryHistory, MemoryRouter, Route } from "@solidjs/router"
-import DocsPage from "../../src/pages/docs/DocsPage"
+import { createSignal } from "solid-js"
+import { SHOWN_SECTION } from "../../src/pages/docs/DocSection"
 import { PACK_LOADERS } from "../../src/pages/docs/pack-loaders"
-import { PACKS } from "../../src/pages/docs/packs"
-import { SECTION_IDS } from "../../src/pages/docs/pages"
+import { PACK_NAMES, PACKS } from "../../src/pages/docs/packs"
 
 // While `shows.on`, a DemoCard stands as a mark holding the example it is
 // given, the way the page gives it (its pickers at their first state), and
@@ -137,25 +135,19 @@ async function docsExamples(): Promise<{ examples: DocsExample[]; others: number
   shows.codes.length = 0
   const roots: HTMLElement[] = []
   try {
-    // the sections the docs' page writes itself render while open: each on its own page
-    const packed = new Set(Object.values(PACKS).flatMap((nav) => nav.map((s) => s.id)))
-    for (const id of SECTION_IDS.filter((id) => !packed.has(id))) {
-      const history = createMemoryHistory()
-      history.set({ value: `/docs/${id}` })
-      const page = render(() => (
-        <MetaProvider>
-          <MemoryRouter history={history}>
-            <Route path="/docs/:section" component={() => <DocsPage section={id} />} />
-          </MemoryRouter>
-        </MetaProvider>
-      )).container
-      // its own section, never another the page keeps beside it
-      const own = page.querySelector<HTMLElement>(`section[id="${id}"]`)
-      if (own) roots.push(own)
-    }
-    for (const load of Object.values(PACK_LOADERS)) {
-      const Pack = (await load()).default
-      roots.push(render(() => <Pack />).container)
+    // every pack, each of its sections shown in turn: a section that waits
+    // to be opened (`defer`) renders its cards too
+    for (const name of PACK_NAMES) {
+      const Pack = (await PACK_LOADERS[name]()).default
+      const [shown, show] = createSignal("")
+      roots.push(
+        render(() => (
+          <SHOWN_SECTION.Provider value={shown}>
+            <Pack />
+          </SHOWN_SECTION.Provider>
+        )).container,
+      )
+      for (const { id } of PACKS[name]) show(id)
     }
     const examples: DocsExample[] = []
     let others = 0

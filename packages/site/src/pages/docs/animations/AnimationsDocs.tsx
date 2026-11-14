@@ -56,6 +56,7 @@ import type { StaggerFrom } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import TransitionSection from "./TransitionSection"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 import "./AnimationsDocs.css"
 
 const SHARED_CANVAS: PropRow[] = [
@@ -879,8 +880,7 @@ const [last, setLast] = createSignal("none")
   return (
     <>
       {/* Animated content */}
-      <section id="animated-content" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Animated content</h2>
+      <DocSection id="animated-content">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Wrap anything to have it slide and fade into place the first time it enters the viewport. Direction, distance
           and timing are configurable, and <code class="text-foreground/80">distance</code> takes CSS lengths too:{" "}
@@ -893,11 +893,10 @@ const [last, setLast] = createSignal("none")
           </DitherAnimatedContent>
         </DemoCard>
         <PropsTable rows={API.animatedContent} />
-      </section>
+      </DocSection>
 
       {/* Fade content */}
-      <section id="fade-content" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Fade content</h2>
+      <DocSection id="fade-content">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A pure fade-in on view, optionally de-blurring as it appears. The lighter cousin of Animated content when you
           only want opacity.
@@ -908,11 +907,10 @@ const [last, setLast] = createSignal("none")
           </DitherFadeContent>
         </DemoCard>
         <PropsTable rows={API.fadeContent} />
-      </section>
+      </DocSection>
 
       {/* Gradual blur */}
-      <section id="gradual-blur" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Gradual blur</h2>
+      <DocSection id="gradual-blur">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A masked <code class="text-foreground/80">backdrop-filter</code> strip that progressively blurs toward an
           edge: the iOS-style soft fade over a scroll region.
@@ -925,11 +923,10 @@ const [last, setLast] = createSignal("none")
           </DitherGradualBlur>
         </DemoCard>
         <PropsTable rows={API.gradualBlur} />
-      </section>
+      </DocSection>
 
       {/* Star border */}
-      <section id="star-border" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Star border</h2>
+      <DocSection id="star-border">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A rounded frame with two bright glints traveling its top and bottom edges: a subtle animated outline for a CTA
           or badge.
@@ -938,11 +935,10 @@ const [last, setLast] = createSignal("none")
           <DitherStarBorder color="#7CFF67">Star border</DitherStarBorder>
         </DemoCard>
         <PropsTable rows={API.starBorder} />
-      </section>
+      </DocSection>
 
       {/* Electric border */}
-      <section id="electric-border" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Electric border</h2>
+      <DocSection id="electric-border">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An SVG turbulence filter jitters the frame edge into a crackling electric outline. Reduced motion drops the
           displacement.
@@ -951,11 +947,10 @@ const [last, setLast] = createSignal("none")
           <DitherElectricBorder color="#5227FF">Electric border</DitherElectricBorder>
         </DemoCard>
         <PropsTable rows={API.electricBorder} />
-      </section>
+      </DocSection>
 
       {/* Glare hover */}
-      <section id="glare-hover" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Glare hover</h2>
+      <DocSection id="glare-hover">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A diagonal sheen sweeps across the surface on hover: the glossy-card reflection, done with a single masked
           gradient. Hover the card.
@@ -966,11 +961,10 @@ const [last, setLast] = createSignal("none")
           </DitherGlareHover>
         </DemoCard>
         <PropsTable rows={API.glareHover} />
-      </section>
+      </DocSection>
 
       {/* Magnet */}
-      <section id="magnet" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Magnet</h2>
+      <DocSection id="magnet">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The wrapped element is pulled toward the pointer while it is within range, easing back when the cursor leaves.
           Move your cursor near the button.
@@ -983,11 +977,10 @@ const [last, setLast] = createSignal("none")
           </DitherMagnet>
         </DemoCard>
         <PropsTable rows={API.magnet} />
-      </section>
+      </DocSection>
 
       {/* Click spark */}
-      <section id="click-spark" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Click spark</h2>
+      <DocSection id="click-spark">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A burst of spark lines radiates from every click inside the area, drawn on a lightweight canvas overlay. Click
           anywhere in the preview.
@@ -1001,11 +994,10 @@ const [last, setLast] = createSignal("none")
           </DitherClickSpark>
         </DemoCard>
         <PropsTable rows={API.clickSpark} />
-      </section>
+      </DocSection>
 
       {/* Blob cursor */}
-      <section id="blob-cursor" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Blob cursor</h2>
+      <DocSection id="blob-cursor">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A soft, screen-blended blob eases toward the pointer inside the area: a gooey cursor companion. Move your
           cursor over the box.
@@ -1014,11 +1006,10 @@ const [last, setLast] = createSignal("none")
           <DitherBlobCursor class={cursorArea}>Move your cursor here</DitherBlobCursor>
         </DemoCard>
         <PropsTable rows={API.blobCursor} />
-      </section>
+      </DocSection>
 
       {/* Crosshair */}
-      <section id="crosshair" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Crosshair</h2>
+      <DocSection id="crosshair">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Full-height and full-width guide lines track the pointer across the area: a precision reticle. Move your
           cursor over the box.
@@ -1027,11 +1018,10 @@ const [last, setLast] = createSignal("none")
           <DitherCrosshair class={cursorArea}>Move your cursor here</DitherCrosshair>
         </DemoCard>
         <PropsTable rows={API.crosshair} />
-      </section>
+      </DocSection>
 
       {/* Ghost cursor */}
-      <section id="ghost-cursor" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Ghost cursor</h2>
+      <DocSection id="ghost-cursor">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A tapering trail of fading dots chases the pointer on a canvas overlay. Move your cursor over the box.
         </p>
@@ -1039,11 +1029,10 @@ const [last, setLast] = createSignal("none")
           <DitherGhostCursor class={cursorArea}>Move your cursor here</DitherGhostCursor>
         </DemoCard>
         <PropsTable rows={API.ghostCursor} />
-      </section>
+      </DocSection>
 
       {/* Splash cursor */}
-      <section id="splash-cursor" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Splash cursor</h2>
+      <DocSection id="splash-cursor">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Expanding ripple rings bloom along the pointer path, like drops on water. Move your cursor over the box.
         </p>
@@ -1051,11 +1040,10 @@ const [last, setLast] = createSignal("none")
           <DitherSplashCursor class={cursorArea}>Move your cursor here</DitherSplashCursor>
         </DemoCard>
         <PropsTable rows={API.splashCursor} />
-      </section>
+      </DocSection>
 
       {/* Target cursor */}
-      <section id="target-cursor" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Target cursor</h2>
+      <DocSection id="target-cursor">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A slowly rotating corner-bracket reticle locks onto the pointer: a HUD targeting frame. Move your cursor over
           the box.
@@ -1064,11 +1052,10 @@ const [last, setLast] = createSignal("none")
           <DitherTargetCursor class={cursorArea}>Move your cursor here</DitherTargetCursor>
         </DemoCard>
         <PropsTable rows={API.targetCursor} />
-      </section>
+      </DocSection>
 
       {/* Pixel trail */}
-      <section id="pixel-trail" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Pixel trail</h2>
+      <DocSection id="pixel-trail">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The pointer lights up cells of a pixel grid that then fade back out: a glowing wake across the lattice. Move
           your cursor over the box.
@@ -1077,11 +1064,10 @@ const [last, setLast] = createSignal("none")
           <DitherPixelTrail class={cursorArea}>Move your cursor here</DitherPixelTrail>
         </DemoCard>
         <PropsTable rows={API.pixelTrail} />
-      </section>
+      </DocSection>
 
       {/* Image trail */}
-      <section id="image-trail" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Image trail</h2>
+      <DocSection id="image-trail">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Tiles from a palette drop along the pointer path, rotating and shrinking as they fade. Pass real image URLs
           via <code class="text-foreground/80">colors</code> swapped for tiles here. Move your cursor over the box.
@@ -1092,11 +1078,10 @@ const [last, setLast] = createSignal("none")
           </DitherImageTrail>
         </DemoCard>
         <PropsTable rows={API.imageTrail} />
-      </section>
+      </DocSection>
 
       {/* Meta balls */}
-      <section id="meta-balls" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Meta balls</h2>
+      <DocSection id="meta-balls">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Orbiting blobs fuse into a gooey metaball iso-surface, tinted and ordered-dithered through the kit engine. The
           pointer adds a blob.
@@ -1107,11 +1092,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.metaBalls} />
-      </section>
+      </DocSection>
 
       {/* Metallic paint */}
-      <section id="metallic-paint" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Metallic paint</h2>
+      <DocSection id="metallic-paint">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Iterative domain-warped reflections read as flowing liquid chrome. Fully opaque, dithered across a metallic
           ramp.
@@ -1122,11 +1106,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.metallicPaint} />
-      </section>
+      </DocSection>
 
       {/* Noise */}
-      <section id="noise" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Noise</h2>
+      <DocSection id="noise">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Animated hashed grain thresholded against the Bayer matrix: living static for a texture overlay. Tune{" "}
           <code class="text-foreground/80">density</code> and blend it over content.
@@ -1137,11 +1120,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.noise} />
-      </section>
+      </DocSection>
 
       {/* Cubes */}
-      <section id="cubes" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Cubes</h2>
+      <DocSection id="cubes">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A rhombille tiling shades into a field of isometric cubes, each face lit and pulsing on noise. Tinted and
           ordered-dithered.
@@ -1152,11 +1134,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.cubes} />
-      </section>
+      </DocSection>
 
       {/* Ribbons */}
-      <section id="ribbons" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Ribbons</h2>
+      <DocSection id="ribbons">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Thick flowing bands ride wavy fbm centerlines, bright at the core and tinted per ribbon. The pointer bends
           nearby ribbons toward it.
@@ -1167,11 +1148,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.ribbons} />
-      </section>
+      </DocSection>
 
       {/* Shape blur */}
-      <section id="shape-blur" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Shape blur</h2>
+      <DocSection id="shape-blur">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A big soft blob morphs on noise and drifts toward the pointer: a gentle out-of-focus shape. Move your cursor
           over it.
@@ -1182,11 +1162,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.shapeBlur} />
-      </section>
+      </DocSection>
 
       {/* Strands */}
-      <section id="strands" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Strands</h2>
+      <DocSection id="strands">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Dozens of thin filaments sway on fbm like blown hair, tinted by depth and ordered-dithered with transparent
           gaps.
@@ -1197,11 +1176,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.strands} />
-      </section>
+      </DocSection>
 
       {/* Laser flow */}
-      <section id="laser-flow" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Laser flow</h2>
+      <DocSection id="laser-flow">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Sharp horizontal beams sweep with additive bloom and a faint jitter, tinted per beam: a scanning laser array.
         </p>
@@ -1211,11 +1189,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.laserFlow} />
-      </section>
+      </DocSection>
 
       {/* Antigravity */}
-      <section id="antigravity" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Antigravity</h2>
+      <DocSection id="antigravity">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A field of motes drifts upward and wraps: gravity in reverse, layered behind your content.
         </p>
@@ -1223,11 +1200,10 @@ const [last, setLast] = createSignal("none")
           <DitherAntigravity class={cursorArea}>Antigravity</DitherAntigravity>
         </DemoCard>
         <PropsTable rows={API.antigravity} />
-      </section>
+      </DocSection>
 
       {/* Logo loop */}
-      <section id="logo-loop" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Logo loop</h2>
+      <DocSection id="logo-loop">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A seamless infinite marquee of items. Pass logos or wordmarks and it loops forever with a measured wrap.
         </p>
@@ -1237,11 +1213,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.logoLoop} />
-      </section>
+      </DocSection>
 
       {/* Magic rings */}
-      <section id="magic-rings" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Magic rings</h2>
+      <DocSection id="magic-rings">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Concentric rings pulse outward from the center on a stagger: a radar-ping halo around whatever you wrap.
         </p>
@@ -1253,11 +1228,10 @@ const [last, setLast] = createSignal("none")
           </DitherMagicRings>
         </DemoCard>
         <PropsTable rows={API.magicRings} />
-      </section>
+      </DocSection>
 
       {/* Magnet lines */}
-      <section id="magnet-lines" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Magnet lines</h2>
+      <DocSection id="magnet-lines">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A grid of little needles all swivel to point at the pointer, like iron filings over a magnet. Move your cursor
           over the box.
@@ -1266,11 +1240,10 @@ const [last, setLast] = createSignal("none")
           <DitherMagnetLines class={cursorArea} />
         </DemoCard>
         <PropsTable rows={API.magnetLines} />
-      </section>
+      </DocSection>
 
       {/* Orbit images */}
-      <section id="orbit-images" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Orbit images</h2>
+      <DocSection id="orbit-images">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Items ride a circular orbit around a center point. Pass avatars, logos or labels. Counter-rotated so they stay
           upright.
@@ -1281,11 +1254,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.orbitImages} />
-      </section>
+      </DocSection>
 
       {/* Pixel transition */}
-      <section id="pixel-transition" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Pixel transition</h2>
+      <DocSection id="pixel-transition">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A grid of pixel cells covers the content and dissolves in a scattered order on hover, revealing what is
           underneath. Hover the card.
@@ -1299,11 +1271,10 @@ const [last, setLast] = createSignal("none")
           </DitherPixelTransition>
         </DemoCard>
         <PropsTable rows={API.pixelTransition} />
-      </section>
+      </DocSection>
 
       {/* Dither reveal */}
-      <section id="dither-reveal" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Dither reveal</h2>
+      <DocSection id="dither-reveal">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Any content comes in through an ordered-dither mask. A dissolve resolves cell by cell in the Bayer order; a
           wipe moves a solid front with a dithered band behind it. The mask is a pure function of progress, so a seeked
@@ -1360,14 +1331,13 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.ditherReveal} />
-      </section>
+      </DocSection>
 
       {/* Page transition */}
       <TransitionSection />
 
       {/* Sticker peel */}
-      <section id="sticker-peel" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Sticker peel</h2>
+      <DocSection id="sticker-peel">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A corner of the card peels up on hover with a soft curl shadow: the sticker lift. Hover the card.
         </p>
@@ -1379,10 +1349,9 @@ const [last, setLast] = createSignal("none")
           </DitherStickerPeel>
         </DemoCard>
         <PropsTable rows={API.stickerPeel} />
-      </section>
+      </DocSection>
 
-      <section id="expand-tabs" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Expand tabs</h2>
+      <DocSection id="expand-tabs">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An icon bar where only the active tab unfolds its label. The rest stay square glyphs. The label slides through
           the house 0fr grid trick.
@@ -1401,10 +1370,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.expandTabs} />
-      </section>
+      </DocSection>
 
-      <section id="island" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Island</h2>
+      <DocSection id="island">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A morphing status pill: the compact row keeps its pulse while the detail unfolds beneath. Escape collapses;
           reduced motion snaps.
@@ -1424,10 +1392,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.island} />
-      </section>
+      </DocSection>
 
-      <section id="card-stack" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Card stack</h2>
+      <DocSection id="card-stack">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A swipe deck on the kit's own gesture math: 1:1 tracking, rubber-band past the edge, a flick or a far drag
           sends the card flying and the stack rises. Drag the top card.
@@ -1454,10 +1421,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.cardStack} />
-      </section>
+      </DocSection>
 
-      <section id="dock" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Dock</h2>
+      <DocSection id="dock">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A hover-magnifying dock: items swell on a gaussian falloff around the pointer and settle when it leaves.
           Reduced motion keeps the row still.
@@ -1479,10 +1445,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.dock} />
-      </section>
+      </DocSection>
 
-      <section id="preview-rail" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Preview rail</h2>
+      <DocSection id="preview-rail">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A Codex app-inspired navigation rail: compact ticks form a pyramid around the pointer and reveal a floating
           destination preview beside the rail. Keyboard focus previews too; reduced motion keeps the ticks still.
@@ -1504,10 +1469,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.previewRail} />
-      </section>
+      </DocSection>
 
-      <section id="scroll-progress" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Scroll progress</h2>
+      <DocSection id="scroll-progress">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Reading progress as a dithered bar. It composes DitherProgress and rides the viewport edge, or the top of any
           scrollable parent. Scroll the box.
@@ -1523,10 +1487,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.scrollProgress} />
-      </section>
+      </DocSection>
 
-      <section id="snap-button" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Snap button</h2>
+      <DocSection id="snap-button">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Pull to confirm: drag past the line and the border arms; release fires and the button springs home. Short
           pulls just spring. Enter and Space fire without the pull; reduced motion skips the spring.
@@ -1540,10 +1503,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.snapButton} />
-      </section>
+      </DocSection>
 
-      <section id="gooey-menu" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Gooey menu</h2>
+      <DocSection id="gooey-menu">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Actions that melt out of one trigger: an SVG goo filter fuses the circles while they travel, then they settle
           apart. Escape collapses; reduced motion drops the travel.
@@ -1567,10 +1529,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.gooeyMenu} />
-      </section>
+      </DocSection>
 
-      <section id="bouncy-accordion" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Bouncy accordion</h2>
+      <DocSection id="bouncy-accordion">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A single-open accordion with a weighted spring layout: panels overshoot and settle on a sampled damped-spring
           easing, icon rows lead each header, and content rises into view. Reduced motion reveals instantly.
@@ -1608,10 +1569,9 @@ const [last, setLast] = createSignal("none")
           />
         </DemoCard>
         <PropsTable rows={API.bouncyAccordion} />
-      </section>
+      </DocSection>
 
-      <section id="expanding-arrow" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Expanding arrow</h2>
+      <DocSection id="expanding-arrow">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An accent tile that expands into a dotted-arrow trail on hover or focus. The trail is stamped from the same
           accent hue. Reduced motion reveals it instantly.
@@ -1622,10 +1582,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.expandingArrow} />
-      </section>
+      </DocSection>
 
-      <section id="slide-action" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Slide action</h2>
+      <DocSection id="slide-action">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Drag the thumb to the end of the track to confirm (flick momentum counts), or release early and it springs
           back. Enter or Space confirms without the slide.
@@ -1637,10 +1596,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.slideAction} />
-      </section>
+      </DocSection>
 
-      <section id="hold-action" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Hold action</h2>
+      <DocSection id="hold-action">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Hold to complete: a liquid fill with a dotted crest rises (or slides) while you press; release early and it
           drains back. A held Enter or Space works the same way.
@@ -1664,10 +1622,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.holdAction} />
-      </section>
+      </DocSection>
 
-      <section id="wallet-card" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Wallet card</h2>
+      <DocSection id="wallet-card">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A wallet overview card: the account switcher and search morph open from their triggers (recents listed in the
           panel), the balance cascades in with a change pill and privacy toggle, the address copies with feedback, the
@@ -1690,10 +1647,9 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.walletCard} />
-      </section>
+      </DocSection>
 
-      <section id="notification-stack" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Notification stack</h2>
+      <DocSection id="notification-stack">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Compact notification cards that spring from a stacked summary into a readable list on hover, focus or tap. Tap
           pins the list open, and the view-all row appears with the expansion. Reduced motion snaps.
@@ -1753,11 +1709,10 @@ const [last, setLast] = createSignal("none")
           </For>
         </div>
         <PropsTable rows={API.notificationStack} />
-      </section>
+      </DocSection>
 
       {/* Step timing */}
-      <section id="step-timing" class="animations-docs-scope mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Step timing</h2>
+      <DocSection id="step-timing" class="animations-docs-scope">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Quantized time for a quantized renderer: <code class="text-foreground/80">steps()</code> samples progress
           instead of interpolating it, the temporal twin of the Bayer threshold. One keyframe run, three clocks: smooth,
@@ -1803,11 +1758,10 @@ const [last, setLast] = createSignal("none")
           </div>
         </DemoCard>
         <PropsTable rows={API.stepTiming} />
-      </section>
+      </DocSection>
 
       {/* Sequences */}
-      <section id="sequences" class="animations-docs-scope mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Sequences</h2>
+      <DocSection id="sequences" class="animations-docs-scope">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Many animations, one clock. The timeline algebra flattens serial chains, parallel groups, staggered waves and
           loops into a single plan; the driver samples it and writes <code class="text-foreground/80">--seq-p</code> +{" "}
@@ -1869,11 +1823,10 @@ const [last, setLast] = createSignal("none")
           gets the settled state with zero frames.
         </p>
         <PropsTable rows={API.sequences} />
-      </section>
+      </DocSection>
 
       {/* Container queries */}
-      <section id="container-queries" class="animations-docs-scope mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Container queries</h2>
+      <DocSection id="container-queries" class="animations-docs-scope">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A card in a sidebar and the same card in a wide main column are not the same card, so stop asking the
           viewport. <code class="text-foreground/80">DitherContainer</code> makes its own box the query target: it
@@ -1942,11 +1895,10 @@ const [last, setLast] = createSignal("none")
           measure the bar itself and <code class="text-foreground/80">vw</code> would measure the viewport.
         </p>
         <PropsTable rows={API.containerQueries} />
-      </section>
+      </DocSection>
 
       {/* Stage: layers in container units */}
-      <section id="stage" class="animations-docs-scope mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Stage</h2>
+      <DocSection id="stage" class="animations-docs-scope">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Layers in container units. A <code class="text-foreground/80">DitherStage</code> is a size query container
           with one clock (the kit's, so it seeks for video), and each{" "}
@@ -2044,7 +1996,7 @@ const [last, setLast] = createSignal("none")
         </p>
         <PropsTable rows={API.stage} />
         <PropsTable rows={API.layer} />
-      </section>
+      </DocSection>
     </>
   )
 }

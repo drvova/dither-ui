@@ -20,6 +20,7 @@ import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 /* The site's own film, as the landing plays it. */
 const TRAILER = assetPath("/trailer/dither-ui.mp4")
@@ -419,8 +420,7 @@ export default function MediaDocs() {
   return (
     <>
       {/* Thumbnail */}
-      <section id="thumbnail" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Thumbnail</h2>
+      <DocSection id="thumbnail">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A picture that is a link. It rests sunk under a Bayer veil and wakes under a pointer: the picture scales up a
           touch inside its frame as the veil dissolves, and the frame keeps its ratio (phi unless you pick one). The
@@ -443,11 +443,10 @@ export default function MediaDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.thumbnail} />
-      </section>
+      </DocSection>
 
       {/* Video player */}
-      <section id="video-player" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Video player</h2>
+      <DocSection id="video-player">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A native video under dither chrome: play, a dithered scrubber that really seeks, a volume slider, playback
           speed, mute, fullscreen, and player keyboard (Space, arrows, M, F). Without a source it shows an honest empty
@@ -459,11 +458,10 @@ export default function MediaDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.video} />
-      </section>
+      </DocSection>
 
       {/* Bracket */}
-      <section id="bracket" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Bracket</h2>
+      <DocSection id="bracket">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A knockout bracket: winners carry the accent, losers strike through, connector rails bridge the rounds. This
           one is interactive: pick every winner and the final fills itself.
@@ -486,11 +484,10 @@ export default function MediaDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.bracket} />
-      </section>
+      </DocSection>
 
       {/* Schedule */}
-      <section id="schedule" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Schedule</h2>
+      <DocSection id="schedule">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A day timeline: events sit proportionally on the hour rail, each with its swatch rail, and the red now line
           slides as the day moves. Drag the hour to move time.
@@ -527,11 +524,10 @@ export default function MediaDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.schedule} />
-      </section>
+      </DocSection>
 
       {/* World (3D) */}
-      <section id="world" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">World (3D)</h2>
+      <DocSection id="world">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A 3D model viewer in the house raster: VRML, X3D, glTF / GLB, OBJ with its MTL, STL, PLY, OFF and Gaussian
           splats, by URL or inline, drawn on the CPU or through WebGL for big meshes. Files bring their own materials,
@@ -726,11 +722,10 @@ export default function MediaDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.world} />
-      </section>
+      </DocSection>
 
       {/* Shader (GLSL) */}
-      <section id="shader" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Shader (GLSL)</h2>
+      <DocSection id="shader">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A fragment shader in the house raster: Shadertoy-style mainImage or a raw main, by URL or inline, run on the
           GPU at the cell resolution and dithered on the way back, one bit per channel or one tint. iTime is the kit
@@ -775,7 +770,7 @@ export default function MediaDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.shader} />
-      </section>
+      </DocSection>
     </>
   )
 }

@@ -11,16 +11,16 @@ import { DOCS, docsTables, kitProps } from "./docs-api"
 /** A table's component is `Dither<Key>` unless it is named here; `null`
  * marks a table that documents functions or options, not a component. */
 const COMPONENT: Record<string, Record<string, string | null>> = {
-  "DocsPage.tsx": {
+  "components/ChartDocs.tsx": {
     // the charts' roots carry no prefix; the three cartesian ones share a table
     cartesian: "AreaChart",
-    motion: "LineChart",
     pie: "PieChart",
     radar: "RadarChart",
     sparkline: "Sparkline",
-    // the palette's functions and its colour type
-    palette: null,
   },
+  "handbook/HandbookDocs.tsx": { motion: "LineChart" },
+  // the palette's functions and its colour type
+  "utils/UtilsDocs.tsx": { palette: null },
   "animations/AnimationsDocs.tsx": {
     ditherReveal: "DitherReveal",
     sequences: "DitherSequence",

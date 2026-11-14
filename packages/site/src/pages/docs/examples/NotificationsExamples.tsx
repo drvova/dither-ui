@@ -3,6 +3,7 @@ import { createMutable } from "solid-js/store"
 import { DitherAvatar, DitherBadge, DitherTabs } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import { dataCode } from "../snippet"
+import DocSection from "../DocSection"
 
 type Notice = {
   id: number
@@ -145,8 +146,7 @@ export default function NotificationsExamples() {
 
   return (
     <>
-      <section class="mt-16 scroll-mt-24" id="notification-center">
-        <h2 class="text-lg tracking-tight">Notifications</h2>
+      <DocSection id="notification-center">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A notification center: segmented All/Unread tabs, day groups, and an unread dot that clears on click or all at
           once. Empty the unread tab and it says so instead of showing nothing.
@@ -224,7 +224,7 @@ export default function NotificationsExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
     </>
   )
 }

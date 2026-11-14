@@ -5,4 +5,4 @@ export const MEDIA_NAV = [
   { id: "schedule", label: "Schedule" },
   { id: "world", label: "World (3D)" },
   { id: "shader", label: "Shader (GLSL)" },
-]
+] as const

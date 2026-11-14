@@ -29,4 +29,4 @@ export const FORMS_NAV = [
   { id: "color-picker", label: "ColorPicker" },
   { id: "knob", label: "Knob" },
   { id: "signature-pad", label: "SignaturePad" },
-]
+] as const
