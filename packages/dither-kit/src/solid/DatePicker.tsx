@@ -5,9 +5,10 @@ import ClickOutside from "./ClickOutside"
 import Icon from "./Icon"
 
 /** Date field + calendar popover: the input shows the ISO value in a human
- * format, the calendar opens on click/focus, select closes, Escape and
- * outside-click dismiss (ClickOutside, capture-phase). The model stays ISO
- * YYYY-MM-DD. */
+ * format, the calendar opens on a click (Enter or Space from the keyboard;
+ * focus alone opens nothing) with focus on its day, select closes, Escape
+ * and outside-click dismiss (ClickOutside, capture-phase); a pick or Escape
+ * hands focus back to the field. The model stays ISO YYYY-MM-DD. */
 export type DatePickerProps = {
   modelValue?: string
   placeholder?: string
@@ -23,6 +24,20 @@ export default function DatePicker(raw: DatePickerProps) {
   const props = mergeProps({ placeholder: "YYYY-MM-DD", disabled: false }, raw)
 
   const [open, setOpen] = createSignal(false)
+  let trigger: HTMLButtonElement | undefined
+  let panel: HTMLDivElement | undefined
+  /** Open, and focus the calendar's day (the picked one, else today). */
+  function show() {
+    setOpen(true)
+    queueMicrotask(() =>
+      (panel?.querySelector<HTMLElement>('[tabindex="0"]') ?? panel?.querySelector("button"))?.focus(),
+    )
+  }
+  /** Close; from the keyboard's Escape or a pick, focus goes back to the field. */
+  function close(back: boolean) {
+    setOpen(false)
+    if (back) trigger?.focus()
+  }
 
   const human = createMemo(() => {
     if (!props.modelValue) return ""
@@ -34,33 +49,38 @@ export default function DatePicker(raw: DatePickerProps) {
 
   function onSelect(value: string) {
     props.onSelect?.(value)
-    setOpen(false)
+    close(true)
   }
 
   return (
-    <ClickOutside enabled={open()} onOutside={() => setOpen(false)}>
+    <ClickOutside enabled={open()} onOutside={() => close(false)}>
       <div
         class={cn("relative", props.class)}
         on:keydown={(e) => {
           if (e.key !== "Escape") return
           e.stopPropagation()
-          setOpen(false)
+          close(open())
         }}
       >
         <button
+          ref={(el) => (trigger = el)}
           type="button"
           disabled={props.disabled}
           aria-haspopup="dialog"
           aria-expanded={open()}
           class="flex min-h-10 w-full items-center gap-2 rounded-md border border-border bg-background/60 px-3 py-2 text-left font-mono text-[13px] text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-placeholder hover:border-foreground/25 focus-visible:border-ring disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none"
-          onClick={() => setOpen(!open())}
-          onFocus={() => setOpen(true)}
+          onClick={() => (open() ? close(false) : show())}
         >
           <span class={cn("flex-1", !props.modelValue && "text-muted-foreground")}>{human() || props.placeholder}</span>
           <Icon name="Calendar" size={14} class="shrink-0 text-muted-foreground" />
         </button>
         <Show when={open()}>
-          <div role="dialog" aria-label="Pick a date" class="absolute left-0 top-full z-30 mt-1 shadow-lg">
+          <div
+            ref={(el) => (panel = el)}
+            role="dialog"
+            aria-label="Pick a date"
+            class="absolute left-0 top-full z-30 mt-1 shadow-lg"
+          >
             <Calendar
               modelValue={props.modelValue}
               min={props.min}

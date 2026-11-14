@@ -55,7 +55,9 @@ export default function DitherRail(raw: DitherRailProps) {
       <SIDEBAR_COMPACT.Provider value={() => false}>
         <aside aria-label={props.label} class={cn(styles.aside, edge(), styles.aside2, props.xstyle, props.class)}>
           {props.header}
-          <nav {...stylex.props(styles.nav)}>{props.children}</nav>
+          <nav aria-label={props.label} {...stylex.props(styles.nav)}>
+            {props.children}
+          </nav>
           {props.footer}
         </aside>
       </SIDEBAR_COMPACT.Provider>

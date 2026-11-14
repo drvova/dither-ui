@@ -492,6 +492,22 @@ describe("DitherMentionInput", () => {
     fireEvent.keyDown(field, { key: "Escape" })
     expect(queryByRole("listbox")).toBeNull()
   })
+
+  it("opens nothing as Tab comes in, so Tab always leaves: once to insert, then on", () => {
+    const { field, type, value, queryByRole } = setup()
+    type("cc @al")
+    fireEvent.keyDown(field, { key: "Escape" })
+    // Tab arriving: its keyup lands on the field with the caret after an @
+    fireEvent.keyUp(field, { key: "Tab" })
+    expect(queryByRole("listbox")).toBeNull()
+    expect(fireEvent.keyDown(field, { key: "Tab" })).toBe(true)
+    type("cc @al")
+    expect(fireEvent.keyDown(field, { key: "Tab" })).toBe(false)
+    expect(value()).toBe("cc @alice ")
+    fireEvent.keyUp(field, { key: "Tab" })
+    expect(queryByRole("listbox")).toBeNull()
+    expect(fireEvent.keyDown(field, { key: "Tab" })).toBe(true)
+  })
 })
 
 describe("DitherNumberFlow", () => {

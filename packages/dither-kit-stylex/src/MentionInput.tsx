@@ -72,7 +72,9 @@ const styles = stylex.create({
 /** @-mention autocomplete over a textarea: detection is a regex on the text
  * before the caret (`/@(\w*)$/`), the list anchors to the field (not the
  * caret — no mirror div), Arrow keys pick, Enter/Tab inserts, Escape closes.
- * Selection replaces the @query and leaves the caret after a space. */
+ * Selection replaces the @query and leaves the caret after a space. A key
+ * that moves no caret (Tab coming in, Escape) opens nothing, so Tab always
+ * leaves: once to insert, then on. */
 export type MentionInputProps = {
   modelValue?: string
   options?: string[]
@@ -84,6 +86,9 @@ export type MentionInputProps = {
   onUpdateModelValue?: (value: string) => void
   onMention?: (value: string) => void
 }
+
+/** Keys that move no caret: their keyup never opens the list. */
+const STILL_KEYS = new Set(["Tab", "Escape", "Shift", "Control", "Alt", "Meta", "Enter"])
 
 export default function MentionInput(raw: MentionInputProps) {
   const props = mergeProps(
@@ -163,7 +168,7 @@ export default function MentionInput(raw: MentionInputProps) {
         disabled={props.disabled}
         class={cn(styles.textarea, props.xstyle, props.class)}
         onInput={(e) => props.onUpdateModelValue?.(e.currentTarget.value)}
-        onKeyUp={syncOpen}
+        onKeyUp={(e) => STILL_KEYS.has(e.key) || syncOpen()}
         onClick={syncOpen}
         onKeyDown={onKeydown}
       />

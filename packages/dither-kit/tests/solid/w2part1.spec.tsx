@@ -31,6 +31,7 @@ import { FieldContextKey } from "../../src/solid/runtime/field"
 import ScrollVelocity from "../../src/solid/ScrollVelocity"
 import TransferList from "../../src/solid/TransferList"
 import TrueFocus from "../../src/solid/TrueFocus"
+import { CONTROL_INVALID } from "../../src/tailwind/control"
 import { world } from "../support/world"
 
 const OPTIONS: Option[] = [
@@ -254,6 +255,8 @@ describe("DitherSelect", () => {
     expect(trigger.id).toBe("f1")
     expect(trigger.getAttribute("aria-describedby")).toBe("f1-help")
     expect(trigger.getAttribute("aria-invalid")).toBe("true")
+    // its edge is the signal ink's, which no focus class outranks: focus rings it instead
+    for (const c of CONTROL_INVALID.split(" ")) expect(trigger.classList.contains(c)).toBe(true)
   })
 })
 

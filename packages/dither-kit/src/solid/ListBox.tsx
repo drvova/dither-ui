@@ -8,6 +8,9 @@ export type ListBoxProps = {
   class?: string
   onUpdateModelValue?: (value: string) => void
   onSelect?: (value: string) => void
+  /** The list's accessible name (passed on to the listbox). */
+  "aria-label"?: string
+  "aria-labelledby"?: string
 }
 
 /** Single-select listbox with roving focus (the WAI-ARIA keyboard contract):
@@ -59,6 +62,8 @@ export default function ListBox(raw: ListBoxProps) {
   return (
     <ul
       role="listbox"
+      aria-label={props["aria-label"]}
+      aria-labelledby={props["aria-labelledby"]}
       aria-activedescendant={describedBy()}
       aria-disabled={props.disabled || undefined}
       tabindex={props.disabled ? -1 : 0}

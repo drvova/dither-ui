@@ -10,7 +10,8 @@ const styles = stylex.create({
 })
 
 /** Shortcut capture: the field listens, modifiers hold until a non-modifier
- * arrives, Escape clears. Value shape: `Ctrl+Shift+K` (order Ctrl, Alt,
+ * arrives, Escape clears, Tab and Shift+Tab move focus on as anywhere (a
+ * bare Tab is never a shortcut: taking it would trap the keyboard). Value shape: `Ctrl+Shift+K` (order Ctrl, Alt,
  * Shift, Meta + normalized key). Repeat keys are ignored so holding a combo
  * doesn't re-fire. */
 type Own = {
@@ -47,6 +48,7 @@ export default function HotkeyInput(raw: HotkeyInputProps) {
 
   function onKeydown(e: KeyboardEvent) {
     if (props.disabled) return
+    if (e.key === "Tab" && !e.ctrlKey && !e.altKey && !e.metaKey) return
     if (e.key === "Escape") {
       e.preventDefault()
       props.onUpdateModelValue?.("")

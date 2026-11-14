@@ -12,7 +12,7 @@ import {
 } from "solid-js"
 import { cssColor } from "../engine/palette"
 import type { PixelColor } from "../engine/pixel"
-import { CONTROL, POPOVER } from "../tailwind/control"
+import { CONTROL, CONTROL_INVALID, POPOVER } from "../tailwind/control"
 import { cn } from "../tailwind/lib"
 import { useField } from "./runtime/field"
 import { Presence } from "./runtime/presence"
@@ -133,7 +133,7 @@ export default function DitherSelect(raw: DitherSelectProps) {
         id={field?.controlId()}
         disabled={props.disabled}
         style={invalid() ? { "border-color": cssColor("red") } : undefined}
-        class={cn(CONTROL, "flex w-full items-center justify-between gap-3 text-left")}
+        class={cn(CONTROL, invalid() && CONTROL_INVALID, "flex w-full items-center justify-between gap-3 text-left")}
         {...rest}
         ref={(el) => (trigger = el)}
         // Its own listeners, beside any handed in with the rest.
