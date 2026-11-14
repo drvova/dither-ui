@@ -130,6 +130,18 @@ export const DISPLAY_FACE: Record<RouteName, boolean> = {
   studio: false,
 }
 
+/** Whether a page turns with the reader's theme, so the shell sets the
+ * stored one on the root before the first paint (`THEME_HEAD_SCRIPT`):
+ * the docs and the Studio do; the landing and the missing page are
+ * printed in the dark, always. Without it a reader in light met the
+ * prerendered dark until the app mounted. */
+export const TURNS_WITH_THEME: Record<RouteName, boolean> = {
+  landing: false,
+  docs: true,
+  missing: false,
+  studio: true,
+}
+
 /** The page an app path (`appPathname`) opens on, as the routes resolve
  * it: a docs address is the docs only when its section exists, and any
  * other address none of the pages own is the missing page. `null` for an

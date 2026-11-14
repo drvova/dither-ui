@@ -4,6 +4,11 @@ import { storage } from "@/shared/lib/storage"
 
 const STORAGE_KEY = "dither-theme"
 
+/** The head's script on a page that turns with the reader's theme: the
+ * stored theme on the root before the first paint, as `useTheme` sets it
+ * when the app mounts (the bytes are rendered dark). */
+export const THEME_HEAD_SCRIPT = `try{document.documentElement.classList.toggle("dark",localStorage.getItem(${JSON.stringify(STORAGE_KEY)})!=="light")}catch(e){}`
+
 let killSwitch: HTMLStyleElement | null = null
 
 /** Run a DOM change with every CSS transition disabled for one frame, so a

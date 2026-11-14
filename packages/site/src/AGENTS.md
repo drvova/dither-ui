@@ -816,8 +816,13 @@ around this tree (entries, routes, the build, how Solid is written) is
   script) sets `rise-wait` on `<html>` unless the reader asks for reduced
   motion, styles.css keeps unrisen `[data-rise]` out of sight under it,
   and the app takes over (`data-rise="live"`) or the wait lets go after
-  3s. The theme toggle (`useTheme`'s
-  `revealToggle`) dithers the new theme in as an iris from its control.
+  3s. On a page that turns with the reader's theme (`TURNS_WITH_THEME`
+  in `pages/docs/heads.ts`: the docs and the Studio) `THEME_HEAD_SCRIPT`
+  (`shared/lib/useTheme.ts`, beside the storage key it reads) sets the
+  stored theme on `<html>` before the first paint, so a reader in light
+  never meets the dark bytes until the app mounts. The theme toggle
+  (`useTheme`'s `revealToggle`) dithers the new theme in as an iris from
+  its control.
 - Install and offline (the Studio is a PWA; the landing and the docs are
   not): `app/offline.ts` names the app's path (`OFFLINE.app`, `studio/`)
   that the manifest's place, the worker's scope and its kept page all

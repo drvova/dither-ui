@@ -20,9 +20,17 @@ import { docsBreadcrumb, docsMeta, SITE_URL } from "@/pages/docs/seo"
 import { type HeadTag, ROUTE_CARDS, sectionTags, shareCards, shareTags, tagHtml } from "@/pages/docs/share-cards"
 import { ROUTE_TITLES } from "@/shared/config/titles"
 import { RISE_HEAD_SCRIPT } from "@/shared/lib/rise-wait"
+import { THEME_HEAD_SCRIPT } from "@/shared/lib/useTheme"
 import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
 import { siteFileList, siteFiles } from "../../build/site-files"
-import { BREADCRUMB_ID, DISPLAY_FACE, pageOf, pageTags, type SitePage } from "../../src/pages/docs/heads"
+import {
+  BREADCRUMB_ID,
+  DISPLAY_FACE,
+  pageOf,
+  pageTags,
+  type SitePage,
+  TURNS_WITH_THEME,
+} from "../../src/pages/docs/heads"
 import PageHead from "../../src/pages/docs/PageHead"
 import { legacyAddress } from "../../src/shared/lib/legacy"
 
@@ -308,6 +316,7 @@ describe("the shell and the routes", () => {
       "data-page={page ?? undefined}",
       "<script innerHTML={PAGE_REVEAL_SCRIPT} />",
       "<script innerHTML={RISE_HEAD_SCRIPT} />",
+      "<script innerHTML={THEME_HEAD_SCRIPT} />",
       '<script type="speculationrules" innerHTML={speculationRules(import.meta.env.BASE_URL)} />',
       "<For each={ICON_HEAD}>",
       '<link href={michroma} rel="preload" as="font" crossorigin="" />',
@@ -320,6 +329,22 @@ describe("the shell and the routes", () => {
     // the marker the hand-off waits for is the last thing in the body
     expect(shell.indexOf("{scripts}")).toBeLessThan(shell.indexOf("PAGE_END_ID} hidden"))
     expect(PAGE_REVEAL_SCRIPT).toContain(`#${PAGE_END_ID}`)
+  })
+
+  it("sets the reader's stored theme before the first paint, as the app then keeps it", () => {
+    const root = document.documentElement
+    const run = (stored: string | null) => {
+      root.classList.add("dark")
+      if (stored === null) localStorage.removeItem("dither-theme")
+      else localStorage.setItem("dither-theme", stored)
+      new Function(THEME_HEAD_SCRIPT)()
+      return root.classList.contains("dark")
+    }
+    expect(run("light")).toBe(false)
+    expect(run("dark")).toBe(true)
+    expect(run(null)).toBe(true)
+    localStorage.removeItem("dither-theme")
+    root.classList.remove("dark")
   })
 
   it("takes the page transition the head's script parked", () => {
@@ -378,6 +403,8 @@ describe.skipIf(!existsSync(join(OUT, "index.html")))("the built pages", () => {
       const inline = [...doc.head.querySelectorAll("script:not([type]):not([src])")].map((s) => s.textContent)
       expect(inline).toContain(PAGE_REVEAL_SCRIPT)
       expect(inline).toContain(RISE_HEAD_SCRIPT)
+      // a page that turns with the reader's theme takes the stored one before its first paint
+      expect(inline.includes(THEME_HEAD_SCRIPT), "theme").toBe(TURNS_WITH_THEME[name])
       expect(doc.head.querySelector("script[type=speculationrules]")!.textContent).toBe(speculationRules("/"))
       for (const t of ICON_HEAD) {
         const link = doc.head.querySelector(`link[rel="${t.attrs.rel}"][href="/${t.attrs.href}"]`)

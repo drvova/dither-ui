@@ -82,7 +82,8 @@ are from the repository's.
   its own theme colour (the Studio also the app's tags, `APP_HEAD`, and
   the worker's registration). The shell (`entry-server.tsx`) carries what
   every site page shares: `data-page` on `<html>` from the request's
-  path, the icons, the display face's preload on the pages that set it (`DISPLAY_FACE`), the page-reveal and rise
+  path, the icons, the display face's preload on the pages that set it (`DISPLAY_FACE`), the stored theme on the
+  pages that turn with it (`TURNS_WITH_THEME`), the page-reveal and rise
   scripts, the speculation rules and the `#page-end` marker.
   `entry-client.tsx` takes the page transition the head script parks,
   installs the press (`shared/lib/press.ts`, one listener for every page),
@@ -95,7 +96,8 @@ are from the repository's.
   back once, a microtask after the writes of a turn, which history,
   autosave and the agent's mirror depend on. Stored choices (theme,
   sounds, styling, the Studio's document) are restored in
-  `onMount`, never at module load or render.
+  `onMount`, never at module load or render (the theme is also set on
+  the root by the head's script, before the first paint).
 - A parent's `onMount` runs before its children's: what a child measures
   in its mount is read by the parent in an effect or a microtask later,
   never in its own `onMount`.
