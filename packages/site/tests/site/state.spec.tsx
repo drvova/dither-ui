@@ -761,6 +761,28 @@ describe("keyboard", () => {
     editor.inspecting = false
   })
 
+  it("steps aside in a select, whose keys choose, and answers over a menu's button", () => {
+    addArtboard("area")
+    const { getByLabelText, getByRole } = render(() => (
+      <>
+        <Keys />
+        <select aria-label="kind">
+          <option>area</option>
+        </select>
+        <div role="menu">
+          <button role="menuitem">Rename</button>
+        </div>
+      </>
+    ))
+    const select = getByLabelText("kind")
+    select.focus()
+    select.dispatchEvent(key("Backspace"))
+    select.dispatchEvent(key("d", { metaKey: true }))
+    expect(editor.artboards).toHaveLength(1)
+    getByRole("menuitem").dispatchEvent(key("d", { metaKey: true }))
+    expect(editor.artboards).toHaveLength(2)
+  })
+
   it("undoes and redoes from the keys", async () => {
     vi.useFakeTimers()
     startHistory()
@@ -824,12 +846,18 @@ describe("ShortcutsHelp", () => {
     const { queryByRole, getByRole, getByText, unmount } = render(() => (
       <>
         <input aria-label="field" />
+        <select aria-label="kind">
+          <option>area</option>
+        </select>
         <ShortcutsHelp />
       </>
     ))
     expect(queryByRole("dialog")).toBeNull()
     // Typed in a field, a question mark is a question mark.
     getByRole("textbox").dispatchEvent(key("?"))
+    expect(queryByRole("dialog")).toBeNull()
+    // In a select a question mark picks the option it starts.
+    getByRole("combobox").dispatchEvent(key("?"))
     expect(queryByRole("dialog")).toBeNull()
     const asked = key("?")
     window.dispatchEvent(asked)

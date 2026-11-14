@@ -1,4 +1,5 @@
 import { focusOnOpen } from "@/shared/lib/hand"
+import { isTyping } from "@/shared/lib/keys"
 
 /** Roving keyboard navigation for a `role="menu"`: ArrowUp/ArrowDown move
  * focus between its enabled `menuitem`s (wrapping), Home/End jump. Attach
@@ -7,8 +8,7 @@ export function menuKeydown(e: KeyboardEvent) {
   const menu = (e.currentTarget as HTMLElement | null) ?? (e.target as HTMLElement).closest<HTMLElement>("[role=menu]")
   if (!menu) return
   // A text field inside the menu (inline naming) keeps its own keys.
-  const t = e.target as HTMLElement
-  if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t.isContentEditable) return
+  if (isTyping(e.target)) return
   if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) return
   const items = [...menu.querySelectorAll<HTMLElement>("[role=menuitem]:not([disabled])")]
   if (items.length === 0) return

@@ -604,7 +604,11 @@ around this tree (entries, routes, the build, how Solid is written) is
   through one table, `pageKeyOf`: ⌘K search, ⌘I the chat, ⌘B the
   sidebar from anywhere, ⌘⇧↑ / ⌘⇧↓ the chat before or after outside a
   field; the canvas's arrows nudge only without ⌘); every new shortcut
-  also gets a row in `ShortcutsHelp.tsx`.
+  also gets a row in `ShortcutsHelp.tsx`. What a field is, where no
+  shortcut, Space-to-pan, `?`, a menu's arrows or the workbench's keys
+  answer, is one rule, `isTyping` in `shared/lib/keys.ts`: an input, a
+  textarea, a select, anything contenteditable; a button (a menu's items
+  too) is not one.
 - Pointer transforms use `features/artboard-transform`'s `startDrag`; it filters by
   pointer id and owns pointer-up/cancel/unmount cleanup. Artboard surfaces drag
   only from non-interactive regions so live controls retain pointer ownership.

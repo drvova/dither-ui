@@ -17,12 +17,8 @@ import {
   zoomIn,
   zoomOut,
 } from "../../entities/editor"
+import { isTyping } from "@/shared/lib/keys"
 import { redo, undo } from "../history"
-
-const isTyping = (t: EventTarget | null) => {
-  const el = t as HTMLElement | null
-  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
-}
 
 /** Familiar editor keybindings, installed at the canvas level. While the
  * workbench inspects the canvas its keys are the ones that count, so these

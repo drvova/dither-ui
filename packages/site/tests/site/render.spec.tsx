@@ -435,6 +435,28 @@ describe("the canvas", () => {
     expect(container.querySelector<HTMLElement>(".w-px")?.style.left).toBe("230px")
   })
 
+  it("leaves Space to a focused select or field, and pans over a button", () => {
+    const { container } = render(() => (
+      <>
+        <select aria-label="kind">
+          <option>area</option>
+          <option>bar</option>
+        </select>
+        <input aria-label="name" />
+        <button>key</button>
+        <Canvas />
+      </>
+    ))
+    const host = container.querySelector(".dk-canvas")!
+    for (const sel of ["select", "input"]) {
+      container.querySelector(sel)!.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }))
+      expect(host.className, sel).not.toContain("cursor-grab")
+    }
+    container.querySelector("button")!.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }))
+    expect(host.className).toContain("cursor-grab")
+    window.dispatchEvent(new KeyboardEvent("keyup", { key: " " }))
+  })
+
   it("shows the pick bar while picking, counts what was picked, and ends on Esc or Done", () => {
     const a = frame("button")
     const { container, getByText } = render(() => <Canvas />)

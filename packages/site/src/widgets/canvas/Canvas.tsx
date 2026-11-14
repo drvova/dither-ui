@@ -6,6 +6,7 @@ import { handoff } from "@/features/agent/handoff"
 import { useShortcuts } from "@/features/keyboard"
 import { usePanZoom } from "@/features/pan-zoom"
 import { followPointer } from "@/shared/lib/follow"
+import { isTyping } from "@/shared/lib/keys"
 import Artboard from "./Artboard"
 import SelectionAsk from "./SelectionAsk"
 import "./Canvas.css"
@@ -13,11 +14,6 @@ import "./Canvas.css"
 /** What the canvas hands the page that holds it: its element, and the layer
  * the frames stand in (what the workbench inspects). */
 export type CanvasApi = { host: HTMLElement; world: HTMLElement }
-
-const isTyping = (t: EventTarget | null) => {
-  const el = t as HTMLElement | null
-  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
-}
 
 export default function Canvas(props: { ref?: (api: CanvasApi) => void }) {
   let host: HTMLDivElement | undefined

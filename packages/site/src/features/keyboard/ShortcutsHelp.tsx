@@ -1,6 +1,7 @@
 import { DitherFocusScope, DitherIcon } from "@dither-ui/kit"
 import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
 import { createSignal, For, onCleanup, onMount } from "solid-js"
+import { isTyping } from "@/shared/lib/keys"
 import "./ShortcutsHelp.css"
 
 const GROUPS: { title: string; keys: [string, string][] }[] = [
@@ -43,11 +44,6 @@ const GROUPS: { title: string; keys: [string, string][] }[] = [
     ],
   },
 ]
-
-const isTyping = (t: EventTarget | null) => {
-  const el = t as HTMLElement | null
-  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
-}
 
 export default function ShortcutsHelp() {
   const [open, setOpen] = createSignal(false)
