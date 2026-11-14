@@ -505,6 +505,21 @@ describe("DitherVideoPlayer", () => {
     expect(getByRole("button", { name: "Play" })).toBeTruthy()
   })
 
+  it("stays as it stands, throwing nothing, when the browser refuses fullscreen", async () => {
+    // what Gecko answers a window that is not the focused one
+    const refused = Promise.reject(new TypeError("Fullscreen request denied"))
+    const handled = vi.spyOn(refused, "catch")
+    const { getByRole } = render(() => <DitherVideoPlayer src="/film.mp4" />)
+    const host = getByRole("group", { name: "Video" })
+    const request = vi.fn(() => refused)
+    host.requestFullscreen = request
+    fireEvent.click(getByRole("button", { name: "Fullscreen" }))
+    fireEvent.keyDown(host, { key: "f" })
+    expect(request).toHaveBeenCalledTimes(2)
+    expect(handled).toHaveBeenCalledTimes(2)
+    await refused.catch(() => {})
+  })
+
   it("mutes, changes speed and seeks", () => {
     const { getByRole, container } = render(() => <DitherVideoPlayer src="/film.mp4" />)
     const host = getByRole("group", { name: "Video" })

@@ -414,7 +414,9 @@ generated twin. Inside the kit every import is relative
   combobox, autocomplete) keeps focus on `pointerdown` and picks
   on `click`, so a finger that scrolls the list picks nothing. The video
   player falls back to the video's own fullscreen
-  (`webkitEnterFullscreen`) where an element has none (an iPhone) and
+  (`webkitEnterFullscreen`) where an element has none (an iPhone), stays
+  as it stands where the browser refuses the request (Gecko, a window
+  without focus; a refused `play()` likewise), and
   shows its volume slider only where volume is not locked (iOS ties it to
   the hardware buttons): `:volume-locked` where the engine knows the
   selector (a write there can read back, then revert), else a write that

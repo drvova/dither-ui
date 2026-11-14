@@ -113,7 +113,9 @@ export default function DitherVideoPlayer(raw: DitherVideoPlayerProps) {
   }
   function fullscreen() {
     // An iPhone has no element fullscreen; its video takes the system's own.
-    if (host?.requestFullscreen) void host.requestFullscreen()
+    // A request the browser refuses (a window without focus, a frame not
+    // allowed it) leaves the player as it stands.
+    if (host?.requestFullscreen) host.requestFullscreen().catch(() => {})
     else (video() as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | undefined)?.webkitEnterFullscreen?.()
   }
 
