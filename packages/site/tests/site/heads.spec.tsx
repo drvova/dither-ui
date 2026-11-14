@@ -198,10 +198,13 @@ describe("the page an address opens on", () => {
     expect(legacyAddress("#/studio/")).toBe("/studio")
     expect(legacyAddress("#/studio/new/film")).toBe("/studio#new/film")
     for (const hash of ["", "#", "#build", "#docs", "#/play"]) expect(legacyAddress(hash), hash).toBeNull()
-    // the entry applies it before the app mounts, on the landing only
+    // the entry applies it before the app mounts, on the landing only; the
+    // app mounts once the page's stylesheets stand (its script runs async)
     const entry = read(SITE, "src/entry-client.tsx")
     expect(entry).toMatch(/isLanding\(appPathname\(\)\) \? legacyAddress\(location\.hash\) : null/)
-    expect(entry).toMatch(/if \(legacy\) location\.replace\(routePath\(legacy\)\)\s+else mount\(/)
+    expect(entry).toMatch(
+      /if \(legacy\) location\.replace\(routePath\(legacy\)\)\s+else void sheetsReady\(\)\.then\(\(\) => mount\(/,
+    )
   })
 })
 

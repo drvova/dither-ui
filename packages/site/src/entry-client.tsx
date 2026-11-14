@@ -2,6 +2,7 @@
 import { mount, StartClient } from "@solidjs/start/client"
 import { ditherViewTransition } from "@dither-ui/kit/engine/transition.ts"
 import { pageTransitionOptions, takePageTransition } from "@/app/page-reveal"
+import { sheetsReady } from "@/app/sheets-ready"
 import { appPathname, isLanding, routePath } from "@/shared/lib/routes"
 import { legacyAddress } from "@/shared/lib/legacy"
 import { installPress } from "@/shared/lib/press"
@@ -15,7 +16,8 @@ takePageTransition((arrival) => void ditherViewTransition(arrival, pageTransitio
 installPress()
 
 // An old hash link (`/#/docs/<id>`, `/#/studio/...`) leaves for the page it
-// names, in place of the entry it came by; any other address mounts.
+// names, in place of the entry it came by; any other address mounts, once
+// the page's stylesheets stand (this script runs async, ahead of them).
 const legacy = isLanding(appPathname()) ? legacyAddress(location.hash) : null
 if (legacy) location.replace(routePath(legacy))
-else mount(() => <StartClient />, document.getElementById("app")!)
+else void sheetsReady().then(() => mount(() => <StartClient />, document.getElementById("app")!))

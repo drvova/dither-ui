@@ -75,8 +75,10 @@ are from the repository's.
   scripts, the speculation rules and the `#page-end` marker.
   `entry-client.tsx` takes the page transition the head script parks,
   installs the press (`shared/lib/press.ts`, one listener for every page),
-  and sends a legacy hash address (`/#/docs/<id>`, `/#/studio…`;
-  `shared/lib/legacy.ts`) to its page before mounting.
+  sends a legacy hash address (`/#/docs/<id>`, `/#/studio…`;
+  `shared/lib/legacy.ts`) to its page, and mounts once the page's
+  stylesheets stand (`app/sheets-ready.ts`: SolidStart's entry script is
+  async and ran ahead of them on a busy load; `tests/sheets-ready.spec.ts`).
 - State: the editor store and the stores around it are `createMutable`;
   `watch` from the editor barrel (`entities/editor/model/watch.ts`) calls
   back once, a microtask after the writes of a turn, which history,

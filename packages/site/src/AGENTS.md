@@ -26,7 +26,8 @@ around this tree (entries, routes, the build, how Solid is written) is
 ## Ownership
 
 - `app/` — global styles/tokens (`styles.css`), the page transition's
-  hand-off (`page-reveal.ts`), the install surface (`install-files.ts`)
+  hand-off (`page-reveal.ts`), the wait for the page's stylesheets before
+  the app mounts (`sheets-ready.ts`), the install surface (`install-files.ts`)
   and the Studio's service worker (`sw.ts`, its rules in `offline.ts`).
   The entries, the shell and the routes stand at the tree's top
   (`entry-client.tsx`, `entry-server.tsx`, `app.tsx`, `routes/`).
