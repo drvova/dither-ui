@@ -1,5 +1,6 @@
 // @rstest-environment jsdom
 import { describe, expect, it } from "rstack/test"
+import { bytesToBase64, fromBase64Url, toBase64Url } from "@/shared/lib/base64"
 import { crc32, zip } from "@/shared/lib/files"
 import { asTsx, snippetKind } from "@/widgets/source/model/snippet"
 import * as stylex from "@/widgets/source/model/stylex"
@@ -142,6 +143,14 @@ export default function Example() {
 describe("files out", () => {
   it("checksums with CRC-32", () => {
     expect(crc32(new TextEncoder().encode("123456789"))).toBe(0xcbf43926)
+  })
+
+  it("writes bytes and text as base64 past a chunk, as Node does", () => {
+    const bytes = Uint8Array.from({ length: 0x8000 * 3 + 7 }, (_, i) => (i * 131) & 255)
+    expect(bytesToBase64(bytes)).toBe(Buffer.from(bytes).toString("base64"))
+    const text = "théme ✓ ".repeat(9000)
+    expect(toBase64Url(text)).toBe(Buffer.from(text).toString("base64url"))
+    expect(fromBase64Url(toBase64Url(text))).toBe(text)
   })
 
   it("writes a zip every unzip reads", () => {

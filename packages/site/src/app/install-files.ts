@@ -9,6 +9,7 @@
 // TypeScript, so its imports carry `.ts`.
 import { deflateSync } from "node:zlib"
 import { ROUTE_CARDS } from "../pages/docs/crawler-files.ts"
+import { crc32 } from "../shared/lib/files.ts"
 import { MARK_CELLS } from "../shared/ui/brand-mark.ts"
 import { OFFLINE } from "./offline.ts"
 
@@ -43,17 +44,6 @@ export function iconPixels(size: number, span: number): Uint8Array {
       for (let x = 0; x < cell; x++) px.set([...ink, 255], ((at + m.y * cell + y) * size + at + m.x * cell + x) * 4)
   }
   return px
-}
-
-const CRC = Array.from({ length: 256 }, (_, n) => {
-  let c = n
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
-  return c >>> 0
-})
-function crc32(bytes: Uint8Array): number {
-  let c = 0xffffffff
-  for (const b of bytes) c = CRC[(c ^ b) & 0xff] ^ (c >>> 8)
-  return (c ^ 0xffffffff) >>> 0
 }
 
 /** RGBA pixels as a PNG: 8 bits a channel, every row unfiltered. */

@@ -112,7 +112,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   landing can load without the docs IA), lib (theme, routes (with `safeUrl`,
   the ONE test of a URL a document may carry into an href or a src: http(s),
   mailto, a raster `data:` image or a relative path, read as the browser reads
-  it), base64, menu, `storage.ts` — the ONE path to localStorage
+  it), base64 (`bytesToBase64`, the one chunked encoding: a document's URL
+  fragment and the share cards' files go through it), menu, `storage.ts` — the ONE path to localStorage
   (`storage.get/set/remove`, `readJson` → `unknown` for the caller to parse,
   `writeJson`), never throwing where storage is blocked or full — `sfc.ts` —
   the ONE way the code generators put a document value into a component file
@@ -162,7 +163,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   `prefers-reduced-motion: no-preference` (`tests/scroll-scene.spec.ts`,
   `tests/site/scroll-scene.spec.tsx`) —
   `files.ts` — `download()` and a stored .zip of text files, the ONE download
-  path for the Studio's exports, the workbench and the source panel —
+  path for the Studio's exports, the workbench and the source panel, and the
+  ONE `crc32` (the zip's entries, the icons' PNG chunks) —
   `words.ts` — `breakable`, a camelCase name with a break point at each hump,
   for display only (the inspector's names) — `restyle.ts` — the reader's
   choice of styling system, kept across visits, over the `@dither-ui/restyle` package (a
@@ -842,7 +844,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   `start_url` and `scope` all `.`, standalone, the Studio's dark ground
   as background and theme, icons a folder up), every icon drawn from
   `MARK_CELLS` as a PNG it encodes itself (the maskable one's mark inside
-  the 80% safe circle) and the tab's SVG, all listed by `installFiles()`
+  the 80% safe circle; its chunks' CRC-32 is `shared/lib/files.ts`'s) and
+  the tab's SVG, all listed by `installFiles()`
   and emitted by the `siteFiles` plugin, and the head tables the pages
   render (`ICON_HEAD`, the icons, on every site page from the shell;
   `APP_HEAD`, the manifest and iOS's app tags, on the Studio's route

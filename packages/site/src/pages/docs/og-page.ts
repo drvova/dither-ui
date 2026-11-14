@@ -7,6 +7,7 @@
 // place for a look. Sections come from ./sections.json (the crawler
 // plugin's manifest), routes from ROUTE_CARDS.
 import "@/shared/fonts/display.css"
+import { bytesToBase64 } from "@/shared/lib/base64"
 import { encodeGif } from "@/shared/lib/gif"
 import { MARK_CELLS } from "@/shared/ui/brand-mark"
 import { ROUTE_CARDS } from "./crawler-files"
@@ -219,12 +220,6 @@ function draw(card: Sheet, phase: number) {
   statement(card, ink)
 }
 
-function base64(bytes: Uint8Array) {
-  let s = ""
-  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
-  return btoa(s)
-}
-
 const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
 
 window.og = {
@@ -250,7 +245,7 @@ window.og = {
       ...ogInks(card).map((c) => [...c]),
     ]
     const gif = encodeGif(frames, OG_W, OG_H, OG_DELAY, { keep })
-    return { png: canvas.toDataURL("image/png").split(",")[1], gif: base64(gif) }
+    return { png: canvas.toDataURL("image/png").split(",")[1], gif: bytesToBase64(gif) }
   },
 }
 

@@ -3,7 +3,7 @@
 // from the brand mark (`app/install-files.ts`), the head each route carries,
 // and the service worker's rules (`app/offline.ts`).
 import { existsSync, readFileSync } from "node:fs"
-import { inflateSync } from "node:zlib"
+import { crc32, inflateSync } from "node:zlib"
 import { describe, expect, it } from "rstack/test"
 import {
   ICONS,
@@ -22,7 +22,8 @@ import { MARK_CELLS } from "@/shared/ui/brand-mark"
 const root = new URL("../../..", import.meta.url).pathname
 const read = (f: string) => readFileSync(`${root}/${f}`, "utf8")
 
-/** A PNG the encoder wrote (8-bit RGBA, unfiltered rows) back to its pixels. */
+/** A PNG the encoder wrote (8-bit RGBA, unfiltered rows) back to its pixels,
+ * every chunk's CRC checked against zlib's own. */
 function decode(bytes: Uint8Array) {
   const view = new DataView(bytes.buffer, bytes.byteOffset)
   expect([...bytes.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10])
@@ -33,6 +34,7 @@ function decode(bytes: Uint8Array) {
   while (at < bytes.length) {
     const length = view.getUint32(at)
     const type = new TextDecoder().decode(bytes.subarray(at + 4, at + 8))
+    expect(view.getUint32(at + 8 + length), type).toBe(crc32(bytes.subarray(at + 4, at + 8 + length)))
     if (type === "IDAT") idat.push(bytes.subarray(at + 8, at + 8 + length))
     at += 12 + length
   }
