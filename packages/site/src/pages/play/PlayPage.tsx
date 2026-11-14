@@ -9,7 +9,7 @@
 // a composition's window is the frame, so there it stands at 1.
 import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js"
 import type { Artboard } from "@/entities/artboard"
-import { parseDocument } from "@/features/persistence"
+import { parseDocument } from "@/entities/editor"
 import { ChartRenderer } from "@/widgets/chart-renderer"
 import { REEL_POOL } from "@/widgets/reel-renderer"
 import { WidgetRenderer } from "@/widgets/widget-renderer"

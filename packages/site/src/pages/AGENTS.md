@@ -1266,7 +1266,7 @@ in the page's folder.
   starters under it as rows; the first message sends the composer down.
   The thread: your message as a bubble on the right with the frames it
   carried, and beside it (on hover) a restore key that puts the canvas
-  back to the checkpoint taken before it (`features/history` `checkpoint`
+  back to the checkpoint taken before it (`entities/editor` `checkpoint`
   / `restoreCheckpoint`: ONE undoable step; checkpoints live in memory,
   so a reloaded chat keeps none); the harness's reasoning as a fold, open
   while it streams ("Thinking"), then closed under how long it took; the
@@ -1501,7 +1501,7 @@ in the page's folder.
   from the composition's embedded `#dither-document` JSON (with
   `data-artboard` / `data-theme` on `#dither-stage`) or else from the hash
   `#doc=<base64url document>&artboard=<id>&theme=<dark|light>`; documents
-  are untrusted and go through `parseDocument` (persistence) before they
+  are untrusted and go through `parseDocument` (`entities/editor`) before they
   render. `main.ts` installs `directFromHyperframes()` before mount and
   registers `window.__hf.buildReady["dither-ui"]` as fonts + one
   macrotask (Solid mounts in the call itself) — never an animation frame: the renderer drives

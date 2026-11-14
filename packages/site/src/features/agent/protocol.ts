@@ -16,8 +16,7 @@
 // Every command is untrusted input, parsed once by its row of the command
 // table (`commands.ts`), which `runCommand` runs.
 import { directedTime, isDirected, release, seek } from "@dither-ui/kit"
-import { editor, watch } from "../../entities/editor"
-import { documentSnapshot, type StudioDocument } from "../persistence"
+import { documentSnapshot, editor, type StudioDocument, watch } from "../../entities/editor"
 import { type CommandResult, PROTOCOL_VERSION, registrySchema, runCommand } from "./commands"
 import { isPlain } from "./fields"
 

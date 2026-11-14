@@ -17,22 +17,31 @@ import {
   addComponentArtboard,
   addReelArtboard,
   centreOn,
+  checkpoint,
   copySelected,
   deleteSeries,
   deselect,
+  documentSnapshot,
   duplicateSelected,
   editor,
   fitAll,
   fitSelection,
   groupSelected,
+  history,
   moveArtboard,
   moveSelected,
+  parseDocument,
   pasteClipboard,
   placeArtboard,
+  placeFrames,
   placeGeneration,
+  redo,
   removeArtboard,
   removeSelected,
+  resetHistory,
   resizeArtboard,
+  restoreCheckpoint,
+  restoreFrame,
   selectArtboard,
   selectedArtboard,
   selectedChart,
@@ -42,11 +51,16 @@ import {
   selectMany,
   setArtboardHidden,
   setArtboardLocked,
+  setFrameBox,
   setGroupHidden,
   setGroupLocked,
+  setGuides,
   setSelectedType,
+  startHistory,
   startInspecting,
+  stopHistory,
   stopInspecting,
+  undo,
   ungroup,
   watch,
   zoomIn,
@@ -115,17 +129,6 @@ import {
 import { startDrag } from "../../src/features/artboard-transform"
 import { ExportDialog } from "../../src/features/export-code"
 import { defaultSeconds, playerUrl, renderCommand, VideoDialog, videoFileName } from "../../src/features/export-video"
-import {
-  checkpoint,
-  history,
-  redo,
-  resetHistory,
-  restoreCheckpoint,
-  restoreFrame,
-  startHistory,
-  stopHistory,
-  undo,
-} from "../../src/features/history"
 import { pageKeyOf, ShortcutsHelp, usePanelShortcuts, useShortcuts } from "../../src/features/keyboard"
 import { type PageKeys } from "../../src/features/keyboard/useShortcuts"
 import { usePanZoom } from "../../src/features/pan-zoom"
@@ -135,10 +138,8 @@ import {
   createProject,
   deleteProject,
   deleteWarning,
-  documentSnapshot,
   duplicateProject,
   hydrate,
-  parseDocument,
   projects,
   renameProject,
   startAutosave,
@@ -327,6 +328,30 @@ describe("the editor store", () => {
     setArtboardHidden(b.id, true)
     expect(b.hidden).toBe(true)
   })
+
+  it("stands a canvas drag's frames and box where the pointer has them, a locked frame kept", () => {
+    const a = addArtboard("area")
+    const b = addArtboard("bar")
+    setArtboardLocked(b.id, true)
+    const kept = [b.x, b.y, b.w, b.h]
+    placeFrames(
+      new Map([
+        [a.id, { x: 11, y: 12 }],
+        [b.id, { x: 0, y: 0 }],
+        ["gone", { x: 1, y: 1 }],
+      ]),
+    )
+    setFrameBox(b.id, { x: 1, y: 2, w: 3, h: 4 })
+    expect([a.x, a.y]).toEqual([11, 12])
+    expect([b.x, b.y, b.w, b.h]).toEqual(kept)
+    // A canvas handle sizes past the store's own resize minimum (a widget's 100x60).
+    setFrameBox(a.id, { x: 5, y: 6, w: 100, h: 60 })
+    expect([a.x, a.y, a.w, a.h]).toEqual([5, 6, 100, 60])
+    setGuides(4, null)
+    expect(editor.guides).toEqual({ v: 4, h: null })
+    setGuides(null, null)
+    expect(editor.guides).toEqual({ v: null, h: null })
+  })
 })
 
 describe("watch, once a turn over a mutable store", () => {
@@ -393,6 +418,15 @@ describe("history", () => {
     await tick()
     vi.advanceTimersByTime(301)
   }
+
+  it("takes an agent's whole document as one undoable edit", async () => {
+    const before = editor.artboards.map((x) => x.id)
+    expect(runCommand({ type: "document.set", document: { artboards: [{ name: "Theirs" }] } }).ok).toBe(true)
+    await settle()
+    expect(editor.artboards.map((x) => x.name)).toEqual(["Theirs"])
+    undo()
+    expect(editor.artboards.map((x) => x.id)).toEqual(before)
+  })
 
   it("coalesces the edits of one window into one entry, and lights undo at the first", async () => {
     expect(history.canUndo).toBe(false)
@@ -488,7 +522,7 @@ describe("persistence beyond the project story", () => {
     expect(doc().artboards[0].name).toBe("Again")
   })
 
-  it("applies only a document that survives validation, undoable when asked", () => {
+  it("applies only a document that survives validation, the undo stack starting over from it", () => {
     hydrate()
     expect(applyDocument(null)).toBe(false)
     expect(applyDocument({ artboards: [] })).toBe(false)
@@ -499,7 +533,8 @@ describe("persistence beyond the project story", () => {
       groups: [{ id: "g", name: "G" }, { id: 1 }],
       viewport: { x: 1, y: 2, zoom: 99 },
     }
-    expect(applyDocument(doc, { keepHistory: true })).toBe(true)
+    expect(applyDocument(doc)).toBe(true)
+    expect(history.canUndo).toBe(false)
     const [a] = editor.artboards
     expect(a.id).toMatch(/^ab-imported-/)
     expect([a.name, a.x, a.w]).toEqual(["Artboard", 0, 520])

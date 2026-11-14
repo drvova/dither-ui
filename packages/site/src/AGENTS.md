@@ -57,7 +57,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   harness's events (`session.ts`), the changes bar (`changes.ts`), the
   composer's menus, recall, queue and keys (`composer.ts`), and the
   readings of the thread, the reply's prose and the tool steps in words).
-- `features/` — user actions: history (undo/redo), keyboard (shortcuts +
+- `features/` — user actions: keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave,
   projects created, switched, renamed, duplicated (`duplicateProject`:
   the work, not the chats, opened beside the original) and deleted (the
@@ -83,7 +83,9 @@ around this tree (entries, routes, the build, how Solid is written) is
   selection, which the canvas writes, the agent panel reads and the
   Studio page opens the panel for).
 - `entities/` — domain stores: editor (selection/artboards, single source of
-  truth; `model/view.ts`, the canvas view: `zoomTo` about the stage's
+  truth; `model/document.ts`, the document's one shape: `DOCUMENT_KEYS`,
+  `DocumentState`, `StudioDocument` and `parseDocument`, framework-free;
+  `model/history.ts`, undo/redo over that state; `model/view.ts`, the canvas view: `zoomTo` about the stage's
   centre or a point, `zoomIn`/`zoomOut` by `ZOOM_STEP`, `actualSize`,
   `frame`/`fitAll`/`fitSelection` (never past 100%), and
   `startInspecting`/`stopInspecting` over `editor.inspecting`, during
@@ -240,17 +242,38 @@ around this tree (entries, routes, the build, how Solid is written) is
   and public asset URLs use `routePath()` /
   `assetPath()` from `shared/lib/routes.ts` so the same build works at `/` and
   at the GitHub Pages project base.
-- `entities/editor` is the sole mutation path for document state. History
-  (`features/history`) snapshots `{artboards, groups}` — excludes viewport and
-  selection deliberately; new document-shaped state must be added to both the
-  snapshot and `features/persistence`. `checkpoint()` hands out that
+- The document has ONE shape, `entities/editor/model/document.ts`:
+  `DOCUMENT_KEYS` (`artboards`, `groups`), the edited state
+  (`DocumentState`) that history snapshots and an undo restores, viewport
+  and selection excluded deliberately; `StudioDocument`, that state and the
+  view, what a project, a file, the agent's mirror and `document.get`
+  carry; and `parseDocument`, the ONE boundary a document from outside (a
+  file, storage, `document.set`, the player's page) is read through: it
+  never writes its input (it reads a JSON copy), and nothing past it
+  re-checks. The store reads and writes it whole (`snapshot`, `documentOf`,
+  `documentSnapshot` (detached), `restore`, `loadDocument`); history
+  (`model/history.ts`) and autosave (`features/persistence`) watch
+  `DOCUMENT_KEYS`, so new document state is one key, one field of
+  `DocumentState` (which `parseDocument` must then produce) and its
+  normalizer. `tests/normalize.spec.ts` holds the parse (the input
+  deep-equal to its clone after it). `checkpoint()` hands out that
   snapshot and `restoreCheckpoint()` returns to one as a single undoable
   step (the agent's per-message checkpoints); `restoreFrame(snapshot, id)`
   returns ONE frame to how a snapshot had it (put back, taken away or
   re-added), the rest left as they are, as one step (the changes bar's
   per-frame Undo).
-- Editor mutations must stay undoable: route them through the editor store so
-  the deep watcher records them; never mutate artboards from a component.
+- Editor mutations must stay undoable: every write lands in the editor
+  store (`editor`, a mutable store), whose deep watch history and autosave
+  hear, never in a copy of a frame or a store of a component's own. What
+  changes the document's structure goes through the store's functions:
+  inserting, placing, removing, copying, grouping, selecting, moving and
+  sizing frames (the canvas's drags too: `placeFrames`, `setFrameBox`,
+  `setGuides`), replacing the document (`loadDocument`) and undoing. A
+  field a panel edits (the inspector's, the layer tree's name) and a
+  field a command patches (`features/agent`) is written in place on the
+  store's own frame, each through the parser or sanitizer of its kind:
+  one store function a field would be a setter per field, shotgun surgery
+  for no check the deep watch does not already make.
 - New artboards route through `placeArtboard` after their final size is
   known; it centres every insert in the current viewport, and when a shown
   frame stands there (kept `FRAME_GAP`, 40px, apart) moves it to the
@@ -290,7 +313,7 @@ around this tree (entries, routes, the build, how Solid is written) is
     a row's fields parse into (frame sizes, chart data, screen rows, clip
     specs, a score) and `summarize`. Documents, props, screens and charts
     land only through the validators the inspector and file imports use
-    (`applyDocument`, `sanitizeComponentProps`, `normalizeArtboard`);
+    (`parseDocument`, `sanitizeComponentProps`, `normalizeArtboard`);
     nothing evaluates anything. A command answers "ok" only for what it
     did: `artboard.update` refuses a patch key it does not know
     (`PATCH_KEYS`; a screen's rows sent beside `widget`, as an agent did

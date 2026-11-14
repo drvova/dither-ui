@@ -2,7 +2,17 @@ import { createMemo, createSignal, For, Match, onCleanup, onMount, Show, Switch 
 import { createMutable, unwrap } from "solid-js/store"
 import { Portal } from "solid-js/web"
 import { copyText, DitherIcon, type IconName } from "@dither-ui/kit"
-import { boundsOf, centreOn, editor, selectArtboard, selectedArtboard } from "@/entities/editor"
+import {
+  boundsOf,
+  centreOn,
+  checkpoint,
+  editor,
+  restoreCheckpoint,
+  restoreFrame,
+  selectArtboard,
+  selectedArtboard,
+  undo,
+} from "@/entities/editor"
 import { evolveSelected, runCommand } from "@/features/agent"
 import type { AcpClient, PromptImage } from "@/features/agent/acp"
 import { chats, loadThread, newChat, openProject, saveThread, titleOf } from "@/features/agent/chats"
@@ -20,7 +30,6 @@ import {
   type Usage,
 } from "@/features/agent/tools"
 import { artboardPng } from "@/features/export-image"
-import { checkpoint, restoreCheckpoint, restoreFrame, undo } from "@/features/history"
 import { activeProjectId } from "@/features/persistence"
 import BrandMark from "@/shared/ui/BrandMark"
 import { isMark } from "@/shared/ui/marks"

@@ -23,11 +23,14 @@ import {
   addComponentArtboard,
   addReelArtboard,
   addScreenArtboard,
+  documentSnapshot,
   duplicateSelected,
   editor,
   fitAll,
   fitSelection,
   groupSelected,
+  loadDocument,
+  parseDocument,
   placeGeneration,
   removeArtboard,
   replay,
@@ -62,7 +65,6 @@ import {
   slugOf,
   videoFileName,
 } from "../export-video"
-import { applyDocument, documentSnapshot } from "../persistence"
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { bytesToBase64 } from "@/shared/lib/base64"
 import { isStyling, type Styling, STYLINGS } from "../../shared/lib/restyle"
@@ -1034,14 +1036,20 @@ export const COMMANDS = {
       step: { verb: "Read the document", ask: "Read the document", icon: "File", mutates: false },
     },
   }),
-  // The document is parsed whole by `applyDocument`, the one door a file
-  // import takes too.
+  // The document is read whole by `parseDocument`, the one door a file
+  // import takes too; it lands as an edit (undoable), saved on autosave's
+  // cadence like every other command's.
   "document.set": command({
-    parse: (raw) => ({ document: raw.document }),
-    run: (cmd) =>
-      applyDocument(cmd.document, { keepHistory: true })
-        ? ok({ artboards: editor.artboards.map(summarize) })
-        : fail("document rejected: needs { artboards: [...] } with at least one artboard"),
+    parse: (raw) => {
+      const document = parseDocument(raw.document)
+      return document
+        ? { document }
+        : refuse("document rejected: needs { artboards: [...] } with at least one artboard")
+    },
+    run: (cmd) => {
+      loadDocument(cmd.document)
+      return ok({ artboards: editor.artboards.map(summarize) })
+    },
     doc: "{ document } — replace the project (validated like a file import; undoable)",
     skill: "`document` (validated like a file import; undoable)",
   }),

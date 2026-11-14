@@ -1,8 +1,5 @@
-import { batch } from "solid-js"
 import { createMutable } from "solid-js/store"
-import { createArtboard, normalizeArtboard } from "@/entities/artboard"
-import { editor, placeArtboard, selectArtboard, watch } from "../../entities/editor"
-import { resetHistory } from "../history"
+import { DOCUMENT_KEYS, documentOf, editor, loadDocument, parseDocument, resetHistory, watch } from "@/entities/editor"
 import { download } from "@/shared/lib/files"
 import { readJson, storage as store, writeJson } from "@/shared/lib/storage"
 
@@ -22,13 +19,6 @@ const LEGACY_KEY = "dither-studio-v8"
 
 export type ProjectMeta = { id: string; name: string; updatedAt: number }
 
-type Doc = {
-  artboards: unknown[]
-  groups?: unknown[]
-  viewport?: { x: number; y: number; zoom: number }
-}
-export type StudioDocument = Doc
-
 export const projects = createMutable<ProjectMeta[]>([])
 export const activeProjectId = createMutable({ value: "" })
 
@@ -41,57 +31,7 @@ const touch = (id: string) => {
   if (meta) meta.updatedAt = Date.now()
 }
 
-const snapshotDoc = (): Doc => ({
-  artboards: editor.artboards,
-  groups: editor.groups,
-  viewport: editor.viewport,
-})
-
 const isPlain = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
-
-let abFallback = 0
-/** Envelope validation for untrusted documents (imports, tampered storage):
- * only plain-object artboards survive, ids are guaranteed strings, groups are
- * shape-checked, and the viewport must be finite numbers. Field-level
- * sanitisation happens in normalizeArtboard. */
-function validDoc(d: Doc): {
-  artboards: Parameters<typeof normalizeArtboard>[0][]
-  groups: typeof editor.groups
-  viewport: typeof editor.viewport | null
-} | null {
-  const artboards = (Array.isArray(d.artboards) ? d.artboards : []).filter(isPlain).map((a) => {
-    if (typeof a.id !== "string" || !a.id) a.id = `ab-imported-${abFallback++}`
-    if (typeof a.name !== "string") a.name = "Artboard"
-    for (const k of ["x", "y", "w", "h"] as const) {
-      if (typeof a[k] !== "number" || !Number.isFinite(a[k])) a[k] = k === "w" ? 520 : k === "h" ? 360 : 0
-    }
-    return a as unknown as Parameters<typeof normalizeArtboard>[0]
-  })
-  if (!artboards.length) return null
-  const groups = (Array.isArray(d.groups) ? d.groups : [])
-    .filter(isPlain)
-    .filter((g) => typeof g.id === "string" && typeof g.name === "string")
-    .map((g) => ({ id: g.id as string, name: g.name as string, collapsed: g.collapsed === true }))
-  const v = d.viewport
-  const viewport =
-    isPlain(v) && [v.x, v.y, v.zoom].every((n) => typeof n === "number" && Number.isFinite(n))
-      ? { x: v.x as number, y: v.y as number, zoom: Math.min(3, Math.max(0.2, v.zoom as number)) }
-      : null
-  return { artboards, groups, viewport }
-}
-
-/** Validate + normalize an untrusted document without touching the editor:
- * the shape the player renders and the import path applies. Null when no
- * artboard survives. */
-export function parseDocument(d: unknown): {
-  artboards: ReturnType<typeof normalizeArtboard>[]
-  groups: typeof editor.groups
-  viewport: typeof editor.viewport | null
-} | null {
-  if (!isPlain(d)) return null
-  const valid = validDoc(d as Doc)
-  return valid ? { ...valid, artboards: valid.artboards.map(normalizeArtboard) } : null
-}
 
 /** The project list as stored, read once: an entry needs a string id; its
  * name and time fall back, and a duplicate id is dropped. */
@@ -105,27 +45,9 @@ function parseProjects(v: unknown): ProjectMeta[] {
   })
 }
 
-/** Load a document, or make the fresh one (a frame at the canvas's centre);
- * true when it made the fresh one. */
-function applyDoc(d: unknown): boolean {
-  const valid = d ? parseDocument(d) : null
-  batch(() => {
-    if (valid) {
-      editor.artboards = valid.artboards
-      editor.groups = valid.groups
-      if (valid.viewport) editor.viewport = valid.viewport
-      selectArtboard(editor.artboards[0].id)
-    } else {
-      editor.artboards = []
-      editor.groups = []
-      editor.viewport = { x: 96, y: 88, zoom: 1 }
-      placeArtboard(createArtboard("area"))
-    }
-    editor.dataOpen = false
-    editor.inspecting = false
-  })
-  return !valid
-}
+/** Load a stored document (read at this boundary), or make the fresh one
+ * (a frame at the canvas's centre); true when it made the fresh one. */
+const applyStored = (key: string): boolean => loadDocument(parseDocument(readJson(key)))
 
 let timer: ReturnType<typeof setTimeout> | undefined
 /** Write the current editor state to the active project immediately. */
@@ -133,7 +55,7 @@ export function flushSave(): void {
   clearTimeout(timer)
   timer = undefined
   if (!activeProjectId.value) return
-  writeJson(DOC_PREFIX + activeProjectId.value, snapshotDoc())
+  writeJson(DOC_PREFIX + activeProjectId.value, documentOf())
   touch(activeProjectId.value)
   saveIndex()
 }
@@ -161,7 +83,7 @@ export function hydrate(): boolean {
   const active = projects.find((p) => p.id === requested) ?? projects[0]
   activeProjectId.value = active.id
   store.set(ACTIVE_KEY, active.id)
-  return applyDoc(readJson(DOC_PREFIX + active.id))
+  return applyStored(DOC_PREFIX + active.id)
 }
 
 export function createProject(name: string): void {
@@ -171,7 +93,7 @@ export function createProject(name: string): void {
   projects.push(meta)
   activeProjectId.value = meta.id
   store.set(ACTIVE_KEY, meta.id)
-  applyDoc(null) // fresh default document
+  loadDocument(null) // fresh default document
   flushSave()
   resetHistory()
 }
@@ -183,7 +105,7 @@ export function switchProject(id: string): void {
   flushSave()
   activeProjectId.value = id
   store.set(ACTIVE_KEY, id)
-  applyDoc(readJson(DOC_PREFIX + id))
+  applyStored(DOC_PREFIX + id)
   resetHistory()
 }
 
@@ -244,25 +166,18 @@ export function exportDocument(): void {
   const name = activeProjectName()
     .replace(/[^\w-]+/g, "-")
     .toLowerCase()
-  download(
-    new Blob([JSON.stringify(snapshotDoc(), null, 2)], { type: "application/json" }),
-    `${name || "project"}.json`,
-  )
+  download(new Blob([JSON.stringify(documentOf(), null, 2)], { type: "application/json" }), `${name || "project"}.json`)
 }
 
-/** A detached copy of the active document (what Save to file writes). */
-export const documentSnapshot = (): Doc => JSON.parse(JSON.stringify(snapshotDoc())) as Doc
-
-/** Replace the active project with an untrusted document object (an agent's
- * or a file's). Envelope + field validation is the same path imports take.
- * `keepHistory` leaves the undo stack alone so a programmatic replacement
- * can be undone like any other edit. */
-export function applyDocument(d: unknown, opts: { keepHistory?: boolean } = {}): boolean {
-  if (!isPlain(d) || !Array.isArray(d.artboards) || !d.artboards.length) return false
-  if (!validDoc(d as Doc)) return false
-  applyDoc(d as Doc)
+/** Replace the active project with an untrusted document (a file's), read
+ * once by `parseDocument`; saved at once, and the undo stack starts over
+ * from it. False, with nothing changed, when no frame survives. */
+export function applyDocument(d: unknown): boolean {
+  const doc = parseDocument(d)
+  if (!doc) return false
+  loadDocument(doc)
   flushSave()
-  if (!opts.keepHistory) resetHistory()
+  resetHistory()
   return true
 }
 
@@ -284,7 +199,7 @@ const scheduleSave = () => {
 export function startAutosave(): void {
   stopWatches.forEach((stop) => stop())
   stopWatches = [
-    watch(() => [editor.artboards, editor.groups], scheduleSave, { deep: true }),
+    watch(() => DOCUMENT_KEYS.map((k) => editor[k]), scheduleSave, { deep: true }),
     watch(() => [editor.viewport.x, editor.viewport.y, editor.viewport.zoom], scheduleSave),
   ]
 }

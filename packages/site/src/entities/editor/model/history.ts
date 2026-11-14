@@ -1,9 +1,12 @@
 import { batch } from "solid-js"
 import { createMutable } from "solid-js/store"
-import { deselect, editor, selectArtboard, watch } from "../../entities/editor"
+import { DOCUMENT_KEYS, type DocumentState } from "./document"
+import { editor, restore as restoreState, snapshot } from "./store"
+import { watch } from "./watch"
 
-/** Snapshot-based undo/redo over the document (artboards + groups).
- * Viewport and selection are deliberately excluded — pan/zoom is not an edit.
+/** Snapshot-based undo/redo over the document's edited state
+ * (`DOCUMENT_KEYS`). Viewport and selection are deliberately excluded —
+ * pan/zoom is not an edit.
  * Mutations are coalesced per 300ms window, so a drag is one history entry. */
 
 const MAX = 50
@@ -24,7 +27,7 @@ function sync() {
   })
 }
 
-const snap = () => JSON.stringify({ artboards: editor.artboards, groups: editor.groups })
+const snap = () => JSON.stringify(snapshot())
 
 function push() {
   const cur = snap()
@@ -43,17 +46,10 @@ function flush() {
 }
 
 function restore(s: string) {
-  const d = JSON.parse(s)
   last = s
   clearTimeout(timer)
   timer = undefined
-  batch(() => {
-    editor.artboards = d.artboards
-    editor.groups = d.groups
-    const keep = editor.artboards.find((a) => a.id === editor.selectedArtboardId)
-    const first = keep ?? editor.artboards[0]
-    first ? selectArtboard(first.id) : deselect()
-  })
+  restoreState(JSON.parse(s) as DocumentState)
   muted = true
   sync()
 }
@@ -98,16 +94,16 @@ export function restoreCheckpoint(s: string) {
  * document as it stands, as ONE undoable step. */
 export function restoreFrame(s: string, id: string) {
   flush()
-  const then = JSON.parse(s) as { artboards: { id: string }[] }
+  const then = JSON.parse(s) as DocumentState
   const was = then.artboards.find((a) => a.id === id)
-  const now = JSON.parse(snap()) as { artboards: { id: string }[]; groups: unknown[] }
+  const now = JSON.parse(snap()) as DocumentState
   const at = now.artboards.findIndex((a) => a.id === id)
   const artboards = was
     ? at >= 0
       ? now.artboards.map((a) => (a.id === id ? was : a))
       : [...now.artboards, was]
     : now.artboards.filter((a) => a.id !== id)
-  restoreCheckpoint(JSON.stringify({ artboards, groups: now.groups }))
+  restoreCheckpoint(JSON.stringify({ ...now, artboards } satisfies DocumentState))
 }
 
 /** Re-baseline on the current document and clear both stacks — used when a
@@ -128,7 +124,7 @@ export function startHistory() {
   stopWatch?.()
   last = snap()
   stopWatch = watch(
-    () => [editor.artboards, editor.groups],
+    () => DOCUMENT_KEYS.map((k) => editor[k]),
     () => {
       if (muted) {
         muted = false

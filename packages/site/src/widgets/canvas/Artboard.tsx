@@ -1,7 +1,7 @@
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import type { Artboard as ArtboardModel } from "@/entities/artboard"
-import { editor, selectArtboard } from "@/entities/editor"
+import { editor, placeFrames, selectArtboard, setFrameBox, setGuides } from "@/entities/editor"
 import { handoff, togglePicked } from "@/features/agent/handoff"
 import { startDrag } from "@/features/artboard-transform"
 import { ChartRenderer } from "@/widgets/chart-renderer"
@@ -123,17 +123,11 @@ export default function Artboard(props: { artboard: ArtboardModel }) {
             }
           }
         }
-        for (const a of moving) {
-          const s = starts.get(a.id)!
-          a.x = s.x + accX + sx
-          a.y = s.y + accY + sy
-        }
-        editor.guides.v = gv
-        editor.guides.h = gh
+        placeFrames(new Map([...starts].map(([id, s]) => [id, { x: s.x + accX + sx, y: s.y + accY + sy }])))
+        setGuides(gv, gh)
       },
       () => {
-        editor.guides.v = null
-        editor.guides.h = null
+        setGuides(null, null)
         setInteracting(false)
         stopDrag = undefined
       },
@@ -173,10 +167,12 @@ export default function Artboard(props: { artboard: ArtboardModel }) {
         w = Math.max(minW, Math.round(w))
         h = Math.max(minH, Math.round(h))
         // Anchor the opposite edge: n/w drags move the origin by the size change.
-        a.w = w
-        a.h = h
-        a.x = dir.includes("w") ? start.x + (start.w - w) : start.x
-        a.y = dir.includes("n") ? start.y + (start.h - h) : start.y
+        setFrameBox(a.id, {
+          x: dir.includes("w") ? start.x + (start.w - w) : start.x,
+          y: dir.includes("n") ? start.y + (start.h - h) : start.y,
+          w,
+          h,
+        })
       },
       () => {
         setInteracting(false)

@@ -3,11 +3,10 @@
 // agent's `view` command all move it through these, so a zoom reads the same
 // from a key, a wheel or a harness.
 import type { Artboard } from "@/entities/artboard"
+import { MAX_ZOOM, MIN_ZOOM } from "./document"
 import { centreOn, editor, selectedArtboard } from "./store"
 import { clamp } from "@dither-ui/kit/engine/pixel.ts"
 
-export const MIN_ZOOM = 0.2
-export const MAX_ZOOM = 3
 /** A zoom key's step: in multiplies, out divides. */
 export const ZOOM_STEP = 1.2
 /** What a fit keeps clear around the frames, in screen px. */

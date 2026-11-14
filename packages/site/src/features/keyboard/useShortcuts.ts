@@ -10,15 +10,16 @@ import {
   groupSelected,
   moveSelected,
   pasteClipboard,
+  redo,
   removeSelected,
   selectedArtboard,
   setArtboardLocked,
+  undo,
   ungroup,
   zoomIn,
   zoomOut,
 } from "../../entities/editor"
 import { isTyping } from "@/shared/lib/keys"
-import { redo, undo } from "../history"
 
 /** Familiar editor keybindings, installed at the canvas level. While the
  * workbench inspects the canvas its keys are the ones that count, so these

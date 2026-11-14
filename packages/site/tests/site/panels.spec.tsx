@@ -26,14 +26,16 @@ import {
   deselect,
   editor,
   groupSelected,
+  history,
+  resetHistory,
   selectArtboard,
   selectLayer,
   selectMany,
+  stopHistory,
   stopInspecting,
 } from "../../src/entities/editor"
 import { handoff } from "../../src/features/agent/handoff"
 import { STUDIO_TOOLS } from "../../src/features/agent/tools"
-import { history, resetHistory, stopHistory } from "../../src/features/history"
 import { activeProjectId, projects, stopAutosave } from "../../src/features/persistence"
 import { presets } from "../../src/features/presets"
 import { installHand } from "../../src/shared/lib/hand"
