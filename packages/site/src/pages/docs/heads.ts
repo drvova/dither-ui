@@ -3,6 +3,7 @@
 // docs section (`sectionTags`, the list the section manifest writes).
 // `PageHead` renders a page's tags; the shell (`entry-server.tsx`) reads
 // `pageOf` for the page an address opens on.
+import { FACTS } from "#dither-facts"
 import { docsSection } from "@/pages/docs/seo"
 import { type HeadTag, sectionTags, shareCards, shareTags } from "@/pages/docs/share-cards"
 import { ROUTE_TITLES, type RouteName } from "@/shared/config/titles"
@@ -27,15 +28,13 @@ const PAGES: Record<
 > = {
   landing: {
     card: "home",
-    description:
-      "dither-ui is a Solid UI toolkit of 270 components drawn pixel by pixel from one seeded palette: charts, controls, forms, overlays, backgrounds, text effects, 3D models and shaders. A live docs section for every component and a Studio your coding agent can drive. MIT licensed.",
+    description: `dither-ui is a Solid UI toolkit of ${FACTS.components} components drawn pixel by pixel from one seeded palette: charts, controls, forms, overlays, backgrounds, text effects, 3D models and shaders. A live docs section for every component and a Studio your coding agent can drive. MIT licensed.`,
     keywords:
       "dither, dithering, Solid, SolidJS, UI toolkit, component library, charts, canvas, pixel art, ordered dither, Bayer, seed-generative, shadcn, Base UI, data visualization",
     data: {
       ...APP,
       name: "dither-ui",
-      description:
-        "A Solid UI toolkit of 270 components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive.",
+      description: `A Solid UI toolkit of ${FACTS.components} components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive.`,
       operatingSystem: "Web",
       license: "https://opensource.org/licenses/MIT",
       author: { "@type": "Organization", name: "dither-ui" },
@@ -119,6 +118,29 @@ export function pageTags(page: RouteName, section = ""): HeadTag[] {
 /** Addresses of the build that are no page of the site: the player and the
  * share cards' renderer carry none of the site's head. */
 const NOT_SITE = ["/play", "/og"]
+
+/** Whether a page sets type in the display face, so the shell fetches the
+ * face with its HTML: the landing, the docs and the missing page do; the
+ * Studio sets none, and a preload a page never uses is a fetch wasted on
+ * every load (the browser warns of it once the page has loaded). */
+export const DISPLAY_FACE: Record<RouteName, boolean> = {
+  landing: true,
+  docs: true,
+  missing: true,
+  studio: false,
+}
+
+/** Whether a page turns with the reader's theme, so the shell sets the
+ * stored one on the root before the first paint (`THEME_HEAD_SCRIPT`):
+ * the docs and the Studio do; the landing and the missing page are
+ * printed in the dark, always. Without it a reader in light met the
+ * prerendered dark until the app mounted. */
+export const TURNS_WITH_THEME: Record<RouteName, boolean> = {
+  landing: false,
+  docs: true,
+  missing: false,
+  studio: true,
+}
 
 /** The page an app path (`appPathname`) opens on, as the routes resolve
  * it: a docs address is the docs only when its section exists, and any

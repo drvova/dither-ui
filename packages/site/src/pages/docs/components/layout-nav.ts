@@ -5,4 +5,4 @@ export const LAYOUT_NAV = [
   { id: "canvas", label: "Canvas" },
   { id: "grid", label: "Grid" },
   { id: "infinite-canvas", label: "Infinite canvas" },
-]
+] as const

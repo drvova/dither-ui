@@ -14,14 +14,17 @@ export default function DitherField(props: DitherFieldProps) {
   const base = `dk-field-${createUniqueId()}`
   const controlId = createMemo(() => props.for ?? `${base}-control`)
   const helpId = `${base}-help`
+  const labelId = `${base}-label`
   const describedBy = createMemo(() => (props.error || props.description ? helpId : undefined))
   const invalid = createMemo(() => !!props.error)
 
   return (
-    <FieldContextKey.Provider value={{ controlId, describedBy, invalid }}>
+    <FieldContextKey.Provider
+      value={{ controlId, labelId: () => (props.label ? labelId : undefined), describedBy, invalid }}
+    >
       <div class="grid gap-1.5">
         <Show when={props.label}>
-          <label for={controlId()} class="text-[12px] font-medium text-foreground/90">
+          <label id={labelId} for={controlId()} class="text-[12px] font-medium text-foreground/90">
             {props.label}
           </label>
         </Show>

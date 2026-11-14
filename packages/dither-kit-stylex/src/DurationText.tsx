@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DurationText.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DurationText.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, mergeProps } from "solid-js"
 import { cn, type StyleProp } from "./lib"

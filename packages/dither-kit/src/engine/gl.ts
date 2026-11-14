@@ -26,8 +26,14 @@ export type GlHandle = {
   canvas: HTMLCanvasElement
   gl: Gl
   webgl2: boolean
-  /** True after `webglcontextlost` until the context is restored. */
+  /** True while the context is lost: from the loss itself (the browser's,
+   * or `dispose`), before its `webglcontextlost` event, until it is restored. */
   lost: () => boolean
+  /** The context's life: it changes when a lost context is restored, after
+   * which every object made before is gone. An engine that holds objects
+   * drops them, never deleting, when this differs from the one it made
+   * them in, and makes them again. */
+  generation: () => number
   /** Resize the drawing buffer (no-op when unchanged). */
   size: (width: number, height: number) => void
   /** Read the whole framebuffer (RGBA, rows bottom-up) into `out`, reallocating it as needed. */
@@ -39,7 +45,11 @@ export type GlHandle = {
    * read. Under WebGL1, `read`. A frame-exact caller (a paused surface, a
    * directed one) uses `read`. */
   readBehind: (out: Uint8Array) => Uint8Array | null
-  /** Release the context (unmount). */
+  /** Release the context (unmount): lose it, which frees every object it
+   * holds, before anything else lets go of it. Nothing is deleted one by
+   * one: on an engine that pools contexts (WebKitGTK), an object deleted
+   * in a context about to go was another context's live one of the same
+   * name, and that context drew from nothing after. */
   dispose: () => void
 }
 
@@ -60,13 +70,28 @@ export function createGl(): GlHandle | null {
   const gl2 = canvas.getContext("webgl2", ATTRS) as WebGL2RenderingContext | null
   const gl: Gl | null = gl2 ?? (canvas.getContext("webgl", ATTRS) as WebGLRenderingContext | null)
   if (!gl) return null
+  // The read in flight: its buffer, its size in bytes and its fence. A
+  // synchronous read stalled the main thread until the GPU had drawn (the
+  // landing's road shader, most of its paint).
+  let pack: WebGLBuffer | null = null
+  let packed = 0
+  let fence: WebGLSync | null = null
   let lost = false
+  let disposed = false
+  let generation = 0
+  // Asked to keep it: the browser restores what it lost on its own (a GPU
+  // reset), and the engines make their objects again.
   canvas.addEventListener("webglcontextlost", (e) => {
     e.preventDefault()
     lost = true
   })
   canvas.addEventListener("webglcontextrestored", () => {
+    if (disposed) return
     lost = false
+    generation++
+    pack = null
+    packed = 0
+    fence = null
   })
   const read = (out: Uint8Array) => {
     const n = canvas.width * canvas.height * 4
@@ -74,17 +99,12 @@ export function createGl(): GlHandle | null {
     gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, px)
     return px
   }
-  // The read in flight: its buffer, its size in bytes and its fence. A
-  // synchronous read stalled the main thread until the GPU had drawn (the
-  // landing's road shader, most of its paint).
-  let pack: WebGLBuffer | null = null
-  let packed = 0
-  let fence: WebGLSync | null = null
   return {
     canvas,
     gl,
     webgl2: !!gl2,
-    lost: () => lost,
+    lost: () => lost || disposed || gl.isContextLost(),
+    generation: () => generation,
     size(width, height) {
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width
@@ -122,11 +142,17 @@ export function createGl(): GlHandle | null {
       return got
     },
     dispose() {
-      if (gl2) {
+      if (disposed) return
+      disposed = true
+      const release = gl.getExtension("WEBGL_lose_context")
+      if (release) release.loseContext()
+      else if (gl2) {
+        // No way to lose it: its own objects go, and the context with the canvas.
         if (fence) gl2.deleteSync(fence)
         if (pack) gl2.deleteBuffer(pack)
       }
-      gl.getExtension("WEBGL_lose_context")?.loseContext()
+      pack = null
+      fence = null
     },
   }
 }
@@ -247,10 +273,36 @@ export type Channels = {
   dispose: () => void
 }
 
+/** Upload `data`, an RGBA raster with its rows top-down as the kit holds
+ * them, to the bound `TEXTURE_2D` with its rows bottom-up as GL reads a
+ * texture. Flipped here, never through `UNPACK_FLIP_Y_WEBGL`: Gecko
+ * deprecates that flag for array uploads and warns on every one (it stays
+ * for images, canvases and videos). `scratch` holds the flipped copy and
+ * is reused while its size fits; the copy is returned for the next call. */
+export function uploadRows(
+  gl: Gl,
+  width: number,
+  height: number,
+  data: Uint8Array | Uint8ClampedArray,
+  scratch?: Uint8Array,
+): Uint8Array {
+  const row = width * 4
+  const out = scratch && scratch.length === row * height ? scratch : new Uint8Array(row * height)
+  for (let y = 0; y < height; y++) out.set(data.subarray(y * row, (y + 1) * row), (height - 1 - y) * row)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, out)
+  return out
+}
+
 /** The four channel textures of one program, re-uploaded only when a surface painted. */
 export function createChannels(h: GlHandle): Channels {
   const gl = h.gl
-  const slots = [0, 1, 2, 3].map(() => ({ tex: null as WebGLTexture | null, version: -1, w: 0, h: 0 }))
+  const slots = [0, 1, 2, 3].map(() => ({
+    tex: null as WebGLTexture | null,
+    version: -1,
+    w: 0,
+    h: 0,
+    rows: undefined as Uint8Array | undefined,
+  }))
   return {
     upload(inputs, first, t, ms) {
       const res = new Float32Array(12)
@@ -272,27 +324,18 @@ export function createChannels(h: GlHandle): Channels {
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
           slot.version = -1
         } else gl.bindTexture(gl.TEXTURE_2D, slot.tex)
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
         if (surface) {
           const raster = surface.pull(ms)
           if (raster && (surface.version() !== slot.version || slot.w !== raster.width || slot.h !== raster.height)) {
-            gl.texImage2D(
-              gl.TEXTURE_2D,
-              0,
-              gl.RGBA,
-              raster.width,
-              raster.height,
-              0,
-              gl.RGBA,
-              gl.UNSIGNED_BYTE,
-              raster.data,
-            )
+            slot.rows = uploadRows(gl, raster.width, raster.height, raster.data, slot.rows)
             slot.version = surface.version()
             slot.w = raster.width
             slot.h = raster.height
           }
         } else if (element) {
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, element)
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
           slot.w = (element as HTMLCanvasElement).width ?? 0
           slot.h = (element as HTMLCanvasElement).height ?? 0
         }
@@ -301,7 +344,6 @@ export function createChannels(h: GlHandle): Channels {
         res[i * 3 + 2] = 1
         times[i] = t
       }
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
       return { res, times }
     },
     dispose() {

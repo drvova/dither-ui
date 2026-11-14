@@ -5,9 +5,9 @@
 // where the brand forms. Always in the ramp's own inks, the same bytes for
 // the same moment.
 import { describe, expect, it } from "rstack/test"
-import { BAYER4, fillOf } from "dither-kit/engine/pixel.ts"
-import { createRasterBuffer } from "dither-kit/engine/raster.ts"
-import { fbm } from "dither-kit/engine/noise.ts"
+import { BAYER4, fillOf } from "@dither-ui/kit/engine/pixel.ts"
+import { createRasterBuffer } from "@dither-ui/kit/engine/raster.ts"
+import { fbm } from "@dither-ui/kit/engine/noise.ts"
 import { CLOSE, CLOSE_GRAIN, closeField, paintHeat, smooth } from "../src/pages/landing/heat"
 import { PLATES, plateField, RAMP } from "../src/pages/landing/plate"
 

@@ -23,4 +23,4 @@ export const TEXT_NAV = [
   { id: "curved-loop", label: "Curved loop" },
   { id: "fuzzy-text", label: "Fuzzy text" },
   { id: "ascii-text", label: "ASCII text" },
-]
+] as const

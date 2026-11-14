@@ -1,5 +1,5 @@
 {
-  "name": "discord",
+  "name": "@dither-ui/discord",
   "version": "0.1.0",
   "private": true,
   "description": "The Discord interactions service: /component answers with a section's share card.",

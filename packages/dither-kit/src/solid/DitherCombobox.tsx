@@ -3,6 +3,7 @@ import { cssColor } from "../engine/palette"
 import type { PixelColor } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 import type { Option } from "./DitherSelect"
+import { nextEnabled } from "../engine/keys"
 
 export type DitherComboboxProps = {
   options: Option[]
@@ -66,16 +67,8 @@ export default function DitherCombobox(raw: DitherComboboxProps) {
   }
 
   function move(dir: number) {
-    const list = filtered()
-    const n = list.length
-    let i = highlighted()
-    for (let step = 0; step < n; step++) {
-      i = (i + dir + n) % n
-      if (!list[i].disabled) {
-        setHighlighted(i)
-        return
-      }
-    }
+    const i = nextEnabled(filtered(), highlighted(), dir)
+    if (i >= 0) setHighlighted(i)
   }
 
   function onKeydown(e: KeyboardEvent) {

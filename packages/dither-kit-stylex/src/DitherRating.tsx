@@ -1,11 +1,11 @@
-// Generated from dither-kit/solid/DitherRating.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherRating.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, mergeProps, on, onMount } from "solid-js"
-import type { Rgb } from "dither-kit/engine/palette.ts"
-import { fillOf, type PixelColor, xorshift32 } from "dither-kit/engine/pixel.ts"
-import { cellCanvas } from "dither-kit/engine/raster.ts"
+import type { Rgb } from "@dither-ui/kit/engine/palette.ts"
+import { fillOf, type PixelColor, xorshift32 } from "@dither-ui/kit/engine/pixel.ts"
+import { cellCanvas } from "@dither-ui/kit/engine/raster.ts"
 import { cn } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

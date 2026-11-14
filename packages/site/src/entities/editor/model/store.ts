@@ -1,8 +1,7 @@
 // The editor store, the Studio's single source of truth. A mutable store
-// (`createMutable`), so it reads and writes as the earlier Vue site's `reactive`
-// one did: `editor.viewport.x += 4` is a write every reader hears. Solid
-// runs its effects as each write lands, where Vue waited for the turn to
-// end, so every action that writes more than once is one `batch`: no reader
+// (`createMutable`), so it reads and writes as a plain object:
+// `editor.viewport.x += 4` is a write every reader hears. Solid runs its
+// effects as each write lands, so every action that writes more than once is one `batch`: no reader
 // sees a selection that names a frame already gone. A frame handed back by
 // an insert is the store's own (the proxy), never the object passed in:
 // a write to the bare object would reach no reader.
@@ -14,9 +13,7 @@ import { type ComponentEntry, createComponent, createScreen, createReel } from "
 import { type Layer, layersOf, setChartType } from "@/entities/chart"
 import type { ChartType } from "@/shared/config"
 import { type Box, boundsOf, FRAME_GAP, freeSpot } from "@/entities/editor/model/free"
-
-export type Viewport = { x: number; y: number; zoom: number }
-export type Group = { id: string; name: string; collapsed: boolean }
+import type { DocumentState, Group, StudioDocument, Viewport } from "./document"
 
 let gc = 0
 const gid = () => `grp${Date.now().toString(36)}${(gc++).toString(36)}`
@@ -42,7 +39,7 @@ export const editor = createMutable({
 selectArtboard(editor.artboards[0].id)
 
 // --- getters ---------------------------------------------------------------
-/** A derived value read as `.value`, as the Vue store's `computed` was: a
+/** A derived value read as `.value`: a
  * memo that outlives every component (a server render reads it straight). */
 function computed<T>(read: () => T): { readonly value: T } {
   const memo = isServer ? read : createRoot(() => createMemo(read))
@@ -309,6 +306,37 @@ export function resizeArtboard(id: string, w: number, h: number) {
     a.h = Math.max(200, Math.round(h))
   })
 }
+/** Stand frames at the given places (a drag of the selection, each frame's
+ * spot as the pointer has it); a locked frame stays put. */
+export function placeFrames(places: ReadonlyMap<string, { x: number; y: number }>) {
+  batch(() => {
+    for (const [id, p] of places) {
+      const a = find(id)
+      if (!a || a.locked) continue
+      a.x = p.x
+      a.y = p.y
+    }
+  })
+}
+/** A frame's whole box at once (a resize from any edge moves its origin
+ * too), as the canvas's handles size it; a locked frame stays as it is. */
+export function setFrameBox(id: string, box: Box) {
+  const a = find(id)
+  if (!a || a.locked) return
+  batch(() => {
+    a.x = box.x
+    a.y = box.y
+    a.w = box.w
+    a.h = box.h
+  })
+}
+/** The snap guides a drag shows (world coordinates), null for none. */
+export function setGuides(v: number | null, h: number | null) {
+  batch(() => {
+    editor.guides.v = v
+    editor.guides.h = h
+  })
+}
 export function setArtboardHidden(id: string, v: boolean) {
   const a = find(id)
   if (a) a.hidden = v
@@ -378,6 +406,53 @@ export function deleteSeries(artboardId: string, key: string) {
     a.chart.series = a.chart.series.filter((s) => s.key !== key)
     if (editor.selectedLayerId === `${artboardId}:series:${key}`) editor.selectedLayerId = `${artboardId}:root`
   })
+}
+
+// --- the document -----------------------------------------------------------
+/** The edited state as the store holds it (its own objects, live, never a
+ * copy): what history serializes. */
+export const snapshot = (): DocumentState => ({ artboards: editor.artboards, groups: editor.groups })
+
+/** The document as it stands, live: the edited state and the view (what a
+ * project and a file keep). */
+export const documentOf = (): StudioDocument => ({ ...snapshot(), viewport: editor.viewport })
+
+/** A detached copy of the document (what the agent reads and Save to file
+ * writes). */
+export const documentSnapshot = (): StudioDocument => JSON.parse(JSON.stringify(documentOf())) as StudioDocument
+
+/** Put an edited state back (an undo, a checkpoint), as one batch: the
+ * selection kept where it still names a frame, else the first frame. */
+export function restore(state: DocumentState) {
+  batch(() => {
+    editor.artboards = state.artboards
+    editor.groups = state.groups
+    const keep = editor.artboards.find((a) => a.id === editor.selectedArtboardId)
+    const first = keep ?? editor.artboards[0]
+    first ? selectArtboard(first.id) : deselect()
+  })
+}
+
+/** Replace the document with a parsed one (its view too, when it carries
+ * one) and select its first frame, or, given none, start the fresh one: a
+ * frame at the canvas's centre. The data editor and the workbench close.
+ * True when it started the fresh one. */
+export function loadDocument(doc: StudioDocument | null): boolean {
+  batch(() => {
+    if (doc) {
+      restore(doc)
+      if (doc.viewport) editor.viewport = doc.viewport
+      selectArtboard(editor.artboards[0].id)
+    } else {
+      editor.artboards = []
+      editor.groups = []
+      editor.viewport = { x: 96, y: 88, zoom: 1 }
+      placeArtboard(createArtboard("area"))
+    }
+    editor.dataOpen = false
+    editor.inspecting = false
+  })
+  return !doc
 }
 
 export function replay() {

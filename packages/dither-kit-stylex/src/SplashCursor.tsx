@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/SplashCursor.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/SplashCursor.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type JSX, mergeProps, onCleanup, onMount } from "solid-js"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"
 
@@ -60,7 +60,9 @@ export default function SplashCursor(raw: SplashCursorProps) {
     ripples = ripples.filter((r) => now - r.t0 < props.duration)
     ctx.strokeStyle = props.color
     for (const r of ripples) {
-      const p = (now - r.t0) / props.duration
+      // A frame is stamped at its start, so the move that asked for it can
+      // be later than it: the ring starts at nothing, never before it.
+      const p = Math.max(0, (now - r.t0) / props.duration)
       ctx.globalAlpha = (1 - p) * 0.7
       ctx.lineWidth = 2 * (1 - p)
       ctx.beginPath()

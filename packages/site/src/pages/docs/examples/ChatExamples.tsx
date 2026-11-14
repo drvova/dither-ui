@@ -1,7 +1,9 @@
 import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from "solid-js"
 import { createMutable } from "solid-js/store"
-import { DitherAvatar, DitherBadge, DitherButton, DitherInput } from "dither-kit"
+import { DitherAvatar, DitherBadge, DitherButton, DitherInput } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
+import { dataCode } from "../snippet"
+import DocSection from "../DocSection"
 
 type Msg = { from: "me" | "them"; text: string; at: string }
 
@@ -47,104 +49,288 @@ type ChannelMsg = {
   reactions: { label: string; count: number; mine: boolean }[]
 }
 
-const SNIPPET = `<!-- conversation list -->
-<button v-for="t in threads" :aria-pressed="active === t.id"
-  @click="open(t.id)" class="flex items-center gap-2">
-  <DitherAvatar :name="t.name" :size="24" :color="t.color" />
-  <span>{{ t.name }} — {{ t.messages.at(-1).text }}</span>
-  <DitherBadge v-if="t.unread" color="green">{{ t.unread }}</DitherBadge>
-</button>
+const THREADS: Thread[] = [
+  {
+    id: "rei",
+    name: "Rei Toma",
+    color: "purple",
+    unread: 0,
+    replies: ["On it. Give me ten minutes.", "Pushed. Check the preview link."],
+    messages: [
+      { from: "them", text: "Morning. The new palette landed in staging.", at: "09:12" },
+      { from: "me", text: "Saw it. The green reads much better on dark.", at: "09:14" },
+      { from: "them", text: "Agreed. I still want to tune the orange ramp.", at: "09:15" },
+    ],
+  },
+  {
+    id: "kai",
+    name: "Kai Raster",
+    color: "green",
+    unread: 2,
+    replies: ["Ticket closed. Customer confirmed.", "Done. Anything else today?"],
+    messages: [
+      { from: "them", text: "Two tickets left in the queue.", at: "08:40" },
+      { from: "them", text: "One looks like the export bug again.", at: "08:41" },
+    ],
+  },
+]
 
-<!-- thread -->
-<div v-for="m in active.messages"
-  :class="m.from === 'me' ? 'justify-end' : 'justify-start'" class="flex">
-  <div class="max-w-[75%] rounded-lg border px-2.5 py-1.5"
-    :class="m.from === 'me' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'">
-    {{ m.text }} <span>{{ m.at }}</span>
+const CHANNEL: ChannelMsg[] = [
+  {
+    author: "Rei Toma",
+    color: "purple",
+    text: "Palette v3 is in staging. Poke at the orange ramp.",
+    at: "09:12",
+    reactions: [{ label: "+1", count: 2, mine: false }],
+  },
+  {
+    author: "Rei Toma",
+    color: "purple",
+    text: "Charts pick it up automatically, no prop changes.",
+    at: "09:12",
+    reactions: [],
+  },
+  {
+    author: "Kai Raster",
+    color: "green",
+    text: "Export bug #214 is reproduced. Fix lands today.",
+    at: "09:20",
+    reactions: [{ label: "ship it", count: 1, mine: false }],
+  },
+  { author: "You", color: "blue", text: "I will take the docs pass once both land.", at: "09:24", reactions: [] },
+]
+
+/** A fresh copy of a list the demo mutates, its sample left as the example prints it. */
+const copy = <T,>(list: T[]): T[] => JSON.parse(JSON.stringify(list)) as T[]
+
+const SNIPPET = `${dataCode("start", THREADS)}
+const [threads, setThreads] = createSignal(start)
+const [activeId, setActiveId] = createSignal("rei")
+const active = createMemo(() => threads().find((t) => t.id === activeId())!)
+const [draft, setDraft] = createSignal("")
+const [typing, setTyping] = createSignal(false)
+
+function pick(id: string) {
+  setActiveId(id)
+  setThreads(threads().map((t) => (t.id === id ? { ...t, unread: 0 } : t)))
+}
+function say(id: string, from: string, text: string) {
+  const at = new Date().toTimeString().slice(0, 5)
+  setThreads(threads().map((t) => (t.id === id ? { ...t, messages: [...t.messages, { from, text, at }] } : t)))
+}
+function send() {
+  const text = draft().trim()
+  if (!text || typing()) return
+  const t = active()
+  say(t.id, "me", text)
+  setDraft("")
+  setTyping(true)
+  setTimeout(() => {
+    say(t.id, "them", t.replies[t.messages.length % t.replies.length])
+    setTyping(false)
+  }, 1200)
+}
+
+<div class="grid grid-cols-[140px_1fr] rounded-lg border">
+  {/* conversation list */}
+  <nav class="border-r p-1">
+    <For each={threads()}>
+      {(t) => (
+        <button type="button" aria-pressed={activeId() === t.id}
+          class="flex w-full items-center gap-2 p-1.5 text-left text-[11px]" onClick={() => pick(t.id)}>
+          <DitherAvatar name={t.name} size={24} color={t.color} />
+          <span class="min-w-0 flex-1 truncate">{t.name}</span>
+          <Show when={t.unread}><DitherBadge color="green">{t.unread}</DitherBadge></Show>
+        </button>
+      )}
+    </For>
+  </nav>
+  <div class="flex flex-col p-2">
+    {/* thread */}
+    <div class="grid flex-1 content-start gap-1.5">
+      <For each={active().messages}>
+        {(m) => (
+          <div class={\`flex \${m.from === 'me' ? 'justify-end' : 'justify-start'}\`}>
+            <div class={\`max-w-[75%] rounded-lg border px-2.5 py-1.5 text-[11px] \${m.from === 'me' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'}\`}>
+              {m.text} <span class="text-[9px] text-muted-foreground">{m.at}</span>
+            </div>
+          </div>
+        )}
+      </For>
+      <Show when={typing()}><p aria-live="polite" class="text-[10px] text-muted-foreground">{active().name} is typing</p></Show>
+    </div>
+    {/* composer */}
+    <form class="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); send() }}>
+      <DitherInput modelValue={draft()} onUpdateModelValue={setDraft} placeholder="Message…" aria-label="Message" />
+      <DitherButton color="green" type="submit">Send</DitherButton>
+    </form>
   </div>
-</div>
-<div v-if="typing" aria-live="polite">…typing dots…</div>
+</div>`
 
-<!-- composer -->
-<form @submit.prevent="send">
-  <DitherInput v-model="draft" placeholder="Message…" />
-  <DitherButton color="green" type="submit">Send</DitherButton>
+const SNIPPET_AI = `${dataCode("answers", AI_ANSWERS)}
+const suggestions = Object.keys(answers)
+const [messages, setMessages] = createSignal([{ role: "assistant", text: "Hi, ask me about seeds, theming, or exporting. Or pick a suggestion below." }])
+const [draft, setDraft] = createSignal("")
+const [streaming, setStreaming] = createSignal(false)
+let timer = 0
+
+function reply(text: string) {
+  setMessages([...messages().slice(0, -1), { role: "assistant", text }])
+}
+function stop() {
+  clearInterval(timer)
+  setStreaming(false)
+}
+function ask(prompt: string) {
+  const text = prompt.trim()
+  if (!text || streaming()) return
+  const answer = answers[text] ?? ${JSON.stringify(AI_FALLBACK)}
+  setMessages([...messages(), { role: "user", text }, { role: "assistant", text: "" }])
+  setDraft("")
+  setStreaming(true)
+  // reduced motion: the reply lands whole instead of streaming
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return (reply(answer), stop())
+  let i = 0
+  timer = window.setInterval(() => {
+    i = Math.min(i + 3, answer.length)
+    reply(answer.slice(0, i))
+    if (i >= answer.length) stop()
+  }, 24)
+}
+onCleanup(stop)
+
+<div class="grid gap-1.5">
+  <Index each={messages()}>
+    {(m, i) => (
+      <div class={\`flex \${m().role === 'user' ? 'justify-end' : ''}\`}>
+        <div class={\`max-w-[80%] rounded-lg border px-2.5 py-1.5 text-[11px] \${m().role === 'user' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'}\`}>{m().text}</div>
+      </div>
+    )}
+  </Index>
+</div>
+
+{/* chips ask, a reply streams in, Stop cancels */}
+<Show
+  when={!streaming()}
+  fallback={
+    <button type="button" class="mt-2 text-[10px]" onClick={stop}>Stop generating</button>
+  }
+>
+  <div role="group" aria-label="Suggestions" class="mt-2 flex flex-wrap gap-1.5">
+    <For each={suggestions}>
+      {(s) => (
+        <button type="button" class="rounded border px-2 py-0.5 text-[10px]"
+          onClick={() => ask(s)}>{s}</button>
+      )}
+    </For>
+  </div>
+</Show>
+
+<form class="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); ask(draft()) }}>
+  <DitherInput modelValue={draft()} onUpdateModelValue={setDraft} placeholder="Ask about the kit…" aria-label="Ask" />
+  <DitherButton color="purple" type="submit" disabled={streaming()}>Ask</DitherButton>
 </form>`
 
-const SNIPPET_AI = `<!-- assistant thread: chips ask, replies stream, stop cancels -->
-<div v-for="m in messages" :class="m.role === 'user' ? 'justify-end' : ''" class="flex">
-  <div :class="m.role === 'user' ? 'border-accent/40 bg-accent/10' : 'bg-card/40'"
-    class="max-w-[80%] rounded-lg border px-2.5 py-1.5">{{ m.text }}</div>
+const SNIPPET_SUPPORT = `${dataCode("replies", SUPPORT_REPLIES)}
+const quickReplies = Object.keys(replies)
+const [messages, setMessages] = createSignal([{ from: "agent", text: "Hi, you have reached dither support. How can I help?" }])
+const [typing, setTyping] = createSignal(false)
+
+function say(from: string, text: string) {
+  setMessages([...messages(), { from, text }])
+}
+function ask(text: string) {
+  if (typing()) return
+  say("me", text)
+  setTyping(true)
+  setTimeout(() => {
+    say("agent", replies[text])
+    setTyping(false)
+    // a human takes over: a system line opens the ticket
+    if (text === "Talk to a human")
+      setTimeout(() => say("system", "Ticket #4821 opened. Rei joined the conversation."), 900)
+  }, 1100)
+}
+
+<header class="flex items-center gap-1.5 text-[11px]">
+  Support <span class="size-1.5 rounded-full" style={{ background: 'var(--swatch-green)' }} /> online
+</header>
+
+<div class="mt-2 grid gap-1.5 text-[11px]">
+  <Index each={messages()}>
+    {(m, i) => (
+      <div>
+        {/* the ticket line */}
+        <Show
+          when={m().from === 'system'}
+          fallback={
+            <div class={\`flex \${m().from === 'me' ? 'justify-end' : ''}\`}>
+              <span class="max-w-[80%] rounded-lg border px-2.5 py-1.5">{m().text}</span>
+            </div>
+          }
+        >
+          <p class="text-center text-[10px] text-muted-foreground">{m().text}</p>
+        </Show>
+      </div>
+    )}
+  </Index>
+  <Show when={typing()}><p class="text-[10px] text-muted-foreground">An agent is typing</p></Show>
 </div>
 
-<div v-if="!streaming" role="group" aria-label="Suggestions">   <!-- chips -->
-  <button v-for="s in suggestions" @click="ask(s)">{{ s }}</button>
-</div>
-<button v-else @click="stop">Stop generating</button>
+<div role="group" aria-label="Quick replies" class="mt-2 flex flex-wrap gap-1.5">
+  <For each={quickReplies}>
+    {(q) => (
+      <button type="button" class="rounded border px-2 py-0.5 text-[10px]"
+        onClick={() => ask(q)}>{q}</button>
+    )}
+  </For>
+</div>`
 
-<form @submit.prevent="ask(draft)">
-  <DitherInput v-model="draft" placeholder="Ask about the kit…" />
-  <DitherButton color="purple" type="submit" :disabled="streaming">Ask</DitherButton>
-</form>
+const SNIPPET_CHANNEL = `${dataCode("start", CHANNEL)}
+const [messages, setMessages] = createSignal(start)
+const [draft, setDraft] = createSignal("")
+// a row by the author above it joins their group: avatar and name print once
+const grouped = (i: number) => i > 0 && messages()[i - 1].author === messages()[i].author
 
-<!-- reduced motion: the reply lands whole instead of streaming -->`
+function react(i: number, label: string) {
+  setMessages(messages().map((m, k) =>
+    k !== i
+      ? m
+      : { ...m, reactions: m.reactions.map((r) => (r.label !== label ? r : { ...r, mine: !r.mine, count: r.count + (r.mine ? -1 : 1) })) },
+  ))
+}
+function post() {
+  const text = draft().trim()
+  if (!text) return
+  const at = new Date().toTimeString().slice(0, 5)
+  setMessages([...messages(), { author: "You", color: "blue", text, at, reactions: [] }])
+  setDraft("")
+}
 
-const SNIPPET_SUPPORT = `<!-- support: status header · quick replies · escalation -->
-<header>Support · <span class="size-1.5 rounded-full" :style="{ background: 'var(--swatch-green)' }" /> online</header>
+<Index each={messages()}>
+  {(m, i) => (
+    <div class="flex gap-2.5 text-[11px]">
+      <Show when={!grouped(i)} fallback={<div class="w-6" />}><DitherAvatar name={m().author} size={24} color={m().color} /></Show>
+      <div>
+        <Show when={!grouped(i)}><p><b>{m().author}</b> <time class="text-[10px]">{m().at}</time></p></Show>
+        <p>{m().text}</p>
+        <For each={m().reactions}>
+          {(r) => (
+            <button type="button" aria-pressed={r.mine}
+              class="mr-1 rounded border px-1.5 text-[10px]" onClick={() => react(i, r.label)}>{r.label} {r.count}</button>
+          )}
+        </For>
+      </div>
+    </div>
+  )}
+</Index>
 
-<div v-for="m in messages">
-  <p v-if="m.from === 'system'" class="text-center">{{ m.text }}</p>  <!-- ticket line -->
-  <div v-else :class="m.from === 'me' ? 'justify-end' : ''">{{ m.text }}</div>
-</div>
-<div v-if="typing">…agent typing…</div>
-
-<div role="group" aria-label="Quick replies">
-  <button v-for="q in quickReplies" @click="ask(q)">{{ q }}</button>
-</div>
-<!-- "Talk to a human" answers, then a system line opens the ticket -->`
-
-const SNIPPET_CHANNEL = `<!-- channel: flat rows · author grouping · reactions -->
-<div v-for="(m, i) in messages" class="flex gap-2.5">
-  <DitherAvatar v-if="!grouped(i)" :name="m.author" :size="24" :color="m.color" />
-  <div v-else class="w-6" />                <!-- same author → no avatar -->
-  <div>
-    <p v-if="!grouped(i)"><b>{{ m.author }}</b> <time>{{ m.at }}</time></p>
-    <p>{{ m.text }}</p>
-    <button v-for="r in m.reactions" :aria-pressed="r.mine"
-      @click="react(m, r.label)">{{ r.label }} {{ r.count }}</button>
-  </div>
-</div>
-
-<form @submit.prevent="post">
-  <DitherInput v-model="draft" placeholder="Message #dither-dev…" />
+<form class="mt-2" onSubmit={(e) => { e.preventDefault(); post() }}>
+  <DitherInput modelValue={draft()} onUpdateModelValue={setDraft} placeholder="Message #dither-dev…" aria-label="Message" />
 </form>`
 
 export default function ChatExamples() {
-  const threads = createMutable<Thread[]>([
-    {
-      id: "rei",
-      name: "Rei Toma",
-      color: "purple",
-      unread: 0,
-      replies: ["On it. Give me ten minutes.", "Pushed. Check the preview link."],
-      messages: [
-        { from: "them", text: "Morning. The new palette landed in staging.", at: "09:12" },
-        { from: "me", text: "Saw it. The green reads much better on dark.", at: "09:14" },
-        { from: "them", text: "Agreed. I still want to tune the orange ramp.", at: "09:15" },
-      ],
-    },
-    {
-      id: "kai",
-      name: "Kai Raster",
-      color: "green",
-      unread: 2,
-      replies: ["Ticket closed. Customer confirmed.", "Done. Anything else today?"],
-      messages: [
-        { from: "them", text: "Two tickets left in the queue.", at: "08:40" },
-        { from: "them", text: "One looks like the export bug again.", at: "08:41" },
-      ],
-    },
-  ])
+  const threads = createMutable<Thread[]>(copy(THREADS))
 
   const [activeId, setActiveId] = createSignal("rei")
 
@@ -298,30 +484,7 @@ export default function ChatExamples() {
     }, 1100)
   }
 
-  const channelMessages = createMutable<ChannelMsg[]>([
-    {
-      author: "Rei Toma",
-      color: "purple",
-      text: "Palette v3 is in staging. Poke at the orange ramp.",
-      at: "09:12",
-      reactions: [{ label: "+1", count: 2, mine: false }],
-    },
-    {
-      author: "Rei Toma",
-      color: "purple",
-      text: "Charts pick it up automatically, no prop changes.",
-      at: "09:12",
-      reactions: [],
-    },
-    {
-      author: "Kai Raster",
-      color: "green",
-      text: "Export bug #214 is reproduced. Fix lands today.",
-      at: "09:20",
-      reactions: [{ label: "ship it", count: 1, mine: false }],
-    },
-    { author: "You", color: "blue", text: "I will take the docs pass once both land.", at: "09:24", reactions: [] },
-  ])
+  const channelMessages = createMutable<ChannelMsg[]>(copy(CHANNEL))
 
   const [channelDraft, setChannelDraft] = createSignal("")
 
@@ -358,8 +521,7 @@ export default function ChatExamples() {
 
   return (
     <>
-      <section class="mt-16 scroll-mt-24" id="chat-thread">
-        <h2 class="text-lg tracking-tight">Chat thread</h2>
+      <DocSection id="chat-thread">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Conversation list beside a live thread: unread badges clear when you open them, sending appends your bubble,
           and the other side types back. The typing dots hold still under reduced motion.
@@ -460,10 +622,9 @@ export default function ChatExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* AI assistant */}
-      <section class="mt-16 scroll-mt-24" id="chat-assistant">
-        <h2 class="text-lg tracking-tight">AI assistant</h2>
+      <DocSection id="chat-assistant">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An assistant thread: suggestion chips ask for you, replies stream in character by character, and Stop cancels
           mid-sentence. Under reduced motion the answer lands whole.
@@ -490,7 +651,7 @@ export default function ChatExamples() {
                       class={`max-w-[80%] rounded-lg border px-2.5 py-1.5 ${m.role === "user" ? "border-accent/40 bg-accent/10" : "border-border/60 bg-card/40"}`}
                     >
                       <p class="text-[11px] leading-relaxed whitespace-pre-wrap text-foreground">
-                        {/* the leading space is the Vue page's: its template's own, kept under pre-wrap */} {m.text}
+                        {/* the space before the text shows under pre-wrap */} {m.text}
                         <Show when={aiStreaming() && i() === aiMessages.length - 1}>
                           <span class="animate-pulse motion-reduce:animate-none" aria-hidden="true">
                             ▍
@@ -555,10 +716,9 @@ export default function ChatExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Support chat */}
-      <section class="mt-16 scroll-mt-24" id="chat-support">
-        <h2 class="text-lg tracking-tight">Support chat</h2>
+      <DocSection id="chat-support">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A support widget: online status in the header and quick-reply chips that really answer. “Talk to a human”
           escalates: the agent replies, then a system line opens the ticket.
@@ -659,10 +819,9 @@ export default function ChatExamples() {
             </div>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
       {/* Team channel */}
-      <section class="mt-16 scroll-mt-24" id="chat-channel">
-        <h2 class="text-lg tracking-tight">Team channel</h2>
+      <DocSection id="chat-channel">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A channel, not bubbles: flat rows where consecutive messages from one author group under a single name, and
           reactions toggle with a click. Post something and watch your rows group too.
@@ -743,7 +902,7 @@ export default function ChatExamples() {
             </form>
           </div>
         </DemoCard>
-      </section>
+      </DocSection>
     </>
   )
 }

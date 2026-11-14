@@ -2,9 +2,10 @@
 // each a step of the ink toward the ground, the studio key at the foot in the
 // signal. Where two bands meet, the lower climbs into the upper through the
 // kit's Bayer matrix, so the sheet reads as one print's tone steps; the key
-// that opens it is the same bands in miniature. The sheet arrives as the
-// kit's wipe, a dithered front down the screen.
-import { wipeStyle, type WipeStyle } from "dither-kit/engine/wipe.ts"
+// that opens it is the same bands in miniature. The menu's sheet stands at
+// the screen's foot under the hand (`sheet.ts`); the docs' full-screen
+// sections sheet arrives as the kit's wipe, a dithered front down the screen.
+import { wipeStyle, type WipeStyle } from "@dither-ui/kit/engine/wipe.ts"
 
 /** The site's links, in order, what each band says under its name, and
  * the width the capsule shows each from (the menu shows all of them). Each
@@ -59,9 +60,9 @@ export const SEAM_MASK = wipeStyle(0.5, {
   height: SEAM_HEIGHT,
 }) as WipeStyle
 
-/** How the sheet arrives: the kit's wipe down the screen on the
- * glide (full speed from the start, landing soft). It leaves the same way played back,
- * rolling up from the foot. */
+/** How a full-screen sheet (the docs' sections) arrives: the kit's wipe
+ * down the screen on the glide (full speed from the start, landing soft).
+ * It leaves the same way played back, rolling up from the foot. */
 export const SHEET_WIPE = { direction: "down", duration: 0.5, cell: 4, band: 10, easing: "glide" } as const
 
 /** The close mark: an X on the brand diamond's 7x7 grid, as dense as the
@@ -76,7 +77,7 @@ export const CLOSE_CELLS: readonly { x: number; y: number; core?: boolean }[] = 
  * for the first band's seam, so the seam never bites into the capsule. */
 export const SHEET_HEAD_FOOT = 8 + SEAM_HEIGHT
 
-/** Where the menu is: shut, up, or rolling back up before it shuts. */
+/** Where the menu is: shut, up, or on its way down before it shuts. */
 export type MenuPhase = "shut" | "open" | "leaving"
 
 /** The seam over a band filled `fill`: the band climbing into the one above

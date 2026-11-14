@@ -25,7 +25,7 @@ export function useDitherMatrix(seed: () => number | undefined): Accessor<number
 
 /** A fill that carries a label (button, badge, toggle) keeps the Bayer
  * matrix under any screen: its label's ink is chosen for that even spread
- * (`darkInkOnDark` at the variant's coverage), which a coarse screen breaks
+ * (`labelFill`, read over the Bayer cells), which a coarse screen breaks
  * into stripes or dots under the letters. Seeded as ever. */
 export function useLabelMatrix(seed: () => number | undefined): Accessor<number[][]> {
   return createMemo(() => screenMatrix("bayer", seed()))

@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/runtime/chart-layer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/runtime/chart-layer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 // Which of a chart root's layers a composed part renders in. Solid's children
 // arrive already rendered (a root cannot read a part's component), so a part that is not front SVG chrome hands the

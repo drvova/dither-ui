@@ -19,7 +19,10 @@ Paths here are from this package's root.
 
 - One file, no build step, no import of another package of this workspace
   (`tests/workspace.spec.ts` at the root). `playwright-core` is loaded
-  only when a card is drawn.
+  only when a card is drawn, in the first Chromium that stands of
+  `chromiumCandidates`, a copy of the tasks package's list
+  (`packages/tasks/src/chromium.ts`: `CHROME_PATH` first), held to it by
+  the workspace's `tests/chromium.spec.ts`; none is an error.
 - Reads a built site from `DIST` (default: this repository's
   `packages/site/.output/public`): the section manifest, the renderer page
   and its assets, served as built. A plain link to the site needs no
@@ -37,7 +40,8 @@ Paths here are from this package's root.
 
 - `npm run lint` at the root covers the file. The site's
   `packages/site/tests/crawler-files.spec.ts` holds what the service and
-  the site's embeds must agree on.
+  the site's embeds must agree on, and `tests/site/protocols.spec.ts`
+  that the service calls only members of the renderer's `window.og`.
 - By hand: `npm run build` at the root, then the service against the
   build (`README.md`), `GET /health`, and a signed `PING`.
 

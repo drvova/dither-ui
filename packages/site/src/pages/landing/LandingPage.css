@@ -232,7 +232,10 @@
   max-width: 34rem;
 }
 
-.landing-page-scope .prompt-key {
+/* A larger key than the chapters' `.landing .key` (`chapters.css`), which
+   the page's other parts share and so may load after this sheet: the
+   compound outranks it in whichever order they arrive. */
+.landing-page-scope .key.prompt-key {
   height: 36px;
   padding-inline: 16px;
 }

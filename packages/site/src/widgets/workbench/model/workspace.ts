@@ -3,9 +3,11 @@
 // threads anchored to live elements. Plain data (stage px), undoable by
 // snapshot, saved per preview in localStorage (sanitized on the way back
 // in: storage is untrusted), and written out as Markdown for an agent.
+import { clamp } from "@dither-ui/kit/engine/pixel.ts"
 import type { Box, Point } from "@/shared/lib/inspect/geometry"
 import type { InkPoint } from "./ink"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
+import { STORAGE_PREFIXES } from "@/shared/config/storage"
 
 export type Guide = { id: string; axis: "x" | "y"; at: number }
 export type Arrow = { id: string; from: Point; to: Point; color: string; width: number }
@@ -75,7 +77,7 @@ export const isEmpty = (ws: Workspace) =>
 const LIMIT = 500
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
 const fin = (v: unknown, fallback = 0, lo = -1e5, hi = 1e5) =>
-  typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : fallback
+  typeof v === "number" && Number.isFinite(v) ? clamp(v, lo, hi) : fallback
 const str = (v: unknown, max = 2000) => (typeof v === "string" ? v.slice(0, max) : "")
 const id = (v: unknown, prefix: string) => (typeof v === "string" && /^[\w-]{1,40}$/.test(v) ? v : uid(prefix))
 /** Colours a reader can pick: hex, a theme token, or a CSS keyword. */
@@ -229,16 +231,14 @@ export function createHistory(limit = 100) {
 
 // --- persistence ------------------------------------------------------------
 
-const PREFIX = "dither-workbench:"
-
 export function loadWorkspace(key: string): Workspace {
-  const d = readJson(PREFIX + key)
+  const d = readJson(STORAGE_PREFIXES.workspace + key)
   return d === null ? emptyWorkspace() : normalizeWorkspace(d)
 }
 
 export function saveWorkspace(key: string, ws: Workspace): void {
-  if (isEmpty(ws) && !Object.values(ws.grid.show).some(Boolean)) storage.remove(PREFIX + key)
-  else writeJson(PREFIX + key, ws)
+  if (isEmpty(ws) && !Object.values(ws.grid.show).some(Boolean)) storage.remove(STORAGE_PREFIXES.workspace + key)
+  else writeJson(STORAGE_PREFIXES.workspace + key, ws)
 }
 
 // --- agent hand-off ---------------------------------------------------------

@@ -1,13 +1,16 @@
 /* The engine part by part: each part named once, what it does and how in
    one sentence, and a figure read from the kit's own source, so the index
-   cannot drift from the code. Each part links to the section it lives in. */
-import { MODEL_FORMATS } from "dither-kit/engine/models.ts"
-import { PALETTE } from "dither-kit/engine/palette.ts"
-import { SCREENS, SCREEN_KINDS } from "dither-kit/engine/pixel.ts"
-import { SHADER_UNIFORMS } from "dither-kit/engine/shader.ts"
-import { BAYER8 } from "dither-kit/engine/wipe.ts"
+   cannot drift from the code. Each part links to the section it lives in.
+   Its code is a chunk of its own, which the Handbook pack loads only once
+   the section opens (`useOpened`). */
+import { MODEL_FORMATS } from "@dither-ui/kit/engine/models.ts"
+import { PALETTE } from "@dither-ui/kit/engine/palette.ts"
+import { SCREENS, SCREEN_KINDS } from "@dither-ui/kit/engine/pixel.ts"
+import { SHADER_UNIFORMS } from "@dither-ui/kit/engine/shader.ts"
+import { BAYER8 } from "@dither-ui/kit/engine/wipe.ts"
 import { For } from "solid-js"
 import { SECTIONS } from "@/pages/docs/groups"
+import DocSection from "../DocSection"
 
 const bayer = `${SCREENS.bayer.length}×${SCREENS.bayer[0].length}`
 const ranks = SCREENS.bayer.length * SCREENS.bayer[0].length
@@ -75,8 +78,7 @@ const PARTS: { name: string; line: string; figure: string; at: { id: string; lab
 
 export default function EngineSection() {
   return (
-    <section id="engine" class="mt-16 scroll-mt-24">
-      <h2 class="text-lg tracking-tight">Engine</h2>
+    <DocSection id="engine">
       <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
         The parts under every surface, each named once: what it does in one line, and a figure read from the kit's own
         source.
@@ -102,6 +104,6 @@ export default function EngineSection() {
           )}
         </For>
       </dl>
-    </section>
+    </DocSection>
   )
 }

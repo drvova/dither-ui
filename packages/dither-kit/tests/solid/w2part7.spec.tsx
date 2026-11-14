@@ -1,7 +1,6 @@
-// The Solid ports of the controls, overlays, text and cursor widgets from
-// ColorPicker to TargetCursor, held to what their Vue twins did: each renders
-// its content under its role and name, reports a change through its
-// callback, and the ones with a canvas paint it.
+// The controls, overlays, text and cursor widgets from ColorPicker to
+// TargetCursor: each renders its content under its role and name, reports
+// a change through its callback, and the ones with a canvas paint it.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal, useContext } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -397,6 +396,20 @@ describe("DitherShell", () => {
     expect(screen.queryByRole("contentinfo")).toBeNull()
     expect(screen.getByRole("main").className).toContain("col-span-2")
   })
+
+  it("inside a page's own main is a plain block, its content the same nodes: a page holds one main", () => {
+    render(() => (
+      <main>
+        <DitherShell>
+          <button type="button">Kept</button>
+        </DitherShell>
+      </main>
+    ))
+    const kept = screen.getByRole("button", { name: "Kept" })
+    expect(screen.getAllByRole("main")).toHaveLength(1)
+    expect(kept.parentElement!.localName).toBe("div")
+    expect(kept.parentElement!.className).toContain("col-span-2")
+  })
 })
 
 describe("DitherSwitch", () => {
@@ -704,6 +717,27 @@ describe("SplashCursor", () => {
     await w.frame(now + 5000)
     await w.frame(now + 6000)
     expect(ctx.arc).toHaveBeenCalledTimes(1)
+  })
+
+  it("starts a ring at nothing when the frame is stamped before the move that asked for it", async () => {
+    // A browser stamps a frame at its start and handles the pointer inside
+    // it: a canvas refuses a negative radius, and the throw ended the loop.
+    const ctx = drawing()
+    render(() => (
+      <SplashCursor duration={500}>
+        <p>Splash</p>
+      </SplashCursor>
+    ))
+    const root = screen.getByText("Splash").parentElement!
+    box(root, 200, 100)
+    const now = 1000
+    await clockAt(now)
+    fireEvent.pointerMove(root, { clientX: 80, clientY: 40 })
+    await w.frame(now - 3)
+    expect(ctx.arc.mock.lastCall?.[2]).toBe(0)
+    await w.frame(now + 100)
+    expect(ctx.arc).toHaveBeenCalledTimes(2)
+    expect(ctx.arc.mock.lastCall?.[2]).toBeGreaterThan(0)
   })
 })
 

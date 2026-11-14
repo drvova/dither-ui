@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherSelect.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherSelect.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import {
   createMemo,
@@ -12,13 +12,14 @@ import {
   Show,
   splitProps,
 } from "solid-js"
-import { cssColor } from "dither-kit/engine/palette.ts"
-import type { PixelColor } from "dither-kit/engine/pixel.ts"
-import { CONTROL, POPOVER } from "./control"
+import { isTab, nextEnabled } from "@dither-ui/kit/engine/keys.ts"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import { CONTROL, CONTROL_INVALID, POPOVER } from "./control"
 import { cn, type StyleProp } from "./lib"
-import { useField } from "dither-kit/solid/runtime/field.ts"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/DitherSelect.css"
+import { useField } from "@dither-ui/kit/solid/runtime/field.ts"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/DitherSelect.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -140,13 +141,8 @@ export default function DitherSelect(raw: DitherSelectProps) {
     queueMicrotask(() => trigger?.focus())
   }
   function move(dir: number) {
-    const n = props.options.length
-    if (!n) return
-    let i = highlighted()
-    for (let step = 0; step < n; step++) {
-      i = (i + dir + n) % n
-      if (!props.options[i].disabled) return void setHighlighted(i)
-    }
+    const i = nextEnabled(props.options, highlighted(), dir)
+    if (i >= 0) setHighlighted(i)
   }
   function edge(toEnd: boolean) {
     const enabled = props.options.map((o, i) => ({ o, i })).filter(({ o }) => !o.disabled)
@@ -171,7 +167,7 @@ export default function DitherSelect(raw: DitherSelectProps) {
       e.preventDefault()
       const option = props.options[highlighted()]
       if (option) pick(option)
-    } else if (e.key === "Escape" || e.key === "Tab") close()
+    } else if (e.key === "Escape" || isTab(e)) close()
   }
   function onOutside(e: PointerEvent) {
     if (open() && root && !root.contains(e.target as Node)) close()
@@ -194,7 +190,7 @@ export default function DitherSelect(raw: DitherSelectProps) {
         id={field?.controlId()}
         disabled={props.disabled}
         style={invalid() ? { "border-color": cssColor("red") } : undefined}
-        class={cn(CONTROL, styles.button)}
+        class={cn(CONTROL, invalid() && CONTROL_INVALID, styles.button)}
         {...rest}
         ref={(el) => (trigger = el)}
         // Its own listeners, beside any handed in with the rest.

@@ -1,42 +1,46 @@
-// The Studio's state core on Solid: the editor store, its history and
-// persistence, the agent's protocol, tools and chats, the canvas's gestures
-// and keys, and the three dialogs, held to what their Vue twins did. The
-// first half is this port's own (what a mutable Solid store must keep that
-// Vue's gave for free, and the modules the earlier Vue site had no spec for); the
-// second carries the earlier Vue site's specs for these modules, assertion for
-// assertion.
+// The Studio's state core: the editor store, its history and persistence,
+// the agent's protocol, tools and chats, the canvas's gestures and keys,
+// and the three dialogs.
 import { readFileSync } from "node:fs"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createEffect, createRoot, createSignal } from "solid-js"
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard/model/factory"
 import { FRAME_GAP } from "@/entities/editor/model/free"
-import { componentEntry, createCell, createRow, createScreen } from "@/entities/widget"
+import { componentEntry, createCell, createRow, createScreen, reelDuration } from "@/entities/widget"
 import { evolveArtboard, mutateProps } from "@/features/agent/evolve"
-import { reelDuration } from "@/features/reel"
-import { directedTime, isDirected, release } from "dither-kit/engine/clock.ts"
+import { directedTime, isDirected, release } from "@dither-ui/kit/engine/clock.ts"
 import {
   actualSize,
   addArtboard,
   addComponentArtboard,
   addReelArtboard,
   centreOn,
+  checkpoint,
   copySelected,
   deleteSeries,
   deselect,
+  documentSnapshot,
   duplicateSelected,
   editor,
   fitAll,
   fitSelection,
   groupSelected,
+  history,
   moveArtboard,
   moveSelected,
+  parseDocument,
   pasteClipboard,
   placeArtboard,
+  placeFrames,
   placeGeneration,
+  redo,
   removeArtboard,
   removeSelected,
+  resetHistory,
   resizeArtboard,
+  restoreCheckpoint,
+  restoreFrame,
   selectArtboard,
   selectedArtboard,
   selectedChart,
@@ -46,11 +50,16 @@ import {
   selectMany,
   setArtboardHidden,
   setArtboardLocked,
+  setFrameBox,
   setGroupHidden,
   setGroupLocked,
+  setGuides,
   setSelectedType,
+  startHistory,
   startInspecting,
+  stopHistory,
   stopInspecting,
+  undo,
   ungroup,
   watch,
   zoomIn,
@@ -106,7 +115,7 @@ import {
   wordsOf,
 } from "../../src/features/agent/dither"
 import { askAgent, handoff, takeAsk, togglePicked } from "../../src/features/agent/handoff"
-import { type CommandResult } from "../../src/features/agent/protocol"
+import { type CommandResult } from "../../src/features/agent/commands"
 import {
   callStudioTool,
   loadAgentConfig,
@@ -118,18 +127,8 @@ import {
 } from "../../src/features/agent/tools"
 import { startDrag } from "../../src/features/artboard-transform"
 import { ExportDialog } from "../../src/features/export-code"
-import { defaultSeconds, playerUrl, renderCommand, VideoDialog, videoFileName } from "../../src/features/export-video"
-import {
-  checkpoint,
-  history,
-  redo,
-  resetHistory,
-  restoreCheckpoint,
-  restoreFrame,
-  startHistory,
-  stopHistory,
-  undo,
-} from "../../src/features/history"
+import { VideoDialog } from "../../src/features/export-video"
+import { defaultSeconds, playerUrl, renderCommand, videoFileName } from "../../src/entities/video"
 import { pageKeyOf, ShortcutsHelp, usePanelShortcuts, useShortcuts } from "../../src/features/keyboard"
 import { type PageKeys } from "../../src/features/keyboard/useShortcuts"
 import { usePanZoom } from "../../src/features/pan-zoom"
@@ -139,10 +138,8 @@ import {
   createProject,
   deleteProject,
   deleteWarning,
-  documentSnapshot,
   duplicateProject,
   hydrate,
-  parseDocument,
   projects,
   renameProject,
   startAutosave,
@@ -186,8 +183,8 @@ vi.mock("../../src/shared/ui", () => ({
   ),
 }))
 
-// What the specs share: the stores are module singletons, so each carried
-// spec starts from the state its Vue twin's own file started from.
+// What the specs share: the stores are module singletons, so each group
+// starts from a fresh state.
 function fresh() {
   stopHistory()
   stopAutosave()
@@ -210,7 +207,7 @@ function fresh() {
   handoff.asks = []
   resetHistory()
 }
-/** The microtask a watcher's callback waits for (Vue's `nextTick` there). */
+/** The microtask a watcher's callback waits for. */
 const tick = () => new Promise<void>((resolve) => queueMicrotask(resolve))
 /** A command's answer, where the spec has already held that it is one. */
 const dataOf = (r: CommandResult): unknown => (r.ok ? r.data : undefined)
@@ -222,7 +219,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-describe("the editor store on Solid", () => {
+describe("the editor store", () => {
   beforeEach(fresh)
 
   it("hands back the store's own frame, so a write after an insert reaches every reader", () => {
@@ -331,9 +328,33 @@ describe("the editor store on Solid", () => {
     setArtboardHidden(b.id, true)
     expect(b.hidden).toBe(true)
   })
+
+  it("stands a canvas drag's frames and box where the pointer has them, a locked frame kept", () => {
+    const a = addArtboard("area")
+    const b = addArtboard("bar")
+    setArtboardLocked(b.id, true)
+    const kept = [b.x, b.y, b.w, b.h]
+    placeFrames(
+      new Map([
+        [a.id, { x: 11, y: 12 }],
+        [b.id, { x: 0, y: 0 }],
+        ["gone", { x: 1, y: 1 }],
+      ]),
+    )
+    setFrameBox(b.id, { x: 1, y: 2, w: 3, h: 4 })
+    expect([a.x, a.y]).toEqual([11, 12])
+    expect([b.x, b.y, b.w, b.h]).toEqual(kept)
+    // A canvas handle sizes past the store's own resize minimum (a widget's 100x60).
+    setFrameBox(a.id, { x: 5, y: 6, w: 100, h: 60 })
+    expect([a.x, a.y, a.w, a.h]).toEqual([5, 6, 100, 60])
+    setGuides(4, null)
+    expect(editor.guides).toEqual({ v: 4, h: null })
+    setGuides(null, null)
+    expect(editor.guides).toEqual({ v: null, h: null })
+  })
 })
 
-describe("watch, Vue's timing over a Solid store", () => {
+describe("watch, once a turn over a mutable store", () => {
   beforeEach(fresh)
 
   it("calls back once, a microtask after the writes of one turn, never for the first read", async () => {
@@ -397,6 +418,15 @@ describe("history", () => {
     await tick()
     vi.advanceTimersByTime(301)
   }
+
+  it("takes an agent's whole document as one undoable edit", async () => {
+    const before = editor.artboards.map((x) => x.id)
+    expect(runCommand({ type: "document.set", document: { artboards: [{ name: "Theirs" }] } }).ok).toBe(true)
+    await settle()
+    expect(editor.artboards.map((x) => x.name)).toEqual(["Theirs"])
+    undo()
+    expect(editor.artboards.map((x) => x.id)).toEqual(before)
+  })
 
   it("coalesces the edits of one window into one entry, and lights undo at the first", async () => {
     expect(history.canUndo).toBe(false)
@@ -492,7 +522,7 @@ describe("persistence beyond the project story", () => {
     expect(doc().artboards[0].name).toBe("Again")
   })
 
-  it("applies only a document that survives validation, undoable when asked", () => {
+  it("applies only a document that survives validation, the undo stack starting over from it", () => {
     hydrate()
     expect(applyDocument(null)).toBe(false)
     expect(applyDocument({ artboards: [] })).toBe(false)
@@ -503,7 +533,8 @@ describe("persistence beyond the project story", () => {
       groups: [{ id: "g", name: "G" }, { id: 1 }],
       viewport: { x: 1, y: 2, zoom: 99 },
     }
-    expect(applyDocument(doc, { keepHistory: true })).toBe(true)
+    expect(applyDocument(doc)).toBe(true)
+    expect(history.canUndo).toBe(false)
     const [a] = editor.artboards
     expect(a.id).toMatch(/^ab-imported-/)
     expect([a.name, a.x, a.w]).toEqual(["Artboard", 0, 520])
@@ -765,6 +796,28 @@ describe("keyboard", () => {
     editor.inspecting = false
   })
 
+  it("steps aside in a select, whose keys choose, and answers over a menu's button", () => {
+    addArtboard("area")
+    const { getByLabelText, getByRole } = render(() => (
+      <>
+        <Keys />
+        <select aria-label="kind">
+          <option>area</option>
+        </select>
+        <div role="menu">
+          <button role="menuitem">Rename</button>
+        </div>
+      </>
+    ))
+    const select = getByLabelText("kind")
+    select.focus()
+    select.dispatchEvent(key("Backspace"))
+    select.dispatchEvent(key("d", { metaKey: true }))
+    expect(editor.artboards).toHaveLength(1)
+    getByRole("menuitem").dispatchEvent(key("d", { metaKey: true }))
+    expect(editor.artboards).toHaveLength(2)
+  })
+
   it("undoes and redoes from the keys", async () => {
     vi.useFakeTimers()
     startHistory()
@@ -828,12 +881,18 @@ describe("ShortcutsHelp", () => {
     const { queryByRole, getByRole, getByText, unmount } = render(() => (
       <>
         <input aria-label="field" />
+        <select aria-label="kind">
+          <option>area</option>
+        </select>
         <ShortcutsHelp />
       </>
     ))
     expect(queryByRole("dialog")).toBeNull()
     // Typed in a field, a question mark is a question mark.
     getByRole("textbox").dispatchEvent(key("?"))
+    expect(queryByRole("dialog")).toBeNull()
+    // In a select a question mark picks the option it starts.
+    getByRole("combobox").dispatchEvent(key("?"))
     expect(queryByRole("dialog")).toBeNull()
     const asked = key("?")
     window.dispatchEvent(asked)
@@ -1018,8 +1077,6 @@ describe("ExportDialog", () => {
 describe("the agent's own inserts", () => {
   beforeEach(fresh)
 
-  // Carried from tests/reel.spec.ts (the rest of it holds the reel's
-  // timeline and renderer, which are not this slice's).
   it("builds the kit's frames into a film with chapters and a score, its frames in a row under it", () => {
     const id = addLaunchFilm()
     const film = editor.artboards.find((a) => a.id === id)
@@ -1051,7 +1108,7 @@ describe("the agent's own inserts", () => {
   })
 })
 
-describe("carried from tests/editor-placement.spec.ts", () => {
+describe("placing frames", () => {
   beforeAll(fresh)
 
   type B = { x: number; y: number; w: number; h: number }
@@ -1141,7 +1198,7 @@ describe("carried from tests/editor-placement.spec.ts", () => {
   })
 })
 
-describe("carried from tests/editor-selection.spec.ts", () => {
+describe("moving the selection", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -1163,7 +1220,7 @@ describe("carried from tests/editor-selection.spec.ts", () => {
   })
 })
 
-describe("carried from tests/editor-series.spec.ts", () => {
+describe("deleting a series", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -1196,7 +1253,7 @@ describe("carried from tests/editor-series.spec.ts", () => {
 // viewport, whichever object it is (loading a document, switching a project
 // or centring a fresh frame replaces it); the bar, the keys and the agent
 // zoom and fit through the same functions; Inspect reads at 100% and holds.
-describe("carried from tests/pan-zoom.spec.ts", () => {
+describe("the viewport", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -1276,7 +1333,7 @@ describe("carried from tests/pan-zoom.spec.ts", () => {
 // (removed when the turn made it, back when the turn removed it), the rest
 // of the canvas as it stands, as one undoable step; each row's Undo and
 // Keep, and the row that puts an undone frame back.
-describe("carried from tests/frame-undo.spec.ts", () => {
+describe("undoing a turn's frames", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -1322,7 +1379,7 @@ describe("carried from tests/frame-undo.spec.ts", () => {
   })
 })
 
-describe("carried from tests/components/projects.spec.ts", () => {
+describe("projects", () => {
   beforeAll(fresh)
 
   // The persistence module is a singleton over the editor singleton — these run
@@ -1437,7 +1494,7 @@ describe("carried from tests/components/projects.spec.ts", () => {
   })
 })
 
-describe("carried from tests/components/persistence-autosave.spec.ts", () => {
+describe("autosave", () => {
   beforeAll(fresh)
 
   afterEach(() => {
@@ -1468,7 +1525,7 @@ describe("carried from tests/components/persistence-autosave.spec.ts", () => {
 
 // A project's chats with the agent: the list the Studio's sidebar shows, the
 // chat open in the panel, and each chat's thread.
-describe("carried from tests/agent-chats.spec.ts", () => {
+describe("the agent's chats", () => {
   beforeAll(fresh)
 
   type E = { kind: string; text?: string }
@@ -1689,7 +1746,7 @@ describe("carried from tests/agent-chats.spec.ts", () => {
 // the kit components that do), runs it, or builds one when none fits; a
 // built tool is kept, found first next time, and runs only once the user
 // says so.
-describe("carried from tests/agent-dither.spec.ts", () => {
+describe("the dither tool", () => {
   beforeAll(fresh)
 
   const ok = (data: unknown) => ({ ok: true as const, data })
@@ -1822,7 +1879,7 @@ describe("carried from tests/agent-dither.spec.ts", () => {
   })
 })
 
-describe("carried from tests/agent-protocol.spec.ts", () => {
+describe("the agent's protocol", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -2187,7 +2244,7 @@ describe("carried from tests/agent-protocol.spec.ts", () => {
   })
 })
 
-describe("carried from tests/agent-tools.spec.ts", () => {
+describe("the agent's tools", () => {
   beforeAll(fresh)
 
   beforeEach(() => {
@@ -2453,7 +2510,7 @@ describe("carried from tests/agent-tools.spec.ts", () => {
   })
 })
 
-describe("carried from tests/agent-evolve.spec.ts", () => {
+describe("evolving a frame", () => {
   beforeAll(fresh)
 
   describe("evolve", () => {

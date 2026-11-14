@@ -13,16 +13,9 @@
 // whole session and screen. Screen readers get the whole session as a
 // caption; the stage that plays it is decoration.
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js"
-import {
-  DitherIcon,
-  DitherNumberText,
-  DitherProgress,
-  DitherSpinner,
-  DitherSwitch,
-  DitherText,
-  Sparkline,
-} from "dither-kit"
+import { DitherIcon, DitherNumberText, DitherProgress, DitherSpinner, DitherSwitch, DitherText } from "@dither-ui/kit"
 import { ASK, DAYS, DEPLOYS, DOES, lineState, PARTS, RENDER, STEPS } from "@/pages/landing/story"
+import { Sparkline } from "@/shared/ui/charts"
 import "./AgentStory.css"
 
 const LAST = STEPS - 1
@@ -104,7 +97,9 @@ export default function AgentStory() {
             </ol>
           </div>
 
-          {/* The screen the agent lays out, the hero of the shot. */}
+          {/* The screen the agent lays out, the hero of the shot. A part not
+              laid out yet is out of reach too (inert): Tab never lands on a
+              key the screen does not show. */}
           <div class="screen">
             {/* The render's result, a chip on the screen's corner: it comes
                 with the line that renders, at work, then ready. */}
@@ -121,7 +116,7 @@ export default function AgentStory() {
             </div>
             <div class="screen-title">Deploys</div>
             <div class="screen-row">
-              <div class="part" classList={{ on: step() >= PARTS.count }}>
+              <div class="part" classList={{ on: step() >= PARTS.count }} inert={step() < PARTS.count || undefined}>
                 <span class="slot" />
                 <div class="count">
                   <DitherNumberText value={DEPLOYS} class="count-n" />
@@ -130,7 +125,7 @@ export default function AgentStory() {
                   </DitherText>
                 </div>
               </div>
-              <div class="part" classList={{ on: step() >= PARTS.meter }}>
+              <div class="part" classList={{ on: step() >= PARTS.meter }} inert={step() < PARTS.meter || undefined}>
                 <span class="slot" />
                 <div class="meter">
                   <DitherText tone="muted" size="xs">
@@ -140,14 +135,22 @@ export default function AgentStory() {
                 </div>
               </div>
             </div>
-            <div class="part part-switch" classList={{ on: step() >= PARTS.toggle }}>
+            <div
+              class="part part-switch"
+              classList={{ on: step() >= PARTS.toggle }}
+              inert={step() < PARTS.toggle || undefined}
+            >
               <span class="slot" />
               <div class="switch">
                 <DitherSwitch modelValue={auto()} onUpdateModelValue={setAuto} label="Auto deploy" />
                 <span aria-hidden="true">Auto deploy</span>
               </div>
             </div>
-            <div class="part part-chart" classList={{ on: step() >= PARTS.chart }}>
+            <div
+              class="part part-chart"
+              classList={{ on: step() >= PARTS.chart }}
+              inert={step() < PARTS.chart || undefined}
+            >
               <span class="slot" />
               <Sparkline data={[...DAYS]} color="blue" variant="dotted" sparkles={false} class="chart" />
             </div>

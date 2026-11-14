@@ -1,7 +1,7 @@
 // What the chat shows when no bridge answers: the one line that starts it,
 // to copy, and the panel looking for it until it does (or a while passes).
 import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js"
-import { copyText, DitherIcon } from "dither-kit"
+import { copyText, DitherIcon } from "@dither-ui/kit"
 import { BRIDGE_FILE } from "@/features/agent/bridge-file"
 import { assetPath } from "@/shared/lib/routes"
 import { bridgeCommand } from "@/features/agent/acp"

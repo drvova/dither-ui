@@ -3,12 +3,12 @@
 // (fast thins, slow swells), with tapered ends; the marker is a flat,
 // translucent centre line. The eraser cuts strokes only where it passes.
 import type { Box, Point } from "@/shared/lib/inspect/geometry"
+import { clamp } from "@dither-ui/kit/engine/pixel.ts"
 
 /** x, y, time in ms, pressure 0–1 (or -1 when the device reports none). */
 export type InkPoint = [number, number, number, number]
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 const r1 = (v: number) => Math.round(v * 10) / 10
 
 /** Damp the hand's jitter: each point eases toward the raw input. */

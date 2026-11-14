@@ -1,6 +1,5 @@
-// The Solid kit's second wave, third sheet: text that arrives, the menus,
-// the slider and what is built on it, and the small layout pieces. Each is
-// held to what its Vue twin did: what it renders and names, what it reports
+// Text that arrives, the menus, the slider and what is built on it, and
+// the small layout pieces: what each renders and names, what it reports
 // through its callbacks, and the keys it answers.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
@@ -491,6 +490,34 @@ describe("DitherVideoPlayer", () => {
     // a key a control inside owns is left to it
     fireEvent.keyDown(getByRole("button", { name: "Play" }), { key: " " })
     expect(pause).toHaveBeenCalledTimes(1)
+  })
+
+  it("stays paused, throwing nothing, when the browser refuses to play its source", async () => {
+    // what an open build's Chromium answers an H.264 film with
+    const refused = Promise.reject(new Error("The element has no supported sources."))
+    const handled = vi.spyOn(refused, "catch")
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockReturnValue(refused)
+    const { getByRole } = render(() => <DitherVideoPlayer src="/film.mp4" />)
+    fireEvent.click(getByRole("button", { name: "Play" }))
+    expect(play).toHaveBeenCalledTimes(1)
+    expect(handled).toHaveBeenCalledTimes(1)
+    await refused.catch(() => {})
+    expect(getByRole("button", { name: "Play" })).toBeTruthy()
+  })
+
+  it("stays as it stands, throwing nothing, when the browser refuses fullscreen", async () => {
+    // what Gecko answers a window that is not the focused one
+    const refused = Promise.reject(new TypeError("Fullscreen request denied"))
+    const handled = vi.spyOn(refused, "catch")
+    const { getByRole } = render(() => <DitherVideoPlayer src="/film.mp4" />)
+    const host = getByRole("group", { name: "Video" })
+    const request = vi.fn(() => refused)
+    host.requestFullscreen = request
+    fireEvent.click(getByRole("button", { name: "Fullscreen" }))
+    fireEvent.keyDown(host, { key: "f" })
+    expect(request).toHaveBeenCalledTimes(2)
+    expect(handled).toHaveBeenCalledTimes(2)
+    await refused.catch(() => {})
   })
 
   it("mutes, changes speed and seeks", () => {

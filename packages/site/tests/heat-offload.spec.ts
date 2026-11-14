@@ -2,8 +2,8 @@
 // shows the worker's latest frame and asks for the one due at the next
 // paint; the first paint, and every paint without a worker, paints here.
 import { describe, expect, it } from "rstack/test"
-import { BAYER4, fillOf } from "dither-kit/engine/pixel.ts"
-import { createRasterBuffer } from "dither-kit/engine/raster.ts"
+import { BAYER4, fillOf } from "@dither-ui/kit/engine/pixel.ts"
+import { createRasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import { CLOSE, paintHeat } from "../src/pages/landing/heat"
 import { answerHeat, type HeatAsk } from "../src/pages/landing/heat-ask"
 import { offloadHeat } from "../src/pages/landing/heat-offload"

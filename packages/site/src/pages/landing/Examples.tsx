@@ -4,12 +4,12 @@
 // component itself, hands on, in the kit's blue with the ember for a second
 // voice. Each card's art prints itself once as it comes into view; of the
 // surfaces that move by themselves one plays at a time; everything that
-// moves has its pause.
-import { createEffect, createMemo, createSignal, For, type JSX, lazy, on, onCleanup, onMount, Show } from "solid-js"
+// moves has its pause. From 1024px each card slides up into place in step
+// with the scroll (`SCENES.tile`); a press on a card's ground gives under
+// the hand (`data-press="card"`).
+import { createEffect, createMemo, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import {
-  Area,
-  AreaChart,
   DitherButton,
   DitherDecryptedText,
   DitherGauge,
@@ -21,31 +21,31 @@ import {
   DitherScreen,
   DitherSilk,
   DitherSlideAction,
-  DitherWorld,
   SCREEN_KINDS,
-  Sparkline,
-  XAxis,
   cssColor,
-  sampleWorld,
   type ButtonVariant,
   type DitherColor,
   type ScreenKind,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import { COMPONENT_COUNT } from "@/pages/landing/facts"
 import { BENTO, staggers } from "@/pages/landing/hub"
 import { spotlight } from "@/pages/landing/spotlight"
+import { SCENES } from "@/pages/landing/scenes"
 import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "@/pages/landing/stat"
-import { rise, routePath } from "@/shared/lib"
+import { lazyPart, rise, routePath } from "@/shared/lib"
+import { railIndex, railStarts } from "./rail"
+import { scene } from "@/shared/lib/scroll-scene-ref"
+import { Area, AreaChart, Sparkline, XAxis } from "@/shared/ui/charts"
 import PauseChip from "./PauseChip"
+import { DitherShader, SampleWorld } from "./parts"
 import RiseWords from "./RiseWords"
 import "./Examples.css"
 
 // The heavy cards are their own chunks, fetched as the card nears the
-// viewport: the shader's WebGL engine, the translator's utility map, the
-// fluid's canvas engine.
-const DitherShader = lazy(() => import("dither-kit/solid/DitherShader.tsx"))
-const ExportScene = lazy(() => import("./ExportScene"))
-const DitherFerrofluid = lazy(() => import("dither-kit/solid/Ferrofluid.tsx"))
+// viewport: the shader's WebGL engine (`parts.tsx`), the translator's
+// utility map, the fluid's canvas engine.
+const ExportScene = lazyPart(() => import("./ExportScene"))
+const DitherFerrofluid = lazyPart(() => import("@dither-ui/kit/solid/Ferrofluid.tsx"))
 const LAZY = new Set(["shader", "styling", "ferrofluid"])
 // Cards whose art runs to the card's edges.
 const FLUSH = new Set(["world", "print-screens", "silk", "shader", "ferrofluid", "styling"])
@@ -174,6 +174,27 @@ export default function Examples() {
     observers.push(io)
   }
   const movingOf = (el: HTMLElement) => el.dataset.moving as Moving
+
+  // The rail under 1024px: the card standing at its start, and a dot that
+  // takes the reader to any other (rail.ts).
+  const [atCard, setAtCard] = createSignal(0)
+  let railFrame = 0
+  const onRail = () => {
+    if (railFrame || !bento) return
+    railFrame = requestAnimationFrame(() => {
+      railFrame = 0
+      if (!bento) return
+      const end = bento.scrollLeft + bento.clientWidth >= bento.scrollWidth - 2
+      setAtCard(railIndex(bento.scrollLeft, railStarts(bento), end))
+    })
+  }
+  onCleanup(() => railFrame && cancelAnimationFrame(railFrame))
+  const toCard = (i: number) => {
+    if (!bento) return
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches
+    bento.scrollTo({ left: railStarts(bento)[i] ?? 0, behavior: still ? "auto" : "smooth" })
+    setAtCard(i)
+  }
   // Each card's reveal delay, read from the laid-out bento before any reveal
   // plays (a reveal starts as its card comes into view, after this).
   const [delays, setDelays] = createSignal<number[]>([])
@@ -233,7 +254,6 @@ export default function Examples() {
 
   const [ramp, setRamp] = createSignal<Ramp>("blue")
   const [model, setModel] = createSignal(7)
-  const world = createMemo(() => sampleWorld(model()))
 
   // Rating.
   // The instrument: the knob sets the load, the dial's needle settles on it.
@@ -270,8 +290,8 @@ export default function Examples() {
       case "world":
         return (
           <>
-            <DitherWorld
-              source={world()}
+            <SampleWorld
+              model={model()}
               colors={RAMPS[ramp()]}
               autoRotate={playing("world") ? 14 : 0}
               grain={0.4}
@@ -550,11 +570,13 @@ export default function Examples() {
         </div>
       </div>
 
-      <ul ref={(el) => (bento = el)} class="bento" aria-label="Examples from the docs">
+      <ul ref={(el) => (bento = el)} class="bento" aria-label="Examples from the docs" onScroll={onRail}>
         <For each={BENTO}>
           {(t, i) => (
             <li
+              ref={scene(SCENES.tile)}
               class={`card t-${t.id}`}
+              data-press="card"
               data-lazy={LAZY.has(t.id) ? t.id : undefined}
               data-moving={isMoving(t.id) ? t.id : undefined}
               onPointerEnter={(e) => hover(e, t.id)}
@@ -579,6 +601,18 @@ export default function Examples() {
           )}
         </For>
       </ul>
+      <div class="rail-dots" role="group" aria-label="Go to an example">
+        <For each={BENTO}>
+          {(t, i) => (
+            <button
+              type="button"
+              aria-label={t.label}
+              aria-current={atCard() === i() ? "true" : undefined}
+              onClick={() => toCard(i())}
+            />
+          )}
+        </For>
+      </div>
     </section>
   )
 }

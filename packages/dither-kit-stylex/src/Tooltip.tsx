@@ -1,12 +1,12 @@
-// Generated from dither-kit/solid/Tooltip.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/Tooltip.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, For, mergeProps, Show } from "solid-js"
-import { rgb } from "dither-kit/engine/palette.ts"
+import { rgb } from "@dither-ui/kit/engine/palette.ts"
 import { cn, type StyleProp } from "./lib"
 import { chartLayer } from "./runtime/chart-layer"
-import { useCommonChart } from "dither-kit/solid/runtime/common-context.ts"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/Tooltip.css"
+import { useCommonChart } from "@dither-ui/kit/solid/runtime/common-context.ts"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/Tooltip.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

@@ -1,5 +1,5 @@
 import { For } from "solid-js"
-import { DitherIcon } from "dither-kit"
+import { DitherIcon } from "@dither-ui/kit"
 import { NAV_LINK, type PagePart } from "./DocsNav"
 
 export type OnThisPageProps = { parts: PagePart[]; onGo?: (el: HTMLElement) => void }

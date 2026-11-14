@@ -1,13 +1,12 @@
 import { createEffect, createMemo, createSignal, For, on, onCleanup, onMount, Show } from "solid-js"
-import { DitherAlertDialog, DitherIcon } from "dither-kit"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { DitherAlertDialog, DitherIcon } from "@dither-ui/kit"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import type { ArtboardKind } from "@/entities/artboard"
-import { COMPONENT_REGISTRY, type ComponentEntry, type ComponentGroup } from "@/entities/widget"
+import { COMPONENT_REGISTRY, type ComponentEntry, type ComponentGroup, SIMPLE_WIDGET_KINDS } from "@/entities/widget"
 import { CHART_TYPES } from "@/shared/config"
-import { addArtboard, addComponentArtboard, addScreenArtboard } from "@/entities/editor"
+import { addArtboard, addComponentArtboard, addScreenArtboard, history, redo, undo } from "@/entities/editor"
 import type { AgentActivity } from "@/features/agent/tools"
-import { history, redo, undo } from "@/features/history"
 import {
   activeProjectId,
   activeProjectName,
@@ -21,7 +20,7 @@ import {
   switchProject,
 } from "@/features/persistence"
 import { addArtboardFromPreset, presets } from "@/features/presets"
-import { focusFirstMenuItem, menuKeydown, useTheme } from "@/shared/lib"
+import { focusBack, focusFirstMenuItem, focusOnOpen, menuKeydown, useTheme } from "@/shared/lib"
 import Mascot from "@/shared/ui/Mascot"
 import "@/widgets/toolbar/tool.css"
 import "./Toolbar.css"
@@ -62,7 +61,6 @@ const GROUPS: { id: ComponentGroup; label: string }[] = [
   { id: "overlays", label: "Overlays" },
   { id: "structure", label: "Structure" },
 ]
-const WIDGETS = ["avatar", "button", "gradient", "image"] as const
 
 // The Studio's title bar, across the window: the sidebar's key and the
 // history on the left, the project (its menu) in the middle, the library,
@@ -92,12 +90,24 @@ export default function Toolbar(props: ToolbarProps) {
     })).filter((group) => group.items.length),
   )
 
+  // The library is a dialog: its search focused on open (the panel itself
+  // when a finger opened it, so no on-screen keyboard covers it), focus back
+  // on its key when it closes with focus inside it (or nowhere; unringed
+  // after a touch), Escape anywhere in it.
+  let libraryKey: HTMLButtonElement | undefined
+  let libraryPanel: HTMLDivElement | undefined
   createEffect(
     on(
       libraryOpen,
       (open) => {
-        if (open) queueMicrotask(() => searchRef?.focus())
-        else setQuery("")
+        if (open) queueMicrotask(() => (focusOnOpen() ? searchRef : libraryPanel)?.focus())
+        else {
+          setQuery("")
+          queueMicrotask(() => {
+            const a = document.activeElement
+            if (!a || a === document.body || libraryPanel?.contains(a)) focusBack(libraryKey)
+          })
+        }
       },
       { defer: true },
     ),
@@ -127,7 +137,7 @@ export default function Toolbar(props: ToolbarProps) {
         else
           queueMicrotask(() => {
             const a = document.activeElement
-            if (!a || a === document.body || a.closest("[role=menu]")) projectTrigger?.focus()
+            if (!a || a === document.body || a.closest("[role=menu]")) focusBack(projectTrigger)
           })
       },
       { defer: true },
@@ -243,6 +253,7 @@ export default function Toolbar(props: ToolbarProps) {
           <div
             ref={(el) => (projectMenu = el)}
             role="menu"
+            tabIndex={-1}
             class="rim absolute left-1/2 top-full z-40 mt-1 w-56 -translate-x-1/2 rounded-2xl bg-card p-1 shadow-[0_8px_24px_rgba(0,0,0,0.32)]"
             on:keydown={menuKeydown}
           >
@@ -338,6 +349,7 @@ export default function Toolbar(props: ToolbarProps) {
       <div class="flex items-center gap-0.5 justify-self-end">
         <div class="relative mr-1">
           <button
+            ref={(el) => (libraryKey = el)}
             type="button"
             aria-haspopup="dialog"
             aria-expanded={libraryOpen()}
@@ -352,8 +364,11 @@ export default function Toolbar(props: ToolbarProps) {
           </button>
           <Presence when={libraryOpen()} name="pop">
             <div
+              ref={(el) => (libraryPanel = el)}
               role="dialog"
+              tabIndex={-1}
               aria-label="Component library"
+              onKeyDown={(e) => e.key === "Escape" && setLibraryOpen(false)}
               class="absolute right-0 top-full z-40 mt-2 flex max-h-[min(72dvh,640px)] w-[420px] flex-col overflow-hidden rim rounded-2xl bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]"
             >
               <label class="border-b border-border/60 p-2">
@@ -366,7 +381,6 @@ export default function Toolbar(props: ToolbarProps) {
                   placeholder={`Search ${COMPONENT_REGISTRY.length} components…`}
                   class="h-9 w-full rounded-md border border-edge bg-background px-3 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:border-ring"
                   onInput={(e) => setQuery(e.currentTarget.value)}
-                  onKeyDown={(e) => e.key === "Escape" && setLibraryOpen(false)}
                 />
               </label>
               <div class="overflow-y-auto p-2">
@@ -381,7 +395,7 @@ export default function Toolbar(props: ToolbarProps) {
                           </button>
                         )}
                       </For>
-                      <For each={WIDGETS}>
+                      <For each={SIMPLE_WIDGET_KINDS}>
                         {(type) => (
                           <button type="button" class="library-item capitalize" onClick={() => add(type)}>
                             {type}
@@ -483,6 +497,7 @@ export default function Toolbar(props: ToolbarProps) {
         type="file"
         accept="application/json"
         name="open-project"
+        aria-label="Project file"
         class="hidden"
         onChange={openFile}
       />

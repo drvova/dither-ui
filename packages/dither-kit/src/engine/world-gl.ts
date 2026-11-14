@@ -11,7 +11,16 @@
 // coordinates (`packUv`'s encoding) — so textures and `dk_uv` work on both
 // engines; WebGL1 leaves the uvs unset.
 
-import { buildProgram, type ChannelInput, type Channels, createChannels, createGl, type Gl, type GlHandle } from "./gl"
+import {
+  buildProgram,
+  type ChannelInput,
+  type Channels,
+  createChannels,
+  createGl,
+  type Gl,
+  type GlHandle,
+  uploadRows,
+} from "./gl"
 import type { Rgb } from "./palette"
 import { wrapMaterial } from "./shader"
 import {
@@ -129,8 +138,9 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
   let problem = ""
   let pixels = new Uint8Array(0)
   let uvPixels = new Uint8Array(0)
-  const buffers = new WeakMap<WorldMesh, Buffers>()
+  let buffers = new WeakMap<WorldMesh, Buffers>()
   const uniforms: Record<string, WebGLUniformLocation | null> = {}
+  let generation = 0
   // WebGL2 draws into its own framebuffer: the target and the uv map side by side.
   let fbo: WebGLFramebuffer | null = null
   let fboTex: (WebGLTexture | null)[] = []
@@ -179,6 +189,15 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
     }
     if (!handle || handle.lost()) return null
     const gl = handle.gl
+    // A restored context holds none of what was made before.
+    if (generation !== handle.generation()) {
+      generation = handle.generation()
+      program = null
+      buffers = new WeakMap()
+      fbo = null
+      fboDepth = null
+      fboTex = []
+    }
     if (!program) {
       if (
         !handle.webgl2 &&
@@ -390,14 +409,17 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
       return true
     },
     dispose() {
-      if (handle) {
+      // Its own context goes whole; on one it shares, what it made goes
+      // while that context lives on (gone with it once it is lost).
+      if (handle && handle !== shared) handle.dispose()
+      else if (handle && !handle.lost()) {
         const gl = handle.gl
         if (program) gl.deleteProgram(program)
         if (fbo) gl.deleteFramebuffer(fbo)
         if (fboDepth) gl.deleteRenderbuffer(fboDepth)
         for (const tex of fboTex) if (tex) gl.deleteTexture(tex)
-        if (handle !== shared) handle.dispose()
       }
+      buffers = new WeakMap()
       fbo = null
       fboDepth = null
       fboTex = []
@@ -447,9 +469,13 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
   let channels: Channels | null = null
   let packed = new Uint8Array(0)
   let packedUv = new Uint8Array(0)
+  // their rows bottom-up, as uploaded (`uploadRows`)
+  let flipped: Uint8Array | undefined
+  let flippedUv: Uint8Array | undefined
   let pixels = new Uint8Array(0)
   const palette = new Uint8Array(256 * 4)
   const uniforms: Record<string, WebGLUniformLocation | null> = {}
+  let generation = 0
 
   const texture = (gl: Gl): WebGLTexture | null => {
     const t = gl.createTexture()
@@ -469,6 +495,17 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
     }
     if (!handle || handle.lost()) return null
     const gl = handle.gl
+    // A restored context holds none of what was made before.
+    if (generation !== handle.generation()) {
+      generation = handle.generation()
+      program = null
+      compiled = null
+      quad = null
+      targetTex = null
+      paletteTex = null
+      uvTex = null
+      channels = null
+    }
     if (compiled !== source) {
       if (program) gl.deleteProgram(program)
       program = null
@@ -516,24 +553,20 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
       const rows = target.height
       handle.size(cols, rows)
       packed = packTarget(target, world, view, packed)
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
       gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, targetTex)
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, cols, rows, 0, gl.RGBA, gl.UNSIGNED_BYTE, packed)
+      flipped = uploadRows(gl, cols, rows, packed, flipped)
       palette.fill(0)
       world.palette.forEach((c, i) => {
         if (i < 256) palette.set([c[0], c[1], c[2], 255], i * 4)
       })
       gl.activeTexture(gl.TEXTURE1)
       gl.bindTexture(gl.TEXTURE_2D, paletteTex)
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 256, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, palette)
       packedUv = packUv(target, packedUv)
       gl.activeTexture(gl.TEXTURE2)
       gl.bindTexture(gl.TEXTURE_2D, uvTex)
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, cols, rows, 0, gl.RGBA, gl.UNSIGNED_BYTE, packedUv)
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
+      flippedUv = uploadRows(gl, cols, rows, packedUv, flippedUv)
       channels = channels ?? createChannels(handle)
       const bound = channels.upload(inputs.channels, 3, inputs.time, inputs.moment ?? null)
       gl.bindFramebuffer(gl.FRAMEBUFFER, null)
@@ -564,16 +597,24 @@ export function createWorldMaterial(shared?: GlHandle): WorldMaterial {
       return pixels
     },
     dispose() {
-      if (handle) {
+      // Its own context goes whole; on one it shares, what it made goes
+      // while that context lives on (gone with it once it is lost).
+      if (handle && handle !== shared) handle.dispose()
+      else if (handle && !handle.lost()) {
         if (program) handle.gl.deleteProgram(program)
         if (targetTex) handle.gl.deleteTexture(targetTex)
         if (paletteTex) handle.gl.deleteTexture(paletteTex)
         if (uvTex) handle.gl.deleteTexture(uvTex)
         channels?.dispose()
         if (quad) handle.gl.deleteBuffer(quad)
-        if (handle !== shared) handle.dispose()
       }
       program = null
+      compiled = null
+      quad = null
+      targetTex = null
+      paletteTex = null
+      uvTex = null
+      channels = null
       handle = null
     },
   }

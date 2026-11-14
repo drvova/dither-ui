@@ -8,7 +8,7 @@
 // enough that the floor sits in the middle tones and the lockup's faces
 // stay brightest, a weak fill, no camera light), so fronts, tops, sides and
 // chamfers each take their own tone and the light stays put as it turns.
-import { fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
+import { fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { LOCKUP, LOCKUP_SIZE } from "./brand"
 
 /** The kit's ember: the colour the cells fly in with, and the mark's core

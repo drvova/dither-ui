@@ -1,5 +1,5 @@
 import { createSignal, For, Show } from "solid-js"
-import { DitherClipboard, DitherIcon } from "dither-kit"
+import { DitherClipboard, DitherIcon } from "@dither-ui/kit"
 import { commandPieces } from "@/pages/landing/command"
 import { RUNTIME_DEPS } from "@/pages/landing/facts"
 import ToolMark from "@/shared/ui/ToolMark"

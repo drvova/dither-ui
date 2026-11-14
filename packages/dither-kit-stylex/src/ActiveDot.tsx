@@ -1,10 +1,10 @@
-// Generated from dither-kit/solid/ActiveDot.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/ActiveDot.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, mergeProps, Show } from "solid-js"
-import { dotPaint, type DotVariant } from "dither-kit/engine/dot-paint.ts"
-import { rgb } from "dither-kit/engine/palette.ts"
-import { useChart } from "dither-kit/solid/runtime/chart-context.ts"
-import { useSeries } from "dither-kit/solid/runtime/series-context.ts"
+import { dotPaint, type DotVariant } from "@dither-ui/kit/engine/dot-paint.ts"
+import { rgb } from "@dither-ui/kit/engine/palette.ts"
+import { useChart } from "@dither-ui/kit/solid/runtime/chart-context.ts"
+import { useSeries } from "@dither-ui/kit/solid/runtime/series-context.ts"
 
 export type ActiveDotProps = { variant?: DotVariant; r?: number }
 

@@ -1,9 +1,9 @@
-// Generated from dither-kit/solid/DitherReveal.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherReveal.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
-import { directedTime, isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import { type EasingInput, resolveEasing } from "dither-kit/engine/dither-paint.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import { type EasingInput, resolveEasing } from "@dither-ui/kit/engine/dither-paint.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import {
   BAYER8,
   bayerMatrix,
@@ -11,9 +11,9 @@ import {
   type WipeOptions,
   type WipeStyle,
   wipeStyle,
-} from "dither-kit/engine/wipe.ts"
+} from "@dither-ui/kit/engine/wipe.ts"
 import { cn, type StyleProp } from "./lib"
-import { createInviewLoop } from "dither-kit/solid/runtime/in-view.ts"
+import { createInviewLoop } from "@dither-ui/kit/solid/runtime/in-view.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -65,20 +65,18 @@ export default function DitherReveal(raw: DitherRevealProps) {
 
   let wrapRef: HTMLDivElement | undefined
   const [size, setSize] = createSignal({ width: 0, height: 0 })
-  const [played, setPlayed] = createSignal(0)
+  /** Seconds played so far, the delay included: a paused reveal resumes here
+   * (a reveal paused in its delay waits out the rest of it). How far it has
+   * played is read off it, so a new duration or delay shows at once. */
+  const [elapsed, setElapsed] = createSignal(0)
+  const played = createMemo(() => Math.max(0, Math.min(1, (elapsed() - props.delay) / Math.max(0.001, props.duration))))
   let raf = 0
   let start = 0
-  /** Seconds played so far, the delay included: a paused reveal resumes here
-   * (a reveal paused in its delay waits out the rest of it). */
-  let elapsed = 0
   let ro: ResizeObserver | null = null
-
-  const at = (seconds: number) => Math.max(0, Math.min(1, (seconds - props.delay) / Math.max(0.001, props.duration)))
 
   function tick(now: number) {
     raf = 0
-    elapsed = (now - start) / 1000
-    setPlayed(at(elapsed))
+    setElapsed((now - start) / 1000)
     if (played() < 1) raf = requestAnimationFrame(tick)
   }
 
@@ -91,10 +89,10 @@ export default function DitherReveal(raw: DitherRevealProps) {
       return
     }
     if (pixelPrefersReducedMotion()) {
-      setPlayed(1)
+      setElapsed(Infinity)
       return
     }
-    start = performance.now() - elapsed * 1000
+    start = performance.now() - elapsed() * 1000
     raf = requestAnimationFrame(tick)
   }
 
@@ -105,14 +103,12 @@ export default function DitherReveal(raw: DitherRevealProps) {
 
   function seekTo(ms: number) {
     stop()
-    elapsed = ms / 1000
-    setPlayed(at(elapsed))
+    setElapsed(ms / 1000)
   }
 
   function restart() {
     stop()
-    elapsed = 0
-    setPlayed(0)
+    setElapsed(0)
     play()
   }
 
@@ -120,6 +116,8 @@ export default function DitherReveal(raw: DitherRevealProps) {
 
   onMount(() => {
     createEffect(on(() => props.restartKey, restart, { defer: true }))
+    // A finished reveal lengthened past where it stands plays on from there.
+    createEffect(on([() => props.duration, () => props.delay], () => elapsed() > 0 && play(), { defer: true }))
     const unseek = onSeek((ms) => (ms === null ? play() : seekTo(ms)))
     const el = wrapRef
     if (el) {

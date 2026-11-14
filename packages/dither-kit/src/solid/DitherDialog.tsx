@@ -1,5 +1,6 @@
 import { createEffect, createUniqueId, type JSX, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
+import { focusablesIn, trapKeys } from "../engine/keys"
 import { CONTROL_BUTTON } from "../tailwind/control"
 import { cn } from "../tailwind/lib"
 import { Presence } from "./runtime/presence"
@@ -26,32 +27,12 @@ export default function DitherDialog(raw: DitherDialogProps) {
   const descriptionId = `${idBase}-description`
   let previousFocus: HTMLElement | null = null
 
-  const focusable = () => [
-    ...(panel?.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    ) ?? []),
-  ]
+  const focusable = () => focusablesIn(panel)
   function focusInitial() {
     close?.focus() ?? focusable()[0]?.focus()
   }
   function onKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") {
-      e.stopPropagation()
-      props.onClose?.()
-      return
-    }
-    if (e.key !== "Tab") return
-    const items = focusable()
-    if (!items.length) return e.preventDefault()
-    const first = items[0],
-      last = items[items.length - 1]
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault()
-      last.focus()
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault()
-      first.focus()
-    }
+    trapKeys(e, focusable(), () => props.onClose?.())
   }
   onMount(() => {
     createEffect(

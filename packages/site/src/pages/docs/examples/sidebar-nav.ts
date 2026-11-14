@@ -11,4 +11,4 @@ export const SIDEBAR_NAV = [
   { id: "sidebar-tree", label: "File tree" },
   { id: "sidebar-drawer", label: "Mobile drawer" },
   { id: "sidebar-rail", label: "Icon rail" },
-]
+] as const

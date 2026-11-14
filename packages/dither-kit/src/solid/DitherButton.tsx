@@ -1,12 +1,13 @@
 import { createEffect, createMemo, For, type JSX, mergeProps, on, onCleanup, onMount, Show, splitProps } from "solid-js"
 import { kitFromSeed } from "../engine/dither-paint"
-import { darkInkOnDark, LABEL_COVERAGE } from "../engine/palette"
+import { labelFill } from "../engine/label-fill"
 import {
   fillOf,
   pixelBloomStyle,
   pixelPrefersReducedMotion,
   type PixelBloomInput,
   type PixelColor,
+  screenMatrix,
 } from "../engine/pixel"
 import {
   DEFAULT_MAX_COLS,
@@ -71,9 +72,11 @@ export default function DitherButton(raw: DitherButtonProps) {
   const precompiled = createMemo(() => precompiledSrc(props.precompiled))
   const color = createMemo<PixelColor>(() => props.color ?? s()?.hue ?? "blue")
   const variant = createMemo<ButtonVariant>(() => props.variant ?? s()?.variant ?? "gradient")
-  // A bright fill takes black ink: white on it would sink under AA. The
-  // raster stores its colour already scaled by alpha: the band is coverage².
-  const darkInk = createMemo(() => darkInkOnDark(fillOf(color()), LABEL_COVERAGE[variant()] ** 2))
+  // A bright fill takes black ink: the theme's would sink under AA. The
+  // raster (`renderDitherButton`) prints the fill at the same call's tone.
+  const darkInk = createMemo(
+    () => labelFill(fillOf(color()), variant(), "premultiplied", screenMatrix("bayer", props.seed)).darkInk,
+  )
   const bloom = createMemo<PixelBloomInput>(() => props.bloom ?? (props.seed !== undefined ? props.seed : "off"))
   const cell = createMemo(() => props.cell ?? s()?.cell ?? 2)
 

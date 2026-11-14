@@ -1,11 +1,11 @@
-// Generated from dither-kit/solid/CurvedLoop.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/CurvedLoop.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createUniqueId, mergeProps, onCleanup, onMount } from "solid-js"
-import { directedTime, isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { createEffect, createUniqueId, mergeProps, on, onCleanup, onMount } from "solid-js"
+import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
-import { createInviewLoop } from "dither-kit/solid/runtime/in-view.ts"
-import "dither-kit/solid/CurvedLoop.css"
+import { createInviewLoop } from "@dither-ui/kit/solid/runtime/in-view.ts"
+import "@dither-ui/kit/solid/CurvedLoop.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -26,8 +26,7 @@ export default function CurvedLoop(raw: CurvedLoopProps) {
 
   const uid = `dither-curve-${createUniqueId()}`
   // Repeated enough to always cover the visible path plus one wrap unit.
-  // Read once: a later `text` does not rebuild the path.
-  const content = props.text.repeat(10)
+  const content = () => props.text.repeat(10)
 
   let host: SVGSVGElement | undefined
   let measure: SVGTextElement | undefined
@@ -72,7 +71,13 @@ export default function CurvedLoop(raw: CurvedLoopProps) {
 
   onMount(() => {
     onCleanup(onSeek((ms) => (ms === null ? start() : seekTo(ms))))
-    copyLen = measure?.getComputedTextLength?.() || 0
+    // A new text is measured again; directed, the moment is set out anew.
+    createEffect(
+      on([() => props.text, () => props.speed], () => {
+        copyLen = measure?.getComputedTextLength?.() || 0
+        if (isDirected()) seekTo(directedTime() ?? 0)
+      }),
+    )
   })
   createInviewLoop(() => host, start, stop)
 
@@ -86,13 +91,13 @@ export default function CurvedLoop(raw: CurvedLoopProps) {
       <defs>
         <path id={uid} d={d} fill="none" />
       </defs>
-      {/* hidden single copy, measured once to wrap the scroll seamlessly */}
+      {/* hidden single copy, measured to wrap the scroll seamlessly */}
       <text ref={(el) => (measure = el)} class="dither-curve-text" x="-9999" y="-9999">
         {props.text}
       </text>
       <text class="dither-curve-text" aria-hidden="true">
         <textPath ref={(el) => (textPathEl = el)} href={`#${uid}`} startOffset="0">
-          {content}
+          {content()}
         </textPath>
       </text>
     </svg>

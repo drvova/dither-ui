@@ -1,7 +1,9 @@
 import { createSignal, For, onCleanup, onMount } from "solid-js"
-import { DitherIcon, ditherTransition, type WipeDirection } from "dither-kit"
+import { DitherIcon, ditherTransition, type WipeDirection } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 /* Three scenes on one stage. Every change between them is a dithered view
    transition of the stage alone; the transport steps, plays and picks at
@@ -30,7 +32,7 @@ const PLAY_MS = 1800
 
 const KEY = "grid size-7 place-items-center rounded border border-border/60 text-muted-foreground hover:bg-accent/40"
 const CHIP = "rounded border px-2 py-1 text-[11px]"
-const PICKED = "border-accent bg-accent/80 text-accent-foreground"
+const PICKED = "border-accent bg-accent text-accent-foreground"
 const UNPICKED = "border-border/60 text-muted-foreground hover:bg-accent/40"
 
 const SNIPPET = `import { ditherTransition, ditherViewTransition } from "@dither-kit"
@@ -108,13 +110,12 @@ export default function TransitionSection() {
       io?.disconnect()
     })
     if (typeof IntersectionObserver === "undefined" || !stage) return
-    io = new IntersectionObserver(([entry]) => entry?.isIntersecting || stop())
+    io = new IntersectionObserver((entries) => latestEntry(entries)?.isIntersecting || stop())
     io.observe(stage)
   })
 
   return (
-    <section id="dither-transition" class="mt-16 scroll-mt-24">
-      <h2 class="text-lg tracking-tight">Page transition</h2>
+    <DocSection id="dither-transition">
       <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
         One state turns into the next through the same masks. <code class="text-foreground/80">ditherTransition</code>{" "}
         runs any DOM change as a view transition and dithers its two snapshots, the old one breaking up as the new one
@@ -180,6 +181,6 @@ export default function TransitionSection() {
         </div>
       </DemoCard>
       <PropsTable rows={API} />
-    </section>
+    </DocSection>
   )
 }

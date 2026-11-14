@@ -1,9 +1,10 @@
-// Generated from dither-kit/solid/ScrubInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/ScrubInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, mergeProps, onCleanup, onMount, splitProps } from "solid-js"
 import { cn, type StyleProp } from "./lib"
 import DitherInput, { type DitherInputProps } from "./DitherInput"
 import Icon from "./Icon"
+import { sliderKeys } from "@dither-ui/kit/engine/keys.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -108,17 +109,8 @@ export default function ScrubInput(raw: ScrubInputProps) {
 
   function onKeydown(e: KeyboardEvent) {
     if (props.disabled) return
-    const big = props.step * 10
-    let next: number | null = null
-    if (e.key === "ArrowLeft" || e.key === "ArrowDown") next = props.modelValue - props.step
-    else if (e.key === "ArrowRight" || e.key === "ArrowUp") next = props.modelValue + props.step
-    else if (e.key === "PageDown") next = props.modelValue - big
-    else if (e.key === "PageUp") next = props.modelValue + big
-    else if (e.key === "Home") next = props.min
-    else if (e.key === "End") next = props.max
-    if (next === null) return
-    e.preventDefault()
-    props.onUpdateModelValue?.(clampSnap(next))
+    const next = sliderKeys(e, { value: props.modelValue, step: props.step, min: props.min, max: props.max })
+    if (next !== null) props.onUpdateModelValue?.(clampSnap(next))
   }
 
   return (

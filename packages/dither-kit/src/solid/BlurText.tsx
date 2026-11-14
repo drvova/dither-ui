@@ -2,6 +2,7 @@ import { createMemo, createSignal, Index, mergeProps, onCleanup, onMount } from 
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 import "./BlurText.css"
+import { latestEntry } from "../engine/visibility"
 
 export type BlurTextProps = {
   text?: string
@@ -23,7 +24,8 @@ export default function BlurText(raw: BlurTextProps) {
       setShown(true)
       return
     }
-    const io = new IntersectionObserver(([entry]) => {
+    const io = new IntersectionObserver((entries) => {
+      const entry = latestEntry(entries)
       if (entry?.isIntersecting) {
         setShown(true)
         io.disconnect()

@@ -3,7 +3,7 @@
 import { Meta } from "@solidjs/meta"
 import { HttpStatusCode } from "@solidjs/start"
 import PageHead from "@/pages/docs/PageHead"
-import { MissingPage } from "@/pages/landing"
+import MissingPage from "@/pages/landing/MissingPage"
 
 export default function Missing() {
   return (

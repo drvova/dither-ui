@@ -1,7 +1,7 @@
 // The landing.
 import { Meta } from "@solidjs/meta"
 import PageHead from "@/pages/docs/PageHead"
-import { LandingPage } from "@/pages/landing"
+import LandingPage from "@/pages/landing/LandingPage"
 
 export default function Landing() {
   return (

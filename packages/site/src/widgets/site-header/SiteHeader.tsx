@@ -4,19 +4,23 @@
 // page's own tools (`tools`: the docs' search and sections key) and the
 // chrome "Open studio" key. Under lg the links the capsule has no room for
 // live in the menu (`menu.ts`): its key, the sheet's bands in miniature,
-// opens them as a modal sheet of tone steps that wipes in and rolls back up
-// when it is closed. Sticky is positioned, and z-40 keeps it over a page's
-// main, which isolates its art.
+// opens them as a bottom sheet of tone steps (`sheet.ts`) that slides up on
+// the glide, slides back down when it is closed, and follows a finger that
+// drags it down by its head, closing or springing back as it is let go.
+// Sticky is positioned, and z-40 keeps it over a page's main, which
+// isolates its art.
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from "solid-js"
-import { DitherReveal } from "dither-kit"
-import { coverPage } from "dither-kit/engine/cover.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { coverPage } from "@dither-ui/kit/engine/cover.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { routePath } from "@/shared/lib/routes"
+import { glide } from "@/shared/lib/glide-ref"
+import { springTo } from "@/shared/lib/spring"
 import {
   BAND_INK,
+  CLOSE_CELLS,
   MENU_LINKS,
   MENU_WIDE,
-  SHEET_WIPE,
+  SHEET_HEAD_FOOT,
   STUDIO_FILL,
   STUDIO_LINK,
   bandFill,
@@ -24,11 +28,11 @@ import {
   type MenuLinkId,
   type MenuPhase,
 } from "@/widgets/site-header/menu"
+import { SHEET_DRAG, SHEET_SLIDE, pullOf, releaseOf, velocityOf, type DragSample } from "@/widgets/site-header/sheet"
 import "@/widgets/site-header/site-header.css"
 import BrandMark from "../../shared/ui/BrandMark"
 import Mascot from "../../shared/ui/Mascot"
 import ToolMark from "../../shared/ui/ToolMark"
-import SheetHead from "./SheetHead"
 
 export type SiteHeaderProps = {
   /** The page the reader is on, so its own link reads as current. */
@@ -55,25 +59,49 @@ export default function SiteHeader(props: SiteHeaderProps) {
   const isCurrent = (id: MenuLinkId) => id === props.current
 
   // The menu: a native modal dialog (focus held inside, Escape closes, the page
-  // inert under it), the page holding still while it is open.
+  // inert under it), the page holding still while it is open. Its sheet
+  // (`panel`) stands `offset` px below its rest while a hand or a spring
+  // moves it.
   const [phase, setPhase] = createSignal<MenuPhase>("shut")
   let sheet: HTMLDialogElement | undefined
   let key: HTMLButtonElement | undefined
+  let panel: HTMLDivElement | undefined
   let leaving = 0
+  let slide: Animation | undefined
+  let stopSpring = () => {}
+  let offset = 0
   const lock = (on: boolean) => {
     document.documentElement.style.overflow = on ? "hidden" : ""
   }
+  const place = (y: number) => {
+    offset = y
+    if (panel) panel.style.transform = y ? `translateY(${y}px)` : ""
+  }
+  /** Stop whatever moves the sheet, leaving it where it stands. */
+  const still = () => {
+    stopSpring()
+    stopSpring = () => {}
+    slide?.cancel()
+    slide = undefined
+  }
   function show() {
     clearTimeout(leaving)
+    still()
+    place(0)
     setPhase("open")
     lock(true)
     if (!sheet?.open) sheet?.showModal?.()
     // The sheet covers the page: the kit's loops under it hold their frame.
     coverPage(sheet ?? null)
+    // It slides up from the foot of the screen on the glide.
+    if (!pixelPrefersReducedMotion() && panel?.animate)
+      slide = panel.animate([{ transform: "translateY(100%)" }, { transform: "none" }], SHEET_SLIDE)
   }
   /** Shut at once: a link taken (the page is moving on), the window grown. */
   function shut() {
     clearTimeout(leaving)
+    still()
+    place(0)
     if (phase() === "shut") return
     setPhase("shut")
     coverPage(null)
@@ -81,19 +109,73 @@ export default function SiteHeader(props: SiteHeaderProps) {
     if (sheet?.open) sheet.close()
     key?.focus()
   }
-  /** Shut as it came: the wipe played back, the sheet rolling up from its foot. */
+  /** Shut as it came: the sheet slides back down from where it stands. */
   function leave() {
     if (phase() !== "open") return
     if (pixelPrefersReducedMotion()) return shut()
     setPhase("leaving")
-    // The page wakes as the sheet rolls up off it.
+    // The page wakes as the sheet slides off it.
     coverPage(null)
-    leaving = window.setTimeout(shut, SHEET_WIPE.duration * 1000)
+    still()
+    if (panel?.animate)
+      slide = panel.animate([{ transform: `translateY(${offset}px)` }, { transform: "translateY(100%)" }], {
+        ...SHEET_SLIDE,
+        fill: "forwards",
+      })
+    leaving = window.setTimeout(shut, SHEET_SLIDE.duration)
   }
   // Escape asks the dialog to cancel: it leaves the same way the close key does.
   function onCancel(e: Event) {
     e.preventDefault()
     leave()
+  }
+  // A tap on the page above the sheet (the dialog's own clear ground) closes it.
+  function onDialogClick(e: MouseEvent) {
+    if (e.target === sheet) leave()
+  }
+
+  // The sheet's head under a finger, a pen or a mouse: a drag once it has
+  // moved past the slop (a tap on the close key stays a tap), the sheet
+  // following it down, then let go to close or spring back.
+  let grab: { id: number; y: number; dragging: boolean; samples: DragSample[] } | null = null
+  function onGrabDown(e: PointerEvent) {
+    if (phase() !== "open" || !e.isPrimary || e.button > 0) return
+    grab = { id: e.pointerId, y: e.clientY, dragging: false, samples: [{ t: e.timeStamp, y: e.clientY }] }
+  }
+  function onGrabMove(e: PointerEvent) {
+    if (!grab || e.pointerId !== grab.id) return
+    const dy = e.clientY - grab.y
+    if (!grab.dragging) {
+      if (Math.abs(dy) < SHEET_DRAG.slop) return
+      grab.dragging = true
+      ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+      still()
+    }
+    grab.samples.push({ t: e.timeStamp, y: e.clientY })
+    if (grab.samples.length > 12) grab.samples.shift()
+    place(pullOf(dy))
+  }
+  function onGrabUp(e: PointerEvent) {
+    const was = grab
+    grab = null
+    if (!was?.dragging || e.pointerId !== was.id) return
+    was.samples.push({ t: e.timeStamp, y: e.clientY })
+    const velocity = velocityOf(was.samples)
+    const height = panel?.offsetHeight ?? 0
+    const close = releaseOf(offset, velocity, height) === "close"
+    if (pixelPrefersReducedMotion()) return close ? shut() : place(0)
+    if (!close) return void (stopSpring = springTo(offset, 0, velocity, place, () => {}))
+    setPhase("leaving")
+    coverPage(null)
+    stopSpring = springTo(offset, height, velocity, place, shut)
+  }
+  // The browser took the touch (a scroll, a system gesture): back to rest.
+  function onGrabCancel(e: PointerEvent) {
+    const was = grab
+    grab = null
+    if (!was?.dragging || e.pointerId !== was.id) return
+    if (pixelPrefersReducedMotion()) return place(0)
+    stopSpring = springTo(offset, 0, 0, place, () => {})
   }
 
   // From lg the capsule holds every link: a menu left open by a rotation closes.
@@ -104,6 +186,7 @@ export default function SiteHeader(props: SiteHeaderProps) {
     onCleanup(() => {
       wide?.removeEventListener("change", onWide)
       clearTimeout(leaving)
+      still()
       if (phase() !== "shut") {
         lock(false)
         coverPage(null)
@@ -120,7 +203,7 @@ export default function SiteHeader(props: SiteHeaderProps) {
             <span class="max-[359px]:sr-only">dither-ui</span>
             <Mascot size={16} alive class="max-[479px]:hidden" />
           </a>
-          <nav class="flex items-center text-muted-foreground" aria-label="Site">
+          <nav ref={glide} class="flex items-center text-muted-foreground" aria-label="Site">
             <For each={MENU_LINKS}>
               {(l) => (
                 <a
@@ -166,7 +249,8 @@ export default function SiteHeader(props: SiteHeaderProps) {
         </div>
       </header>
 
-      {/* The phase stands on the dialog: the kit's reveal takes no attribute of its caller's. */}
+      {/* The phase stands on the dialog. The sheet is the dialog's foot;
+          above it the dialog is clear, the page held still under it. */}
       <dialog
         id={MENU_ID}
         ref={(el) => (sheet = el)}
@@ -175,10 +259,27 @@ export default function SiteHeader(props: SiteHeaderProps) {
         data-phase={phase() === "shut" ? undefined : phase()}
         on:cancel={onCancel}
         on:close={shut}
+        onClick={onDialogClick}
       >
         <Show when={phase() !== "shut"}>
-          <DitherReveal {...SHEET_WIPE} reverse={phase() === "leaving"} restartKey={phase()} class="menu-sheet">
-            <SheetHead closeLabel="Close menu" onClose={leave} />
+          <div ref={(el) => (panel = el)} class="menu-sheet">
+            {/* The head: the handle a finger drags the sheet down by, and
+                the close key. Clear of the first band's seam. */}
+            <div
+              class="menu-grab"
+              style={{ "padding-bottom": `${SHEET_HEAD_FOOT}px` }}
+              onPointerDown={onGrabDown}
+              onPointerMove={onGrabMove}
+              onPointerUp={onGrabUp}
+              onPointerCancel={onGrabCancel}
+            >
+              <span class="menu-handle" aria-hidden="true" />
+              <span class="sheet-title">Menu</span>
+              <button type="button" class="nav-a menu-key menu-close" aria-label="Close menu" autofocus onClick={leave}>
+                <BrandMark cells={CLOSE_CELLS} size={14} />
+                <span aria-hidden="true">Close</span>
+              </button>
+            </div>
             <nav class="menu-bands" aria-label="Site">
               <For each={MENU_LINKS}>
                 {(l, i) => (
@@ -211,7 +312,7 @@ export default function SiteHeader(props: SiteHeaderProps) {
                 <span class="menu-note">{STUDIO_LINK.note}</span>
               </a>
             </nav>
-          </DitherReveal>
+          </div>
         </Show>
       </dialog>
     </>

@@ -1,12 +1,9 @@
-// The Studio's page on Solid (`src/pages/studio/`, `src/routes/studio.tsx`),
-// held to what its Vue twin did. Carried from the earlier Vue site's
-// `tests/studio-columns.spec.ts` (the side columns, a deleted project's
-// chats), `tests/studio-shell.spec.ts` (a row's menu, the search; the
-// page's own keys are in `state.spec.tsx`) and `tests/studio-guide.spec.ts`
-// (the tour; where it hovers and the first visit are framework-free and
-// stay with the framework-free specs), assertion for assertion; then this port's
-// own: the panel's tabs, the sidebar, what the page brings in as it mounts
-// and the head the route gives it.
+// The Studio's page (`src/pages/studio/`, `src/routes/studio.tsx`): the
+// side columns and a deleted project's chats, a row's menu and the search
+// (the page's own keys are in `state.spec.tsx`), the tour (where it hovers
+// and the first visit are held by the framework-free specs), the panel's
+// tabs, the sidebar, what the page brings in as it mounts and the head the
+// route gives it.
 import { MetaProvider } from "@solidjs/meta"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
@@ -14,10 +11,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { APP_HEAD } from "@/app/install-files"
 import type { GuideStop } from "@/pages/studio/guide"
 import { ROUTE_TITLES } from "@/shared/config/titles"
-import { editor, stopInspecting } from "../../src/entities/editor"
+import { editor, resetHistory, stopInspecting } from "../../src/entities/editor"
 import { chats, openProject } from "../../src/features/agent/chats"
 import { handoff } from "../../src/features/agent/handoff"
-import { resetHistory } from "../../src/features/history"
 import { activeProjectId, createProject, deleteProject, hydrate, projects } from "../../src/features/persistence"
 import { StudioPage } from "../../src/pages/studio"
 import RowMenu from "../../src/pages/studio/ui/RowMenu"
@@ -26,13 +22,12 @@ import StudioGuide from "../../src/pages/studio/ui/StudioGuide"
 import StudioPanel from "../../src/pages/studio/ui/StudioPanel"
 import StudioSidebar from "../../src/pages/studio/ui/StudioSidebar"
 import Studio from "../../src/routes/studio"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 // jsdom lays nothing out, so it has no scrolling to do.
 Element.prototype.scrollIntoView ??= () => {}
 
-/** What Vue's `nextTick` was to the Vue specs: the watchers of this turn, and
- * what they queued, have run. */
+/** The watchers of this turn, and what they queued, have run. */
 const tick = async () => {
   for (let i = 0; i < 6; i++) await Promise.resolve()
 }
@@ -213,6 +208,27 @@ describe("the page as it mounts", () => {
     await tick()
     expect(container.querySelector(".studio")).not.toBeNull()
   })
+  it("tells a tablet held upright to turn, since the same screen on its side opens the editor", async () => {
+    const hint = async (coarse: boolean, screen: { width: number; height: number }) => {
+      at(834)
+      vi.stubGlobal("screen", screen)
+      const narrow = window.matchMedia
+      vi.stubGlobal("matchMedia", (q: string) =>
+        q === "(pointer: coarse)" ? { ...narrow(q), matches: coarse } : narrow(q),
+      )
+      const { container, unmount } = render(() => <StudioPage />)
+      await tick()
+      const line = get(container, "main p").textContent
+      unmount()
+      return line
+    }
+    // an iPad upright: 834 wide, 1194 on its side
+    expect(await hint(true, { width: 834, height: 1194 })).toContain("Turn the screen on its side to open it here.")
+    // a phone: on its side it is still too narrow
+    expect(await hint(true, { width: 390, height: 844 })).toContain("pick it up on a laptop")
+    // a narrow window on a desktop: turning helps nothing
+    expect(await hint(false, { width: 1920, height: 1080 })).toContain("pick it up on a laptop")
+  })
   it("opens search on ⌘K and folds the sidebar on ⌘B", async () => {
     const { container } = await page(1440)
     fireEvent.keyDown(window, { key: "k", ctrlKey: true })
@@ -240,8 +256,8 @@ describe("the route's head", () => {
     await tick()
     expect(document.title).toBe(ROUTE_TITLES.studio)
     expect(document.documentElement.dataset.page).toBe("studio")
-    // the app's own tags of the one table the Vue build injected from (the
-    // icons are the shell's, on every page)
+    // the app's own tags, from the install surface's table (the icons are
+    // the shell's, on every page)
     for (const t of APP_HEAD) {
       const el = head(
         t.tag === "link" ? `link[rel="${t.attrs.rel}"][href="/${t.attrs.href}"]` : `meta[name="${t.attrs.name}"]`,

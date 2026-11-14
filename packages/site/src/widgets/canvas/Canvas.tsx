@@ -1,10 +1,12 @@
-import { DitherIcon } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { DitherIcon } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import { addArtboard, deselect, editor, selectMany } from "@/entities/editor"
 import { handoff } from "@/features/agent/handoff"
 import { useShortcuts } from "@/features/keyboard"
 import { usePanZoom } from "@/features/pan-zoom"
+import { followPointer } from "@/shared/lib/follow"
+import { isTyping } from "@/shared/lib/keys"
 import Artboard from "./Artboard"
 import SelectionAsk from "./SelectionAsk"
 import "./Canvas.css"
@@ -12,11 +14,6 @@ import "./Canvas.css"
 /** What the canvas hands the page that holds it: its element, and the layer
  * the frames stand in (what the workbench inspects). */
 export type CanvasApi = { host: HTMLElement; world: HTMLElement }
-
-const isTyping = (t: EventTarget | null) => {
-  const el = t as HTMLElement | null
-  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
-}
 
 export default function Canvas(props: { ref?: (api: CanvasApi) => void }) {
   let host: HTMLDivElement | undefined
@@ -98,18 +95,11 @@ export default function Canvas(props: { ref?: (api: CanvasApi) => void }) {
       )
       selectMany(hit.map((a) => a.id))
     }
-    const up = (ev: PointerEvent) => {
-      if (ev.pointerId !== e.pointerId) return
-      window.removeEventListener("pointermove", move)
-      window.removeEventListener("pointerup", up)
-      window.removeEventListener("pointercancel", up)
-      const moved = Math.hypot(ev.clientX - rect.left - sx, ev.clientY - rect.top - sy)
-      if (ev.type === "pointerup" && moved < 3) deselect() // plain click on empty canvas
+    followPointer(e, move, (ev, cancelled) => {
+      // A plain click on empty canvas deselects.
+      if (ev && !cancelled && Math.hypot(ev.clientX - rect.left - sx, ev.clientY - rect.top - sy) < 3) deselect()
       setMarquee(null)
-    }
-    window.addEventListener("pointermove", move)
-    window.addEventListener("pointerup", up)
-    window.addEventListener("pointercancel", up)
+    })
   }
 
   const view = (
@@ -128,6 +118,8 @@ export default function Canvas(props: { ref?: (api: CanvasApi) => void }) {
         class="absolute left-0 top-0 origin-top-left"
         style={{
           transform: `translate(${editor.viewport.x}px, ${editor.viewport.y}px) scale(${editor.viewport.zoom})`,
+          // What a frame's chrome divides by to keep its reach on the screen.
+          "--zoom": String(editor.viewport.zoom),
         }}
       >
         <For each={visible()}>{(a) => <Artboard artboard={a} />}</For>
@@ -194,7 +186,7 @@ export default function Canvas(props: { ref?: (api: CanvasApi) => void }) {
       </Show>
     </div>
   )
-  // Handed over before the page mounts, as a component's ref was in Vue.
+  // Handed over before the page mounts.
   if (host && world) props.ref?.({ host, world })
   return view
 }

@@ -4,7 +4,7 @@
 // element that holds them; the words come from the site's `RiseWords`. Under
 // reduced motion everything stands where it is. What the prerendered bytes
 // show before the app runs waits in `rise-wait.ts`. Framework-free.
-import { GLIDE_BEZIER } from "dither-kit/engine/dither-paint.ts"
+import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { RISE_LIVE } from "./rise-wait"
 
 export const RISE = {
@@ -33,7 +33,8 @@ export function riseDelays(kinds: readonly ("word" | "block")[]): number[] {
 
 const still = () => !window.matchMedia || matchMedia("(prefers-reduced-motion: reduce)").matches
 
-/** Rise what `node` holds (`[data-rise]`) once it comes into view. */
+/** Rise what `node` holds (`[data-rise]`) once it comes into view, or at
+ * once when focus comes into it first. */
 export function rise(node: HTMLElement): { destroy(): void } {
   document.documentElement.dataset.rise = RISE_LIVE
   const items = [...node.querySelectorAll<HTMLElement>("[data-rise]")]
@@ -46,6 +47,16 @@ export function rise(node: HTMLElement): { destroy(): void } {
     return { destroy() {} }
   }
   for (const el of items) el.style.opacity = "0"
+  // Focus that comes before the view or the rise's turn (Tab to a link at
+  // the window's foot) stands everything up at once: a key a reader is on
+  // is never invisible.
+  const focused = () => {
+    io.disconnect()
+    for (const el of items) {
+      risen(el)
+      for (const a of el.getAnimations?.() ?? []) a.finish()
+    }
+  }
   const io = new IntersectionObserver(
     (entries) => {
       if (!entries.some((e) => e.isIntersecting)) return
@@ -64,6 +75,11 @@ export function rise(node: HTMLElement): { destroy(): void } {
     },
     { rootMargin: "0px 0px -8% 0px" },
   )
+  const stop = () => {
+    io.disconnect()
+    node.removeEventListener("focusin", focused)
+  }
   io.observe(node)
-  return { destroy: () => io.disconnect() }
+  node.addEventListener("focusin", focused)
+  return { destroy: stop }
 }

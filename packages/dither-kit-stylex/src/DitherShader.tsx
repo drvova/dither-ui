@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/DitherShader.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherShader.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
-import { directedTime, isDirected } from "dither-kit/engine/clock.ts"
+import { directedTime, isDirected } from "@dither-ui/kit/engine/clock.ts"
 import {
   type ChannelInput,
   type Channels,
@@ -13,10 +13,10 @@ import {
   type PendingProgram,
   programReady,
   startProgram,
-} from "dither-kit/engine/gl.ts"
-import { clamp01, fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
-import type { DitherRenderMode } from "dither-kit/engine/precompile.ts"
-import type { RasterBuffer } from "dither-kit/engine/raster.ts"
+} from "@dither-ui/kit/engine/gl.ts"
+import { clamp01, fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import type { DitherRenderMode } from "@dither-ui/kit/engine/precompile.ts"
+import type { RasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import {
   ditherShaderPixels,
   sampleShader,
@@ -24,10 +24,11 @@ import {
   wrapShader,
   type ShaderDither,
   type ShaderProgram,
-} from "dither-kit/engine/shader.ts"
+} from "@dither-ui/kit/engine/shader.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
-import { createDitherBackground, type DitherSurface } from "dither-kit/solid/runtime/surface.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
+import { createDitherBackground, type DitherSurface } from "@dither-ui/kit/solid/runtime/surface.ts"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -202,7 +203,24 @@ export default function DitherShader(raw: DitherShaderProps) {
   let locations: Partial<Record<(typeof SHADER_UNIFORMS)[number], WebGLUniformLocation | null>> = {}
   let channelSet: Channels | null = null
   let pixels = new Uint8Array(0)
+  let generation = 0
   const mouse = { x: 0, y: 0, cx: 0, cy: 0, down: false }
+
+  /** The handle while it draws, its objects made again after a restore
+   * (a restored context holds none of what was made before). */
+  function live(): GlHandle | null {
+    if (handle === undefined) handle = createGl()
+    if (!handle || handle.lost()) return null
+    if (generation !== handle.generation()) {
+      generation = handle.generation()
+      program = null
+      pending = null
+      compiled = null
+      locations = {}
+      channelSet = null
+    }
+    return handle
+  }
 
   /** Hand the program for `source` to the driver, collected by `settle`
    * once it is ready (so compiling never holds the page), or the error note. */
@@ -266,8 +284,8 @@ export default function DitherShader(raw: DitherShaderProps) {
   }))
 
   function draw(buffer: RasterBuffer, clock: number, dt: number) {
-    if (handle === undefined) handle = createGl()
-    if (!handle || handle.lost()) {
+    const glh = live()
+    if (!glh) {
       buffer.data.fill(0)
       if (status() === "ready") setStatus("unsupported")
       return
@@ -276,26 +294,26 @@ export default function DitherShader(raw: DitherShaderProps) {
       buffer.data.fill(0)
       return
     }
-    if (compiled !== code()) compile(handle, code())
+    if (compiled !== code()) compile(glh, code())
     // Still compiling: a running shader holds its raster and asks again next
     // frame; a frame that must be exact (paused, directed) waits for it.
     if (pending) {
-      if (!props.paused && !isDirected() && !programReady(handle.gl, pending)) return
-      settle(handle, pending)
+      if (!props.paused && !isDirected() && !programReady(glh.gl, pending)) return
+      settle(glh, pending)
     }
     if (!program) {
       buffer.data.fill(0)
       return
     }
-    const gl = handle.gl
+    const gl = glh.gl
     const w = buffer.width
     const h = buffer.height
-    handle.size(w, h)
+    glh.size(w, h)
     gl.useProgram(program)
     const t = clock * props.speed
     const u = locations
     if (props.channels?.length) {
-      channelSet = channelSet ?? createChannels(handle)
+      channelSet = channelSet ?? createChannels(glh)
       const bound = channelSet.upload(props.channels, 0, t, directedTime())
       if (u.iChannelResolution) gl.uniform3fv(u.iChannelResolution, bound.res)
       if (u.iChannelTime) gl.uniform1fv(u.iChannelTime, bound.times)
@@ -322,9 +340,9 @@ export default function DitherShader(raw: DitherShaderProps) {
     // never a stall); one frame that must be exact, a paused surface's last
     // or a directed moment, reads at once. Nothing back yet: the raster
     // holds the last.
-    if (props.paused || isDirected()) pixels = handle.read(pixels)
+    if (props.paused || isDirected()) pixels = glh.read(pixels)
     else {
-      const behind = handle.readBehind(pixels)
+      const behind = glh.readBehind(pixels)
       if (!behind) return
       pixels = behind
     }
@@ -357,8 +375,8 @@ export default function DitherShader(raw: DitherShaderProps) {
 
   /** The GPU half's first cost, the context and the program, started ahead. */
   function warm() {
-    if (handle === undefined) handle = createGl()
-    if (handle && !handle.lost() && code() && compiled !== code()) compile(handle, code())
+    const h = live()
+    if (h && code() && compiled !== code()) compile(h, code())
   }
 
   // Warmed as the shader nears the screen, at idle: making the context and
@@ -375,21 +393,18 @@ export default function DitherShader(raw: DitherShaderProps) {
         else clearTimeout(idle)
       }
       ctl?.abort()
-      if (handle) {
-        if (program) handle.gl.deleteProgram(program)
-        if (pending) dropProgram(handle.gl, pending)
-        channelSet?.dispose()
-        channelSet = null
-      }
-      program = null
-      pending = null
+      // Losing the context frees all it holds (see `GlHandle.dispose`).
       handle?.dispose()
       handle = null
+      program = null
+      pending = null
+      channelSet = null
     })
     const el = wrap
     if (!el || typeof IntersectionObserver === "undefined") return
     near = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = latestEntry(entries)
         if (!entry?.isIntersecting) return
         near?.disconnect()
         near = null

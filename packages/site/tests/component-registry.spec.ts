@@ -29,7 +29,7 @@ describe("component registry", () => {
     expect(props.max).toBe(100)
     expect(props.color).toBe("blue")
   })
-  it("createComponent seeds slot + v-model from the entry", () => {
+  it("createComponent seeds slot + bound value from the entry", () => {
     const sw = createComponent(componentEntry("DitherSwitch")!)
     expect(sw.model).toBe(true)
     expect(sw.slotText).toBeNull()

@@ -1,6 +1,7 @@
 import { createEffect, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"
 import { Presence } from "./runtime/presence"
 import "./DitherMenu.css"
+import { menuKeys } from "../engine/keys"
 
 export type MenuItem = {
   label?: string
@@ -34,26 +35,8 @@ export default function DitherMenu(props: DitherMenuProps) {
     closeMenu(true)
   }
 
-  function moveFocus(dir: number) {
-    const els = itemRefs.filter((el): el is HTMLButtonElement => !!el && el.isConnected)
-    if (!els.length) return
-    const i = els.indexOf(document.activeElement as HTMLButtonElement)
-    const next = i === -1 ? (dir > 0 ? 0 : els.length - 1) : (i + dir + els.length) % els.length
-    els[next]?.focus()
-  }
-
   function onKeydown(e: KeyboardEvent) {
-    if (!open()) return
-    if (e.key === "Escape") {
-      e.stopPropagation()
-      closeMenu(true)
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault()
-      moveFocus(1)
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault()
-      moveFocus(-1)
-    }
+    if (open()) menuKeys(e, itemRefs, () => closeMenu(true))
   }
 
   function onOutside(e: PointerEvent) {

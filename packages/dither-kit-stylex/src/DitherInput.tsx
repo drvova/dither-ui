@@ -1,10 +1,10 @@
-// Generated from dither-kit/solid/DitherInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, type JSX, mergeProps, splitProps } from "solid-js"
-import { cssColor } from "dither-kit/engine/palette.ts"
-import { CONTROL } from "./control"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
+import { CONTROL, CONTROL_INVALID } from "./control"
 import { cn, type StyleProp } from "./lib"
-import { useField } from "dither-kit/solid/runtime/field.ts"
+import { useField } from "@dither-ui/kit/solid/runtime/field.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -64,7 +64,7 @@ export default function DitherInput(raw: DitherInputProps) {
       aria-invalid={invalid() || undefined}
       aria-describedby={rest["aria-describedby"] ?? field?.describedBy()}
       style={{ ...props.style, ...invalidStyle() }}
-      class={cn(CONTROL, styles.input, props.xstyle, props.class)}
+      class={cn(CONTROL, invalid() && CONTROL_INVALID, styles.input, props.xstyle, props.class)}
       on:input={(e) => props.onUpdateModelValue?.(e.currentTarget.value)}
     />
   )

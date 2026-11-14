@@ -14,7 +14,10 @@ import type {
 
 /** The fixed widget kinds with bespoke builders — registry components are
  * created from their ComponentEntry, screens and reels from their parts. */
-export type SimpleWidgetKind = Exclude<WidgetKind, "component" | "screen" | "reel">
+export const SIMPLE_WIDGET_KINDS = ["avatar", "button", "gradient", "image"] as const satisfies readonly WidgetKind[]
+export type SimpleWidgetKind = (typeof SIMPLE_WIDGET_KINDS)[number]
+export const isSimpleWidgetKind = (kind: string): kind is SimpleWidgetKind =>
+  (SIMPLE_WIDGET_KINDS as readonly string[]).includes(kind)
 
 export const REEL_TRANSITIONS: readonly ReelTransitionKind[] = [
   "cut",
@@ -48,11 +51,11 @@ export function createComponent(entry: ComponentEntry): ComponentModel {
     is: entry.is,
     props: defaultComponentProps(entry),
     slotText: entry.slotText ?? null,
-    model: entry.vmodel ? entry.vmodel.def : undefined,
+    model: entry.model ? entry.model.def : undefined,
   }
 }
 
-export function createWidget(kind: SimpleWidgetKind): WidgetModel {
+export function createWidget(kind: SimpleWidgetKind): Extract<WidgetModel, { kind: SimpleWidgetKind }> {
   switch (kind) {
     case "avatar":
       return {

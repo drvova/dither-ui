@@ -1,6 +1,4 @@
-// The Studio's code export for a screen, a registry component and a reel,
-// carried from the earlier registry and screen specs when the Vue code
-// generators they held went: the same cases, on what the Studio writes now.
+// The Studio's code export for a screen, a registry component and a reel.
 import { describe, expect, it } from "vitest"
 import { createArtboard, normalizeArtboard } from "@/entities/artboard"
 import { addCell, addScreenRow, componentEntry, createComponent, createScreen } from "@/entities/widget"
@@ -39,12 +37,13 @@ describe("screen codegen", () => {
 })
 
 describe("component codegen", () => {
-  it("defaults emit a minimal tag", () => {
+  it("defaults are written as the canvas binds them, off and empty ones left out", () => {
     const code = widgetCode(createComponent(entry("DitherSwitch")), frame)
     expect(code).toContain('import { DitherSwitch } from "@dither-kit"')
     expect(code).toContain("modelValue={value()} onUpdateModelValue={setValue}")
     expect(code).toContain("const [value, setValue] = createSignal(true)")
-    expect(code).not.toContain("color=") // a default stays silent
+    expect(code).toContain('color="blue" label="Notifications"')
+    expect(code).not.toContain("disabled") // off at its default: the kit reads it unset
   })
 
   it("non-defaults emit typed attributes", () => {

@@ -1,53 +1,50 @@
 import { createSignal, Index } from "solid-js"
-import { DitherBreadcrumb, DitherPagination, DitherRating, DitherStepper, DitherTimeline } from "dither-kit"
+import { DitherBreadcrumb, DitherPagination, DitherRating, DitherStepper, DitherTimeline } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const SNIPPET_BREADCRUMB = `<DitherBreadcrumb
-  :items="[
+  items={[
     { label: 'Home', href: '#/' },
     { label: 'Components', href: '#/docs' },
     { label: 'Breadcrumb' },
-  ]"
+  ]}
 />`
 
-const SNIPPET_PAGINATION = `<script setup>
-const page = ref(3)
-</script>
+const SNIPPET_PAGINATION = `const [page, setPage] = createSignal(3)
 
-<DitherPagination v-model:page="page" :total="12" />`
+<DitherPagination page={page()} onUpdatePage={setPage} total={12} />`
 
-const SNIPPET_RATING = `<script setup>
-const rating = ref(3)
-</script>
+const SNIPPET_RATING = `const [rating, setRating] = createSignal(3)
 
-<!-- interactive: click or arrow-key to set -->
-<DitherRating v-model="rating" />
+{/* interactive: click or arrow-key to set */}
+<DitherRating modelValue={rating()} onUpdateModelValue={setRating} />
 
-<!-- read-only supports fractions -->
-<DitherRating :model-value="4.5" readonly />
+{/* read-only supports fractions */}
+<DitherRating modelValue={4.5} readonly />
 
-<!-- seed varies the star tilt + dither scatter -->
-<DitherRating :model-value="4" :seed="88" color="pink" />`
+{/* seed varies the star tilt + dither scatter */}
+<DitherRating modelValue={4} seed={88} color="pink" />`
 
 const SNIPPET_STEPPER = `<DitherStepper
-  :current="1"
-  :steps="[
+  current={1}
+  steps={[
     { label: 'Cart' },
     { label: 'Shipping' },
     { label: 'Payment' },
     { label: 'Done' },
-  ]"
+  ]}
 />`
 
 const SNIPPET_TIMELINE = `<DitherTimeline
-  :items="[
+  items={[
     { title: 'Deployed v0.3.0', time: '2h ago', color: 'green',
       body: 'Rolled out to production.' },
     { title: 'Merged #482', time: 'Yesterday', color: 'blue',
       body: 'Seeded spinner form space.' },
     { title: 'Opened milestone', time: 'Mon', color: 'purple' },
-  ]"
+  ]}
 />`
 
 const API: Record<string, PropRow[]> = {
@@ -92,8 +89,7 @@ export default function NavigationDocs() {
   return (
     <>
       {/* Breadcrumb */}
-      <section id="breadcrumb" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Breadcrumb</h2>
+      <DocSection id="breadcrumb">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A path back up the hierarchy. Links up to the current page, which is marked{" "}
           <code class="text-foreground/80">aria-current="page"</code>, inside a labelled{" "}
@@ -107,11 +103,10 @@ export default function NavigationDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.breadcrumb} />
-      </section>
+      </DocSection>
 
       {/* Pagination */}
-      <section id="pagination" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Pagination</h2>
+      <DocSection id="pagination">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Page navigation that always shows the first, last and current page, collapsing the rest to ellipses. Two-way
           bound with <code class="text-foreground/80">page</code> and{" "}
@@ -129,11 +124,10 @@ export default function NavigationDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.pagination} />
-      </section>
+      </DocSection>
 
       {/* Rating */}
-      <section id="rating" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Rating</h2>
+      <DocSection id="rating">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Dithered stars, rasterised from a 5-point polygon and scattered through the Bayer matrix. Interactive as a{" "}
           <code class="text-foreground/80">slider</code> (click or arrow keys); read-only mode fills fractionally. A
@@ -168,11 +162,10 @@ export default function NavigationDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.rating} />
-      </section>
+      </DocSection>
 
       {/* Stepper */}
-      <section id="stepper" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Stepper</h2>
+      <DocSection id="stepper">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Progress through a multi-step flow. Completed steps carry a check, the current step an outlined node, and the
           connectors are the kit's dithered rule, dissolving toward steps not yet reached.
@@ -186,11 +179,10 @@ export default function NavigationDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.stepper} />
-      </section>
+      </DocSection>
 
       {/* Timeline */}
-      <section id="timeline" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Timeline</h2>
+      <DocSection id="timeline">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A vertical run of events, each pinned by a dithered dot whose density fades at the rim. Give a title, an
           optional timestamp, body and palette colour per node.
@@ -213,7 +205,7 @@ export default function NavigationDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.timeline} />
-      </section>
+      </DocSection>
     </>
   )
 }

@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/Icon.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/Icon.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, For, mergeProps } from "solid-js"
-import { ICONS, type IconName } from "dither-kit/engine/icons.ts"
+import { ICONS, type IconName } from "@dither-ui/kit/engine/icons.ts"
 import { cn, type StyleProp } from "./lib"
 
 /** One glyph from the hand-rolled set: 24×24 stroke geometry in currentColor,

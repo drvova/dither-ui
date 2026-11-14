@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/DitherTooltip.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherTooltip.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createSignal, type JSX, mergeProps, onCleanup } from "solid-js"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/DitherTooltip.css"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/DitherTooltip.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

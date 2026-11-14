@@ -5,7 +5,7 @@ import type {
   PixelBloomConfig,
   PixelBloomInput,
   PixelColor,
-} from "dither-kit"
+} from "@dither-ui/kit"
 
 export type { PixelBloomConfig, PixelBloomInput, PixelColor }
 
@@ -70,7 +70,7 @@ export type ComponentModel = {
   is: string // kit export name, resolved through the registry
   props: Record<string, unknown>
   slotText: string | null
-  model: unknown // live v-model value for the interactive preview
+  model: unknown // the value it binds, live, for the interactive preview
 }
 
 import type { ScreenModel } from "./screen"

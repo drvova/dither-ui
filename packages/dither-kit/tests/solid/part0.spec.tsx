@@ -1,7 +1,7 @@
-// The Solid kit's backgrounds from Balatro to Ferrofluid, the shader and
-// the world, held to what their Vue twins did: each paints through the
-// shared loop once in view, gives way to a precompiled image, follows the
-// pointer where its twin does, and lets go of what it listened to.
+// The kit's backgrounds from Balatro to Ferrofluid, the shader and the
+// world: each paints through the shared loop once in view, gives way to a
+// precompiled image, follows the pointer where it takes one, and lets go
+// of what it listened to.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import type { JSX } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -59,6 +59,7 @@ function fakeGl() {
     gl,
     webgl2: true,
     lost: () => false,
+    generation: () => 0,
     size: (width: number, height: number) => (handle.cells = width * height),
     cells: 0,
     read: () => new Uint8Array(handle.cells * 4),

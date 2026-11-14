@@ -3,7 +3,7 @@
 // (`restyle`). Built once per run by the builder the specs use too
 // (`restyle/utility-map`), from the folders `utility-sources.ts` names.
 import type { Plugin } from "vite"
-import { buildUtilityMap } from "restyle/utility-map"
+import { buildUtilityMap } from "@dither-ui/restyle/utility-map"
 import { UTILITY_SOURCES } from "./utility-sources.ts"
 
 const ID = "virtual-dither-utilities"

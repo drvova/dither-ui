@@ -24,9 +24,10 @@ import {
   DitherCurvedLoop,
   DitherFuzzyText,
   DitherAsciiText,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const API: Record<string, PropRow[]> = {
   gradientText: [
@@ -156,22 +157,46 @@ const API: Record<string, PropRow[]> = {
 }
 
 const SNIPPETS = {
-  gradientText: `<DitherGradientText :colors="['#358ff3', '#7CFF67', '#358ff3']">
+  gradientText: `<DitherGradientText colors={['#358ff3', '#7CFF67', '#358ff3']}>
   Beautifully dithered
 </DitherGradientText>`,
   shinyText: `<DitherShinyText>Shimmering headline</DitherShinyText>`,
   glitchText: `<DitherGlitchText text="MALFUNCTION" />`,
-  splitText: `<DitherSplitText text="Split into characters" :replay-token="token" />`,
-  rotatingText: `Built for <DitherRotatingText :texts="['Solid', 'canvas', 'the studio']" />`,
-  countUp: `<DitherCountUp :to="1984" /> renders <!-- counts up when scrolled into view -->`,
-  numberFlow: `<DitherNumberFlow :value="metric" />  <!-- digits roll on every change -->
-<DitherNumberFlow :value="price" :decimals="2" :duration="400" />`,
-  textType: `<DitherTextType :texts="['Charts, dithered.', 'Buttons, dithered.', 'Everything, dithered.']" />`,
+  splitText: `const [token, setToken] = createSignal(0)
+
+<div class="grid place-items-center gap-4">
+  <DitherSplitText text="Split into characters" replayToken={token()} class="text-3xl" />
+  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
+</div>`,
+  rotatingText: `<p>
+  Built for <DitherRotatingText texts={['Solid', 'canvas', 'the studio']} />
+</p>`,
+  countUp: `<DitherCountUp to={1984} /> renders {/* counts up when scrolled into view */}`,
+  numberFlow: `const [metric, setMetric] = createSignal(12480)
+// a live metric: the digits roll on every change
+let timer = 0
+onMount(() => {
+  timer = window.setInterval(() => (setMetric(metric() + Math.round(Math.random() * 900 - 300))), 2400)
+})
+onCleanup(() => clearInterval(timer))
+
+<div class="text-4xl">$<DitherNumberFlow value={metric()} /></div>`,
+  textType: `<DitherTextType texts={['Charts, dithered.', 'Buttons, dithered.', 'Everything, dithered.']} />`,
   blurText: `<DitherBlurText text="Blur into focus" by="words" />`,
   decryptedText: `<DitherDecryptedText text="ACCESS GRANTED" />`,
   scrambleText: `<DitherScrambleText text="Hover to scramble" />`,
-  shuffle: `<DitherShuffle text="Shuffled into place" :replay-token="token" />`,
-  fallingText: `<DitherFallingText text="Falling into place" :replay-token="token" />`,
+  shuffle: `const [token, setToken] = createSignal(0)
+
+<div class="grid place-items-center gap-4">
+  <DitherShuffle text="Shuffled into place" replayToken={token()} class="text-3xl" />
+  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
+</div>`,
+  fallingText: `const [token, setToken] = createSignal(0)
+
+<div class="grid place-items-center gap-4">
+  <DitherFallingText text="Falling into place" replayToken={token()} class="text-3xl" />
+  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
+</div>`,
   scrollReveal: `<DitherScrollReveal text="These words reveal as you scroll them into view" />`,
   scrollFloat: `<DitherScrollFloat text="Floating up on scroll" />`,
   scrollVelocity: `<DitherScrollVelocity text="DITHER · UI · TOOLKIT · " />`,
@@ -202,8 +227,7 @@ export default function TextDocs() {
   return (
     <>
       {/* Gradient text */}
-      <section class="mt-16 scroll-mt-24" id="gradient-text">
-        <h2 class="text-lg tracking-tight">Gradient text</h2>
+      <DocSection id="gradient-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An animated gradient clipped to the text. The colour band drifts across the glyphs forever. Respects reduced
           motion.
@@ -214,10 +238,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.gradientText} />
-      </section>
+      </DocSection>
       {/* Shiny text */}
-      <section class="mt-16 scroll-mt-24" id="shiny-text">
-        <h2 class="text-lg tracking-tight">Shiny text</h2>
+      <DocSection id="shiny-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A bright highlight sweeps across dim text on a loop: a subtle sheen for headlines and labels.
         </p>
@@ -227,10 +250,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.shinyText} />
-      </section>
+      </DocSection>
       {/* Glitch text */}
-      <section class="mt-16 scroll-mt-24" id="glitch-text">
-        <h2 class="text-lg tracking-tight">Glitch text</h2>
+      <DocSection id="glitch-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Two RGB-split copies jitter and clip over the base text for a broken-signal effect. The base stays readable;
           the glitch layers hide under reduced motion.
@@ -241,10 +263,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.glitchText} />
-      </section>
+      </DocSection>
       {/* Split text */}
-      <section class="mt-16 scroll-mt-24" id="split-text">
-        <h2 class="text-lg tracking-tight">Split text</h2>
+      <DocSection id="split-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Each character rises and settles on a stagger. Bump <code class="text-foreground/80">replayToken</code> to run
           it again; the whole word is still one labelled node for screen readers.
@@ -264,10 +285,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.splitText} />
-      </section>
+      </DocSection>
       {/* Rotating text */}
-      <section class="mt-16 scroll-mt-24" id="rotating-text">
-        <h2 class="text-lg tracking-tight">Rotating text</h2>
+      <DocSection id="rotating-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Cycles through a list of words for a headline that says several things, each sliding out as the next slides
           in.
@@ -279,10 +299,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.rotatingText} />
-      </section>
+      </DocSection>
       {/* Count up */}
-      <section class="mt-16 scroll-mt-24" id="count-up">
-        <h2 class="text-lg tracking-tight">Count up</h2>
+      <DocSection id="count-up">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Eases a number from <code class="text-foreground/80">from</code> to <code class="text-foreground/80">to</code>{" "}
           when it scrolls into view. Locale-formatted, tabular figures. Reduced motion jumps to the final value.
@@ -294,9 +313,8 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.countUp} />
-      </section>
-      <section class="mt-16 scroll-mt-24" id="number-flow">
-        <h2 class="text-lg tracking-tight">Number flow</h2>
+      </DocSection>
+      <DocSection id="number-flow">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An odometer for live values: every digit rides a 0-9 column that rolls to the new figure whenever{" "}
           <code class="text-foreground/80">value</code> changes. Count up plays once; this one never stops. Reduced
@@ -311,10 +329,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.numberFlow} />
-      </section>
+      </DocSection>
       {/* Text type */}
-      <section class="mt-16 scroll-mt-24" id="text-type">
-        <h2 class="text-lg tracking-tight">Text type</h2>
+      <DocSection id="text-type">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A typewriter with a blinking caret: it types each string, pauses, deletes and moves to the next. Reduced
           motion shows the first line, no typing.
@@ -325,10 +342,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.textType} />
-      </section>
+      </DocSection>
       {/* Blur text */}
-      <section class="mt-16 scroll-mt-24" id="blur-text">
-        <h2 class="text-lg tracking-tight">Blur text</h2>
+      <DocSection id="blur-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Words (or characters) blur into focus on a stagger the first time they enter the viewport. Still one labelled
           node for screen readers.
@@ -339,10 +355,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.blurText} />
-      </section>
+      </DocSection>
       {/* Decrypted text */}
-      <section class="mt-16 scroll-mt-24" id="decrypted-text">
-        <h2 class="text-lg tracking-tight">Decrypted text</h2>
+      <DocSection id="decrypted-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Scrambled cipher characters resolve left-to-right into the real text when it scrolls into view. Monospace
           keeps the width steady.
@@ -353,10 +368,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.decryptedText} />
-      </section>
+      </DocSection>
       {/* Scramble text */}
-      <section class="mt-16 scroll-mt-24" id="scramble-text">
-        <h2 class="text-lg tracking-tight">Scramble text</h2>
+      <DocSection id="scramble-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Hover to burst-scramble the characters, which then settle back to the real text. Repeatable on every hover.
         </p>
@@ -366,10 +380,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.scrambleText} />
-      </section>
+      </DocSection>
       {/* Shuffle */}
-      <section class="mt-16 scroll-mt-24" id="shuffle">
-        <h2 class="text-lg tracking-tight">Shuffle</h2>
+      <DocSection id="shuffle">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Characters fly in from scattered offsets and rotations, settling into place on a stagger. Bump{" "}
           <code class="text-foreground/80">replayToken</code> to run it again.
@@ -389,10 +402,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.shuffle} />
-      </section>
+      </DocSection>
       {/* Falling text */}
-      <section class="mt-16 scroll-mt-24" id="falling-text">
-        <h2 class="text-lg tracking-tight">Falling text</h2>
+      <DocSection id="falling-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Characters drop in from above with a little overshoot bounce, staggered across the line.
         </p>
@@ -411,10 +423,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.fallingText} />
-      </section>
+      </DocSection>
       {/* Scroll reveal */}
-      <section class="mt-16 scroll-mt-24" id="scroll-reveal">
-        <h2 class="text-lg tracking-tight">Scroll reveal</h2>
+      <DocSection id="scroll-reveal">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The words fade and de-blur word-by-word as the block travels up through the viewport. The reveal is tied to
           scroll position, not a one-shot. Scroll the page.
@@ -425,10 +436,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.scrollReveal} />
-      </section>
+      </DocSection>
       {/* Scroll float */}
-      <section class="mt-16 scroll-mt-24" id="scroll-float">
-        <h2 class="text-lg tracking-tight">Scroll float</h2>
+      <DocSection id="scroll-float">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Characters float up from an offset as the scroll progress reaches each one: a gentle parallax settle. Scroll
           the page.
@@ -439,10 +449,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.scrollFloat} />
-      </section>
+      </DocSection>
       {/* Scroll velocity */}
-      <section class="mt-16 scroll-mt-24" id="scroll-velocity">
-        <h2 class="text-lg tracking-tight">Scroll velocity</h2>
+      <DocSection id="scroll-velocity">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A seamless marquee band that drifts on its own and speeds up (or reverses) with your scroll velocity, easing
           back to base speed. Scroll the page.
@@ -453,10 +462,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.scrollVelocity} />
-      </section>
+      </DocSection>
       {/* Text cursor */}
-      <section class="mt-16 scroll-mt-24" id="text-cursor">
-        <h2 class="text-lg tracking-tight">Text cursor</h2>
+      <DocSection id="text-cursor">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The characters of the word trail the pointer inside the box, each lagging a little further behind for a ribbon
           of type. Move your cursor over the preview.
@@ -467,10 +475,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.textCursor} />
-      </section>
+      </DocSection>
       {/* Text pressure */}
-      <section class="mt-16 scroll-mt-24" id="text-pressure">
-        <h2 class="text-lg tracking-tight">Text pressure</h2>
+      <DocSection id="text-pressure">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Characters bulge (scaling up and gaining weight) near the cursor, like the word is being pressed. Move your
           cursor near the text.
@@ -481,10 +488,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.textPressure} />
-      </section>
+      </DocSection>
       {/* Variable proximity */}
-      <section class="mt-16 scroll-mt-24" id="variable-proximity">
-        <h2 class="text-lg tracking-tight">Variable proximity</h2>
+      <DocSection id="variable-proximity">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Each character's weight and opacity ramps with its distance to the pointer. No scaling, so a whole sentence
           stays put while the cursor lights a path through it.
@@ -495,10 +501,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.variableProximity} />
-      </section>
+      </DocSection>
       {/* True focus */}
-      <section class="mt-16 scroll-mt-24" id="true-focus">
-        <h2 class="text-lg tracking-tight">True focus</h2>
+      <DocSection id="true-focus">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           One word stays sharp while the rest blur, and the focus steps through the phrase on a timer, pulling the eye
           word by word.
@@ -509,10 +514,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.trueFocus} />
-      </section>
+      </DocSection>
       {/* Circular text */}
-      <section class="mt-16 scroll-mt-24" id="circular-text">
-        <h2 class="text-lg tracking-tight">Circular text</h2>
+      <DocSection id="circular-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Text set around a full circle on an SVG path, rotating forever: a badge or seal. Uses{" "}
           <code class="text-foreground/80">currentColor</code> so it inherits type colour.
@@ -523,10 +527,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.circularText} />
-      </section>
+      </DocSection>
       {/* Curved loop */}
-      <section class="mt-16 scroll-mt-24" id="curved-loop">
-        <h2 class="text-lg tracking-tight">Curved loop</h2>
+      <DocSection id="curved-loop">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Text flows along a wavy SVG path as a seamless loop. The copy length is measured so the scroll wraps without a
           visible seam.
@@ -537,10 +540,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.curvedLoop} />
-      </section>
+      </DocSection>
       {/* Fuzzy text */}
-      <section class="mt-16 scroll-mt-24" id="fuzzy-text">
-        <h2 class="text-lg tracking-tight">Fuzzy text</h2>
+      <DocSection id="fuzzy-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An SVG turbulence + displacement filter wobbles the glyph edges into an analog fuzz. Native filters, no
           canvas. Reduced motion drops the filter.
@@ -551,10 +553,9 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.fuzzyText} />
-      </section>
+      </DocSection>
       {/* ASCII text */}
-      <section class="mt-16 scroll-mt-24" id="ascii-text">
-        <h2 class="text-lg tracking-tight">ASCII text</h2>
+      <DocSection id="ascii-text">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The word is rasterised to an offscreen canvas and mapped onto an ASCII density ramp: an on-brand ASCII render
           of any string.
@@ -568,7 +569,7 @@ export default function TextDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.asciiText} />
-      </section>
+      </DocSection>
     </>
   )
 }

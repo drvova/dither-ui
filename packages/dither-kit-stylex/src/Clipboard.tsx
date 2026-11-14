@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/Clipboard.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/Clipboard.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createSignal, type JSX, mergeProps, onCleanup, onMount } from "solid-js"
-import { copyText } from "dither-kit/engine/copy-text.ts"
+import { copyText } from "@dither-ui/kit/engine/copy-text.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

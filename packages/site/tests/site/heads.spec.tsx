@@ -1,11 +1,9 @@
 // What the build writes beside the pages and what each page's head says:
 // the crawler files, the share cards' embeds and the install surface the
-// `siteFiles` plugin emits, the one head table (held tag for tag to the Vue
-// site's HTML entries until the cutover), the shell every page is rendered
-// into, the root's `data-page` marker and the old hash links. Carried from
-// the earlier Vue site's `tests/crawler-files.spec.ts`, `tests/install.spec.ts`,
-// `tests/titles.spec.ts` and `tests/first-paint.spec.ts`; the builders'
-// own rules stay pinned there.
+// `siteFiles` plugin emits, the one head table, the shell every page is
+// rendered into, the root's `data-page` marker and the old hash links. The
+// builders' own rules are pinned by the framework-free specs beside this
+// folder (`crawler-files`, `install`, `titles`, `first-paint`).
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { MetaProvider } from "@solidjs/meta"
@@ -22,9 +20,17 @@ import { docsBreadcrumb, docsMeta, SITE_URL } from "@/pages/docs/seo"
 import { type HeadTag, ROUTE_CARDS, sectionTags, shareCards, shareTags, tagHtml } from "@/pages/docs/share-cards"
 import { ROUTE_TITLES } from "@/shared/config/titles"
 import { RISE_HEAD_SCRIPT } from "@/shared/lib/rise-wait"
+import { THEME_HEAD_SCRIPT } from "@/shared/lib/useTheme"
 import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
 import { siteFileList, siteFiles } from "../../build/site-files"
-import { BREADCRUMB_ID, pageOf, pageTags, type SitePage } from "../../src/pages/docs/heads"
+import {
+  BREADCRUMB_ID,
+  DISPLAY_FACE,
+  pageOf,
+  pageTags,
+  type SitePage,
+  TURNS_WITH_THEME,
+} from "../../src/pages/docs/heads"
 import PageHead from "../../src/pages/docs/PageHead"
 import { legacyAddress } from "../../src/shared/lib/legacy"
 
@@ -200,10 +206,13 @@ describe("the page an address opens on", () => {
     expect(legacyAddress("#/studio/")).toBe("/studio")
     expect(legacyAddress("#/studio/new/film")).toBe("/studio#new/film")
     for (const hash of ["", "#", "#build", "#docs", "#/play"]) expect(legacyAddress(hash), hash).toBeNull()
-    // the entry applies it before the app mounts, on the landing only
+    // the entry applies it before the app mounts, on the landing only; the
+    // app mounts once the page's stylesheets stand (its script runs async)
     const entry = read(SITE, "src/entry-client.tsx")
     expect(entry).toMatch(/isLanding\(appPathname\(\)\) \? legacyAddress\(location\.hash\) : null/)
-    expect(entry).toMatch(/if \(legacy\) location\.replace\(routePath\(legacy\)\)\s+else mount\(/)
+    expect(entry).toMatch(
+      /if \(legacy\) location\.replace\(routePath\(legacy\)\)\s+else void sheetsReady\(\)\.then\(\(\) => mount\(/,
+    )
   })
 })
 
@@ -225,7 +234,7 @@ describe("the files the build writes beside the pages", async () => {
     expect(read(SITE, "vite.config.ts")).toMatch(/plugins: \[[^\]]*siteFiles\(\)/)
   })
 
-  it("are the crawler files the Vue build emits, from the same builders", () => {
+  it("are the crawler files, written by their builders", () => {
     expect(emitted["sitemap.xml"]).toBe(sitemapXml())
     expect(emitted["robots.txt"]).toBe(robotsTxt())
     expect(emitted["llms.txt"]).toBe(llmsTxt())
@@ -302,11 +311,12 @@ describe("the files the build writes beside the pages", async () => {
 describe("the shell and the routes", () => {
   const shell = read(SITE, "src/entry-server.tsx")
 
-  it("carries, on the site's pages only, what the Vue build injected into each", () => {
+  it("carries its head scripts and markers on the site's pages only", () => {
     for (const piece of [
       "data-page={page ?? undefined}",
       "<script innerHTML={PAGE_REVEAL_SCRIPT} />",
       "<script innerHTML={RISE_HEAD_SCRIPT} />",
+      "<script innerHTML={THEME_HEAD_SCRIPT} />",
       '<script type="speculationrules" innerHTML={speculationRules(import.meta.env.BASE_URL)} />',
       "<For each={ICON_HEAD}>",
       '<link href={michroma} rel="preload" as="font" crossorigin="" />',
@@ -319,6 +329,22 @@ describe("the shell and the routes", () => {
     // the marker the hand-off waits for is the last thing in the body
     expect(shell.indexOf("{scripts}")).toBeLessThan(shell.indexOf("PAGE_END_ID} hidden"))
     expect(PAGE_REVEAL_SCRIPT).toContain(`#${PAGE_END_ID}`)
+  })
+
+  it("sets the reader's stored theme before the first paint, as the app then keeps it", () => {
+    const root = document.documentElement
+    const run = (stored: string | null) => {
+      root.classList.add("dark")
+      if (stored === null) localStorage.removeItem("dither-theme")
+      else localStorage.setItem("dither-theme", stored)
+      new Function(THEME_HEAD_SCRIPT)()
+      return root.classList.contains("dark")
+    }
+    expect(run("light")).toBe(false)
+    expect(run("dark")).toBe(true)
+    expect(run(null)).toBe(true)
+    localStorage.removeItem("dither-theme")
+    root.classList.remove("dark")
   })
 
   it("takes the page transition the head's script parked", () => {
@@ -377,6 +403,8 @@ describe.skipIf(!existsSync(join(OUT, "index.html")))("the built pages", () => {
       const inline = [...doc.head.querySelectorAll("script:not([type]):not([src])")].map((s) => s.textContent)
       expect(inline).toContain(PAGE_REVEAL_SCRIPT)
       expect(inline).toContain(RISE_HEAD_SCRIPT)
+      // a page that turns with the reader's theme takes the stored one before its first paint
+      expect(inline.includes(THEME_HEAD_SCRIPT), "theme").toBe(TURNS_WITH_THEME[name])
       expect(doc.head.querySelector("script[type=speculationrules]")!.textContent).toBe(speculationRules("/"))
       for (const t of ICON_HEAD) {
         const link = doc.head.querySelector(`link[rel="${t.attrs.rel}"][href="/${t.attrs.href}"]`)
@@ -384,10 +412,12 @@ describe.skipIf(!existsSync(join(OUT, "index.html")))("the built pages", () => {
         expect(existsSync(join(OUT, t.attrs.href))).toBe(true)
       }
       expect(doc.head.querySelectorAll("link[rel=manifest]")).toHaveLength(name === "studio" ? 1 : 0)
+      // the display face is fetched with the HTML only where the page sets it
       const face = doc.head.querySelector<HTMLLinkElement>(
         'link[rel=preload][as=font][crossorigin][href*="michroma-latin"]',
       )
-      expect(existsSync(join(OUT, face!.getAttribute("href")!))).toBe(true)
+      if (DISPLAY_FACE[name]) expect(existsSync(join(OUT, face!.getAttribute("href")!))).toBe(true)
+      else expect(face).toBeNull()
       expect(doc.body.lastElementChild?.id).toBe(PAGE_END_ID)
       expect(html.match(/name="robots" content="([^"]+)"/g)).toHaveLength(1)
       expect(html).toContain(name === "missing" ? 'name="robots" content="noindex"' : 'content="index, follow"')

@@ -1,6 +1,6 @@
-// The Solid kit's controls and text, first sheet of the second wave: each
-// renders what it names, reports a change through its callback, answers the
-// keyboard its Vue twin answered, and paints its canvas where it has one.
+// The kit's controls and text, from CardStack on: each renders what it
+// names, reports a change through its callback, answers its keys, and
+// paints its canvas where it has one.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -31,6 +31,7 @@ import { FieldContextKey } from "../../src/solid/runtime/field"
 import ScrollVelocity from "../../src/solid/ScrollVelocity"
 import TransferList from "../../src/solid/TransferList"
 import TrueFocus from "../../src/solid/TrueFocus"
+import { CONTROL_INVALID } from "../../src/tailwind/control"
 import { world } from "../support/world"
 
 const OPTIONS: Option[] = [
@@ -254,6 +255,8 @@ describe("DitherSelect", () => {
     expect(trigger.id).toBe("f1")
     expect(trigger.getAttribute("aria-describedby")).toBe("f1-help")
     expect(trigger.getAttribute("aria-invalid")).toBe("true")
+    // its edge is the signal ink's, which no focus class outranks: focus rings it instead
+    for (const c of CONTROL_INVALID.split(" ")) expect(trigger.classList.contains(c)).toBe(true)
   })
 })
 
@@ -606,13 +609,15 @@ describe("DitherTransferList", () => {
 })
 
 describe("DitherTrueFocus", () => {
-  it("names itself by its text and brings one word into focus at a time", () => {
-    fakeTimers()
+  it("names itself by its text and brings one word into focus at a time, on the kit clock", async () => {
     render(() => <TrueFocus text="one two" interval={500} blur={4} />)
     const words = [...screen.getByLabelText("one two").children] as HTMLElement[]
     expect(words.map((x) => x.textContent)).toEqual(["one", "two"])
     expect(words.map((x) => x.style.filter)).toEqual(["blur(0)", "blur(4px)"])
-    vi.advanceTimersByTime(500)
+    w.show()
+    await w.run(0, 450)
+    expect(words.map((x) => x.style.filter)).toEqual(["blur(0)", "blur(4px)"])
+    await w.run(500, 500)
     expect(words.map((x) => x.style.filter)).toEqual(["blur(4px)", "blur(0)"])
   })
 })

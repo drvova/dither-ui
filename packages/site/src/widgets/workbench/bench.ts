@@ -6,9 +6,10 @@
 // DOM only to read the preview and to measure its own overlay.
 import { createEffect, createSignal, on } from "solid-js"
 import { createMutable } from "solid-js/store"
-import { BAYER8, copyText, isDirected, release } from "dither-kit"
+import { BAYER8, copyText, isDirected, release } from "@dither-ui/kit"
 import { download } from "@/shared/lib/files"
 import { encodeGif } from "@/shared/lib/gif"
+import { isTyping } from "@/shared/lib/keys"
 import { play } from "@/shared/lib/sound"
 import {
   canRecord,
@@ -1324,13 +1325,6 @@ export function createBench(o: BenchOptions) {
     return false
   }
 
-  const typing = (t: EventTarget | null) => {
-    const el = t as HTMLElement | null
-    return (
-      !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)
-    )
-  }
-
   function onKeyDown(e: KeyboardEvent) {
     if (current !== me || !(hot() || o.card.contains(document.activeElement))) return
     if (e.key === "Alt") {
@@ -1338,7 +1332,7 @@ export function createBench(o: BenchOptions) {
       setAlt(true)
       return
     }
-    if (typing(e.target)) return
+    if (isTyping(e.target)) return
     const mod = e.metaKey || e.ctrlKey
     const k = e.key.toLowerCase()
     if (mod) {

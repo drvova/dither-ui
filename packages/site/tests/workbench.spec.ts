@@ -1,6 +1,6 @@
 // @rstest-environment jsdom
 import { describe, expect, it, rs } from "rstack/test"
-import { bayerMatrix } from "dither-kit/engine/wipe.ts"
+import { bayerMatrix } from "@dither-ui/kit/engine/wipe.ts"
 import { contrast, formatColor, grade, hex, over, parseColor } from "@/shared/lib/inspect/color"
 import { boxFrom, distances, dock, snap } from "@/shared/lib/inspect/geometry"
 import { encodeGif, lzw, medianCut, quantize } from "@/shared/lib/gif"

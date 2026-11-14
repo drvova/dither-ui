@@ -1,9 +1,9 @@
-import { createEffect, createMemo, createSignal, For, Index, Match, on, Show, Switch } from "solid-js"
-import { DitherIcon } from "dither-kit"
+import { createEffect, createMemo, createSignal, For, Index, Match, on, Show, splitProps, Switch } from "solid-js"
+import { DitherIcon } from "@dither-ui/kit"
 import type { Queued } from "@/widgets/agent/model/compose"
 import Mascot from "@/shared/ui/Mascot"
-import type { Changed } from "../model/steps"
 import type { Todo } from "../model/thread"
+import ChangesBar, { type ChangesBarProps, CHANGES_KEYS, type ChangesKeys } from "./ChangesBar"
 import "./TurnTrays.css"
 
 // The stack over the input, rows on the composer's own surface (one piece
@@ -11,9 +11,8 @@ import "./TurnTrays.css"
 // the queue (each message to edit, send now, move up or remove; paused
 // after a stop until you send the next), the run (what the harness does, for how long, a quiet Stop)
 // and, last and resting on the card, what the turn changed on the canvas
-// (Undo all, Keep, each frame to show, undo or keep; a frame just undone
-// can be put back).
-export type TurnTraysProps = {
+// (`ChangesBar.tsx`).
+export type TurnTraysProps = ChangesKeys & {
   /** Next prompts to offer, one tap each. */
   next: string[]
   todos: Todo[] | null
@@ -22,11 +21,7 @@ export type TurnTraysProps = {
   paused: boolean
   /** The run, while it lasts; `stuck`: a stop the harness has not answered. */
   run: { doing: string; time: string; stopping: boolean; stuck: boolean } | null
-  changes: { frames: Changed[] } | null
-  /** The frame just undone, by name, which can go back as the turn left it. */
-  putBack?: string | null
-  /** Frames still on the canvas (a removed one has nothing to show). */
-  shown: (id: string) => boolean
+  changes: ChangesBarProps["changes"] | null
   onAsk?: (text: string) => void
   onStop?: () => void
   onForceStop?: () => void
@@ -36,15 +31,10 @@ export type TurnTraysProps = {
   onMoveUp?: (id: string) => void
   onClearQueue?: () => void
   onResume?: () => void
-  onUndo?: () => void
-  onKeep?: () => void
-  onShow?: (id: string) => void
-  onUndoFrame?: (id: string) => void
-  onKeepFrame?: (id: string) => void
-  onPutBack?: () => void
 }
 
 export default function TurnTrays(props: TurnTraysProps) {
+  const [keys] = splitProps(props, CHANGES_KEYS)
   const [changesOpen, setChangesOpen] = createSignal(false)
   const done = createMemo(() => props.todos?.filter((t) => t.status === "completed").length ?? 0)
   /** The to-dos stay open while there is work left and fold once all are
@@ -221,79 +211,7 @@ export default function TurnTrays(props: TurnTraysProps) {
           )}
         </Match>
         <Match when={props.changes}>
-          {(changes) => (
-            <div class="turn-trays-scope part">
-              <Show when={changes().frames.length}>
-                <div class="head is-split">
-                  <button
-                    type="button"
-                    class="toggle"
-                    aria-expanded={changesOpen()}
-                    onClick={() => setChangesOpen(!changesOpen())}
-                  >
-                    <DitherIcon name={changesOpen() ? "ChevronDown" : "ChevronRight"} size={12} strokeWidth={1.5} />
-                    <span class="row-label">
-                      {changes().frames.length} {changes().frames.length === 1 ? "frame" : "frames"} changed
-                    </span>
-                  </button>
-                  <button type="button" class="key" onClick={() => props.onUndo?.()}>
-                    <span class="row-label">Undo all</span>
-                  </button>
-                  <button type="button" class="key is-primary" onClick={() => props.onKeep?.()}>
-                    <span class="row-label">Keep</span>
-                  </button>
-                </div>
-              </Show>
-              <Show when={props.putBack}>
-                <p class="row first-line dim" role="status">
-                  <DitherIcon name="Undo" size={12} strokeWidth={1.5} />
-                  <span class="row-text row-label is-wrap">Undid {props.putBack}</span>
-                  <button type="button" class="row-key is-word" onClick={() => props.onPutBack?.()}>
-                    <span class="row-label">Put it back</span>
-                  </button>
-                </p>
-              </Show>
-              <Show when={changesOpen() && changes().frames.length}>
-                <ul class="rows">
-                  <For each={changes().frames}>
-                    {(f) => (
-                      <li class="row first-line">
-                        <DitherIcon name="Layout" size={12} strokeWidth={1.5} />
-                        <span class="row-text row-label is-wrap">{f.name}</span>
-                        <Show when={props.shown(f.id)}>
-                          <button
-                            type="button"
-                            class="row-key is-word"
-                            aria-label={`Show ${f.name}`}
-                            onClick={() => props.onShow?.(f.id)}
-                          >
-                            <span class="row-label">Show</span>
-                          </button>
-                        </Show>
-                        <button
-                          type="button"
-                          class="row-key is-word"
-                          aria-label={`Undo ${f.name}`}
-                          title={`Undo what the turn did to ${f.name}`}
-                          onClick={() => props.onUndoFrame?.(f.id)}
-                        >
-                          <span class="row-label">Undo</span>
-                        </button>
-                        <button
-                          type="button"
-                          class="row-key is-word"
-                          aria-label={`Keep ${f.name}`}
-                          onClick={() => props.onKeepFrame?.(f.id)}
-                        >
-                          <span class="row-label">Keep</span>
-                        </button>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </Show>
-            </div>
-          )}
+          {(changes) => <ChangesBar {...keys} changes={changes()} open={changesOpen()} onOpen={setChangesOpen} />}
         </Match>
       </Switch>
     </>

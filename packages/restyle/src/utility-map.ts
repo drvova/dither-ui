@@ -17,7 +17,7 @@ import type { RsbuildPlugin, Rspack } from "rstack/app"
 import type { UtilityMap, UtilityRule } from "./index.ts"
 
 /** The kit's stylesheet entry, found as the kit's package exports it. */
-const KIT_CSS = createRequire(import.meta.url).resolve("dither-kit/tailwind/kit.css")
+const KIT_CSS = createRequire(import.meta.url).resolve("@dither-ui/kit/tailwind/kit.css")
 
 type Block = { prelude: string; decl: [string, string][]; children: Block[] }
 

@@ -98,9 +98,10 @@ async function alone(options: {
   )
 }
 
-/** The player's entry: the page's mount, called as the script loads. */
+/** The player's entry: the app's stylesheet, then the page's mount, called
+ * as the script loads. */
 const PLAYER_ENTRY = "virtual:dither-player"
-const PLAYER_SOURCE = `import { mountPlayer } from ${JSON.stringify(at("../src/pages/play/main.ts"))}\nmountPlayer()\n`
+const PLAYER_SOURCE = `import ${JSON.stringify(at("../src/app.css"))}\nimport { mountPlayer } from ${JSON.stringify(at("../src/pages/play/main.ts"))}\nmountPlayer()\n`
 const playerEntry = (): Plugin => ({
   name: "player-entry",
   resolveId: (id) => (id === PLAYER_ENTRY ? `\0${PLAYER_ENTRY}` : null),

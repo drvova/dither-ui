@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DatePicker.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DatePicker.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, mergeProps, Show } from "solid-js"
 import { cn, type StyleProp } from "./lib"
@@ -55,9 +55,10 @@ const styles = stylex.create({
 })
 
 /** Date field + calendar popover: the input shows the ISO value in a human
- * format, the calendar opens on click/focus, select closes, Escape and
- * outside-click dismiss (ClickOutside, capture-phase). The model stays ISO
- * YYYY-MM-DD. */
+ * format, the calendar opens on a click (Enter or Space from the keyboard;
+ * focus alone opens nothing) with focus on its day, select closes, Escape
+ * and outside-click dismiss (ClickOutside, capture-phase); a pick or Escape
+ * hands focus back to the field. The model stays ISO YYYY-MM-DD. */
 export type DatePickerProps = {
   modelValue?: string
   placeholder?: string
@@ -74,6 +75,20 @@ export default function DatePicker(raw: DatePickerProps) {
   const props = mergeProps({ placeholder: "YYYY-MM-DD", disabled: false }, raw)
 
   const [open, setOpen] = createSignal(false)
+  let trigger: HTMLButtonElement | undefined
+  let panel: HTMLDivElement | undefined
+  /** Open, and focus the calendar's day (the picked one, else today). */
+  function show() {
+    setOpen(true)
+    queueMicrotask(() =>
+      (panel?.querySelector<HTMLElement>('[tabindex="0"]') ?? panel?.querySelector("button"))?.focus(),
+    )
+  }
+  /** Close; from the keyboard's Escape or a pick, focus goes back to the field. */
+  function close(back: boolean) {
+    setOpen(false)
+    if (back) trigger?.focus()
+  }
 
   const human = createMemo(() => {
     if (!props.modelValue) return ""
@@ -85,27 +100,27 @@ export default function DatePicker(raw: DatePickerProps) {
 
   function onSelect(value: string) {
     props.onSelect?.(value)
-    setOpen(false)
+    close(true)
   }
 
   return (
-    <ClickOutside enabled={open()} onOutside={() => setOpen(false)}>
+    <ClickOutside enabled={open()} onOutside={() => close(false)}>
       <div
         class={cn(styles.frame, props.xstyle, props.class)}
         on:keydown={(e) => {
           if (e.key !== "Escape") return
           e.stopPropagation()
-          setOpen(false)
+          close(open())
         }}
       >
         <button
+          ref={(el) => (trigger = el)}
           type="button"
           disabled={props.disabled}
           aria-haspopup="dialog"
           aria-expanded={open()}
           {...stylex.props(styles.button)}
-          onClick={() => setOpen(!open())}
-          onFocus={() => setOpen(true)}
+          onClick={() => (open() ? close(false) : show())}
         >
           <span class={cn(styles.text, !props.modelValue && styles.textMutedForeground)}>
             {human() || props.placeholder}
@@ -113,7 +128,7 @@ export default function DatePicker(raw: DatePickerProps) {
           <Icon name="Calendar" size={14} xstyle={styles.icon} />
         </button>
         <Show when={open()}>
-          <div role="dialog" aria-label="Pick a date" {...stylex.props(styles.layer)}>
+          <div ref={(el) => (panel = el)} role="dialog" aria-label="Pick a date" {...stylex.props(styles.layer)}>
             <Calendar
               modelValue={props.modelValue}
               min={props.min}

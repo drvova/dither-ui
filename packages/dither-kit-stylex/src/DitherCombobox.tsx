@@ -1,10 +1,11 @@
-// Generated from dither-kit/solid/DitherCombobox.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherCombobox.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, For, mergeProps, on, onMount, Show } from "solid-js"
-import { cssColor } from "dither-kit/engine/palette.ts"
-import type { PixelColor } from "dither-kit/engine/pixel.ts"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import type { Option } from "./DitherSelect"
+import { nextEnabled } from "@dither-ui/kit/engine/keys.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -142,16 +143,8 @@ export default function DitherCombobox(raw: DitherComboboxProps) {
   }
 
   function move(dir: number) {
-    const list = filtered()
-    const n = list.length
-    let i = highlighted()
-    for (let step = 0; step < n; step++) {
-      i = (i + dir + n) % n
-      if (!list[i].disabled) {
-        setHighlighted(i)
-        return
-      }
-    }
+    const i = nextEnabled(filtered(), highlighted(), dir)
+    if (i >= 0) setHighlighted(i)
   }
 
   function onKeydown(e: KeyboardEvent) {

@@ -28,7 +28,9 @@ export default function DitherRail(raw: DitherRailProps) {
           class={cn("flex h-full w-14 shrink-0 flex-col p-2", edge(), "border-border/60 bg-background/40", props.class)}
         >
           {props.header}
-          <nav class="mt-2 grid min-h-0 flex-1 content-start gap-0.5 overflow-y-auto">{props.children}</nav>
+          <nav aria-label={props.label} class="mt-2 grid min-h-0 flex-1 content-start gap-0.5 overflow-y-auto">
+            {props.children}
+          </nav>
           {props.footer}
         </aside>
       </SIDEBAR_COMPACT.Provider>

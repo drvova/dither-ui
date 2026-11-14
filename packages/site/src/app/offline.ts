@@ -1,5 +1,5 @@
 // The site offline: what its service worker (`sw.ts`, built to `sw.js` by
-// `solid-site/standalone.ts`) keeps and how it answers each
+// `build/standalone.ts`) keeps and how it answers each
 // request, and the registration the app makes once it has loaded. The
 // rules are pure so the tests can read them; the worker only wires them to
 // its events.

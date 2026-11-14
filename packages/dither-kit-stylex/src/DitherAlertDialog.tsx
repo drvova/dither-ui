@@ -1,12 +1,13 @@
-// Generated from dither-kit/solid/DitherAlertDialog.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherAlertDialog.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
+import { focusablesIn, trapKeys } from "@dither-ui/kit/engine/keys.ts"
 import { CONTROL_BUTTON } from "./control"
 import { cn } from "./lib"
 import DitherButton from "./DitherButton"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/DitherAlertDialog.css"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/DitherAlertDialog.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -74,28 +75,8 @@ export default function DitherAlertDialog(raw: DitherAlertDialogProps) {
   let panel: HTMLDivElement | undefined
   let cancel: HTMLButtonElement | undefined
   let previousFocus: HTMLElement | null = null
-  const focusable = () => [
-    ...(panel?.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    ) ?? []),
-  ]
   function onKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") {
-      e.stopPropagation()
-      props.onCancel?.()
-      return
-    }
-    if (e.key !== "Tab") return
-    const items = focusable(),
-      first = items[0],
-      last = items[items.length - 1]
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault()
-      last?.focus()
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault()
-      first?.focus()
-    }
+    trapKeys(e, focusablesIn(panel), () => props.onCancel?.())
   }
   onMount(() => {
     createEffect(

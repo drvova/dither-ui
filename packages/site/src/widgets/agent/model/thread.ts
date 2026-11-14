@@ -2,7 +2,7 @@
 // it the panel needs (the chat's title, the turn's to-dos, what the turn
 // changed, the steps folded into runs). Pure: the panel owns the state,
 // these only read it, so each is tested without a DOM.
-import type { IconName } from "dither-kit"
+import type { IconName } from "@dither-ui/kit"
 import { type Changed, toolStep } from "./steps"
 
 type Result = { ok: true; data: unknown } | { ok: false; error: string }

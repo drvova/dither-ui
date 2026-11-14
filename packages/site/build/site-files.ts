@@ -15,7 +15,7 @@ import * as crawl from "../src/pages/docs/crawler-files.ts"
 import { CAPTURE_PATH, mascotCapture } from "../src/shared/ui/mascot-capture.ts"
 
 /** The bridge as its own package exports it. */
-const BRIDGE_SOURCE = createRequire(import.meta.url).resolve("bridge/dither-bridge.mjs")
+const BRIDGE_SOURCE = createRequire(import.meta.url).resolve("@dither-ui/bridge/dither-bridge.mjs")
 
 /** Every file, by its path in the build. */
 export async function siteFileList(): Promise<Record<string, string | Uint8Array>> {

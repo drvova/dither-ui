@@ -1,27 +1,20 @@
-// The site's shared slice in Solid (`src/shared/`, `src/widgets/site-header/`),
-// held to what its Vue twins did: the header and its menu, the mascot, the
-// fields the Studio's inspector is built from, the theme, the interface
-// sounds and the rise.
+// The site's shared slice (`src/shared/`, `src/widgets/site-header/`): the
+// header and its menu, the mascot, the fields the Studio's inspector is
+// built from, the theme, the interface sounds and the rise.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { Meta, MetaProvider } from "@solidjs/meta"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { GLIDE_BEZIER } from "dither-kit/engine/dither-paint.ts"
+import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { COLORS } from "@/shared/config"
+import { installHand } from "@/shared/lib/hand"
 import { RISE_LIVE, RISE_WAIT } from "@/shared/lib/rise-wait"
 import { MARK_CELLS } from "@/shared/ui/brand-mark"
 import { drivenCells, toRuns } from "@/shared/ui/car"
 import { MARKS } from "@/shared/ui/marks"
 import { mascotCells } from "@/shared/ui/mascot"
-import {
-  BAND_INK,
-  CLOSE_CELLS,
-  MENU_LINKS,
-  SEAM_HEIGHT,
-  SHEET_WIPE,
-  STUDIO_LINK,
-  bandFill,
-} from "@/widgets/site-header/menu"
+import { BAND_INK, CLOSE_CELLS, MENU_LINKS, SEAM_HEIGHT, STUDIO_LINK, bandFill } from "@/widgets/site-header/menu"
+import { SHEET_DRAG, SHEET_SLIDE } from "@/widgets/site-header/sheet"
 import { RISE, rise, riseDelays, useTheme } from "../../src/shared/lib"
 import { CUES, play, restoreSounds, schedule, setSounds, sounds } from "../../src/shared/lib/sound"
 import {
@@ -61,6 +54,9 @@ afterEach(() => {
 
 const all = (root: ParentNode, sel: string) => [...root.querySelectorAll<HTMLElement>(sel)]
 const text = (el: Element) => (el.textContent ?? "").trim()
+/** A finger's (or a cursor's) event, by its pointer's id. */
+const pointer = (type: string, pointerId: number, clientX: number, clientY: number) =>
+  new PointerEvent(type, { bubbles: true, cancelable: true, button: 0, pointerId, clientX, clientY })
 
 // One header for the pages that read: the same links and key on each, the
 // page's own link current, a page's tools beside the key.
@@ -109,7 +105,7 @@ describe("site header", () => {
     expect(document.activeElement).toBe(key)
   })
 
-  it("rolls the sheet back up before it shuts, from the close key and from Escape", () => {
+  it("slides the sheet back down before it shuts, from the close key, Escape and the page above it", () => {
     vi.useFakeTimers()
     const w = render(() => <SiteHeader current="landing" />)
     const key = w.container.querySelector<HTMLElement>(".menu-key")!
@@ -117,16 +113,17 @@ describe("site header", () => {
     for (const close of [
       () => fireEvent.click(w.container.querySelector('[aria-label="Close menu"]')!),
       () => fireEvent(dialog, new Event("cancel", { cancelable: true })),
+      () => fireEvent.click(dialog),
     ]) {
       fireEvent.click(key)
       expect(w.container.querySelector("[data-phase]")?.getAttribute("data-phase")).toBe("open")
       close()
-      // Leaving: the sheet still up, playing its wipe back; the key says shut.
+      // Leaving: the sheet still up, sliding down; the key says shut.
       expect(w.container.querySelector("[data-phase]")?.getAttribute("data-phase")).toBe("leaving")
       expect(w.container.querySelector(".menu-sheet")).not.toBeNull()
       expect(key.getAttribute("aria-expanded")).toBe("false")
       expect(document.documentElement.style.overflow).toBe("hidden")
-      vi.advanceTimersByTime(SHEET_WIPE.duration * 1000)
+      vi.advanceTimersByTime(SHEET_SLIDE.duration)
       expect(w.container.querySelector("[data-phase]")).toBeNull()
       expect(w.container.querySelector(".menu-sheet")).toBeNull()
       expect(document.documentElement.style.overflow).toBe("")
@@ -150,9 +147,90 @@ describe("site header", () => {
   it("closes a sheet under an X drawn in the brand's pixel, clear of the seam", () => {
     const w = render(() => <SiteHeader current="landing" />)
     fireEvent.click(w.container.querySelector(".menu-key")!)
-    const head = w.container.querySelector<HTMLElement>(".sheet-head")!
-    expect(all(head, '[aria-label="Close menu"] svg rect')).toHaveLength(CLOSE_CELLS.length)
+    const head = w.container.querySelector<HTMLElement>(".menu-grab")!
+    const close = head.querySelector<HTMLElement>('[aria-label="Close menu"]')!
+    expect(all(close, "svg rect")).toHaveLength(CLOSE_CELLS.length)
+    expect(close.hasAttribute("autofocus")).toBe(true)
+    expect(head.querySelector(".menu-handle")?.getAttribute("aria-hidden")).toBe("true")
     expect(head.style.paddingBottom).toBe(`${8 + SEAM_HEIGHT}px`)
+  })
+
+  // The sheet under a finger: dragged down by its head it follows, and let
+  // go it closes past the distance or on a throw, else springs back.
+  describe("the sheet under the hand", () => {
+    const pointer = (el: Element, type: string, y: number, t: number) => {
+      const e = Object.assign(new Event(type, { bubbles: true, cancelable: true }), {
+        clientY: y,
+        pointerId: 1,
+        isPrimary: true,
+        button: 0,
+      })
+      Object.defineProperty(e, "timeStamp", { value: t })
+      el.dispatchEvent(e)
+    }
+    function open() {
+      vi.useFakeTimers({
+        toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame", "performance"],
+      })
+      const w = render(() => <SiteHeader current="landing" />)
+      fireEvent.click(w.container.querySelector(".menu-key")!)
+      const sheet = w.container.querySelector<HTMLElement>(".menu-sheet")!
+      Object.defineProperty(sheet, "offsetHeight", { value: 400 })
+      return { w, sheet, head: w.container.querySelector<HTMLElement>(".menu-grab")! }
+    }
+    const phase = (w: ReturnType<typeof render>) =>
+      w.container.querySelector("[data-phase]")?.getAttribute("data-phase")
+
+    it("follows a drag down and closes when let go past its share", () => {
+      const { w, sheet, head } = open()
+      pointer(head, "pointerdown", 100, 0)
+      pointer(head, "pointermove", 100 + SHEET_DRAG.slop - 1, 200)
+      expect(sheet.style.transform).toBe("")
+      pointer(head, "pointermove", 260, 400)
+      expect(sheet.style.transform).toBe("translateY(160px)")
+      pointer(head, "pointerup", 260, 600)
+      expect(phase(w)).toBe("leaving")
+      vi.advanceTimersByTime(2000)
+      expect(phase(w)).toBeUndefined()
+      expect(w.container.querySelector(".menu-sheet")).toBeNull()
+      expect(document.documentElement.style.overflow).toBe("")
+    })
+
+    it("closes on a throw, and springs back from a short slow drag or a cancel", () => {
+      const thrown = open()
+      pointer(thrown.head, "pointerdown", 100, 0)
+      pointer(thrown.head, "pointermove", 130, 20)
+      pointer(thrown.head, "pointerup", 160, 40)
+      expect(phase(thrown.w)).toBe("leaving")
+      cleanup()
+      for (const end of ["pointerup", "pointercancel"]) {
+        const { w, sheet, head } = open()
+        pointer(head, "pointerdown", 100, 0)
+        pointer(head, "pointermove", 160, 400)
+        pointer(head, end, 160, 800)
+        expect(phase(w)).toBe("open")
+        vi.advanceTimersByTime(2000)
+        expect(sheet.style.transform).toBe("")
+        expect(phase(w)).toBe("open")
+        cleanup()
+      }
+    })
+
+    it("gives a little to a pull up, and a tap on the close key stays a tap", () => {
+      const { w, sheet, head } = open()
+      pointer(head, "pointerdown", 300, 0)
+      pointer(head, "pointermove", 0, 100)
+      expect(sheet.style.transform).toBe(`translateY(-${SHEET_DRAG.reach}px)`)
+      pointer(head, "pointerup", 0, 1000)
+      vi.advanceTimersByTime(2000)
+      const close = head.querySelector<HTMLElement>('[aria-label="Close menu"]')!
+      pointer(close, "pointerdown", 100, 3000)
+      pointer(close, "pointermove", 102, 3010)
+      pointer(close, "pointerup", 102, 3020)
+      fireEvent.click(close)
+      expect(phase(w)).toBe("leaving")
+      expect(sheet.style.transform).toBe("")
+    })
   })
 
   it("heads any sheet: what it is in the middle, its close key named and first", () => {
@@ -344,20 +422,37 @@ describe("the inspector's fields", () => {
     expect(got).toHaveBeenLastCalledWith([0.34, 1.56, 0.64, 1])
   })
 
-  it("drags a bezier's handle inside its box", () => {
+  it("drags a bezier's handle inside its box, from a finger's reach, and lets go on a cancel", () => {
     const got = vi.fn()
     const w = render(() => <BezierEditor modelValue={[0.25, 0.1, 0.25, 1]} onUpdateModelValue={got} />)
     const svg = w.container.querySelector("svg")!
     svg.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 100 }) as DOMRect
-    const handle = all(w.container, "circle.cursor-grab")[1]
-    fireEvent.pointerDown(handle, { clientX: 100, clientY: 25 })
+    const handles = all(w.container, "[data-handle]")
+    expect(handles).toHaveLength(2)
+    // The dot is 12px; what a finger presses reaches 28px (a radius of 14).
+    expect(handles.map((h) => all(h, "circle").map((c) => c.getAttribute("r")))).toEqual([
+      ["14", "6"],
+      ["14", "6"],
+    ])
+    handles[1].dispatchEvent(pointer("pointerdown", 1, 100, 25))
     expect(got).toHaveBeenLastCalledWith([0.25, 0.1, 0.5, 1])
-    fireEvent(window, new MouseEvent("pointermove", { clientX: 500, clientY: 500 }))
+    // a second finger steers nothing
+    window.dispatchEvent(pointer("pointermove", 2, 0, 0))
+    expect(got).toHaveBeenLastCalledWith([0.25, 0.1, 0.5, 1])
+    window.dispatchEvent(pointer("pointermove", 1, 500, 500))
     expect(got).toHaveBeenLastCalledWith([0.25, 0.1, 1, -0.5])
-    fireEvent(window, new MouseEvent("pointerup"))
+    window.dispatchEvent(pointer("pointerup", 1, 500, 500))
     got.mockClear()
-    fireEvent(window, new MouseEvent("pointermove", { clientX: 10, clientY: 10 }))
+    window.dispatchEvent(pointer("pointermove", 1, 10, 10))
     expect(got).not.toHaveBeenCalled()
+    // A touch the browser takes for a scroll is cancelled: the drag ends there.
+    handles[0].dispatchEvent(pointer("pointerdown", 3, 100, 25))
+    window.dispatchEvent(pointer("pointercancel", 3, 100, 25))
+    got.mockClear()
+    window.dispatchEvent(pointer("pointermove", 3, 10, 10))
+    expect(got).not.toHaveBeenCalled()
+    // every key and field of the editor is a 24px target at least
+    for (const el of all(w.container, "button, input")) expect(el.className).toMatch(/(^|\s)(min-)?h-6(\s|$)/)
   })
 
   it("offers bloom's levels, and its own sliders once custom, seeded from the level it left", () => {
@@ -428,13 +523,26 @@ describe("the inspector's fields", () => {
     expect(hue.classList.contains("dk-hue")).toBe(true)
     fireEvent.input(hue, { target: { value: "120" } })
     expect(got.mock.lastCall![0]).toBe("#00ff00")
+    // The hue is a 24px target, its band drawn inside it.
+    expect(hue.classList.contains("h-6")).toBe(true)
     const square = w.container.querySelector<HTMLElement>(".cursor-crosshair")!
+    // A finger in the square picks, never scrolls the panel under it.
+    expect(square.classList.contains("touch-none")).toBe(true)
     square.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect
-    fireEvent.pointerDown(square, { clientX: 0, clientY: 0 })
+    square.dispatchEvent(pointer("pointerdown", 1, 0, 0))
     expect(got).toHaveBeenLastCalledWith("#ffffff")
-    fireEvent(window, new MouseEvent("pointermove", { clientX: 100, clientY: 100 }))
+    window.dispatchEvent(pointer("pointermove", 1, 100, 100))
     expect(got).toHaveBeenLastCalledWith("#000000")
-    fireEvent(window, new MouseEvent("pointerup"))
+    window.dispatchEvent(pointer("pointerup", 1, 100, 100))
+    // A cancelled touch lets go too: no pointer moving after it steers the colour.
+    square.dispatchEvent(pointer("pointerdown", 2, 0, 0))
+    window.dispatchEvent(pointer("pointercancel", 2, 0, 0))
+    got.mockClear()
+    window.dispatchEvent(pointer("pointermove", 2, 100, 100))
+    window.dispatchEvent(pointer("pointermove", 1, 50, 50))
+    expect(got).not.toHaveBeenCalled()
+    // every swatch is a 24px target
+    for (const b of swatches) expect(b.classList.contains("size-6")).toBe(true)
     fireEvent.click(swatches[0])
     expect(got).toHaveBeenLastCalledWith(COLORS[0])
     expect(w.container.querySelector("input")).toBeNull()
@@ -464,6 +572,37 @@ describe("the context menu", () => {
     expect(text(document.activeElement!)).toBe("Delete")
     fireEvent.keyDown(document.activeElement!, { key: "ArrowDown" })
     expect(text(document.activeElement!)).toBe("Rename")
+  })
+
+  it("opened by a long press, takes focus on the menu itself: no item ringed under the finger", async () => {
+    const uninstall = installHand(document)
+    fireEvent.pointerDown(document.body, { pointerType: "touch" })
+    render(() => <ContextMenu x={40} y={60} items={items()} />)
+    await Promise.resolve()
+    const menu = document.body.querySelector<HTMLElement>("[role=menu]")!
+    expect(document.activeElement).toBe(menu)
+    // an arrow still reaches the first item
+    fireEvent.keyDown(menu, { key: "ArrowDown" })
+    expect(text(document.activeElement!)).toBe("Rename")
+    fireEvent.pointerDown(document.body, { pointerType: "mouse" })
+    uninstall()
+  })
+
+  it("moves in from the window's edge, where a long press on the right column's rows opens it", async () => {
+    vi.stubGlobal("innerWidth", 1194)
+    vi.stubGlobal("innerHeight", 834)
+    const box = vi
+      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+      .mockReturnValue({ left: 0, top: 0, width: 172, height: 252, right: 172, bottom: 252 } as DOMRect)
+    const [at, setAt] = createSignal({ x: 1100, y: 700 })
+    render(() => <ContextMenu x={at().x} y={at().y} items={items()} />)
+    await Promise.resolve()
+    const menu = document.body.querySelector<HTMLElement>("[role=menu]")!
+    expect([menu.style.left, menu.style.top]).toEqual([`${1194 - 172 - 8}px`, `${834 - 252 - 8}px`])
+    // opened again elsewhere, it stands where it was asked
+    setAt({ x: 300, y: 200 })
+    expect([menu.style.left, menu.style.top]).toEqual(["300px", "200px"])
+    box.mockRestore()
   })
 
   it("runs an item and closes; a disabled one does neither", () => {

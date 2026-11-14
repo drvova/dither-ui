@@ -4,7 +4,7 @@
  * a `.splat` file (the 32-byte record the kit's `engine/splats.ts` reads).
  * Our own capture, never a scan of someone else's: the docs' World section
  * prints it and the build serves it at CAPTURE_PATH
- * (`solid-site/site-files.ts`). Seeded, so every build writes the same
+ * (`build/site-files.ts`). Seeded, so every build writes the same
  * bytes. Node-side too: the build's config loads it under Node's own
  * TypeScript, so its imports carry `.ts`. `tests/splats.spec.ts` reads it. */
 import { EYE, MASCOT_H, MASCOT_W, mascotCells, OPTIC } from "./mascot.ts"

@@ -4,16 +4,16 @@
 // exactly the sections its nav names is held by rendering them, in the
 // docs' component spec, in `site/`.)
 import { describe, expect, it } from "rstack/test"
-import { PACKS, PACKS_KEPT, packOpen, type PackName, visitPack } from "@/pages/docs/packs"
+import type { PackName } from "@/pages/docs/groups"
+import { PACKS, PACKS_KEPT, packOpen, visitPack } from "@/pages/docs/packs"
 
 describe("docs section packs", () => {
-  it("mounts a pack once one of its sections is opened, or all for the prerender", () => {
+  it("mounts a pack once one of its sections is opened", () => {
     const name: PackName = "BackgroundsDocs"
     const first = PACKS[name][0].id
-    expect(packOpen(name, [], false)).toBe(false)
-    expect(packOpen(name, visitPack([], "getting-started"), false)).toBe(false)
-    expect(packOpen(name, visitPack([], first), false)).toBe(true)
-    expect(packOpen(name, [], true)).toBe(true)
+    expect(packOpen(name, [])).toBe(false)
+    expect(packOpen(name, visitPack([], "getting-started"))).toBe(false)
+    expect(packOpen(name, visitPack([], first))).toBe(true)
   })
 
   it("keeps the last packs read mounted, never the whole docs", () => {
@@ -24,7 +24,7 @@ describe("docs section packs", () => {
     // going back to one still kept makes it the newest, and lets go of none
     const back = visitPack(kept, PACKS[kept[0]][0].id)
     expect(back).toEqual([...kept.slice(1), kept[0]])
-    // a section DocsPage writes itself changes nothing
-    expect(visitPack(back, "getting-started")).toBe(back)
+    // an id no section has changes nothing
+    expect(visitPack(back, "no-such-section")).toBe(back)
   })
 })

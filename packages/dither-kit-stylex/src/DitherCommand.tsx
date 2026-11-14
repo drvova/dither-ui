@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherCommand.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherCommand.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import {
   createEffect,
@@ -13,6 +13,7 @@ import {
   Show,
 } from "solid-js"
 import { Portal } from "solid-js/web"
+import { isTab } from "@dither-ui/kit/engine/keys.ts"
 import { CONTROL_BUTTON, POPOVER } from "./control"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"
@@ -209,7 +210,7 @@ export default function DitherCommand(raw: DitherCommandProps) {
     }
     // Modal: Tab never leaves the palette — the input is its one field and
     // the list is driven by the arrow keys.
-    if (e.key === "Tab") {
+    if (isTab(e)) {
       e.preventDefault()
       input?.focus()
       return

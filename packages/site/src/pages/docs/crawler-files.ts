@@ -17,7 +17,7 @@ const docsUrl = (id: string): string => {
   if (!SECTIONS.some((s) => s.id === id))
     throw new Error(
       `crawler-files.ts: missing docs section "${id}" referenced by a crawl file — ` +
-        "add it to a *-nav.ts pack and spread it into GROUPS.",
+        "add it to a pack's *-nav.ts, which DOCS in groups.ts names.",
     )
   return `${SITE_URL}/docs/${id}`
 }

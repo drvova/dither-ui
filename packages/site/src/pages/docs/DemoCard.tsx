@@ -5,7 +5,6 @@ import {
   createSignal,
   For,
   type JSX,
-  lazy,
   Match,
   on,
   onCleanup,
@@ -14,7 +13,7 @@ import {
   Switch,
   useContext,
 } from "solid-js"
-import { routePath } from "@/shared/lib"
+import { lazyPart, routePath } from "@/shared/lib"
 import { restoreStyling, setStyling, STYLING_LABELS, styling, STYLINGS } from "@/shared/lib/restyle"
 import { play } from "@/shared/lib/sound"
 import type { RunResult, SourceContext } from "@/widgets/source"
@@ -32,9 +31,9 @@ export const DEMO_FIT = createContext<DemoFit>("inset")
 // The workbench and the source panel load on first use: the page's ~300
 // cards share their chunks, which only a reader who inspects or opens the
 // code pays for.
-const Workbench = lazy(() => import("@/widgets/workbench").then((m) => ({ default: m.Workbench })))
-const SourcePanel = lazy(() => import("@/widgets/source").then((m) => ({ default: m.SourcePanel })))
-const RunView = lazy(() => import("@/widgets/source").then((m) => ({ default: m.RunView })))
+const Workbench = lazyPart(() => import("@/widgets/workbench").then((m) => ({ default: m.Workbench })))
+const SourcePanel = lazyPart(() => import("@/widgets/source").then((m) => ({ default: m.SourcePanel })))
+const RunView = lazyPart(() => import("@/widgets/source").then((m) => ({ default: m.RunView })))
 
 export type DemoCardProps = { code: string; fit?: DemoFit; children?: JSX.Element }
 
@@ -60,8 +59,8 @@ export default function DemoCard(props: DemoCardProps) {
   // Mount the heavy slot (canvases, charts, whole demo trees) only as the card
   // approaches the viewport — and latch: once revealed it stays, so interaction
   // state inside a demo never resets on scroll. Falls back to always-on without
-  // IntersectionObserver (jsdom included), keeping tests and ancient engines on
-  // the old behaviour. The preview frame keeps min-h-[280px], so the box exists
+  // IntersectionObserver (jsdom included), so tests and ancient engines mount
+  // at once. The preview frame keeps min-h-[280px], so the box exists
   // from first paint and below-fold growth never shifts visible content.
   const [revealed, setRevealed] = createSignal(false)
 

@@ -1,39 +1,33 @@
-// What the Studio draws with, on Solid: the chart, widget, screen and reel
-// renderers, the canvas with its frames and the ask at the selection, the
-// data editor, and the player page with its mount. The first half is this
-// port's own (a render or behaviour spec for each component the earlier Vue site had
-// none for, and what Solid needs kept that Vue gave for free); the second
-// carries the earlier Vue site's specs for these components, assertion for
-// assertion.
+// What the Studio draws with: the chart, widget, screen and reel renderers,
+// the canvas with its frames and the ask at the selection, the data editor,
+// and the player page with its mount.
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard/model/factory"
 import { createChart } from "@/entities/chart"
-import { componentEntry, createComponent, createWidget } from "@/entities/widget"
+import { CAMERA_MOVES, componentEntry, createComponent, createWidget } from "@/entities/widget"
 import { addCell, createScreen } from "@/entities/widget/model/screen"
-import { CAMERA_MOVES } from "@/features/reel"
 import { audit, nameOf } from "@/shared/lib/inspect/measure"
-import { isDirected, release, seek } from "dither-kit/engine/clock.ts"
-import { addArtboard, addReelArtboard, editor, selectArtboard } from "../../src/entities/editor"
+import { isDirected, release, seek } from "@dither-ui/kit/engine/clock.ts"
+import { addArtboard, addReelArtboard, documentSnapshot, editor, selectArtboard } from "../../src/entities/editor"
 import { handoff } from "../../src/features/agent/handoff"
 import { listenerOf } from "../../src/entities/widget/model/model"
-import { documentSnapshot } from "../../src/features/persistence"
 import { mountPlayer } from "../../src/pages/play/main"
-import PlayPage from "../../src/pages/play/PlayPage"
+import PlayPage, { fitScale } from "../../src/pages/play/PlayPage"
 import { readPlaySource } from "../../src/pages/play/source"
 import { toBase64Url } from "../../src/shared/lib"
 import Artboard from "../../src/widgets/canvas/Artboard"
 import { Canvas, type CanvasApi } from "../../src/widgets/canvas"
 import SelectionAsk from "../../src/widgets/canvas/SelectionAsk"
-import { ChartRenderer } from "../../src/widgets/chart-renderer"
+import { ChartRenderer, REEL_POOL, ReelRenderer, WidgetRenderer } from "../../src/widgets/frame-renderer"
 import { DataEditor } from "../../src/widgets/data-editor"
-import { REEL_POOL, ReelRenderer } from "../../src/widgets/reel-renderer"
-import ReelBand from "../../src/widgets/reel-renderer/ReelBand"
-import ReelClip from "../../src/widgets/reel-renderer/ReelClip"
-import { WidgetRenderer } from "../../src/widgets/widget-renderer"
-import { FieldWrap } from "../../src/widgets/widget-renderer/FieldWrap"
-import ScreenRenderer from "../../src/widgets/widget-renderer/ScreenRenderer"
-import { world } from "dither-kit/testing/world.ts"
+import ReelBand from "../../src/widgets/frame-renderer/ReelBand"
+import ReelClip from "../../src/widgets/frame-renderer/ReelClip"
+import { FieldWrap } from "../../src/widgets/frame-renderer/FieldWrap"
+import ScreenRenderer from "../../src/widgets/frame-renderer/ScreenRenderer"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 let w: ReturnType<typeof world>
 beforeEach(() => {
@@ -62,7 +56,7 @@ afterEach(() => {
 const press = (type: string, init: PointerEventInit = {}) =>
   new PointerEvent(type, { bubbles: true, cancelable: true, button: 0, pointerId: 1, ...init })
 
-/** A frame on the canvas, as the editor holds it (its mutable twin). */
+/** A frame on the canvas, as the editor holds it (the store's own proxy). */
 function frame(kind: Parameters<typeof createArtboard>[0], x = 10, y = 20) {
   editor.artboards = [...editor.artboards, createArtboard(kind, x, y)]
   return editor.artboards[editor.artboards.length - 1]
@@ -127,7 +121,7 @@ describe("the widget renderer", () => {
     expect(getByRole("switch").getAttribute("aria-checked")).toBe("false")
   })
 
-  it("names a Vue event's listener the way the Solid kit takes it", () => {
+  it("names an event's listener as the callback prop the kit takes", () => {
     expect(listenerOf("update:modelValue")).toBe("onUpdateModelValue")
     expect(listenerOf("update:page")).toBe("onUpdatePage")
     expect(listenerOf("close")).toBe("onClose")
@@ -196,6 +190,20 @@ describe("the screen renderer", () => {
     expect(row.className).toContain("ring-accent/60")
     fireEvent.click(getByRole("switch"))
     expect(screen.rows[0].cells[0].model).toBe(false)
+  })
+
+  it("binds a cell's model by the prop its component names, as a frame of it does", () => {
+    editor.artboards = [{ ...createArtboard("button"), widget: createScreen() }]
+    const a = editor.artboards[0]
+    if (a.widget?.kind !== "screen") throw new Error("unreachable")
+    const screen = a.widget
+    addCell(screen.rows[0], componentEntry("DitherListBox")!).model = "Taipei"
+    const cell = render(() => <ScreenRenderer screen={screen} artboardId={a.id} />)
+    expect(cell.getByRole("option", { selected: true }).textContent).toContain("Taipei")
+    cell.unmount()
+    const widget = { ...createComponent(componentEntry("DitherListBox")!), model: "Kyoto" }
+    const frame = render(() => <WidgetRenderer widget={widget} artboardId="a" />)
+    expect(frame.getByRole("option", { selected: true }).textContent).toContain("Kyoto")
   })
 
   it("says an empty row is empty", () => {
@@ -288,6 +296,33 @@ describe("a frame on the canvas", () => {
     expect([a.x + a.w, a.y + a.h]).toEqual([400, 300])
     window.dispatchEvent(press("pointerup"))
     expect(container.textContent).not.toContain(`${a.x}, ${a.y}`)
+  })
+
+  it("gives each handle a finger's reach on the screen, whatever the zoom", () => {
+    const a = frame("button")
+    selectArtboard(a.id)
+    editor.viewport.zoom = 0.5
+    const { container } = render(() => <Canvas />)
+    // the layer the frames stand in tells their chrome the zoom
+    const layer = container.querySelector<HTMLElement>(".dk-canvas > div")!
+    expect(layer.style.getPropertyValue("--zoom")).toBe("0.5")
+    const handles = [...container.querySelectorAll<HTMLElement>("[data-handle]")]
+    expect(handles.map((h) => h.dataset.handle)).toEqual(["nw", "n", "ne", "e", "se", "s", "sw", "w"])
+    for (const h of handles) expect(h.classList.contains("handle")).toBe(true)
+    // The frame's name, its grip, stands over the corner's reach: a finger
+    // on it moves the frame, never resizes it.
+    const grip = container.querySelector<HTMLElement>(".cursor-move")!
+    expect(grip.textContent).toContain(a.name)
+    const z = (el: HTMLElement) => Number(/(?:^|\s)z-(\d+)/.exec(el.className)?.[1] ?? 0)
+    expect(z(grip)).toBeGreaterThan(z(handles[0]))
+    // The reach (the handle's ::before; jsdom lays nothing out, so read from
+    // its rule): 24px under a cursor, 40px under a finger, divided by the
+    // zoom, so a 12px handle that shows 6px at 50% still reaches 40px; past
+    // it, the handle drawn is its own reach.
+    const css = readFileSync(join(process.cwd(), "src/widgets/canvas/Artboard.css"), "utf8")
+    expect(css).toMatch(/--handle-reach: 24px;\s*@media \(pointer: coarse\) \{\s*--handle-reach: 40px;/)
+    const inset = css.match(/\.handle::before \{[^}]*inset: ([^;]+);/)?.[1]
+    expect(inset).toBe("min(0px, calc((12px - var(--handle-reach) / var(--zoom, 1)) / 2))")
   })
 
   it("shows no handles on a locked frame, and its label does not move it", () => {
@@ -394,6 +429,28 @@ describe("the canvas", () => {
     editor.viewport.zoom = 2
     editor.guides.v = 100
     expect(container.querySelector<HTMLElement>(".w-px")?.style.left).toBe("230px")
+  })
+
+  it("leaves Space to a focused select or field, and pans over a button", () => {
+    const { container } = render(() => (
+      <>
+        <select aria-label="kind">
+          <option>area</option>
+          <option>bar</option>
+        </select>
+        <input aria-label="name" />
+        <button>key</button>
+        <Canvas />
+      </>
+    ))
+    const host = container.querySelector(".dk-canvas")!
+    for (const sel of ["select", "input"]) {
+      container.querySelector(sel)!.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }))
+      expect(host.className, sel).not.toContain("cursor-grab")
+    }
+    container.querySelector("button")!.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }))
+    expect(host.className).toContain("cursor-grab")
+    window.dispatchEvent(new KeyboardEvent("keyup", { key: " " }))
   })
 
   it("shows the pick bar while picking, counts what was picked, and ends on Esc or Done", () => {
@@ -578,6 +635,30 @@ describe("the player", () => {
     )
   })
 
+  it("fits a frame wider than the window into it, laid out and painted at its own size", () => {
+    expect([fitScale(520, 390), fitScale(520, 1366), fitScale(520, 520), fitScale(520, 0)]).toEqual([0.75, 1, 1, 1])
+    const a = frame("button")
+    const doc = JSON.parse(JSON.stringify(documentSnapshot()))
+    const root = document.documentElement
+    const narrow = Object.defineProperty(root, "clientWidth", { configurable: true, get: () => a.w / 2 })
+    try {
+      const { container } = render(() => <PlayPage source={{ document: doc, artboardId: a.id, theme: "dark" }} />)
+      const surface = container.querySelector<HTMLElement>(".play-surface")!
+      expect([surface.style.width, surface.style.height, surface.style.transform]).toEqual([
+        `${a.w}px`,
+        `${a.h}px`,
+        "scale(0.5)",
+      ])
+      const fit = surface.parentElement!
+      expect([fit.style.width, fit.style.height]).toEqual([`${a.w / 2}px`, `${a.h / 2}px`])
+    } finally {
+      delete (narrow as { clientWidth?: number }).clientWidth
+    }
+    // a window as wide as the frame (a composition's) shows it as it is
+    const wide = render(() => <PlayPage source={{ document: doc, artboardId: a.id, theme: "dark" }} />)
+    expect(wide.container.querySelector<HTMLElement>(".play-surface")!.style.transform).toBe("")
+  })
+
   it("cuts a reel between the frames of its own document, never the editor's", () => {
     const a = addArtboard("button")
     const reel = addReelArtboard([a.id])
@@ -637,8 +718,6 @@ describe("the player", () => {
     expect(() => mountPlayer()).toThrow("#dither-stage")
   })
 })
-
-// The earlier Vue site's specs for these components, carried.
 
 describe("artboard surface drag", () => {
   it("moves from passive space but leaves controls interactive", () => {

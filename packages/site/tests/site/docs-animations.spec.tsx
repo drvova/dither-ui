@@ -1,4 +1,4 @@
-// The docs' Animations pack on Solid: every section of the pack's nav under
+// The docs' Animations pack: every section of the pack's nav under
 // its heading, each preview mounting its demo once in view, and the demos'
 // own controls.
 import { readFileSync } from "node:fs"
@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import { ANIMATIONS_NAV } from "@/pages/docs/animations/animations-nav"
 import AnimationsDocs from "../../src/pages/docs/animations/AnimationsDocs"
 import TransitionSection from "../../src/pages/docs/animations/TransitionSection"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 const SOLID = join(__dirname, "../../src/pages/docs/animations")
 const read = (dir: string, file: string) => readFileSync(join(dir, file), "utf8")
@@ -93,7 +93,7 @@ describe("the Animations pack", () => {
     expect(button("dither-reveal", "Dissolve").getAttribute("aria-pressed")).toBe("true")
     fireEvent.click(button("dither-reveal", "Iris"))
     expect(button("dither-reveal", "Iris").getAttribute("aria-pressed")).toBe("true")
-    expect(button("dither-reveal", "Iris").className).toContain("border-accent bg-accent/80")
+    expect(button("dither-reveal", "Iris").className).toContain("border-accent bg-accent text-accent-foreground")
     expect(button("dither-reveal", "Dissolve").getAttribute("aria-pressed")).toBe("false")
     expect(button("dither-reveal", "Dissolve").className).toContain("border-border/60")
     expect(button("dither-reveal", "Replay")).toBeTruthy()

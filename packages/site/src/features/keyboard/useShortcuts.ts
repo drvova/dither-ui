@@ -10,19 +10,16 @@ import {
   groupSelected,
   moveSelected,
   pasteClipboard,
+  redo,
   removeSelected,
   selectedArtboard,
   setArtboardLocked,
+  undo,
   ungroup,
   zoomIn,
   zoomOut,
 } from "../../entities/editor"
-import { redo, undo } from "../history"
-
-const isTyping = (t: EventTarget | null) => {
-  const el = t as HTMLElement | null
-  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
-}
+import { isTyping } from "@/shared/lib/keys"
 
 /** Familiar editor keybindings, installed at the canvas level. While the
  * workbench inspects the canvas its keys are the ones that count, so these

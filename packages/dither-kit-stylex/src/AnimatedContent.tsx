@@ -1,9 +1,10 @@
-// Generated from dither-kit/solid/AnimatedContent.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/AnimatedContent.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, type JSX, mergeProps, onCleanup, onMount } from "solid-js"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
-import "dither-kit/solid/AnimatedContent.css"
+import "@dither-ui/kit/solid/AnimatedContent.css"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 export type AnimatedContentProps = {
   /** px (number) or any CSS length — `"4cqw"` measures the nearest query
@@ -48,7 +49,8 @@ export default function AnimatedContent(raw: AnimatedContentProps) {
       setShown(true)
       return
     }
-    let io: IntersectionObserver | null = new IntersectionObserver(([entry]) => {
+    let io: IntersectionObserver | null = new IntersectionObserver((entries) => {
+      const entry = latestEntry(entries)
       if (entry?.isIntersecting) {
         setShown(true)
         io?.disconnect()

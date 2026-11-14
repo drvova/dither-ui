@@ -507,12 +507,14 @@ export default function DitherWorld(raw: DitherWorldProps) {
     onCleanup(() => {
       ctl?.abort()
       offload.stop()
+      // The context first: losing it frees all both engines made on it, so
+      // they delete nothing one by one (see `GlHandle.dispose`).
+      gl?.dispose()
+      gl = null
       gpu?.dispose()
       gpu = null
       materialPass?.dispose()
       materialPass = null
-      gl?.dispose()
-      gl = null
     })
   })
 

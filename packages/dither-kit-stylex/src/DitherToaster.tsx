@@ -1,11 +1,11 @@
-// Generated from dither-kit/solid/DitherToaster.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherToaster.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { For } from "solid-js"
 import { Portal } from "solid-js/web"
-import { BAYER4, fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
-import { cellCanvas } from "dither-kit/engine/raster.ts"
-import { dismiss, toasts } from "dither-kit/solid/runtime/toast.ts"
-import "dither-kit/solid/DitherToaster.css"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import { paintRail } from "@dither-ui/kit/engine/rail.ts"
+import { dismiss, toasts } from "@dither-ui/kit/solid/runtime/toast.ts"
+import "@dither-ui/kit/solid/DitherToaster.css"
 import { cn } from "./lib"
 
 import * as stylex from "@stylexjs/stylex"
@@ -52,28 +52,6 @@ const styles = stylex.create({
 })
 
 export type DitherToasterProps = Record<never, never>
-
-const CELL = 2
-
-/** Paint the 3px left rail — DitherCollapsible's vertical dither ramp. */
-function paintRail(canvas: HTMLCanvasElement, color: PixelColor, matrix: number[][] = BAYER4): void {
-  const ctx = canvas.getContext("2d", { willReadFrequently: true })
-  const height = canvas.offsetHeight
-  if (!ctx || height <= 0) return
-  const rows = Math.max(4, Math.round(height / CELL))
-  canvas.width = 1
-  canvas.height = rows
-  const fill = fillOf(color)
-  const px = cellCanvas(ctx, 1, rows)
-  for (let y = 0; y < rows; y++) {
-    const density = 1 - (y + 0.5) / rows
-    const lit = density > matrix[y & 3][0]
-    const alpha = lit ? 0.35 + 0.65 * density : 0.12 * density
-    if (alpha <= 0.004) continue
-    px.cell(0, y, fill, alpha)
-  }
-  px.flush()
-}
 
 export default function DitherToaster(_props: DitherToasterProps) {
   function setRail(el: HTMLCanvasElement, color: PixelColor) {

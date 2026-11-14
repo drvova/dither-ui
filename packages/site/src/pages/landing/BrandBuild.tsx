@@ -7,9 +7,10 @@
 // when the reader does: the surface holds still a beat after the last
 // scroll or pointer move. Reduced motion gets the lockup whole and still.
 import { createSignal, onCleanup, onMount } from "solid-js"
-import { DitherWorld } from "dither-kit"
 import { BUILD_CELLS, BUILD_HEAT, lockupModel, stageAt } from "@/pages/landing/build"
+import { DitherWorld } from "./parts"
 import "./BrandBuild.css"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 const MODEL = lockupModel()
 /** The brand in metal, lit low-key: the shadowed sides sink into the
@@ -81,7 +82,8 @@ export default function BrandBuild() {
     }
     frame = requestAnimationFrame(measure)
     if (typeof IntersectionObserver !== "undefined" && run) {
-      io = new IntersectionObserver(([e]) => {
+      io = new IntersectionObserver((entries) => {
+        const e = latestEntry(entries)
         near = !!e?.isIntersecting
         if (near) stir()
       })

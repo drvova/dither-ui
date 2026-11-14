@@ -1,6 +1,6 @@
 import { createMemo, createSignal, Index, type JSX, Match, onCleanup, Show, Switch } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import { copyText, DitherIcon } from "dither-kit"
+import { copyText, DitherIcon } from "@dither-ui/kit"
 import { type Block, type Inline, parseProse } from "@/widgets/agent/model/prose"
 import "./Prose.css"
 

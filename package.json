@@ -10,12 +10,13 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "npm run dev -w site",
-    "build": "npm run build -w site",
+    "dev": "npm run dev -w @dither-ui/site",
+    "build": "npm run build -w @dither-ui/site",
     "build:css": "node packages/tasks/src/kit-css.mjs packages/site/.output/public/kit/dither-kit.css",
-    "preview": "npm run preview -w site",
+    "preview": "npm run preview -w @dither-ui/site",
     "frames": "node packages/tasks/src/render-frames.mjs",
     "demo:agent": "node packages/tasks/src/agent-demo.mjs",
+    "walk": "node packages/tasks/src/walk.mjs",
     "typecheck": "tsc --noEmit",
     "test": "rs test && npm test --workspaces --if-present",
     "test:watch": "rs test watch",

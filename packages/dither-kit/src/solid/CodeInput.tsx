@@ -1,4 +1,5 @@
 import { type JSX, mergeProps, splitProps } from "solid-js"
+import { isTab } from "../engine/keys"
 import { cn } from "../tailwind/lib"
 import DitherTextarea, { type DitherTextareaProps } from "./DitherTextarea"
 
@@ -29,17 +30,23 @@ const TAB = "  "
 
 /** Code entry: monospace textarea where Tab indents (two spaces) and
  * Shift+Tab dedents the selected lines — the default browser tab trap is
- * the enemy of code fields, so it's handled here once. */
+ * the enemy of code fields, so it's handled here once. Escape lets go of
+ * the keyboard: the Tab after it moves focus on, as a code editor's does. */
 export default function CodeInput(raw: CodeInputProps) {
   const merged = mergeProps({ rows: 6, placeholder: "// paste or type…" }, raw)
   const [props, rest] = splitProps(merged, OWN)
 
+  // Escape pressed last: the next Tab is the keyboard's, not the indent's.
+  let leaving = false
   const onKeyDown: JSX.EventHandler<HTMLTextAreaElement, KeyboardEvent> = (e) => {
     // The caller's own listener still hears it.
     const theirs = props.onKeyDown
     if (typeof theirs === "function") theirs(e)
     else if (theirs) theirs[0](theirs[1], e)
-    if (e.key === "Tab" && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    const left = leaving
+    leaving = e.key === "Escape" || (left && e.key === "Shift")
+    if (isTab(e) && left) return
+    if (isTab(e) && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault()
       const el = e.currentTarget
       const { value, selectionStart, selectionEnd } = el

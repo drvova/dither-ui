@@ -1,4 +1,4 @@
-// Generated from dither-kit/tailwind/control.ts by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/tailwind/control.ts by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import * as stylex from "@stylexjs/stylex"
 
@@ -33,6 +33,7 @@ const styles = stylex.create({
     pointerEvents: { default: null, ":disabled": "none" },
     opacity: { default: null, ":disabled": "40%" },
   },
+  controlInvalid: { boxShadow: { default: null, ":focus-visible": "0 0 0 calc(1px + 0px) var(--ring)" } },
   controlButton: {
     boxShadow: {
       default: null,
@@ -53,5 +54,9 @@ const styles = stylex.create({
 })
 
 export const CONTROL = styles.control
+/** A field drawn invalid keeps its edge in the signal ink as it takes focus
+ * (the edge is its style, which no focus class outranks): focus rings it in
+ * the ring ink instead. */
+export const CONTROL_INVALID = styles.controlInvalid
 export const CONTROL_BUTTON = styles.controlButton
 export const POPOVER = styles.popover

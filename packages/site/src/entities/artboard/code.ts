@@ -3,7 +3,7 @@
 // keeps one (CSS, CSS Modules). One writer for the export dialog and the
 // agent's `code.get`.
 import type { Artboard } from "@/entities/artboard"
-import { restyleSolid, type Sheet, type Styling } from "restyle"
+import { restyleSolid, type Sheet, type Styling } from "@dither-ui/restyle"
 import { chartCode } from "../chart/model/codegen"
 import { widgetCode } from "../widget/model/codegen"
 

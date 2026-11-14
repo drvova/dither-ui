@@ -1,13 +1,13 @@
-// Generated from dither-kit/solid/DitherWorld.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherWorld.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, type JSX, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
-import { type Assembly, type AssemblyState, createAssembly } from "dither-kit/engine/assemble.ts"
-import { directedTime, isDirected } from "dither-kit/engine/clock.ts"
-import { type ChannelInput, createGl, type GlHandle, rasterOf } from "dither-kit/engine/gl.ts"
-import { externalResources, formatOf, parseWorld, type ModelFormat } from "dither-kit/engine/models.ts"
-import { clamp01, fillOf, type PixelBloomInput, type PixelColor, pixelBloomStyle } from "dither-kit/engine/pixel.ts"
-import type { DitherRenderMode } from "dither-kit/engine/precompile.ts"
-import type { RasterBuffer } from "dither-kit/engine/raster.ts"
+import { type Assembly, type AssemblyState, createAssembly } from "@dither-ui/kit/engine/assemble.ts"
+import { directedTime, isDirected } from "@dither-ui/kit/engine/clock.ts"
+import { type ChannelInput, createGl, type GlHandle, rasterOf } from "@dither-ui/kit/engine/gl.ts"
+import { externalResources, formatOf, parseWorld, type ModelFormat } from "@dither-ui/kit/engine/models.ts"
+import { clamp01, fillOf, type PixelBloomInput, type PixelColor, pixelBloomStyle } from "@dither-ui/kit/engine/pixel.ts"
+import type { DitherRenderMode } from "@dither-ui/kit/engine/precompile.ts"
+import type { RasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import {
   cameraOf,
   createWorldTarget,
@@ -23,12 +23,17 @@ import {
   type WorldStyle,
   type WorldTarget,
   type WorldView,
-} from "dither-kit/engine/world.ts"
-import { createWorldGpu, createWorldMaterial, type WorldGpu, type WorldMaterial } from "dither-kit/engine/world-gl.ts"
-import { offloadWorld, spawnWorldWorker } from "dither-kit/engine/world-offload.ts"
+} from "@dither-ui/kit/engine/world.ts"
+import {
+  createWorldGpu,
+  createWorldMaterial,
+  type WorldGpu,
+  type WorldMaterial,
+} from "@dither-ui/kit/engine/world-gl.ts"
+import { offloadWorld, spawnWorldWorker } from "@dither-ui/kit/engine/world-offload.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
-import { createDitherBackground, type DitherSurface } from "dither-kit/solid/runtime/surface.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
+import { createDitherBackground, type DitherSurface } from "@dither-ui/kit/solid/runtime/surface.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -543,12 +548,14 @@ export default function DitherWorld(raw: DitherWorldProps) {
     onCleanup(() => {
       ctl?.abort()
       offload.stop()
+      // The context first: losing it frees all both engines made on it, so
+      // they delete nothing one by one (see `GlHandle.dispose`).
+      gl?.dispose()
+      gl = null
       gpu?.dispose()
       gpu = null
       materialPass?.dispose()
       materialPass = null
-      gl?.dispose()
-      gl = null
     })
   })
 

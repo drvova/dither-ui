@@ -1,6 +1,7 @@
 import { createMemo, createSignal, type JSX, mergeProps, onCleanup, onMount } from "solid-js"
 import { Dynamic } from "solid-js/web"
 import { CONTAINER_SCALE, quantize, resolveCq, type CqScale, type CqState } from "../engine/containers"
+import { watchSize } from "../engine/size-watch"
 import { cn } from "../tailwind/lib"
 import "./DitherContainer.css"
 
@@ -68,26 +69,23 @@ export default function DitherContainer(raw: DitherContainerProps) {
   onMount(() => {
     const node = root
     if (!node) return
-    let ro: ResizeObserver | null = null
     // contentRect = the content box, i.e. exactly what `@container` measures,
     // and transform-proof (use-chart-dimensions precedent). Without a
-    // ResizeObserver the state simply stays at the 0-size bucket.
-    if (typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver((entries) => {
-        const entry = entries[0]
-        update(entry ? entry.contentRect.width : node.clientWidth, entry ? entry.contentRect.height : node.clientHeight)
-      })
-      ro.observe(node)
-    }
+    // ResizeObserver the state simply stays at the 0-size bucket. A new
+    // bucket lays the children out again, and with them this box: applied
+    // on the frame after the report (`watchSize`), never inside it.
+    const size = watchSize(node, (entry) => {
+      if (entry) update(entry.contentRect.width, entry.contentRect.height)
+      else update(node.clientWidth, node.clientHeight)
+    })
     // First-paint guard: if nothing reported (silent observer), read the box
     // once — but never overwrite a real observation with the zero read.
     const fallback = window.setTimeout(() => {
-      if (!width()) update(node.clientWidth, node.clientHeight)
+      if (!width() && !size.reported()) update(node.clientWidth, node.clientHeight)
     }, 0)
     onCleanup(() => {
       if (fallback) clearTimeout(fallback)
-      ro?.disconnect()
-      ro = null
+      size.stop()
     })
   })
 

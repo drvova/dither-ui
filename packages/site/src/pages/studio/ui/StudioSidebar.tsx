@@ -1,5 +1,5 @@
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
-import { DitherAlertDialog, DitherAvatar, DitherIcon } from "dither-kit"
+import { DitherAlertDialog, DitherAvatar, DitherIcon } from "@dither-ui/kit"
 import {
   agoOf,
   chatGroups,
@@ -31,8 +31,7 @@ import "./StudioSidebar.css"
 export type StudioSidebarProps = {
   /** A turn is running: the chat and the project stay put until it ends. */
   locked: boolean
-  /** Whether it shows: folded away it stays mounted (the page's `v-show`
-   * on it in Vue). */
+  /** Whether it shows: folded away it stays mounted. */
   show?: boolean
   onLibrary?: () => void
   onAgent?: () => void

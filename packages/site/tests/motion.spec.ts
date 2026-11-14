@@ -3,13 +3,15 @@
 // long soft settle, never past its mark. The kit's "glide" easing is the
 // source (`GLIDE_BEZIER`); the site's stylesheet carries that bezier, and no other
 // curve or linear wipe is left in the site's own motion. The kit's spring
-// stays the kit's (its "spring" easing), held here too.
+// stays the kit's (its "spring" easing), held here too. The one lift, what
+// the hand moves directly, settles on the hand's spring
+// (`tests/spring.spec.ts`).
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "rstack/test"
-import { GLIDE_BEZIER, glide, resolveEasing } from "dither-kit/engine/dither-paint.ts"
-import { SPRING_BEZIER, spring, springLinear } from "dither-kit/engine/spring.ts"
-import { cubicBezier } from "dither-kit/engine/dither-paint.ts"
+import { GLIDE_BEZIER, glide, resolveEasing } from "@dither-ui/kit/engine/dither-paint.ts"
+import { SPRING_BEZIER, spring, springLinear } from "@dither-ui/kit/engine/spring.ts"
+import { cubicBezier } from "@dither-ui/kit/engine/dither-paint.ts"
 import { SHEET_WIPE } from "../src/widgets/site-header/menu"
 
 const root = new URL("../../..", import.meta.url).pathname

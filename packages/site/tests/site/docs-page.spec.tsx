@@ -1,8 +1,7 @@
-// The docs' page on Solid: the shell around the sections (the rail, the
+// The docs' page: the shell around the sections (the rail, the
 // sheet, "On this page", Share), one section per page by its route, the
-// packs as chunks of their own and the ones kept, the page's head, and the
-// routes' wiring. Carried from the earlier Vue site's `tests/docs-packs.spec.ts`,
-// `tests/docs-rail.spec.ts` and `tests/docs-sheet.spec.ts`.
+// packs as chunks of their own and the ones kept, every section's id and
+// heading from its nav item, the page's head, and the routes' wiring.
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { MetaProvider } from "@solidjs/meta"
@@ -10,20 +9,21 @@ import { createMemoryHistory, MemoryRouter, Route, useParams } from "@solidjs/ro
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { GROUPS } from "@/pages/docs/groups"
-import { PACKS, type PackName } from "@/pages/docs/packs"
+import { GROUPS, headingOf, type PackName, type SectionId } from "@/pages/docs/groups"
+import { PACK_NAMES, PACKS } from "@/pages/docs/packs"
 import { SECTION_IDS } from "@/pages/docs/pages"
 import { docsBreadcrumb, docsMeta } from "@/pages/docs/seo"
-import { STYLING_LABELS } from "restyle"
+import { STYLING_LABELS } from "@dither-ui/restyle"
 import { SHEET_WIPE, bandFill } from "@/widgets/site-header/menu"
 import DocsNav, { docsUrl, NAV_LINK, type PagePart } from "../../src/pages/docs/DocsNav"
 import DocsPage, { DOCS_GROUND } from "../../src/pages/docs/DocsPage"
 import { pageTags } from "../../src/pages/docs/heads"
 import DocsSheet, { SHEET_ID } from "../../src/pages/docs/DocsSheet"
+import { SHOWN_SECTION } from "../../src/pages/docs/DocSection"
 import OnThisPage from "../../src/pages/docs/OnThisPage"
 import { PACK_COMPONENTS, PACK_LOADERS, preloadOpenPacks } from "../../src/pages/docs/pack-loaders"
 import SectionShare from "../../src/pages/docs/SectionShare"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 const SITE = join(__dirname, "../..")
 const DOCS = join(SITE, "src/pages/docs")
@@ -76,33 +76,65 @@ function openDocs(at: string) {
 }
 const shownIds = () =>
   [...document.querySelectorAll<HTMLElement>(".docs-flow > section")].filter((s) => !s.hidden).map((s) => s.id)
+/** Wait for a section's pack, a chunk of its own, to bring it. */
+async function arrive(id: string) {
+  for (let i = 0; i < 400 && !document.getElementById(id); i++) await new Promise((r) => setTimeout(r, 10))
+  await settle()
+}
 
 describe("docs section packs", () => {
-  function find(name: string, dir = DOCS): string | null {
-    for (const entry of readdirSync(dir)) {
+  function sources(dir = DOCS): string[] {
+    return readdirSync(dir).flatMap((entry) => {
       const path = join(dir, entry)
-      if (statSync(path).isDirectory()) {
-        const hit = find(name, path)
-        if (hit) return hit
-      } else if (entry === `${name}.tsx`) return path
-    }
-    return null
+      return statSync(path).isDirectory() ? sources(path) : path.endsWith(".tsx") ? [path] : []
+    })
   }
 
-  it("each pack renders exactly the sections its nav names", () => {
-    for (const [name, nav] of Object.entries(PACKS)) {
-      const file = find(name)
-      expect({ name, file: !!file }).toEqual({ name, file: true })
-      // The pack's own sections and those of the section files it imports.
-      const own = readFileSync(file!, "utf8")
-      const parts = [...own.matchAll(/^import \w+ from "\.\/(\w+Section)"/gm)].map((m) =>
-        readFileSync(join(file!, "..", `${m[1]}.tsx`), "utf8"),
-      )
-      const found = [own, ...parts]
-        .flatMap((src) => [...src.matchAll(/<section[^>]*\sid="([\w-]+)"/g)].map((m) => m[1]))
-        .sort()
-      expect({ name, ids: found }).toEqual({ name, ids: nav.map((i) => i.id).sort() })
+  it("renders each pack's sections, each id and heading from its nav item", async () => {
+    for (const name of PACK_NAMES) {
+      const Pack = (await PACK_LOADERS[name]()).default
+      // the page shows each section in turn: a section loaded only once
+      // opened (the Engine, the Verification) comes too
+      const [shown, show] = createSignal("")
+      const { container, unmount } = render(() => (
+        <SHOWN_SECTION.Provider value={shown}>
+          <Pack />
+        </SHOWN_SECTION.Provider>
+      ))
+      for (const { id } of PACKS[name]) {
+        show(id)
+        for (let i = 0; i < 400 && !container.querySelector(`:scope > section[id="${id}"]`); i++)
+          await new Promise((r) => setTimeout(r, 10))
+      }
+      const sections = [...container.querySelectorAll<HTMLElement>(":scope > section")]
+      const rendered = sections.map((s) => ({
+        id: s.id,
+        heading: s.querySelector("h2")?.textContent,
+        shell: s.classList.contains("mt-16") && s.classList.contains("scroll-mt-24"),
+      }))
+      const named = PACKS[name].map((item) => ({ id: item.id, heading: headingOf(item), shell: true }))
+      // the page shows one at a time, so a pack's order is its own
+      const byId = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id)
+      expect({ name, sections: rendered.sort(byId) }).toEqual({ name, sections: named.sort(byId) })
+      unmount()
     }
+  }, 60_000)
+
+  it("writes every section through DocSection, never a section element of its own", () => {
+    // a hand-written `<section id>` once repeated its nav's id and label by
+    // hand, and the two could disagree
+    for (const file of sources()) {
+      if (file.endsWith("DocSection.tsx")) continue
+      const src = readFileSync(file, "utf8")
+      expect({ file, hand: [...src.matchAll(/<section[^>]*\sid=/g)].length }).toEqual({ file, hand: 0 })
+      expect({ file, hand: src.includes('<h2 class="text-lg tracking-tight">') }).toEqual({ file, hand: false })
+    }
+  })
+
+  it("holds every section in one pack, the packs in the sidebar's order", () => {
+    expect(PACK_NAMES.flatMap((name) => PACKS[name].map((i) => i.id))).toEqual(SECTION_IDS)
+    const ids: SectionId[] = ["area", "getting-started"]
+    expect(ids.every((id) => SECTION_IDS.includes(id))).toBe(true)
   })
 
   it("names each family on its rail heading", () => {
@@ -122,24 +154,21 @@ describe("docs section packs", () => {
     await preloadOpenPacks("shiny-text")
     expect(loaded).toEqual(["TextDocs"])
     loaded.length = 0
-    // a section DocsPage writes itself has no pack to load, nor has the front
+    // the front opens on the first section, so it loads that one's pack
     await preloadOpenPacks("area")
     await preloadOpenPacks("")
+    expect(loaded).toEqual(["ChartDocs", "QuickStart"])
+    loaded.length = 0
+    // an id no section has loads nothing
+    await preloadOpenPacks("no-such-section")
     expect(loaded).toEqual([])
     Object.assign(PACK_LOADERS, real)
   })
 
-  it("places every section in the flow: each pack by name, the rest written by the page", () => {
-    // the page places each pack by name: one left out would never show
+  it("places every pack in the flow by the one table, none by name", () => {
     const page = readFileSync(join(DOCS, "DocsPage.tsx"), "utf8")
-    const placed = [...page.matchAll(/<Pack name="(\w+)" \/>/g)].map((m) => m[1])
-    expect([...placed].sort()).toEqual(Object.keys(PACKS).sort())
-    const own = [...page.matchAll(/<Own id="([\w-]+)">/g)].map((m) => m[1])
-    const files = [...page.matchAll(/^ {12}<(\w+Section|QuickStart) \/>/gm)].map(
-      (m) => /<section[^>]*\sid="([\w-]+)"/.exec(readFileSync(find(m[1])!, "utf8"))![1],
-    )
-    const packed = placed.flatMap((name) => PACKS[name as PackName].map((i) => i.id))
-    expect([...own, ...files, ...packed].sort()).toEqual([...SECTION_IDS].sort())
+    expect(page).toContain("<For each={PACK_NAMES}>{(name) => <Pack name={name} />}</For>")
+    expect(page).not.toMatch(/<Pack name="/)
   })
 })
 
@@ -342,7 +371,7 @@ describe("the rail right of the content", () => {
 describe("the docs' page", () => {
   it("lists the parts of a section opened straight from its address", async () => {
     openDocs("/docs/avatar")
-    await settle()
+    await arrive("avatar")
     const rail = document.querySelector('nav[aria-label="On this page"]')!
     expect(rail).not.toBeNull()
     expect([...rail.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Avatar", "Names", "API"])
@@ -356,7 +385,7 @@ describe("the docs' page", () => {
 
   it("opens the docs' own address on the first section, under the front", async () => {
     openDocs("/docs")
-    await settle()
+    await arrive(SECTION_IDS[0])
     expect(shownIds()).toEqual([SECTION_IDS[0]])
     const front = [...document.querySelectorAll<HTMLElement>("[data-docs-front]")]
     expect(front).toHaveLength(2)
@@ -371,23 +400,49 @@ describe("the docs' page", () => {
     expect(document.documentElement.dataset.page).toBe("docs")
   })
 
-  it("renders only the sections it writes itself that are open or just read", async () => {
-    // all of them rendered hidden once held most of a section page's nodes
+  it("keeps the packs of the last sections read, letting the oldest go", async () => {
+    // every pack rendered hidden once held most of a section page's nodes
     // and every one of its canvases
     const { history } = openDocs("/docs/area")
-    const filled = (id: string) => (document.getElementById(id)?.children.length ?? 0) > 0
-    await settle()
-    expect(["area", "bar", "dashboard"].map(filled)).toEqual([true, false, false])
-    for (const id of ["bar", "line", "pie"]) {
+    await arrive("area")
+    expect(["area", "button", "palette"].map((id) => !!document.getElementById(id))).toEqual([true, false, false])
+    for (const id of ["button", "palette", "styling"]) {
       history.set({ value: `/docs/${id}` })
-      await settle()
+      await arrive(id)
       expect(shownIds()).toEqual([id])
     }
-    // the last three read stay; the first lets go
-    expect(["area", "bar", "line", "pie"].map(filled)).toEqual([false, true, true, true])
+    // the last three packs read stay, hidden; the first lets go
+    expect(["area", "button", "palette", "styling"].map((id) => !!document.getElementById(id))).toEqual([
+      false,
+      true,
+      true,
+      true,
+    ])
     // each section read from its top
     expect(vi.mocked(window.scrollTo).mock.calls.at(-1)).toEqual([{ top: 0, behavior: "auto" }])
-  })
+  }, 30_000)
+
+  it("holds a deferred section's demos back until it opens, then keeps them", async () => {
+    // the chart pack's other sections, rendered hidden, nearly doubled a chart's page
+    const { history } = openDocs("/docs/area")
+    await arrive("area")
+    const cards = (id: string) => document.querySelectorAll(`#${id} [data-demo-card]`).length
+    expect([cards("area"), cards("bar")]).toEqual([1, 0])
+    expect(document.querySelector("#bar h2")?.textContent).toBe("Bar chart")
+    history.set({ value: "/docs/bar" })
+    await arrive("bar")
+    expect([cards("area"), cards("bar")]).toEqual([1, 1])
+  }, 30_000)
+
+  it("loads a section whose code is its own chunk only once it opens", async () => {
+    const { history } = openDocs("/docs/styling")
+    await arrive("styling")
+    expect(document.getElementById("engine")).toBeNull()
+    history.set({ value: "/docs/engine" })
+    await arrive("engine")
+    expect(shownIds()).toEqual(["engine"])
+    expect(document.querySelector("#engine h2")?.textContent).toBe("Engine")
+  }, 30_000)
 
   it("shows one section of a pack that arrives after the page, lists its parts and keeps the pack", async () => {
     // a pack is a chunk of its own: its sections came after the hiding ran,
@@ -401,20 +456,20 @@ describe("the docs' page", () => {
     expect(document.querySelector(".docs-flow > style")?.textContent).toBe(
       '.docs-flow > section:not([id="shiny-text"]) { display: none }',
     )
-    // a section of its own next: the pack stays mounted, hidden
+    // another pack's section next: this one stays mounted, hidden
     const kept = document.getElementById("shiny-text")
     history.set({ value: "/docs/avatar" })
-    await settle()
+    await arrive("avatar")
     expect(shownIds()).toEqual(["avatar"])
     expect(document.getElementById("shiny-text")).toBe(kept)
   }, 30_000)
 
   it("moves to a section by its route from the rail, the pager and the search", async () => {
     const { history } = openDocs("/docs/avatar")
-    await settle()
+    await arrive("avatar")
     const at = () => history.get()
     fireEvent.click(document.querySelector<HTMLAnchorElement>('nav[aria-label="Docs sections"] a[href$="/docs/bar"]')!)
-    await settle()
+    await arrive("bar")
     expect(at()).toBe(docsUrl("bar"))
     expect(shownIds()).toEqual(["bar"])
     expect(
@@ -432,6 +487,8 @@ describe("the docs' page", () => {
       ["Docs", docsUrl(SECTION_IDS[0])],
       ["Components", docsUrl("area")],
     ])
+    // two links a slash apart: each a 24px target (WCAG 2.5.8), which a phone's walk measured at 22px as inline text
+    for (const a of crumbs) expect([...a.classList]).toEqual(expect.arrayContaining(["inline-flex", "min-h-6"]))
     // the search: Ctrl K opens the palette, a pick opens the section
     fireEvent.keyDown(window, { key: "k", ctrlKey: true })
     await settle(1)
@@ -453,7 +510,7 @@ describe("the docs' page", () => {
   it("lands a legacy hash link on its section's page", async () => {
     window.history.replaceState(null, "", "/docs#/docs/avatar")
     const { history } = openDocs("/docs")
-    await settle()
+    await arrive("avatar")
     expect(history.get()).toBe(docsUrl("avatar"))
     expect(shownIds()).toEqual(["avatar"])
     window.history.replaceState(null, "", "/")
@@ -476,7 +533,7 @@ describe("the docs' page", () => {
       crumbType: document.getElementById("docs-breadcrumb")?.getAttribute("type"),
     })
     // The docs' own address says in a preview what the head table says of
-    // it (the earlier Vue site's entry page, word for word); a section, its meta.
+    // it; a section, its meta.
     const front = (key: string) =>
       pageTags("docs").flatMap((t) =>
         t.tag === "meta" && (t.attrs.property ?? t.attrs.name) === key ? [t.attrs.content] : [],
@@ -514,7 +571,7 @@ describe("the docs' page", () => {
 
   it("switches what the page's code is written in, its sounds and its theme from the page's row", async () => {
     openDocs("/docs/styling")
-    await settle()
+    await arrive("styling")
     const group = (name: string) => document.querySelector(`main [role="group"][aria-label="${name}"]`)!
     const pressed = (name: string) =>
       [...group(name).querySelectorAll("button[aria-pressed='true']")].map((b) => b.textContent?.trim())
@@ -549,7 +606,7 @@ describe("the docs' page", () => {
 
   it("opens the sections sheet from the header's key and closes it on a pick", async () => {
     const { history } = openDocs("/docs/avatar")
-    await settle()
+    await arrive("avatar")
     const key = document.querySelector<HTMLButtonElement>('button[aria-label="Browse sections"]')!
     expect(key.getAttribute("aria-controls")).toBe(SHEET_ID)
     expect(key.getAttribute("aria-expanded")).toBe("false")
@@ -569,7 +626,7 @@ describe("the docs' page", () => {
 
   it("picks a variant from a gallery: the tile pressed, the code what the preview shows", async () => {
     openDocs("/docs/button")
-    await settle()
+    await arrive("button")
     w.show()
     await settle(2)
     const chip = (text: string) =>
@@ -593,7 +650,8 @@ describe("the docs' routes", () => {
     expect(read("src/routes/docs/index.tsx")).toContain('<DocsPage section="" />')
     const section = read("src/routes/docs/[section].tsx")
     expect(section).toContain("SECTION_IDS.includes(params.section")
-    expect(section).toContain("Missing()")
+    expect(section).toContain("<Missing />")
+    expect(section).toContain('lazyPart(() => import("../[...404]"))')
     expect(section).toContain("preloadOpenPacks(params.section")
     // the missing page it falls back to answers 404
     expect(read("src/routes/[...404].tsx")).toContain("<HttpStatusCode code={404} />")
@@ -604,8 +662,6 @@ describe("the docs' routes", () => {
     expect(config).toContain('import { GROUPS } from "./src/pages/docs/groups.ts"')
     expect(config).toContain('["/docs", ...GROUPS.flatMap((g) => g.items.map((i) => `/docs/${i.id}`))]')
     expect(config).toContain('routes: ["/", MISSING_PAGE, PLAYER_ROUTE, ...DOCS_PAGES]')
-    // the crawl no longer steps around the docs
-    expect(/NOT_YET_PORTED = \[[^\]]*"\/docs"/.test(config)).toBe(false)
     for (const id of ids) expect(id).toMatch(/^[\w-]+$/)
   })
 })

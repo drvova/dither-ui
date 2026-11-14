@@ -220,8 +220,9 @@ describe("a surface reads the page once, not once a frame", () => {
       await nextTick()
     }
     const before = boxes
-    // A resize is the one thing that reads the box again.
+    // A resize is the one thing that reads the box again, on the frame after its report.
     ;(observed as (() => void) | null)?.()
+    for (const cb of [...frames.values()]) cb(11 * 40)
     const resized = boxes - before
     stop()
     return { contexts, boxes: before, resized }

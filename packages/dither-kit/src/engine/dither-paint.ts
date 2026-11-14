@@ -2,14 +2,12 @@
 // (area, line, bar). Keeping the Bayer threshold loop in one place means every
 // chart type reads with the exact same pixel texture.
 
-import type { AreaVariant } from "./chart-types"
 import { rgb, type Rgb, type Seed } from "./palette"
-import { xorshift32 } from "./pixel"
+import { clamp01, xorshift32 } from "./pixel"
 import { setOrBlendRasterPixel, type RasterBuffer } from "./raster"
 import { spring } from "./spring"
 
-// 4×4 ordered (Bayer) matrix, normalized to 0–1 thresholds — the exact matrix
-// the legacy chart dithers with.
+// 4×4 ordered (Bayer) matrix, normalized to 0–1 thresholds.
 export const BAYER = [
   [0, 8, 2, 10],
   [12, 4, 14, 6],
@@ -27,6 +25,9 @@ export const BORDER_ALPHA = 0.72
 // between these two tiers of the *same* colour instead of leaving holes, so the
 // background never shows through as stark white on a light theme.
 export const OFF_TIER = 0.4
+
+/** The four named dither textures a series fills with. */
+export type AreaVariant = "gradient" | "dotted" | "hatched" | "solid"
 
 /** Fully granular dither texture — the four named variants are presets over
  * this. Every field is optional; missing fields take the gradient defaults. */
@@ -78,8 +79,7 @@ const TEXTURE_PRESET: Record<AreaVariant, Required<TextureConfig>> = {
     alphaRange: 0.7,
     intensityLift: 0.22,
   },
-  // density 2: outbids every threshold shift (stacked/sparse) — always lit,
-  // exactly like the old hard-coded solid branch.
+  // density 2: outbids every threshold shift (stacked/sparse) — always lit.
   solid: {
     ramp: 1,
     density: 2,
@@ -443,7 +443,7 @@ export type PaintOpts = {
 //   make sure it looks good on both light and dark mode.
 //
 // So every pixel is the series' single `fill` colour and we vary only its alpha.
-// The old lighter `line` / near-white `star` shades were dropped: a shade that
+// No lighter `line` or near-white `star` shade is painted: a shade that
 // pops on a dark background reads as a jarring bright speck on a light one, while
 // the same colour at a lower opacity simply blends into whatever sits behind it.
 
@@ -480,18 +480,39 @@ export function paintColumn(
       return
     }
     const bias = tex.density + (stacked ? 0.2 : 0) - sparse
-    for (let y = t; y < f; y++) {
-      if (y < 0 || y >= buf.height) continue
+    // The texture's knobs and the column's four thresholds, read once a
+    // column rather than once a cell.
+    const { ramp, hatch, gaps, alphaFloor, alphaRange, offTier } = tex
+    const lift = 1 + tex.intensityLift * intensity
+    const hover = 0.1 * intensity
+    const mx = x & 3
+    const th0 = mat[0][mx] - hover - bias
+    const th1 = mat[1][mx] - hover - bias
+    const th2 = mat[2][mx] - hover - bias
+    const th3 = mat[3][mx] - hover - bias
+    const y0 = Math.max(t, 0)
+    const y1 = Math.min(f, buf.height)
+    const data = buf.data
+    const r = fill[0]
+    const g = fill[1]
+    const b = fill[2]
+    for (let y = y0; y < y1; y++) {
       const raw = (y - t) / depth
-      let density = 1 - tex.ramp * (1 - raw)
+      let density = 1 - ramp * (1 - raw)
       if (stacked) density = 0.5 + 0.5 * density
-      if (tex.hatch >= 2 && (((x + y) % tex.hatch) + tex.hatch) % tex.hatch >= tex.hatch / 2) continue
-      const lit = density > mat[y & 3][x & 3] - 0.1 * intensity - bias
-      if (tex.gaps && !lit) continue
-      const k = (tex.alphaFloor + density * tex.alphaRange) * (1 + tex.intensityLift * intensity)
-      const alpha = (lit ? k : k * tex.offTier) * dim
+      if (hatch >= 2 && (((x + y) % hatch) + hatch) % hatch >= hatch / 2) continue
+      const q = y & 3
+      const lit = density > (q === 0 ? th0 : q === 1 ? th1 : q === 2 ? th2 : th3)
+      if (gaps && !lit) continue
+      const k = (alphaFloor + density * alphaRange) * lift
+      const alpha = (lit ? k : k * offTier) * dim
       if (alpha <= 0) continue
-      setPixelInline(buf, (y * w + x) * 4, fill, alpha)
+      const a = alpha > 1 ? 1 : alpha
+      const i = (y * w + x) * 4
+      data[i] = (r * a + 0.5) | 0
+      data[i + 1] = (g * a + 0.5) | 0
+      data[i + 2] = (b * a + 0.5) | 0
+      data[i + 3] = (a * 255 + 0.5) | 0
     }
     if (tex.edge > 0 && t >= 0 && t < buf.height && x >= 0 && x < w) {
       setPixelInline(buf, (t * w + x) * 4, fill, tex.edge * dim)
@@ -593,7 +614,6 @@ export function bloomLayerStyle(input: BloomInput, active: boolean): BloomStyle 
 // Easing — gentle start + soft settle so entrances don't feel linear.
 export const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 export const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
-export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
 
 /** Selectable entrance easing — one name every canvas resolves the same way. */
 /** "spring" is Apple's smooth motion (`spring.ts`): from rest, settling long

@@ -1,5 +1,7 @@
 import { createEffect, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
+import { inView } from "../engine/place"
+import { menuKeys } from "../engine/keys"
 
 export type ContextMenuItem = {
   label?: string
@@ -27,13 +29,8 @@ export default function DitherContextMenu(props: DitherContextMenuProps) {
     queueMicrotask(() => {
       // Clamp inside the viewport — menus opened near an edge flip inward.
       const at = pos()
-      if (panel && at) {
-        const r = panel.getBoundingClientRect()
-        setPos({
-          x: Math.max(8, Math.min(at.x, window.innerWidth - r.width - 8)),
-          y: Math.max(8, Math.min(at.y, window.innerHeight - r.height - 8)),
-        })
-      }
+      if (panel && at)
+        setPos(inView(at, panel.getBoundingClientRect(), { width: window.innerWidth, height: window.innerHeight }))
       panel?.focus()
     })
   }
@@ -44,25 +41,8 @@ export default function DitherContextMenu(props: DitherContextMenuProps) {
     setPos(null)
   }
 
-  function moveFocus(dir: number) {
-    const els = itemRefs.filter((el): el is HTMLButtonElement => !!el && el.isConnected)
-    if (!els.length) return
-    const i = els.indexOf(document.activeElement as HTMLButtonElement)
-    const next = i === -1 ? (dir > 0 ? 0 : els.length - 1) : (i + dir + els.length) % els.length
-    els[next]?.focus()
-  }
-
   function onKeydown(e: KeyboardEvent) {
-    if (e.key === "Escape") {
-      e.stopPropagation()
-      setPos(null)
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault()
-      moveFocus(1)
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault()
-      moveFocus(-1)
-    }
+    menuKeys(e, itemRefs, () => setPos(null))
   }
 
   const closePanel = () => {

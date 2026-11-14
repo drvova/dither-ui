@@ -1,7 +1,7 @@
-// Old links. The Vue app once routed by hash; its links still arrive.
+// Old links: the site once routed by hash, and those links still arrive.
 
 /** Where an old hash link on the landing's address leads (`/#/docs/<id>`,
- * `/#/studio/<what>`): the app path the Vue app moved it to in place, or
+ * `/#/studio/<what>`): the path that page has now, or
  * `null` for any other hash. */
 export function legacyAddress(hash: string): string | null {
   if (hash.startsWith("#/docs")) return hash.slice(1)

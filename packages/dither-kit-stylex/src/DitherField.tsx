@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/DitherField.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherField.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createUniqueId, type JSX, Match, Show, Switch } from "solid-js"
-import { cssColor } from "dither-kit/engine/palette.ts"
-import { FieldContextKey } from "dither-kit/solid/runtime/field.ts"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
+import { FieldContextKey } from "@dither-ui/kit/solid/runtime/field.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -29,14 +29,17 @@ export default function DitherField(props: DitherFieldProps) {
   const base = `dk-field-${createUniqueId()}`
   const controlId = createMemo(() => props.for ?? `${base}-control`)
   const helpId = `${base}-help`
+  const labelId = `${base}-label`
   const describedBy = createMemo(() => (props.error || props.description ? helpId : undefined))
   const invalid = createMemo(() => !!props.error)
 
   return (
-    <FieldContextKey.Provider value={{ controlId, describedBy, invalid }}>
+    <FieldContextKey.Provider
+      value={{ controlId, labelId: () => (props.label ? labelId : undefined), describedBy, invalid }}
+    >
       <div {...stylex.props(styles.grid)}>
         <Show when={props.label}>
-          <label for={controlId()} {...stylex.props(styles.label)}>
+          <label id={labelId} for={controlId()} {...stylex.props(styles.label)}>
             {props.label}
           </label>
         </Show>

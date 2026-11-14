@@ -1,6 +1,6 @@
-// Generated from dither-kit/solid/DitherTabPanel.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherTabPanel.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createMemo, type JSX, useContext } from "solid-js"
+import { createMemo, type JSX, onMount, useContext } from "solid-js"
 import { cn, type StyleProp } from "./lib"
 import { TABS_CTX } from "./DitherTabs"
 
@@ -12,6 +12,7 @@ export type DitherTabPanelProps = { value: string; class?: string; xstyle?: Styl
 export default function DitherTabPanel(props: DitherTabPanelProps) {
   const ctx = useContext(TABS_CTX) ?? null
   const active = createMemo(() => ctx?.active() === props.value)
+  onMount(() => ctx?.hold(props.value))
 
   return (
     <div

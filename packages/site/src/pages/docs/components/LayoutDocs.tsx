@@ -13,9 +13,10 @@ import {
   DitherTooltip,
   Sparkline,
   type ConsoleLine,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const TREND = [12, 14, 13, 17, 16, 19, 22, 21, 24, 27, 26, 31]
 
@@ -58,73 +59,170 @@ const API: Record<string, PropRow[]> = {
   ],
 }
 
-const SNIPPET_SHELL = `<DitherShell frame class="h-96">
-  <template #topbar>…brand · search · avatar…</template>
-  <template #aside>
-    <DitherRail label="Primary">          <!-- items fold to icons -->
-      <DitherTooltip v-for="i in items" :text="i">
-        <DitherSidebarItem :label="i" :active="active === i" @select="active = i" />
-      </DitherTooltip>
-    </DitherRail>
-  </template>
+const SNIPPET_SHELL = `const items = ["Overview", "Deploys", "Data", "Alerts"]
+const [active, setActive] = createSignal("Overview")
+const stats = [
+  { label: "Requests", value: "84k", color: "blue", trend: [62, 70, 66, 78, 74, 86, 84] },
+  { label: "Errors", value: "0.2%", color: "red", trend: [0.4, 0.3, 0.5, 0.3, 0.2, 0.3, 0.2] },
+  { label: "P95", value: "212ms", color: "green", trend: [260, 240, 251, 230, 222, 218, 212] },
+]
+const log = [
+  { text: "$ deploy --prod", at: "12:01" },
+  { text: "build ok (4.2s)", at: "12:01", level: "success" },
+]
+
+<DitherShell frame class="h-96"
+  topbar={
+    <div class="flex h-10 w-full items-center justify-between px-3 text-[12px]">
+      acme ops
+      <DitherAvatar name="Ada Byte" size={22} />
+    </div>
+  }
+  aside={
+    <>
+      {/* items fold to icons */}
+      <DitherRail label="Primary">
+        <For each={items}>
+          {(i) => (
+            <DitherTooltip text={i}>
+              <DitherSidebarItem label={i} active={active() === i} onSelect={() => setActive(i)} />
+            </DitherTooltip>
+          )}
+        </For>
+      </DitherRail>
+    </>
+  }
+  statusbar={
+    <div class="flex h-7 w-full items-center px-3 text-[10px]">production: all systems normal</div>
+  }
+>
 
   <DitherCanvas pattern="dots" class="h-full p-4">
-    <DitherGrid :min="140">               <!-- stat cards -->
-      <div v-for="s in stats" class="rounded-md border bg-background/70 p-3">
-        {{ s.label }} <b>{{ s.value }}</b>
-        <Sparkline :data="s.trend" :color="s.color" class="h-8" />
-      </div>
+    {/* stat cards */}
+    <DitherGrid min={130}>
+      <For each={stats}>
+        {(s) => (
+          <div class="rounded-md border bg-background/70 p-3 text-[12px]">
+            {s.label} <b>{s.value}</b>
+            <Sparkline data={s.trend} color={s.color} class="h-8" />
+          </div>
+        )}
+      </For>
     </DitherGrid>
-    <DitherConsole :lines="log" class="mt-3 h-40" />
+    <DitherConsole lines={log} title="deploys" class="mt-3 h-36" />
   </DitherCanvas>
-
-  <template #statusbar>…env · status…</template>
 </DitherShell>`
 
-const SNIPPET_RAIL = `<DitherRail label="Primary">
-  <template #header>…glyph…</template>
-  <DitherTooltip v-for="i in items" :text="i.label">   <!-- labels ride tooltips -->
-    <DitherSidebarItem :label="i.label" :badge="i.badge" :color="i.color"
-      :active="active === i.label" @select="active = i.label" />
-  </DitherTooltip>
-  <template #footer><DitherAvatar name="Ada Byte" :size="22" /></template>
-</DitherRail>
+const SNIPPET_RAIL = `import { DitherRail, DitherTooltip, DitherSidebarItem, DitherAvatar } from "@dither-kit"
+const items = [
+  { label: "Home", color: "blue" },
+  { label: "Library", color: "blue", badge: 3 },
+  { label: "Exports", color: "purple" },
+]
+const [active, setActive] = createSignal("Home")
 
-<!-- provides the sidebar's collapsed context —
-     DitherSidebarItem folds its label with zero extra props -->`
+{/* the rail provides the sidebar's collapsed context:
+     DitherSidebarItem folds its label with zero extra props */}
+<div class="flex h-72 overflow-hidden rounded-lg border">
+  <DitherRail label="Primary"
+    header={
+      <div class="grid h-8 place-items-center"><span class="size-2.5 rounded-[2px] bg-foreground" /></div>
+    }
+    footer={<DitherAvatar name="Ada Byte" size={22} />}
+  >
+    {/* labels ride tooltips */}
+    <For each={items}>
+      {(i) => (
+        <DitherTooltip text={i.label}>
+          <DitherSidebarItem label={i.label} badge={i.badge} color={i.color}
+            active={active() === i.label} onSelect={() => setActive(i.label)} />
+        </DitherTooltip>
+      )}
+    </For>
+  </DitherRail>
+  <div class="grid flex-1 place-items-center text-[12px]">{active()}</div>
+</div>`
 
-const SNIPPET_CONSOLE = `<DitherConsole :lines="lines" title="deploy" class="h-48">
-  <template #actions>
-    <DitherButton color="green" @click="deploy" :disabled="deploying">Run</DitherButton>
-  </template>
-</DitherConsole>
+const SNIPPET_CONSOLE = `const [lines, setLines] = createSignal([
+  { text: "$ deploy --prod", at: "12:01" },
+  { text: "building 34 routes…", at: "12:01" },
+  { text: "build ok (4.2s)", at: "12:01", level: "success" },
+])
+const [deploying, setDeploying] = createSignal(false)
 
-<!-- lines: strings or { text, level, at } —
-     level tints via the palette: success · warn · error.
-     follow keeps the newest line in view; caret blinks (reduced motion: still) -->`
+function deploy() {
+  setDeploying(true)
+  const steps = [
+    { text: "uploading assets…" },
+    { text: "warn: chunk over 300kB", level: "warn" },
+    { text: "deployed to dither-ui.com", level: "success" },
+  ]
+  steps.forEach((line, i) =>
+    setTimeout(() => {
+      setLines([...lines(), { ...line, at: new Date().toTimeString().slice(0, 5) }])
+      if (i === steps.length - 1) setDeploying(false)
+    }, 450 * (i + 1)),
+  )
+}
 
-const SNIPPET_CANVAS = `<DitherCanvas :pattern="pattern" :cell="16" class="h-64 p-6">
-  …artboards, cards, anything…
-</DitherCanvas>
+{/* lines: strings or { text, level, at }; level tints through the palette
+     (success, warn, error); follow keeps the newest line in view, and the
+     caret blinks (held still under reduced motion) */}
+<DitherConsole lines={lines()} title="deploy" class="h-48"
+  actions={
+    <DitherButton color="green" onClick={deploy} disabled={deploying()}>Run</DitherButton>
+  }
+/>`
 
-<!-- pattern: dots | grid | plain — inked with var(--border), content above -->`
+const SNIPPET_CANVAS = `const [pattern, setPattern] = createSignal("dots")
 
-const SNIPPET_GRID = `<DitherGrid :min="140">          <!-- auto-fit by min card width -->
-  <div v-for="c in cards" class="rounded-md border p-3">{{ c }}</div>
+<For each={['dots', 'grid', 'plain']}>
+  {(p) => (
+    <button type="button" class="px-2 text-[11px]"
+      aria-pressed={pattern() === p} onClick={() => setPattern(p)}>{p}</button>
+  )}
+</For>
+
+{/* inked with var(--border), content floats above */}
+<DitherCanvas pattern={pattern()} cell={16} class="mt-3 h-56 rounded-lg border p-5">
+  <div class="w-40 rounded-md border bg-background/80 p-3 text-[12px]">
+    Artboard
+    <p class="mt-1">Floats above the field</p>
+  </div>
+</DitherCanvas>`
+
+const SNIPPET_GRID = `const [min, setMin] = createSignal(140)
+
+<label class="flex items-center gap-2 text-[11px]">
+  min card width
+  <input value={min()} onInput={(e) => setMin(Number(e.currentTarget.value))} type="range" min="100" max="240" step="10" />
+  {min()}px
+</label>
+
+{/* auto-fit by min card width */}
+<DitherGrid min={min()} class="mt-3">
+  <For each={Array.from({ length: 6 }, (_, k) => k + 1)}>{(i) => <div class="rounded-md border p-3 text-[10px]">Card {i}</div>}</For>
 </DitherGrid>
 
-<DitherGrid :cols="3" gap="1rem">  <!-- or a deliberate fixed count -->
-  <div class="col-span-2">wide</div>
-  <div>narrow</div>
+{/* or a deliberate fixed count */}
+<DitherGrid cols={3} gap="1rem" class="mt-3">
+  <div class="col-span-2 rounded-md border p-3">wide</div>
+  <div class="rounded-md border p-3">narrow</div>
 </DitherGrid>`
 
-const SNIPPET_INFINITE = `<DitherInfiniteCanvas v-model:zoom="zoom" class="h-72 rounded-lg border">
-  <div class="absolute" style="left: 40px; top: 40px">…an artboard…</div>
-  <div class="absolute" style="left: 320px; top: 160px">…another…</div>
-</DitherInfiniteCanvas>
+const SNIPPET_INFINITE = `const [zoom, setZoom] = createSignal(1)
 
-<!-- drag pans · wheel zooms toward the cursor · the dot field
-     rides the same transform, so space feels real -->`
+{/* drag pans, the wheel zooms toward the cursor, and the dot field
+     rides the same transform, so space feels real */}
+<p class="text-[11px]">drag to pan, wheel to zoom: {Math.round(zoom() * 100)}%</p>
+<DitherInfiniteCanvas zoom={zoom()} onUpdateZoom={setZoom} class="mt-2 h-64 rounded-lg border">
+  <div class="absolute w-40 rounded-md border bg-background/80 p-3 text-[12px]" style="left: 32px; top: 32px">
+    Artboard A
+  </div>
+  <div class="absolute w-40 rounded-md border bg-background/80 p-3 text-[12px]" style="left: 280px; top: 150px">
+    Artboard B
+  </div>
+</DitherInfiniteCanvas>`
 
 const SHELL_STATS = [
   ["Requests", "84k", "blue"],
@@ -176,8 +274,7 @@ export default function LayoutDocs() {
   return (
     <>
       {/* Shell */}
-      <section id="dither-shell" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Shell</h2>
+      <DocSection id="dither-shell">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The app frame: topbar over an aside + content pair, statusbar under, every region a prop. Below, a whole SaaS
           dashboard from the layout family: rail, canvas, grid, sparkline cards, a live console.
@@ -257,11 +354,10 @@ export default function LayoutDocs() {
           </DitherShell>
         </DemoCard>
         <PropsTable rows={API.shell} />
-      </section>
+      </DocSection>
 
       {/* Rail */}
-      <section id="rail" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Rail</h2>
+      <DocSection id="rail">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The permanent icon rail as a first-class piece. It provides the sidebar's collapsed context, so plain sidebar
           items fold their labels with zero extra props. Tooltips carry the words.
@@ -293,11 +389,10 @@ export default function LayoutDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.rail} />
-      </section>
+      </DocSection>
 
       {/* Console */}
-      <section id="console" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Console</h2>
+      <DocSection id="console">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A monospace log surface: lines tint by level, follow mode pins the newest output, the caret blinks politely.
           Run the deploy and watch it stream.
@@ -317,11 +412,10 @@ export default function LayoutDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.console} />
-      </section>
+      </DocSection>
 
       {/* Canvas */}
-      <section id="canvas" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Canvas</h2>
+      <DocSection id="canvas">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The work surface a dashboard sits on: a dotted or ruled field inked with the border token, content floating
           above.
@@ -351,11 +445,10 @@ export default function LayoutDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.canvas} />
-      </section>
+      </DocSection>
 
       {/* Grid */}
-      <section id="grid" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Grid</h2>
+      <DocSection id="grid">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Dashboard columns without media queries: cards auto-fit to a minimum width, or take a deliberate fixed count.
           Drag the number and watch the flow.
@@ -388,11 +481,10 @@ export default function LayoutDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.grid} />
-      </section>
+      </DocSection>
 
       {/* Infinite canvas */}
-      <section id="infinite-canvas" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Infinite canvas</h2>
+      <DocSection id="infinite-canvas">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A pannable, zoomable work surface: drag to pan, wheel to zoom toward the cursor, and the dot field rides the
           same transform so space feels real. The zoom is two-way: zoom with onUpdateZoom.
@@ -426,7 +518,7 @@ export default function LayoutDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.infinite} />
-      </section>
+      </DocSection>
     </>
   )
 }

@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherLayer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherLayer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 // One layer of a stage: its keyframes sampled at the stage's moment, written
 // as a CSS transform that keeps the keyframes' units (the browser measures the
@@ -13,10 +13,10 @@ import {
   keyframeTransform,
   resolveSample,
   sampleKeyframes,
-} from "dither-kit/engine/keyframes.ts"
+} from "@dither-ui/kit/engine/keyframes.ts"
 import { cn, type StyleProp } from "./lib"
 import { STAGE } from "./DitherStage"
-import "dither-kit/solid/DitherLayer.css"
+import "@dither-ui/kit/solid/DitherLayer.css"
 
 /** What the slot receives: every property resolved to px / degrees, then the moment's shape. */
 export type LayerSlot = {

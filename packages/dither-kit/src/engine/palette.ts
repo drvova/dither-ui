@@ -1,6 +1,5 @@
-// Shared seed palette for the dither chart family. Mirrors the seeds in
-// `dither-chart.tsx` so a series rendered through the composable engine reads
-// with the exact same fill / line / star hues as the legacy sparkline.
+// Shared seed palette for the dither chart family: every chart and the
+// sparkline read a series' fill, line and star hues from the same seed.
 
 export type Rgb = [number, number, number]
 
@@ -39,9 +38,11 @@ export const isDitherColor = (value: unknown): value is DitherColor =>
   typeof value === "string" && Object.prototype.hasOwnProperty.call(PALETTE, value)
 
 // Arbitrary-hue support so a series can be any colour, not just the 7 presets.
-// Local HSL→RGB (mirrors pixel.hueFill) to avoid a palette→pixel import cycle.
-function hslFill(hue: number, s = 0.85, l = 0.58): Rgb {
+/** Hue (0–360) → an rgb fill tuned to sit alongside the chart palette. */
+export function hueFill(hue: number): Rgb {
   const h = ((hue % 360) + 360) % 360
+  const s = 0.85
+  const l = 0.58
   const c = (1 - Math.abs(2 * l - 1)) * s
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
   const m = l - c / 2
@@ -73,7 +74,7 @@ const seedFromFill = (fill: Rgb): Seed => ({
 
 /** A full Seed from a hue (0–360). Kept for back-compat with hue-number colours. */
 export function seedFromHue(hue: number): Seed {
-  return seedFromFill(hslFill(hue))
+  return seedFromFill(hueFill(hue))
 }
 
 // --- full RGB / hex / HSV colour ------------------------------------------
@@ -89,6 +90,20 @@ const hx = (n: number) =>
     .toString(16)
     .padStart(2, "0")
 export const rgbToHex = ([r, g, b]: Rgb): string => `#${hx(r)}${hx(g)}${hx(b)}`
+
+// --- WCAG 2 contrast: the one reading the kit, the site and the walk share --
+/** An sRGB channel in 0–1 in linear light (the sRGB transfer, undone). */
+export const toLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+/** Linear light in 0–1 back to an sRGB channel in 0–1 (the sRGB transfer). */
+export const toGamma = (c: number) => (c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055)
+
+/** WCAG 2 relative luminance of an opaque sRGB colour, channels 0–255
+ * (fractions allowed: a blend or a raster's mean). */
+export const luminance = ([r, g, b]: readonly [number, number, number]): number =>
+  0.2126 * toLinear(r / 255) + 0.7152 * toLinear(g / 255) + 0.0722 * toLinear(b / 255)
+
+/** WCAG 2 contrast ratio of two relative luminances, in either order (1–21). */
+export const contrast = (a: number, b: number): number => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
 
 /** Sample a colour ramp at t in [0, 1] into `out` (no allocation per pixel).
  * A single colour fills `out` uniformly. Shared by the generative canvas
@@ -165,31 +180,14 @@ export function seedFromColor(color: DitherColor | number | string): Seed {
 
 /** A CSS colour string for a swatch. */
 export function cssColor(color: DitherColor | number | string): string {
-  if (typeof color === "number") return rgbToHex(hslFill(color))
+  if (typeof color === "number") return rgbToHex(hueFill(color))
   if (isDitherColor(color)) return `var(--swatch-${color})`
   return color
 }
 
 /** Any colour → a hex string (to seed the picker from a preset). */
 export function colorToHex(color: DitherColor | number | string): string {
-  if (typeof color === "number") return rgbToHex(hslFill(color))
+  if (typeof color === "number") return rgbToHex(hueFill(color))
   if (isDitherColor(color)) return rgbToHex(PALETTE[color].fill)
   return color
-}
-
-/** A dithered fill's mean coverage behind a centred label, per variant: the
- * kit's button, badge and toggle raster at rest (density at mid height, lit
- * cells at k, unlit at 0.4k, the dotted and hatched gaps empty). */
-export const LABEL_COVERAGE = { gradient: 0.57, solid: 0.825, dotted: 0.4, hatched: 0.35 } as const
-
-/** Whether a label on `fill` laid over a dark page at `coverage` reads better
- * in dark ink than light: the band's relative luminance is past 0.168, where
- * black and near-white text reach the same contrast. Over a light page
- * the fill turns pastel and the theme's dark ink always wins. */
-export function darkInkOnDark(fill: Rgb, coverage: number): boolean {
-  const lin = (c: number) => {
-    const v = (c * coverage) / 255
-    return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
-  }
-  return 0.2126 * lin(fill[0]) + 0.7152 * lin(fill[1]) + 0.0722 * lin(fill[2]) > 0.168
 }

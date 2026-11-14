@@ -7,8 +7,8 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
 import { describe, expect, it } from "rstack/test"
-import { CONTROL_FILE, HAND_WRITTEN, solidStylexLayer, type SolidStylexLayer } from "restyle/stylex-layer"
-import { buildUtilityMap } from "restyle/utility-map"
+import { CONTROL_FILE, HAND_WRITTEN, solidStylexLayer, type SolidStylexLayer } from "@dither-ui/restyle/stylex-layer"
+import { buildUtilityMap } from "@dither-ui/restyle/utility-map"
 
 // `rs fmt` is rstack's Prettier with the house options (the root's rstack.config.ts):
 // the generated files come out of the same formatter.
@@ -182,11 +182,13 @@ describe("the Solid StyleX layer", () => {
     ]
     for (const [body, kind] of cases) {
       const out = await one(body, { "Two.tsx": `export const tone = "flex"\nexport default () => null` })
-      expect({ body, kinds: out.refused.map((r) => r.replace(/^dither-kit\/solid\/One\.tsx:\d+: /, "")) }).toEqual({
-        body,
-        kinds: expect.arrayContaining([kind]),
-      })
-      expect(out.refused.every((r) => /^dither-kit\/solid\/One\.tsx:\d+: /.test(r))).toBe(true)
+      expect({ body, kinds: out.refused.map((r) => r.replace(/^@dither-ui\/kit\/solid\/One\.tsx:\d+: /, "")) }).toEqual(
+        {
+          body,
+          kinds: expect.arrayContaining([kind]),
+        },
+      )
+      expect(out.refused.every((r) => /^@dither-ui\/kit\/solid\/One\.tsx:\d+: /.test(r))).toBe(true)
       expect(out.text).toBeNull()
     }
   }, 120_000)

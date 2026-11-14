@@ -93,7 +93,9 @@ export default function DitherSidebar(raw: DitherSidebarProps) {
             />
           </Show>
           {props.header}
-          <nav class="mt-2 grid min-h-0 flex-1 content-start gap-0.5 overflow-y-auto">{props.children}</nav>
+          <nav aria-label={props.label} class="mt-2 grid min-h-0 flex-1 content-start gap-0.5 overflow-y-auto">
+            {props.children}
+          </nav>
           {props.footer}
           <Show when={props.collapse === "rail" && props.toggle}>
             <button

@@ -1,6 +1,6 @@
 import { createMemo, type JSX, mergeProps, splitProps } from "solid-js"
 import { cssColor } from "../engine/palette"
-import { CONTROL } from "../tailwind/control"
+import { CONTROL, CONTROL_INVALID } from "../tailwind/control"
 import { cn } from "../tailwind/lib"
 import { useField } from "./runtime/field"
 
@@ -52,6 +52,7 @@ export default function DitherInput(raw: DitherInputProps) {
       style={{ ...props.style, ...invalidStyle() }}
       class={cn(
         CONTROL,
+        invalid() && CONTROL_INVALID,
         "w-full read-only:cursor-default read-only:bg-card/40 read-only:text-muted-foreground",
         props.class,
       )}

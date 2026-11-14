@@ -7,7 +7,7 @@
 // wide field between them, and a footer of the brand and link columns on the
 // kit's light trails, the line-screen wordmark printed over them. Michroma for display, mono for the rest; everything
 // that moves is the kit.
-import { createEffect, createSignal, For, lazy, on, onCleanup, onMount, Show } from "solid-js"
+import { createEffect, createSignal, For, on, onCleanup, onMount, Show } from "solid-js"
 import {
   DitherAvatar,
   DitherCircuit,
@@ -19,7 +19,7 @@ import {
   DitherScreen,
   type PixelColor,
   type ScreenKind,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import "@/shared/fonts/display.css"
 import "@/pages/landing/chapters.css"
 import { STAGINGS } from "@/pages/landing/brand"
@@ -48,7 +48,9 @@ import RiseWords from "./RiseWords"
 import Showcase from "./Showcase"
 import WorksWith from "./WorksWith"
 import { useDrive } from "./drive"
+import { DitherShader } from "./parts"
 import "./LandingPage.css"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 // The five biggest families, biggest first (the footer keeps the docs' order).
 const BIGGEST = [...DOCS_FAMILIES].sort((a, b) => b.count - a.count)
@@ -101,10 +103,6 @@ const INSIDE: {
     link: { label: "Read the agent skill", href: assetPath("/agent/SKILL.md") },
   },
 ]
-
-// The footer's ground (`road.ts`), loaded with it: its own chunk, fetched
-// once the page has mounted, never rendered on a server.
-const DitherShader = lazy(() => import("dither-kit/solid/DitherShader.tsx"))
 
 // One row of the wordmark's screen below its ink's top: the first rows are
 // hairlines, so the wheels stand where the letters read solid.
@@ -251,7 +249,8 @@ export default function LandingPage() {
     if (typeof IntersectionObserver === "undefined") return
     if (boardCard) {
       boardSeen = new IntersectionObserver(
-        ([entry]) => {
+        (entries) => {
+          const entry = latestEntry(entries)
           const was = boardInView
           boardInView = !!entry?.isIntersecting
           if (boardInView && !was) board.drive(BOARD_DANCE)
@@ -262,7 +261,8 @@ export default function LandingPage() {
     }
     if (closeBand) {
       closeSeen = new IntersectionObserver(
-        ([entry]) => {
+        (entries) => {
+          const entry = latestEntry(entries)
           if (!entry?.isIntersecting) return
           heat.drive(CLOSE.drift)
           closeSeen?.disconnect()
@@ -273,9 +273,10 @@ export default function LandingPage() {
     }
     if (!road) return
     seen = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = latestEntry(entries)
         roadNear = !!entry?.isIntersecting
-        inView = roadNear && entry.intersectionRatio >= 0.5
+        inView = roadNear && (entry?.intersectionRatio ?? 0) >= 0.5
         if (inView) dance()
         else danced = false
       },
@@ -377,7 +378,7 @@ export default function LandingPage() {
             <ul ref={rise} class="inside">
               <For each={INSIDE}>
                 {(c) => (
-                  <li data-rise ref={(el) => c.art === "circuit" && (boardCard = el)}>
+                  <li data-rise data-press="card" ref={(el) => c.art === "circuit" && (boardCard = el)}>
                     {/* The strip is decoration: what the kit prints in it is
                         hidden from assistive technology by itself. */}
                     <DitherScreen screen={c.screen}>
@@ -413,7 +414,7 @@ export default function LandingPage() {
                 <For each={BIGGEST}>
                   {(f) => (
                     <li data-rise>
-                      <a href={routePath(`/docs/${f.first}`)} class="family-t">
+                      <a href={routePath(`/docs/${f.first}`)} class="family-t" data-press="key">
                         <span class="family-n">
                           {f.count}
                           <span class="family-u"> sections</span>

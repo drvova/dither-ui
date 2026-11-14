@@ -1,7 +1,7 @@
-// The Solid kit's text effects, sidebar, small controls and layout pieces,
-// held to what their Vue twins did: each renders its content under its role
-// and name, a control reports through its callback, a keyboard path works,
-// and a surface paints once it is in view.
+// The kit's text effects, sidebar, small controls and layout pieces: each
+// renders its content under its role and name, a control reports through
+// its callback, a keyboard path works, and a surface paints once it is in
+// view.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -146,6 +146,8 @@ describe("DitherSidebar", () => {
       </DitherSidebar>
     ))
     const aside = screen.getByRole("complementary", { name: "Project" })
+    // its items' list is a landmark of its own, named apart from the page's other navigation
+    expect(aside.querySelector("nav")).toBe(screen.getByRole("navigation", { name: "Project" }))
     expect(aside.textContent).toContain("Top")
     expect(aside.textContent).toContain("Bottom")
     expect(screen.getByRole("button", { name: "Files" })).toBeTruthy()
@@ -188,6 +190,7 @@ describe("DitherRail", () => {
       </DitherRail>
     ))
     expect(screen.getByRole("complementary", { name: "Tools" })).toBeTruthy()
+    expect(screen.getByRole("navigation", { name: "Tools" })).toBeTruthy()
     expect(screen.getByTestId("pen")).toBeTruthy()
     expect(screen.queryByText("Pen")).toBeNull()
     expect(screen.getByTitle("Pen")).toBeTruthy()
@@ -434,8 +437,9 @@ describe("ListBox", () => {
   const OPTIONS = ["Ash", "Birch", "Cedar"]
 
   it("lists its options and marks the picked one", () => {
-    render(() => <ListBox options={OPTIONS} value="Birch" />)
-    const list = screen.getByRole("listbox")
+    render(() => <ListBox options={OPTIONS} value="Birch" aria-label="Tree" />)
+    // its name is the one it is given
+    const list = screen.getByRole("listbox", { name: "Tree" })
     expect(list.tabIndex).toBe(0)
     expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual(OPTIONS)
     expect(screen.getByRole("option", { name: "Birch" }).getAttribute("aria-selected")).toBe("true")

@@ -10,9 +10,10 @@ import {
   Show,
   splitProps,
 } from "solid-js"
+import { isTab, nextEnabled } from "../engine/keys"
 import { cssColor } from "../engine/palette"
 import type { PixelColor } from "../engine/pixel"
-import { CONTROL, POPOVER } from "../tailwind/control"
+import { CONTROL, CONTROL_INVALID, POPOVER } from "../tailwind/control"
 import { cn } from "../tailwind/lib"
 import { useField } from "./runtime/field"
 import { Presence } from "./runtime/presence"
@@ -79,13 +80,8 @@ export default function DitherSelect(raw: DitherSelectProps) {
     queueMicrotask(() => trigger?.focus())
   }
   function move(dir: number) {
-    const n = props.options.length
-    if (!n) return
-    let i = highlighted()
-    for (let step = 0; step < n; step++) {
-      i = (i + dir + n) % n
-      if (!props.options[i].disabled) return void setHighlighted(i)
-    }
+    const i = nextEnabled(props.options, highlighted(), dir)
+    if (i >= 0) setHighlighted(i)
   }
   function edge(toEnd: boolean) {
     const enabled = props.options.map((o, i) => ({ o, i })).filter(({ o }) => !o.disabled)
@@ -110,7 +106,7 @@ export default function DitherSelect(raw: DitherSelectProps) {
       e.preventDefault()
       const option = props.options[highlighted()]
       if (option) pick(option)
-    } else if (e.key === "Escape" || e.key === "Tab") close()
+    } else if (e.key === "Escape" || isTab(e)) close()
   }
   function onOutside(e: PointerEvent) {
     if (open() && root && !root.contains(e.target as Node)) close()
@@ -133,7 +129,7 @@ export default function DitherSelect(raw: DitherSelectProps) {
         id={field?.controlId()}
         disabled={props.disabled}
         style={invalid() ? { "border-color": cssColor("red") } : undefined}
-        class={cn(CONTROL, "flex w-full items-center justify-between gap-3 text-left")}
+        class={cn(CONTROL, invalid() && CONTROL_INVALID, "flex w-full items-center justify-between gap-3 text-left")}
         {...rest}
         ref={(el) => (trigger = el)}
         // Its own listeners, beside any handed in with the rest.

@@ -10,7 +10,7 @@ import type {
   TextureConfig,
   TooltipVariant,
   VariantInput,
-} from "dither-kit"
+} from "@dither-ui/kit"
 
 export type { AreaVariant, BloomConfig, DotVariant, TextureConfig, VariantInput }
 

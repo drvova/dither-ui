@@ -1,6 +1,5 @@
 // A sparkline hands its sparkle and hover-lift switches to the chart under
-// it (carried from the kit's earlier sparkline spec when it went). The chart
-// root is stood in for, so what it is handed can be read.
+// it. The chart root is stood in for, so what it is handed can be read.
 import { cleanup, render } from "@solidjs/testing-library"
 import { afterEach, expect, it, vi } from "vitest"
 import Sparkline from "../../src/solid/Sparkline"

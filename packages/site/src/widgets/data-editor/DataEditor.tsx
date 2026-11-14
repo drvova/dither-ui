@@ -1,17 +1,17 @@
-import { cssColor, DitherIcon } from "dither-kit"
+import { cssColor, DitherIcon } from "@dither-ui/kit"
 import { createMemo, createRenderEffect, For, Index, Show } from "solid-js"
 import { addRow, addSeries, importCsv, LABEL_KEY, removeRow, renamePieSlice } from "@/entities/chart"
 import { familyOf } from "@/shared/config"
 import { editor, replay, selectedArtboard, selectedChart } from "@/entities/editor"
 
-/** What Vue's `.number` made of a field's text: its number, or the text
- * itself when it reads as none. */
+/** A number field's text as its value: its number, or the text itself
+ * when it reads as none. */
 const numberOf = (text: string): string | number => {
   const n = parseFloat(text)
   return Number.isNaN(n) ? text : n
 }
 
-/** A field that shows a cell, as Vue's `v-model` did: written when the cell
+/** A field that shows a cell: written when the cell
  * changes, and left alone while it already reads as the cell (a number being
  * typed keeps its text). */
 function shows(el: HTMLInputElement, read: () => unknown, number = false) {

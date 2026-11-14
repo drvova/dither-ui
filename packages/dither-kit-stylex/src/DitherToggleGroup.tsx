@@ -1,11 +1,12 @@
-// Generated from dither-kit/solid/DitherToggleGroup.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherToggleGroup.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, For, mergeProps, on, onCleanup, onMount } from "solid-js"
-import { darkInkOnDark, LABEL_COVERAGE } from "dither-kit/engine/palette.ts"
-import { fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
+import { labelFill } from "@dither-ui/kit/engine/label-fill.ts"
+import { fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import type { Option } from "./DitherSelect"
 import { paintToggleCanvas } from "./DitherToggle"
+import { rovingKeys } from "@dither-ui/kit/engine/keys.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -64,7 +65,7 @@ export default function DitherToggleGroup(raw: DitherToggleGroupProps) {
   const props = mergeProps({ type: "single" as const, color: "blue" as PixelColor }, raw)
 
   // A bright fill takes black ink: white on it would sink under AA.
-  const darkInk = createMemo(() => darkInkOnDark(fillOf(props.color), LABEL_COVERAGE.gradient))
+  const darkInk = createMemo(() => labelFill(fillOf(props.color), "gradient", "straight").darkInk)
 
   let root: HTMLDivElement | undefined
   const btns: HTMLButtonElement[] = []
@@ -103,20 +104,10 @@ export default function DitherToggleGroup(raw: DitherToggleGroupProps) {
 
   function onKeydown(e: KeyboardEvent) {
     if (props.type !== "single") return
-    const dir =
-      e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : e.key === "ArrowUp" || e.key === "ArrowLeft" ? -1 : 0
-    if (!dir) return
-    e.preventDefault()
-    const n = props.options.length
-    let i = activeIndex()
-    for (let step = 0; step < n; step++) {
-      i = (i + dir + n) % n
-      if (!props.options[i].disabled) {
-        props.onUpdateModelValue?.(props.options[i].value)
-        queueMicrotask(() => btns[i]?.focus())
-        return
-      }
-    }
+    const i = rovingKeys(e, props.options, activeIndex())
+    if (i < 0) return
+    props.onUpdateModelValue?.(props.options[i].value)
+    queueMicrotask(() => btns[i]?.focus())
   }
 
   onMount(() => {

@@ -337,13 +337,20 @@
   cursor: crosshair;
 }
 
+/* The cipher's lines never wrap (the kit prints them whole, glyph by
+   glyph), so their size follows the card's own width: the longest fits
+   from a 320px phone's rail to the desktop's half-row. */
+.examples-scope .t-decrypted-text .card-art {
+  container-type: inline-size;
+}
+
 .examples-scope .cipher {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin: 0;
   font-family: var(--display-face);
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-size: clamp(0.875rem, 7.5cqi, 2.4rem);
   line-height: 1.15;
   text-align: center;
   color: var(--ink);
@@ -371,6 +378,8 @@
   .examples-scope .card {
     flex: 0 0 min(86%, 440px);
     scroll-snap-align: start;
+    /* One card a flick: a fast swipe stops on the next card, never past it. */
+    scroll-snap-stop: always;
   }
   /* Every card the rail's height: the art takes what the name leaves. */
   .examples-scope .bento .card .card-art {
@@ -383,5 +392,56 @@
 @media (max-width: 639px) {
   .examples-scope .bento {
     --gutter: 16px;
+  }
+}
+
+/* The rail's dots: one a card, in cells (the kit's unit), the card at the
+   rail's start a long cell in the ink. Each is a 24px target around a 6px
+   cell. Only where the rail is. */
+.examples-scope .rail-dots {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .examples-scope .rail-dots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 16px;
+  }
+  .examples-scope .rail-dots button {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+  }
+  .examples-scope .rail-dots button::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background: var(--ink-3);
+    transition:
+      width 350ms var(--ease-settle),
+      background-color 150ms var(--ease-settle);
+  }
+  .examples-scope .rail-dots button[aria-current="true"]::before {
+    width: 18px;
+    background: var(--ink);
+  }
+  .examples-scope .rail-dots button:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+  }
+}
+
+/* The scene (`SCENES.tile`): from 1024px, where the bento is a grid, each
+   card slides up into place in step with the scroll as it comes in, a row
+   together. The rail under 1024px moves only under the finger; nothing
+   moves under reduced motion. */
+@media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
+  .examples-scope .card {
+    translate: 0 calc((1 - var(--scene, 1)) * 56px);
+  }
+  .examples-scope .card[data-scene="live"] {
+    will-change: translate;
   }
 }

@@ -1,12 +1,12 @@
-// Generated from dither-kit/solid/Sparkline.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/Sparkline.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, mergeProps } from "solid-js"
-import type { BloomInput } from "dither-kit/engine/dither-paint.ts"
-import type { DitherColor } from "dither-kit/engine/palette.ts"
+import type { BloomInput } from "@dither-ui/kit/engine/dither-paint.ts"
+import type { DitherColor } from "@dither-ui/kit/engine/palette.ts"
 import { type StyleProp } from "./lib"
 import Area from "./Area"
 import { AreaChart } from "./area-chart"
-import type { VariantInput } from "dither-kit/solid/runtime/chart-context.ts"
+import type { VariantInput } from "@dither-ui/kit/solid/runtime/chart-context.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

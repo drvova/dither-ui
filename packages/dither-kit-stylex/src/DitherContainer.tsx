@@ -1,10 +1,11 @@
-// Generated from dither-kit/solid/DitherContainer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherContainer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, type JSX, mergeProps, onCleanup, onMount } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import { CONTAINER_SCALE, quantize, resolveCq, type CqScale, type CqState } from "dither-kit/engine/containers.ts"
+import { CONTAINER_SCALE, quantize, resolveCq, type CqScale, type CqState } from "@dither-ui/kit/engine/containers.ts"
+import { watchSize } from "@dither-ui/kit/engine/size-watch.ts"
 import { cn, type StyleProp } from "./lib"
-import "dither-kit/solid/DitherContainer.css"
+import "@dither-ui/kit/solid/DitherContainer.css"
 
 /** What children receive: the resolution plus the measured content box.
  * Each member reads the container as it is now, so a child that reads one
@@ -71,26 +72,23 @@ export default function DitherContainer(raw: DitherContainerProps) {
   onMount(() => {
     const node = root
     if (!node) return
-    let ro: ResizeObserver | null = null
     // contentRect = the content box, i.e. exactly what `@container` measures,
     // and transform-proof (use-chart-dimensions precedent). Without a
-    // ResizeObserver the state simply stays at the 0-size bucket.
-    if (typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver((entries) => {
-        const entry = entries[0]
-        update(entry ? entry.contentRect.width : node.clientWidth, entry ? entry.contentRect.height : node.clientHeight)
-      })
-      ro.observe(node)
-    }
+    // ResizeObserver the state simply stays at the 0-size bucket. A new
+    // bucket lays the children out again, and with them this box: applied
+    // on the frame after the report (`watchSize`), never inside it.
+    const size = watchSize(node, (entry) => {
+      if (entry) update(entry.contentRect.width, entry.contentRect.height)
+      else update(node.clientWidth, node.clientHeight)
+    })
     // First-paint guard: if nothing reported (silent observer), read the box
     // once — but never overwrite a real observation with the zero read.
     const fallback = window.setTimeout(() => {
-      if (!width()) update(node.clientWidth, node.clientHeight)
+      if (!width() && !size.reported()) update(node.clientWidth, node.clientHeight)
     }, 0)
     onCleanup(() => {
       if (fallback) clearTimeout(fallback)
-      ro?.disconnect()
-      ro = null
+      size.stop()
     })
   })
 

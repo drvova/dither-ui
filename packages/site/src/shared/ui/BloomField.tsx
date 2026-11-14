@@ -1,7 +1,7 @@
 import { createMemo, For, type JSX, Show, splitProps } from "solid-js"
-import type { BloomConfig, BloomInput, BloomLevel } from "dither-kit"
-import { bloomFromSeed } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import type { BloomConfig, BloomInput, BloomLevel } from "@dither-ui/kit"
+import { bloomFromSeed } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { BLOOMS } from "@/shared/config"
 import Segmented from "./Segmented"
 

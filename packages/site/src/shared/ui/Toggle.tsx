@@ -1,5 +1,5 @@
 import { type JSX, splitProps } from "solid-js"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { breakable } from "@/shared/lib/words"
 
 type Own = { modelValue: boolean; label: string; class?: string; onUpdateModelValue?: (value: boolean) => void }

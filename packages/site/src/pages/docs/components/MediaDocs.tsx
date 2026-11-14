@@ -6,22 +6,25 @@ import {
   DitherButton,
   DitherSchedule,
   DitherShader,
+  DitherThumbnail,
   DitherVideoPlayer,
   DitherWorld,
   sampleShader,
   sampleWorld,
   type BracketMatch,
   type ChannelInput,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import { launchAt, LAUNCH_S, ROCKET } from "@/pages/docs/components/rocket"
-import { assetPath } from "@/shared/lib/routes"
+import { assetPath, routePath } from "@/shared/lib/routes"
 import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
-/* Public-domain sample clip (MDN CC0) — swap for your own src. */
-const VIDEO_SRC = "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
+/* The site's own film, as the landing plays it. */
+const TRAILER = assetPath("/trailer/dither-ui.mp4")
+const TRAILER_POSTER = assetPath("/trailer/poster.webp")
 
 /* World: the seeded sample is real VRML97 text (with its own TimeSensor →
    ROUTE animation), so the code tab shows the file. */
@@ -62,6 +65,18 @@ const CRT = `void mainImage(out vec4 o, in vec2 fc) {
 const SHADER = sampleShader(3)
 
 const API: Record<string, PropRow[]> = {
+  thumbnail: [
+    { prop: "src", type: "string: the picture, cover-fit to the frame", default: "required" },
+    { prop: "alt", type: "string: the picture's words and the link's name", default: "required" },
+    { prop: "href", type: "string: where the link goes", default: "required" },
+    { prop: "ratio", type: "string: the frame's width over its height, any CSS aspect-ratio", default: '"1.618"' },
+    { prop: "veilCell", type: "number: the Bayer veil's cell in CSS px", default: "4" },
+    {
+      prop: "class",
+      type: "string: the link's classes; every other link attribute reaches it too",
+      default: "undefined",
+    },
+  ],
   video: [
     { prop: "src", type: "string: no src renders an honest empty face", default: "undefined" },
     { prop: "poster", type: "string", default: "undefined" },
@@ -193,113 +208,129 @@ const API: Record<string, PropRow[]> = {
   ],
 }
 
-const SNIPPET_VIDEO = `<DitherVideoPlayer
-  src="/clips/launch.mp4"
-  label="Launch recap"
+const SNIPPET_THUMBNAIL = `{/* a picture that is a link: it rests under a Bayer veil and wakes under a
+     pointer, the picture scaling up a touch inside its frame as the veil goes */}
+<div class="grid gap-4 sm:grid-cols-2">
+  <DitherThumbnail src="/sprites.webp" alt="The sprite sheet, in the Image docs" href="/docs/image" />
+  <DitherThumbnail
+    src="/trailer/poster.webp"
+    alt="The film's poster, in the Video player docs"
+    href="/docs/video-player"
+    ratio="16 / 9"
+    veilCell={3}
+  />
+</div>`
+
+const SNIPPET_VIDEO = `{/* a native <video> under dither chrome: play, a dithered scrubber,
+     tabular time, mute and fullscreen; no src is an honest empty face */}
+<DitherVideoPlayer
+  src="/trailer/dither-ui.mp4"
+  poster="/trailer/poster.webp"
+  label="The dither-ui film"
   color="blue"
-/>
-<!-- native <video> under dither chrome: play · dithered scrubber ·
-     tabular time · mute · fullscreen. No src = honest empty face. -->`
+/>`
 
-const SNIPPET_BRACKET = `<DitherBracket :rounds="rounds" interactive @pick="pick" />
+const SNIPPET_BRACKET = `type Pairing = { a: string; b: string; winner?: "a" | "b" }
 
-<script setup>
-function pick(r, m, side) {          // you own the data — advance the winner
-  const match = rounds[r][m]
+const [rounds, setRounds] = createSignal<Pairing[][]>([
+  [{ a: "Bayer", b: "Ordered" }, { a: "Halftone", b: "Threshold" }],
+  [{ a: "TBD", b: "TBD" }],
+])
+
+// you own the data: the winner advances into the next round
+function pick(r: number, m: number, side: "a" | "b") {
+  const next = rounds().map((round) => round.map((match) => ({ ...match })))
+  const match = next[r][m]
   match.winner = side
-  const next = rounds[r + 1]?.[Math.floor(m / 2)]
-  if (next) m % 2 === 0 ? (next.a = win(match)) : (next.b = win(match))
+  const ahead = next[r + 1]?.[Math.floor(m / 2)]
+  if (ahead) ahead[m % 2 === 0 ? "a" : "b"] = match[side]
+  setRounds(next)
 }
-<\\/script>`
 
-const SNIPPET_ROCKET = `<script setup>
-// one clock from the key: the file's moment, then the burst
-const t = ref(0)
-const scatter = computed(() => Math.min(1, Math.max(0, (t.value - 2.4) / 0.6)))
+<DitherBracket rounds={rounds()} interactive color="green" onPick={pick} />`
+
+const SNIPPET_ROCKET = `// one clock from the key: the file's moment, then the burst
+const [t, setT] = createSignal(0)
+const scatter = createMemo(() => Math.min(1, Math.max(0, (t() - 2.4) / 0.6)))
 function fire() {
   const t0 = performance.now()
   const step = (now) => {
-    t.value = Math.min(4.6, (now - t0) / 1000)
-    if (t.value < 4.6) requestAnimationFrame(step)
+    setT(Math.min(4.6, (now - t0) / 1000))
+    if (t() < 4.6) requestAnimationFrame(step)
   }
   requestAnimationFrame(step)
 }
 const rocket = \`${ROCKET}\`
-</script>
 
-<DitherWorld :source="rocket" material animate :time="t" :scatter="scatter" bloom="low" :zoom="0.62" :yaw="20" :pitch="8" />
-<DitherButton color="orange" @click="fire">Launch</DitherButton>`
+<DitherWorld source={rocket} material animate time={t()} scatter={scatter()} bloom="low" zoom={0.62} yaw={20} pitch={8} />
+<DitherButton color="orange" onClick={fire}>Launch</DitherButton>`
 
 // A Gaussian capture: the mascot as splats, served by the build.
 const CAPTURE = assetPath(`/${CAPTURE_PATH}`)
-const SNIPPET_CAPTURE = `<DitherWorld src="${CAPTURE}" up="y" material :auto-rotate="20" :fov="30" :zoom="1.35" :cell="2" />
-<!-- a Gaussian capture: a .splat file, or the .ply a trained capture writes.
+const SNIPPET_CAPTURE = `<DitherWorld src="${CAPTURE}" up="y" material autoRotate={20} fov={30} zoom={1.35} cell={2} class="h-72" />
+{/* a Gaussian capture: a .splat file, or the .ply a trained capture writes.
      Each Gaussian lands as its footprint on the cells, near to far until a
      cell is opaque; its colour and its light go through the same dither.
-     A capture's y runs down, so up defaults to -y; this one was made y up. -->`
+     A capture's y runs down, so up defaults to -y; this one was made y up. */}`
 
-const SNIPPET_WORLD = `<DitherWorld src="/models/rover.glb" color="blue" :auto-rotate="12" wire />
-<!-- .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off, .splat — by
-     URL or inline. The file's materials, lights, viewpoint and animations are
-     honoured. CPU engine by default (same bytes everywhere, frame-exact in
-     the video export); engine="gpu" rasterizes big meshes through WebGL into
-     the same dither. Drag or use the arrow keys to orbit. -->
-
-<DitherWorld :source="world" :colors="['#0b1a3a', '#1f6fd6', '#9ec5ff', '#fff']" :grain="0.5" bloom="low" />
-<!-- the kit's other engines in the shade: a palette ramp, fbm grain, bloom -->
-
-<DitherWorld :source="world" :shader="ink" />
-<!-- a GLSL material over the finished target: dk_depth / dk_shade / dk_covered /
-     dk_color per cell; its alpha is the shade the Bayer cell thresholds -->
-
-<DitherAurora ref="aurora" />
-<DitherWorld :source="world" :channels="[aurora]" />
-<!-- any kit surface (or an image, canvas, video) wrapped onto the model through
-     its texture coordinates: primitives, OBJ vt, glTF TEXCOORD_0, VRML
-     TextureCoordinate, PLY s/t. In a material the channels are iChannel0..3:
-     dk_texture(p) samples the first at the cell's dk_uv(p) -->
-
-<DitherWorld :source="world" :build="progress" :scatter="apart" heat="orange" nudge />
-<!-- the model as a build: it comes apart along its own seams (each connected
-     run of triangles is a piece), rises from a dotted wire cage bottom to top
-     with the pieces in flight glowing in heat, blows apart with scatter, and
-     leans away from the pointer with nudge. Drive build from a scroll. -->
-
-<script setup>
-// The default content is this seeded VRML97 file, parsed like any other:
+const SNIPPET_WORLD = `// The default content is this seeded VRML97 file, parsed like any other:
 const world = \`${WORLD}\`
-</script>`
+// a GLSL material: ink where the depth jumps, a dimmer body inside
+const ink = \`${INK}\`
+const [built, setBuilt] = createSignal(0.6)
 
-const SNIPPET_SHADER = `<DitherShader src="/shaders/plasma.frag" :levels="2" />
-<!-- Shadertoy conventions (mainImage, iTime, iResolution, iMouse) or a raw
-     main(); runs at the cell resolution, read back and ordered-dithered.
-     Needs WebGL; iTime follows the kit clock, so it seeks and renders. -->
+{/* .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off, .splat:
+     by URL (src) or inline (source). The file's materials, lights, viewpoint
+     and animations are honoured. CPU engine by default (same bytes everywhere,
+     frame-exact in the video export); engine="gpu" rasterizes big meshes
+     through WebGL into the same dither. Drag or use the arrow keys to orbit. */}
+<div class="grid grid-cols-2 gap-3">
+  <DitherWorld source={world} color="blue" autoRotate={12} wire class="h-40" />
 
-<DitherAurora ref="aurora" />
-<DitherShader :channels="[aurora]" :source="crt" />
-<!-- the render graph: any kit surface (or canvas, image, video) is iChannel0..3;
-     a kit surface is pulled at the same clock time, so the chain seeks as one -->
+  {/* the kit's other engines in the shade: a palette ramp, fbm grain, bloom */}
+  <DitherWorld source={world} colors={['#0b1a3a', '#1f6fd6', '#9ec5ff', '#fff']} grain={0.5} bloom="low" class="h-40" />
 
-<DitherShader :source="shader" mono color="blue" />
+  {/* a GLSL material over the finished target: dk_depth, dk_shade, dk_covered
+       and dk_color per cell; its alpha is the shade the Bayer cell thresholds.
+       channels wrap any kit surface (or an image, canvas, video) onto the model
+       through its texture coordinates (primitives, OBJ vt, glTF TEXCOORD_0, VRML
+       TextureCoordinate, PLY s/t): in a material they are iChannel0..3, and
+       dk_texture(p) samples the first at the cell's dk_uv(p) */}
+  <DitherWorld source={world} shader={ink} class="h-40" />
 
-<script setup>
-// The default content is this seeded shader, compiled like any other:
+  {/* the model as a build: it comes apart along its own seams (each connected
+       run of triangles is a piece), rises from a dotted wire cage bottom to top
+       with the pieces in flight glowing in heat, blows apart with scatter, and
+       leans away from the pointer with nudge. Drive build from a scroll. */}
+  <DitherWorld source={world} build={built()} heat="orange" nudge class="h-40" />
+</div>
+<input value={built()} onInput={(e) => setBuilt(Number(e.currentTarget.value))} type="range" min="0" max="1" step="0.01" aria-label="Build" class="mt-3 w-full" />`
+
+const SNIPPET_SHADER = `// The default content is this seeded shader, compiled like any other:
 const shader = \`${SHADER}\`
-</script>`
+
+<DitherShader source={shader} levels={2} class="h-64" />
+{/* Shadertoy conventions (mainImage, iTime, iResolution, iMouse) or a raw
+     main(), by URL (src) or inline (source); runs at the cell resolution, read
+     back and ordered-dithered. Needs WebGL; iTime follows the kit clock, so it
+     seeks and renders. channels bind any kit surface (or a canvas, image,
+     video) as iChannel0..3, pulled at the same clock time, so the chain seeks
+     as one */}
+
+<DitherShader source={shader} mono color="blue" class="mt-3 h-64" />`
 
 const SNIPPET_SCHEDULE = `<DitherSchedule
-  :events="[
+  events={[
     { start: 9, end: 10.5, label: 'Standup', color: 'blue' },
     { start: 11, end: 12.5, label: 'Design review', color: 'purple' },
     { start: 14, end: 16, label: 'Focus block', color: 'green' },
-  ]"
-  :from="8" :to="18" :now="13.5"
+  ]}
+  from={8} to={18} now={13.5}
 />
-<!-- fractional hours: 13.5 is half past one -->`
+{/* fractional hours: 13.5 is half past one */}`
 
 /** A kit surface as a channel: its element goes to `ref` once it stands
- * (null again when it leaves), as a Vue template ref gave the consumer the
- * component, which the channels read by its element. */
+ * (null again when it leaves), which the channels read. */
 function Source(props: { ref: (source: ChannelInput) => void; children: JSX.Element }) {
   const surface = children(() => props.children)
   onMount(() => {
@@ -388,9 +419,34 @@ export default function MediaDocs() {
 
   return (
     <>
+      {/* Thumbnail */}
+      <DocSection id="thumbnail">
+        <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          A picture that is a link. It rests sunk under a Bayer veil and wakes under a pointer: the picture scales up a
+          touch inside its frame as the veil dissolves, and the frame keeps its ratio (phi unless you pick one). The
+          picture's words name the link.
+        </p>
+        <DemoCard code={SNIPPET_THUMBNAIL}>
+          <div class="mx-auto grid max-w-xl gap-4 sm:grid-cols-2">
+            <DitherThumbnail
+              src={assetPath("/sprites.webp")}
+              alt="The sprite sheet, in the Image docs"
+              href={routePath("/docs/image")}
+            />
+            <DitherThumbnail
+              src={assetPath("/trailer/poster.webp")}
+              alt="The film's poster, in the Video player docs"
+              href={routePath("/docs/video-player")}
+              ratio="16 / 9"
+              veilCell={3}
+            />
+          </div>
+        </DemoCard>
+        <PropsTable rows={API.thumbnail} />
+      </DocSection>
+
       {/* Video player */}
-      <section id="video-player" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Video player</h2>
+      <DocSection id="video-player">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A native video under dither chrome: play, a dithered scrubber that really seeks, a volume slider, playback
           speed, mute, fullscreen, and player keyboard (Space, arrows, M, F). Without a source it shows an honest empty
@@ -398,15 +454,14 @@ export default function MediaDocs() {
         </p>
         <DemoCard code={SNIPPET_VIDEO}>
           <div class="mx-auto max-w-md">
-            <DitherVideoPlayer src={VIDEO_SRC} label="Flower sample clip" color="blue" />
+            <DitherVideoPlayer src={TRAILER} poster={TRAILER_POSTER} label="The dither-ui film" color="blue" />
           </div>
         </DemoCard>
         <PropsTable rows={API.video} />
-      </section>
+      </DocSection>
 
       {/* Bracket */}
-      <section id="bracket" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Bracket</h2>
+      <DocSection id="bracket">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A knockout bracket: winners carry the accent, losers strike through, connector rails bridge the rounds. This
           one is interactive: pick every winner and the final fills itself.
@@ -429,11 +484,10 @@ export default function MediaDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.bracket} />
-      </section>
+      </DocSection>
 
       {/* Schedule */}
-      <section id="schedule" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Schedule</h2>
+      <DocSection id="schedule">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A day timeline: events sit proportionally on the hour rail, each with its swatch rail, and the red now line
           slides as the day moves. Drag the hour to move time.
@@ -470,11 +524,10 @@ export default function MediaDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.schedule} />
-      </section>
+      </DocSection>
 
       {/* World (3D) */}
-      <section id="world" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">World (3D)</h2>
+      <DocSection id="world">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A 3D model viewer in the house raster: VRML, X3D, glTF / GLB, OBJ with its MTL, STL, PLY, OFF and Gaussian
           splats, by URL or inline, drawn on the CPU or through WebGL for big meshes. Files bring their own materials,
@@ -669,11 +722,10 @@ export default function MediaDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.world} />
-      </section>
+      </DocSection>
 
       {/* Shader (GLSL) */}
-      <section id="shader" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Shader (GLSL)</h2>
+      <DocSection id="shader">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A fragment shader in the house raster: Shadertoy-style mainImage or a raw main, by URL or inline, run on the
           GPU at the cell resolution and dithered on the way back, one bit per channel or one tint. iTime is the kit
@@ -718,7 +770,7 @@ export default function MediaDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.shader} />
-      </section>
+      </DocSection>
     </>
   )
 }

@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/DitherPopover.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherPopover.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/DitherPopover.css"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/DitherPopover.css"
 import { cn, type StyleProp } from "./lib"
 
 import * as stylex from "@stylexjs/stylex"

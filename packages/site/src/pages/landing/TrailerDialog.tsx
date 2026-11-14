@@ -6,7 +6,7 @@
 // browser built without it. The kit's dialog traps focus, closes on Escape
 // and the backdrop, and hands focus back to the key that opened it.
 import { Show } from "solid-js"
-import { DitherDialog } from "dither-kit"
+import { DitherDialog } from "@dither-ui/kit"
 import { FILM } from "@/pages/landing/film"
 import { assetPath } from "@/shared/lib"
 import "./TrailerDialog.css"

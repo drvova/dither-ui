@@ -1,5 +1,5 @@
-// The docs' component packs Feedback, Field, Form, Layout and Media on
-// Solid: every section of each pack's nav in order under its label (its
+// The docs' component packs Feedback, Field, Form, Layout and Media:
+// every section of each pack's nav in order under its label (its
 // tables' words: `docs-api.spec.ts`), each preview mounting its demo once
 // it nears the view, and the demos' own state driving what they show.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
@@ -16,11 +16,11 @@ import FieldDocs from "../../src/pages/docs/components/FieldDocs"
 import FormDocs from "../../src/pages/docs/components/FormDocs"
 import LayoutDocs from "../../src/pages/docs/components/LayoutDocs"
 import MediaDocs from "../../src/pages/docs/components/MediaDocs"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 // No GPU in jsdom: a shader says so, a world keeps to its CPU engine.
-vi.mock("dither-kit/engine/gl.ts", async (original) => ({
-  ...(await original<typeof import("dither-kit/engine/gl.ts")>()),
+vi.mock("@dither-ui/kit/engine/gl.ts", async (original) => ({
+  ...(await original<typeof import("@dither-ui/kit/engine/gl.ts")>()),
   createGl: () => null,
 }))
 
@@ -290,6 +290,20 @@ describe("LayoutDocs", () => {
 })
 
 describe("MediaDocs", () => {
+  it("links each thumbnail to the page its picture names, in the frame it asks for", () => {
+    const { container } = shown(MediaDocs)
+    const links = [...section(container, "thumbnail").querySelectorAll<HTMLAnchorElement>(".demo-well a")]
+    expect(links.map((a) => [a.getAttribute("aria-label"), a.getAttribute("href")])).toEqual([
+      ["The sprite sheet, in the Image docs", "/docs/image"],
+      ["The film's poster, in the Video player docs", "/docs/video-player"],
+    ])
+    expect(links.map((a) => a.getAttribute("style"))).toEqual(["aspect-ratio: 1.618 / 1;", "aspect-ratio: 16 / 9;"])
+    expect(links.map((a) => a.querySelector("img")?.getAttribute("src"))).toEqual([
+      "/sprites.webp",
+      "/trailer/poster.webp",
+    ])
+  })
+
   it("advances a picked winner into the final, and resets", () => {
     const { container } = shown(MediaDocs)
     const well = section(container, "bracket").querySelector(".demo-well")!
@@ -398,6 +412,6 @@ describe("MediaDocs", () => {
     expect(mono.checked).toBe(false)
     fireEvent.click(mono)
     expect(mono.checked).toBe(true)
-    expect(section(container, "video-player").querySelector("[aria-label='Flower sample clip']")).not.toBeNull()
+    expect(section(container, "video-player").querySelector("[aria-label='The dither-ui film']")).not.toBeNull()
   })
 })

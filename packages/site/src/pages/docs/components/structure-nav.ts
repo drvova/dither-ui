@@ -4,4 +4,4 @@ export const STRUCTURE_NAV = [
   { id: "dialog", label: "Dialog" },
   { id: "center-morph-modal", label: "Center morph modal" },
   { id: "kbd", label: "Kbd" },
-]
+] as const

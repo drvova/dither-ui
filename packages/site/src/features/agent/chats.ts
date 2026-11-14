@@ -6,7 +6,8 @@
 // protocol into its chunk.
 import { createMutable } from "solid-js/store"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
-import { DRAFT_PREFIX, type Usage } from "./tools"
+import type { Usage } from "./tools"
+import { STORAGE_PREFIXES } from "@/shared/config/storage"
 
 /** A chat as the sidebar lists it. `named`: the title is one the user gave
  * it, kept over the first message's; `pinned`: it stands in the Pinned
@@ -14,8 +15,6 @@ import { DRAFT_PREFIX, type Usage } from "./tools"
 export type ChatMeta = { id: string; title: string; at: number; named?: boolean; pinned?: boolean }
 export type AgentSession<E> = { entries: E[]; usage: Usage }
 
-const INDEX = "dither-agent-chats-"
-const SESSION = "dither-agent-session-"
 const CAP = 160_000
 
 export const chats = createMutable({
@@ -28,7 +27,7 @@ export const chats = createMutable({
 })
 
 const newId = () => `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
-const threadKey = (project: string, chat: string) => `${SESSION}${project}/${chat}`
+const threadKey = (project: string, chat: string) => `${STORAGE_PREFIXES.thread}${project}/${chat}`
 /** A chat as an index hands it back, untrusted: the fields of a chat, each
  * of its kind, the flags only when they are true. */
 function metaOf(c: unknown): ChatMeta | null {
@@ -45,10 +44,10 @@ function metaOf(c: unknown): ChatMeta | null {
 }
 /** A project's chats as kept, parsed. */
 const readIndex = (project: string): ChatMeta[] => {
-  const stored = readJson(INDEX + project)
+  const stored = readJson(STORAGE_PREFIXES.chats + project)
   return Array.isArray(stored) ? stored.flatMap((c) => metaOf(c) ?? []) : []
 }
-const writeIndex = () => writeJson(INDEX + chats.project, chats.list)
+const writeIndex = () => writeJson(STORAGE_PREFIXES.chats + chats.project, chats.list)
 
 /** The chat's title: its first message's first line, else a new chat. */
 export function titleOf(entries: readonly { kind: string; text?: string }[]): string {
@@ -62,11 +61,11 @@ export function openProject(project: string): void {
   if (chats.project === project) return
   chats.project = project
   chats.list = readIndex(project)
-  const earlier = storage.get(SESSION + project)
+  const earlier = storage.get(STORAGE_PREFIXES.thread + project)
   if (earlier !== null) {
     const id = newId()
     storage.set(threadKey(project, id), earlier)
-    storage.remove(SESSION + project)
+    storage.remove(STORAGE_PREFIXES.thread + project)
     const thread = loadThread<{ kind: string; text?: string }>(project, id)
     chats.list.unshift({ id, title: titleOf(thread?.entries ?? []), at: Date.now() })
     writeIndex()
@@ -96,7 +95,7 @@ export function removeChat(id: string): void {
 export function forgetProject(project: string): void {
   if (!project) return
   for (const key of storage.keys())
-    for (const prefix of [INDEX, SESSION, DRAFT_PREFIX])
+    for (const prefix of [STORAGE_PREFIXES.chats, STORAGE_PREFIXES.thread, STORAGE_PREFIXES.draft])
       if (key.startsWith(prefix) && key.slice(prefix.length).split("/")[0] === project) storage.remove(key)
 }
 

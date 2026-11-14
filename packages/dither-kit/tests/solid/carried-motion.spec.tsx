@@ -1,13 +1,24 @@
-// The kit's motion pieces on a hand-stepped browser: frames the spec
-// flushes, a clock it sets, observers it fires. Carried from the kit's
-// earlier component specs when they went (container, reveal, sequence,
-// stage): each case is the behaviour those held, on the Solid components.
+// The kit's motion pieces (container, reveal, sequence, stage) on a
+// hand-stepped browser: frames the spec flushes, a clock it sets, observers
+// it fires.
 import { cleanup, render } from "@solidjs/testing-library"
-import { createSignal } from "solid-js"
+import { createSignal, type JSX } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { DitherContainer, DitherLayer, DitherReveal, DitherSequence, DitherStage } from "../../src/solid"
+import {
+  DitherAntigravity,
+  DitherContainer,
+  DitherLayer,
+  DitherReveal,
+  DitherRotatingText,
+  DitherScrollVelocity,
+  DitherSequence,
+  DitherStage,
+  DitherTextType,
+  DitherTrueFocus,
+} from "../../src/solid"
 import { release, seek } from "../../src/engine/clock"
 import type { CqState } from "../../src/engine/containers"
+import { paintOf, recordPaint } from "../support/paint"
 
 /** Manual rAF: each flush runs the currently queued frames at time `t`. */
 let queue = new Map<number, FrameRequestCallback>()
@@ -91,12 +102,31 @@ describe("DitherContainer", () => {
     expect(ro.observed).toBe(rootOf(container))
     ro.fire(360) // md's min: boundaries are inclusive (the height mirrors it)
     await settle()
+    // A new bucket resizes this very box: applied inside the observer's
+    // delivery it is a loop the browser reports on the window, so the
+    // observation waits for the next frame.
+    expect(rootOf(container).getAttribute("data-cq")).toBe("xs")
+    flush(0)
+    await settle()
     expect(rootOf(container).getAttribute("data-cq")).toBe("md")
     expect(rootOf(container).style.getPropertyValue("--cq-i")).toBe("2")
     expect(rootOf(container).style.getPropertyValue("--cq-w")).toBe("360")
     expect(rootOf(container).style.getPropertyValue("--cq-h")).toBe("360")
+    ro.fire(600)
     unmount()
     expect(ro.disconnected).toBe(true)
+    expect(queue.size).toBe(0) // the frame an observation asked for goes with it
+  })
+
+  it("applies the latest of a frame's observations, once", async () => {
+    const { container } = render(() => <DitherContainer />)
+    const ro = FakeResizeObserver.last!
+    ro.fire(200)
+    ro.fire(360)
+    expect(queue.size).toBe(1)
+    flush(0)
+    await settle()
+    expect(rootOf(container).style.getPropertyValue("--cq-w")).toBe("360")
   })
 
   it("hands its children the width and the resolution; step quantizes only the var", async () => {
@@ -110,6 +140,7 @@ describe("DitherContainer", () => {
       </DitherContainer>
     ))
     FakeResizeObserver.last!.fire(404, 300) // 404/8 = 50.5 → 51 → 408
+    flush(0)
     await settle()
     expect(seen).toEqual({ width: 404, height: 300, size: "wide", index: 1, matches: ["narrow", "wide"] })
     expect(rootOf(container).style.getPropertyValue("--cq-w")).toBe("408")
@@ -138,9 +169,11 @@ describe("DitherContainer", () => {
   it("honours a custom scale's ranges (max exclusive)", async () => {
     const { container } = render(() => <DitherContainer scale={{ small: { max: 100 }, large: { min: 100 } }} />)
     FakeResizeObserver.last!.fire(99)
+    flush(0)
     await settle()
     expect(rootOf(container).getAttribute("data-cq")).toBe("small")
     FakeResizeObserver.last!.fire(100)
+    flush(0)
     await settle()
     expect(rootOf(container).getAttribute("data-cq")).toBe("large")
   })
@@ -510,4 +543,47 @@ describe("DitherStage and DitherLayer", () => {
     expect(layerOf(container).style.transform).toBe("translate(10cqw, 0px)")
     expect(layerOf(container).getAttribute("data-layer")).toBe("active")
   })
+})
+
+describe("the cadence pieces on the kit clock", () => {
+  // Each turns, types, drifts or rises on the kit clock: directed, what it
+  // shows is the moment's, the same however the moment was reached.
+  const pieces: [string, () => JSX.Element][] = [
+    ["DitherRotatingText", () => <DitherRotatingText texts={["a", "b", "c"]} interval={500} />],
+    ["DitherTrueFocus", () => <DitherTrueFocus text="one two three" interval={500} />],
+    [
+      "DitherTextType",
+      () => <DitherTextType texts={["Hello", "World"]} typingSpeed={100} deletingSpeed={100} pause={200} />,
+    ],
+    ["DitherScrollVelocity", () => <DitherScrollVelocity text="drift" />],
+    ["DitherAntigravity", () => <DitherAntigravity count={6}>Up</DitherAntigravity>],
+  ]
+  let undoPaint: () => void
+  beforeEach(() => {
+    undoPaint = recordPaint()
+    vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(400)
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({ width: 200, height: 100 } as DOMRect)
+  })
+  afterEach(() => undoPaint())
+  const shows = (host: HTMLElement) => [host.innerHTML, ...[...host.querySelectorAll("canvas")].map(paintOf)].join("\n")
+
+  it.for(pieces)(
+    "%s shows the moment it is seeked to, again on the way back, and asks no frames",
+    async ([, piece]) => {
+      const { container } = render(piece)
+      await settle()
+      seek(1000)
+      await settle()
+      const at1000 = shows(container)
+      seek(1800)
+      await settle()
+      expect(shows(container)).not.toBe(at1000)
+      seek(1000)
+      await settle()
+      expect(shows(container)).toBe(at1000)
+      expect(queue.size).toBe(0)
+      release() // the run goes on
+      expect(queue.size).toBeGreaterThan(0)
+    },
+  )
 })

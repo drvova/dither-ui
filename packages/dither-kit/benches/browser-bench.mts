@@ -6,7 +6,7 @@
  * stylesheet, and prints the tables the README carries with the machine
  * they were measured on.
  *
- * Run: npm run bench:browser -w dither-kit
+ * Run: npm run bench:browser -w @dither-ui/kit
  *      (node packages/dither-kit/benches/browser-bench.mts [stylesheet])
  *
  * The stylesheet is the built `kit/dither-kit.css`: by default the site

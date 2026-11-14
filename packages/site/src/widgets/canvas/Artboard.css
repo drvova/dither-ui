@@ -1,4 +1,18 @@
 .artboard-scope {
+  /* A resize handle reaches this far on the screen whatever the canvas's
+     zoom (`--zoom`, set on the layer the frames stand in): the 24px floor
+     under a cursor, a finger's 40px where the pointer is coarse. The handle
+     drawn stays its 12px. */
+  --handle-reach: 24px;
+  @media (pointer: coarse) {
+    --handle-reach: 40px;
+  }
+  .handle::before {
+    content: "";
+    position: absolute;
+    inset: min(0px, calc((12px - var(--handle-reach) / var(--zoom, 1)) / 2));
+  }
+
   /* Handed to the agent: a dashed ring in the signal ink, outside the canvas
      selection's blue (which stays the canvas's own). */
   .picked {

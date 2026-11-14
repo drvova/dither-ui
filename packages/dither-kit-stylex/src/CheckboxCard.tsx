@@ -1,9 +1,9 @@
-// Generated from dither-kit/solid/CheckboxCard.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/CheckboxCard.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type JSX, mergeProps, Show } from "solid-js"
 import { cn, type StyleProp } from "./lib"
 import DitherCheckbox from "./DitherCheckbox"
-import "dither-kit/solid/CheckboxCard.css"
+import "@dither-ui/kit/solid/CheckboxCard.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

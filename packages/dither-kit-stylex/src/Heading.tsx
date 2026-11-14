@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/Heading.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/Heading.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type JSX, mergeProps } from "solid-js"
 import { Dynamic } from "solid-js/web"
@@ -19,8 +19,14 @@ const styles = stylex.create({
   levels6: { fontSize: "12px", fontWeight: "500" },
 })
 
+type Level = "1" | "2" | "3" | "4" | "5" | "6"
+
 export type HeadingProps = {
-  level?: "1" | "2" | "3" | "4" | "5" | "6"
+  /** Its place in the page's outline: h1 to h6. */
+  level?: Level
+  /** The step of the scale it is drawn at, when that is not its level's (a
+   * card's title under a section's h2: level 3, drawn at 4). */
+  size?: Level
   class?: string
   xstyle?: StyleProp
   children?: JSX.Element
@@ -36,11 +42,12 @@ const LEVELS = {
 } as const
 
 /** Semantic heading with the site's scale baked in: h1–h6 pick their own
- * size/weight from the level, `class` overrides anything below. */
+ * size/weight from the level (or from `size`, so the outline and the look
+ * part), `class` overrides anything below. */
 export default function Heading(raw: HeadingProps) {
   const props = mergeProps({ level: "2" as const }, raw)
   return (
-    <Dynamic component={`h${props.level}`} class={cn(LEVELS[props.level], props.xstyle, props.class)}>
+    <Dynamic component={`h${props.level}`} class={cn(LEVELS[props.size ?? props.level], props.xstyle, props.class)}>
       {props.children}
     </Dynamic>
   )

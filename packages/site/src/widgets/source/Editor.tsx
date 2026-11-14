@@ -4,6 +4,7 @@
 // the next Tab back to the page, so the editor never traps the keyboard;
 // Enter keeps the line's indent; ⌘/Ctrl+Enter runs.
 import { createMemo } from "solid-js"
+import { isTab } from "@dither-ui/kit/engine"
 import "./Editor.css"
 
 export type EditorProps = {
@@ -66,10 +67,12 @@ export default function Editor(props: EditorProps) {
       released = true
       return
     }
+    // Shift on its way to Shift+Tab keeps the release
+    if (e.key === "Shift") return
     const leave = released
     released = false
     if (e.altKey || e.ctrlKey || e.metaKey) return
-    if (e.key === "Tab" && !leave) {
+    if (isTab(e) && !leave) {
       e.preventDefault()
       indent(el, e.shiftKey)
     } else if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {

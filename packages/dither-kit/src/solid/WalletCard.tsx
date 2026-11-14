@@ -7,6 +7,11 @@ import { cn } from "../tailwind/lib"
 import { Presence } from "./runtime/presence"
 import "./WalletCard.css"
 
+/** The change pill's ground: its own colour at this share over the card,
+ * light enough that the change, printed in that colour, reads at 4.5:1 in
+ * the light theme's deeper swatches. */
+export const CHANGE_TINT = 0.1
+
 export type WalletAccount = {
   value: string
   label: string
@@ -348,7 +353,11 @@ export default function WalletCard(raw: WalletCardProps) {
                 class="relative overflow-hidden rounded-full px-2 py-0.5 text-[10px]"
                 style={{ color: changeColor() }}
               >
-                <span aria-hidden="true" class="absolute inset-0 opacity-15" style={{ background: changeColor() }} />
+                <span
+                  aria-hidden="true"
+                  class="absolute inset-0"
+                  style={{ background: changeColor(), opacity: CHANGE_TINT }}
+                />
                 <span class="relative flex items-center gap-1">
                   <span
                     aria-hidden="true"

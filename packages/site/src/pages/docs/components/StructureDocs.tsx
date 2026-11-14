@@ -7,9 +7,10 @@ import {
   DitherKbd,
   DitherTabPanel,
   DitherTabs,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const TABS = ["Overview", "Metrics", "Logs"]
 const PANEL: Record<string, string> = {
@@ -25,52 +26,60 @@ const VERT_TABS = [
   { value: "Spam", disabled: true },
 ]
 
-const SNIPPET_TABS = `<!-- panels nest inside so they inherit the tab context -->
-<DitherTabs v-model="tab" :tabs="['Overview', 'Metrics', 'Logs']">
-  <DitherTabPanel value="Overview" class="mt-4">…</DitherTabPanel>
-  <DitherTabPanel value="Metrics" class="mt-4">…</DitherTabPanel>
-  <DitherTabPanel value="Logs" class="mt-4">…</DitherTabPanel>
+const SNIPPET_TABS = `const tabs = ["Overview", "Metrics", "Logs"]
+const panels: Record<string, string> = {
+  Overview: "Requests are steady; nothing on fire.",
+  Metrics: "p95 latency 42ms, error rate 0.02%.",
+  Logs: "3 warnings in the last hour, zero errors.",
+}
+const [tab, setTab] = createSignal("Overview")
+const [folder, setFolder] = createSignal("Inbox")
+
+{/* panels nest inside so they inherit the tab context */}
+<DitherTabs modelValue={tab()} onUpdateModelValue={setTab} tabs={tabs} color="blue">
+  <For each={tabs}>
+    {(t) => (
+      <DitherTabPanel value={t} class="mt-4">
+        <p class="text-[12px] text-muted-foreground">{panels[t]}</p>
+      </DitherTabPanel>
+    )}
+  </For>
 </DitherTabs>
 
-<!-- variant: underline | segmented | washed -->
-<DitherTabs v-model="tab" :tabs="tabs" variant="segmented" />
+{/* variant: underline | segmented | washed */}
+<DitherTabs modelValue={tab()} onUpdateModelValue={setTab} tabs={tabs} variant="segmented" class="mt-6" />
 
-<!-- objects add badges and disabled; vertical flips the rail -->
-<DitherTabs v-model="folder" orientation="vertical" variant="washed"
-  :tabs="[{ value: 'Inbox', badge: 12 }, { value: 'Spam', disabled: true }]" />`
+{/* objects add badges and disabled; vertical flips the rail */}
+<DitherTabs modelValue={folder()} onUpdateModelValue={setFolder} orientation="vertical" variant="washed" class="mt-6"
+  tabs={[{ value: 'Inbox', badge: 12 }, { value: 'Drafts', badge: 2 }, { value: 'Spam', disabled: true }]} />`
 
-const SNIPPET_COLLAPSIBLE = `<script setup>
-const openA = ref(true)
-const openB = ref(false)
-</script>
+const SNIPPET_COLLAPSIBLE = `const [openA, setOpenA] = createSignal(true)
+const [openB, setOpenB] = createSignal(false)
 
-<DitherCollapsible v-model="openA" title="What is dithering?" color="blue">
+<DitherCollapsible modelValue={openA()} onUpdateModelValue={setOpenA} title="What is dithering?" color="blue">
   Ordered dithering trades smooth gradients for a fixed threshold
   matrix: the same Bayer 4x4 behind every fill in this kit.
 </DitherCollapsible>
-<DitherCollapsible v-model="openB" title="Why canvas?" color="purple">
+<DitherCollapsible modelValue={openB()} onUpdateModelValue={setOpenB} title="Why canvas?" color="purple">
   One engine paints every fill, so components stay coherent.
 </DitherCollapsible>`
 
-const SNIPPET_DIALOG = `<script setup>
-const open = ref(false)
-</script>
+const SNIPPET_DIALOG = `const [open, setOpen] = createSignal(false)
 
-<DitherButton @click="open = true">Open dialog</DitherButton>
-<DitherDialog :open="open" title="Confirm"
-  description="Ship the dithered build to production?" @close="open = false">
+<DitherButton onClick={() => setOpen(true)}>Open dialog</DitherButton>
+<DitherDialog open={open()} title="Confirm"
+  description="Ship the dithered build to production?" onClose={() => setOpen(false)}
+  footer={
+    <DitherButton color="green" onClick={() => setOpen(false)}>Confirm</DitherButton>
+  }
+>
   <p class="text-[13px] text-muted-foreground">Review the release before continuing.</p>
-  <template #footer>
-    <DitherButton color="green" @click="open = false">Confirm</DitherButton>
-  </template>
 </DitherDialog>`
 
-const SNIPPET_MORPH = `<script setup>
-const open = ref(false)
-</script>
+const SNIPPET_MORPH = `const [open, setOpen] = createSignal(false)
 
-<DitherButton @click="open = true">Open modal</DitherButton>
-<DitherCenterMorphModal :open="open" label="Release notes" @close="open = false">
+<DitherButton onClick={() => setOpen(true)}>Open modal</DitherButton>
+<DitherCenterMorphModal open={open()} label="Release notes" onClose={() => setOpen(false)}>
   <div class="flex h-full flex-col justify-end gap-2">
     <h3 class="text-sm font-medium text-foreground">v2.4: dithered everything</h3>
     <p class="max-w-md text-[13px] leading-relaxed text-muted-foreground">
@@ -135,8 +144,7 @@ export default function StructureDocs() {
 
   return (
     <>
-      <section id="tabs" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Tabs</h2>
+      <DocSection id="tabs">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A roving-tabindex tablist with a dithered underline that slides to the active tab. Arrow keys move selection.
         </p>
@@ -198,10 +206,9 @@ export default function StructureDocs() {
           </DitherTabs>
         </div>
         <PropsTable rows={API.tabs} />
-      </section>
+      </DocSection>
 
-      <section id="collapsible" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Collapsible</h2>
+      <DocSection id="collapsible">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A disclosure row animated through grid-template-rows; when open, a 2px dithered rail runs down the left edge
           of the content.
@@ -223,10 +230,9 @@ export default function StructureDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.collapsible} />
-      </section>
+      </DocSection>
 
-      <section id="dialog" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Dialog</h2>
+      <DocSection id="dialog">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A portalled modal with labelled title and description, trapped focus, Escape/backdrop dismissal, focus
           restoration, and an optional action footer.
@@ -250,10 +256,9 @@ export default function StructureDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.dialog} />
-      </section>
+      </DocSection>
 
-      <section id="center-morph-modal" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Center morph modal</h2>
+      <DocSection id="center-morph-modal">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A composable modal whose full-size surface unfolds from its exact center toward every edge, then folds back
           the same way with an inset close control. Same focus trap, Escape, and backdrop contract as Dialog.
@@ -273,10 +278,9 @@ export default function StructureDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.centerMorphModal} />
-      </section>
+      </DocSection>
 
-      <section id="kbd" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Kbd</h2>
+      <DocSection id="kbd">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An honest keyboard key: no canvas, just the house border and a 2px bottom edge. Pairs with shortcut listings.
         </p>
@@ -296,7 +300,7 @@ export default function StructureDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.kbd} />
-      </section>
+      </DocSection>
     </>
   )
 }

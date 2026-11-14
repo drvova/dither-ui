@@ -1,12 +1,9 @@
-// The code the Studio writes for a frame, on Solid: a `.tsx` component on the
+// The code the Studio writes for a frame: a `.tsx` component on the
 // kit's Solid layer, in the reader's styling system. It goes into the
 // reader's project (the export dialog, `code.get`, the `get_code` tool), and
 // a frame's values come from files, links and agents: whatever a value
 // holds, the file stays a component Solid's own compiler reads, whose values
-// are data. Carried from the earlier Vue site's `tests/codegen-escape.spec.ts`, the
-// `widgetCode` and `chartCode` cases of `tests/widget-model.spec.ts` and
-// `tests/chart-model.spec.ts`, the export case of `tests/field-label.spec.ts`
-// and the export half of `tests/stylex-coverage.spec.ts`.
+// are data.
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { cleanup, render } from "@solidjs/testing-library"
@@ -15,10 +12,10 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard"
 import { createChart } from "@/entities/chart/model/factory"
 import { createComponent, createReel, createWidget } from "@/entities/widget/model/factory"
-import { COMPONENT_REGISTRY, componentEntry } from "@/entities/widget/model/registry"
+import { boundProps, COMPONENT_REGISTRY, componentEntry, defaultComponentProps } from "@/entities/widget/model/registry"
 import { addCell, createScreen } from "@/entities/widget/model/screen"
 import { CHART_TYPES } from "@/shared/config"
-import { restyle, STYLINGS } from "restyle"
+import { restyle, STYLINGS } from "@dither-ui/restyle"
 import { frameCode, shown } from "../../src/entities/artboard/code"
 import { chartCode } from "../../src/entities/chart/model/codegen"
 import { widgetCode } from "../../src/entities/widget/model/codegen"
@@ -26,8 +23,8 @@ import { modelOf, SCOPED_CHILDREN } from "../../src/entities/widget/model/model"
 import { registrySchema } from "../../src/features/agent"
 import { type Compile, compiler, evaluate } from "../../src/widgets/source/model/compile"
 import { PACKAGES } from "../../src/widgets/source/model/run"
-import { WidgetRenderer } from "../../src/widgets/widget-renderer"
-import { world } from "dither-kit/testing/world.ts"
+import { WidgetRenderer } from "../../src/widgets/frame-renderer"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 const HOSTILE = `x" onClick={alert(1)} y='z' {alert(2)} {{ alert(2) }} </script><script>alert(3)</script><img src=x onerror=alert(5)> &amp; \\" */ \` \${alert(6)} ${String.fromCharCode(0x2028)}`
 const FRAME = { w: 300, h: 200 }
@@ -148,7 +145,8 @@ describe("generated components keep document values as data", () => {
     const scoped = createComponent(componentEntry("DitherInView")!)
     scoped.slotText = HOSTILE
     const inView = run(widgetCode(scoped, FRAME))
-    noInjection(inView)
+    // its `once` is a setting, written as the canvas binds it
+    noInjection(inView, ["once"])
     expect(got(inView, "DitherInView").children).toBe(HOSTILE)
   })
 
@@ -260,7 +258,7 @@ describe("widgetCode", () => {
     const input = widgetCode(createComponent(componentEntry("DitherInput")!), frame)
     expect(input).toContain('import { createSignal } from "solid-js"')
     expect(input).toContain('const [value, setValue] = createSignal("")')
-    expect(input).toContain("<DitherInput modelValue={value()} onUpdateModelValue={setValue} />")
+    expect(input).toContain("<DitherInput modelValue={value()} onUpdateModelValue={setValue} ")
     // a model on its own prop and event: an update carries the next value...
     const page = widgetCode(createComponent(componentEntry("DitherPagination")!), frame)
     expect(page).toContain("page={value()} onUpdatePage={setValue}")
@@ -442,12 +440,13 @@ describe("every frame the Studio can place", () => {
     expect(bad).toEqual([])
   }, 120_000)
 
-  it("mounts, handing each component only what its registry row names", () => {
+  it("mounts, handing each component only what its registry row binds", () => {
     const bad: string[] = []
     for (const e of COMPONENT_REGISTRY) {
       const out = run(widgetCode(createComponent(e), { w: 480, h: 320 }))
       const model = modelOf(e)
-      const known = new Set([...e.props.map((p) => p.key), "children", ...(model ? [model.prop, model.on] : [])])
+      const bound = Object.keys(boundProps(e.is, defaultComponentProps(e)))
+      const known = new Set([...bound, "children", ...(model ? [model.prop, model.on] : [])])
       const props = out.seen.find((s) => s.is === e.is)?.props
       if (!props) bad.push(`${e.is}: not rendered`)
       else
@@ -480,21 +479,22 @@ describe("every frame the Studio can place", () => {
 describe("the registry's model rows, for Solid", () => {
   it("names the prop and the callback of every model, from the shared table", () => {
     const rows = registrySchema().components
-    expect(rows.every((r) => !("vmodel" in r))).toBe(true)
     const row = (is: string) => rows.find((r) => r.is === is)!.model
     expect(row("DitherSlider")).toEqual({ default: 40, prop: "modelValue", on: "onUpdateModelValue" })
     expect(row("DitherPagination")).toEqual({ default: 4, prop: "page", on: "onUpdatePage" })
     expect(row("DitherDialog")).toEqual({ default: false, prop: "open", on: "onClose" })
     expect(row("DitherAlertDialog")).toEqual({ default: false, prop: "open", on: "onCancel" })
     expect(row("DitherBadge")).toBeNull()
+    // the state a demo keeps (the drawer a swipe opens) is not the component's
+    expect(row("DitherSwipeArea")).toBeNull()
     for (const e of COMPONENT_REGISTRY)
       expect(row(e.is), e.is).toEqual(
-        e.vmodel
+        e.model && !("demo" in e.model)
           ? {
-              default: e.vmodel.def,
-              prop: e.vmodel.prop ?? "modelValue",
+              default: e.model.def,
+              prop: e.model.prop ?? "modelValue",
               on:
-                { "update:page": "onUpdatePage", close: "onClose", cancel: "onCancel" }[e.vmodel.event ?? ""] ??
+                { "update:page": "onUpdatePage", close: "onClose", cancel: "onCancel" }[e.model.event ?? ""] ??
                 "onUpdateModelValue",
             }
           : null,

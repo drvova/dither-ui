@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/DitherSidebar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherSidebar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type Accessor, createContext, createMemo, type JSX, mergeProps, Show } from "solid-js"
-import type { PixelColor } from "dither-kit/engine/pixel.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import DitherGradient from "./DitherGradient"
 import * as stylex from "@stylexjs/stylex"
@@ -154,7 +154,9 @@ export default function DitherSidebar(raw: DitherSidebarProps) {
             />
           </Show>
           {props.header}
-          <nav {...stylex.props(styles.nav)}>{props.children}</nav>
+          <nav aria-label={props.label} {...stylex.props(styles.nav)}>
+            {props.children}
+          </nav>
           {props.footer}
           <Show when={props.collapse === "rail" && props.toggle}>
             <button

@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/ListBox.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/ListBox.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, createUniqueId, For, mergeProps } from "solid-js"
 import { cn, type StyleProp } from "./lib"
@@ -56,6 +56,9 @@ export type ListBoxProps = {
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
   onSelect?: (value: string) => void
+  /** The list's accessible name (passed on to the listbox). */
+  "aria-label"?: string
+  "aria-labelledby"?: string
 }
 
 /** Single-select listbox with roving focus (the WAI-ARIA keyboard contract):
@@ -107,6 +110,8 @@ export default function ListBox(raw: ListBoxProps) {
   return (
     <ul
       role="listbox"
+      aria-label={props["aria-label"]}
+      aria-labelledby={props["aria-labelledby"]}
       aria-activedescendant={describedBy()}
       aria-disabled={props.disabled || undefined}
       tabindex={props.disabled ? -1 : 0}

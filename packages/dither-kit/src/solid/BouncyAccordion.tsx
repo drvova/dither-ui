@@ -85,10 +85,6 @@ export default function BouncyAccordion(raw: BouncyAccordionProps) {
       }
       springHeight(el, open ? el.scrollHeight : 0, open)
     }
-    props.items.forEach((item, i) => {
-      const el = panels[i]
-      if (el) el.style.height = isOpen(item.value) ? "auto" : "0px"
-    })
     createEffect(
       on(
         () => props.modelValue,
@@ -142,7 +138,11 @@ export default function BouncyAccordion(raw: BouncyAccordionProps) {
             </button>
             <div
               id={`${id}-${i()}`}
-              ref={(el) => (panels[i()] = el)}
+              ref={(el) => {
+                // A panel stands as its item is, however late it was made.
+                panels[i()] = el
+                el.style.height = isOpen(item.value) ? "auto" : "0px"
+              }}
               inert={!isOpen(item.value)}
               class="overflow-hidden"
             >

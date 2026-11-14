@@ -1,8 +1,9 @@
 // The workbench's preferences, one set for every preview (localStorage
-// `dither-workbench-settings`). Colours are the theme's swatch tokens, so
+// `STORAGE_KEYS.workbenchSettings`). Colours are the theme's swatch tokens, so
 // the overlay follows the theme and stays legible in both.
 import { COLOR_FORMATS, type ColorFormat } from "@/shared/lib/inspect/color"
 import { readJson, writeJson } from "@/shared/lib/storage"
+import { STORAGE_KEYS } from "@/shared/config/storage"
 
 export const SWATCHES = ["orange", "purple", "pink", "green", "blue", "grey"] as const
 export type Swatch = (typeof SWATCHES)[number]
@@ -55,8 +56,6 @@ export const DEFAULT_SETTINGS: Settings = {
   tray: "bottom",
 }
 
-const KEY = "dither-workbench-settings"
-
 export function normalizeSettings(raw: unknown): Settings {
   const s = { ...DEFAULT_SETTINGS }
   if (typeof raw !== "object" || raw === null) return s
@@ -84,6 +83,6 @@ export function normalizeSettings(raw: unknown): Settings {
   }
 }
 
-export const loadSettings = (): Settings => normalizeSettings(readJson(KEY))
+export const loadSettings = (): Settings => normalizeSettings(readJson(STORAGE_KEYS.workbenchSettings))
 
-export const saveSettings = (s: Settings): void => writeJson(KEY, s)
+export const saveSettings = (s: Settings): void => writeJson(STORAGE_KEYS.workbenchSettings, s)

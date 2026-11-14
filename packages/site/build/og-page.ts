@@ -8,6 +8,7 @@ import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { build } from "vite"
 import { ALIASES } from "./aliases.ts"
+import { siteFacts } from "./facts.ts"
 
 const SHELL = fileURLToPath(new URL("./og-shell.html", import.meta.url))
 const SCRIPT = fileURLToPath(new URL("../src/pages/docs/og-page.ts", import.meta.url))
@@ -35,6 +36,8 @@ export async function buildOgPage(out: string): Promise<void> {
     base: "./",
     publicDir: false,
     logLevel: "warn",
+    // the route cards state the kit's counts
+    plugins: [siteFacts()],
     resolve: { alias: ALIASES },
     build: { outDir: dir, emptyOutDir: false, assetsDir: "assets", rollupOptions: { input: SCRIPT } },
   })

@@ -5,20 +5,28 @@
 import { type RouteDefinition, useParams } from "@solidjs/router"
 import { createMemo } from "solid-js"
 import { SECTION_IDS } from "@/pages/docs/pages"
-import { DocsPage, preloadOpenPacks } from "@/pages/docs"
-import Missing from "../[...404]"
+import DocsPage from "@/pages/docs/DocsPage"
+import { lazyPart } from "@/shared/lib/lazy-part"
 
-// The section's pack is asked for with its route, ahead of the page.
+// The missing page, its own chunk: a section's page never carries it (nor
+// its stylesheets, which held up every section's first paint). A static
+// host serves `404.html` for an unknown section, whose head loads that
+// chunk ahead, and the app renders it anew there (that file was rendered at
+// its own address). A server renders it in place.
+const Missing = lazyPart(() => import("../[...404]"))
+if (import.meta.env.SSR) await Missing.preload()
+
+// The section's pack is asked for with its route, ahead of the page. The
+// route's preload ships in every page's entry, so the docs' pack table is
+// fetched by it, never carried into the landing's or the Studio's first load.
 export const route = {
-  preload: ({ params }) => void preloadOpenPacks(params.section ?? ""),
+  preload: ({ params }) =>
+    void import("@/pages/docs/pack-loaders").then((packs) => packs.preloadOpenPacks(params.section ?? "")),
 } satisfies RouteDefinition
 
 export default function DocsSection() {
   const params = useParams()
   const known = createMemo(() => SECTION_IDS.includes(params.section ?? ""))
-  // Called, not mounted as a component: the missing page then hydrates over
-  // the bytes a static host serves for this address (`404.html`, rendered
-  // as that route's own component).
-  const page = createMemo(() => (known() ? <DocsPage section={params.section ?? ""} /> : Missing()))
+  const page = createMemo(() => (known() ? <DocsPage section={params.section ?? ""} /> : <Missing />))
   return <>{page()}</>
 }

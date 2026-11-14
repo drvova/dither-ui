@@ -2,8 +2,8 @@ import { createMemo, createSignal, For, type JSX, Show } from "solid-js"
 import type { Artboard } from "@/entities/artboard"
 import { type Layer, layersOf } from "@/entities/chart"
 import { componentEntry } from "@/entities/widget"
-import { cssColor } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { cssColor } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import {
   deleteGroup,
   deleteSeries,

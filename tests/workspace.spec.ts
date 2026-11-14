@@ -1,6 +1,8 @@
 // The workspace, held by construction: `packages/` is a set of packages
 // whose dependencies point one way. Each has its own manifest, an AGENTS.md
-// that owns it and a `src/`; each imports another only by its name, only
+// that owns it and a `src/`; each is named under the workspace's scope and
+// taken from its folder, so no name here is one the registry can answer
+// with a stranger's package; each imports another only by its name, only
 // what that package's `exports` declare, only if its own manifest declares
 // the dependency, and only down the order below. A module that needs
 // something above it is in the wrong package.
@@ -13,40 +15,64 @@ import ts from "typescript"
 const ROOT = join(import.meta.dirname, "..")
 const PACKAGES = join(ROOT, "packages")
 
+/** The scope every package here is named under. The bare names (`tasks`,
+ * `site`, `bridge`, `dither-kit`) are other people's on the registry. */
+const SCOPE = "@dither-ui/"
+
+/** Every package by its name: its folder in `packages/`. */
+const FOLDER: Record<string, string> = {
+  "@dither-ui/kit": "dither-kit",
+  "@dither-ui/restyle": "restyle",
+  "@dither-ui/kit-stylex": "dither-kit-stylex",
+  "@dither-ui/tasks": "tasks",
+  "@dither-ui/bridge": "bridge",
+  "@dither-ui/discord": "discord",
+  "@dither-ui/site": "site",
+}
+
 /** Every package, and the packages it may depend on. The kit depends on
  * none; the bridge and the Discord service stand alone; the StyleX twin
- * takes `restyle` for the spec that generates it, never in its source. */
+ * takes the rewriter for the spec that generates it, never in its source. */
 const MAY_USE: Record<string, readonly string[]> = {
-  "dither-kit": [],
-  restyle: ["dither-kit"],
-  "dither-kit-stylex": ["dither-kit", "restyle"],
-  tasks: ["dither-kit"],
-  bridge: [],
-  discord: [],
-  site: ["dither-kit", "dither-kit-stylex", "restyle", "tasks", "bridge"],
+  "@dither-ui/kit": [],
+  "@dither-ui/restyle": ["@dither-ui/kit"],
+  "@dither-ui/kit-stylex": ["@dither-ui/kit", "@dither-ui/restyle"],
+  "@dither-ui/tasks": ["@dither-ui/kit"],
+  "@dither-ui/bridge": [],
+  "@dither-ui/discord": [],
+  "@dither-ui/site": [
+    "@dither-ui/kit",
+    "@dither-ui/kit-stylex",
+    "@dither-ui/restyle",
+    "@dither-ui/tasks",
+    "@dither-ui/bridge",
+  ],
 }
 const NAMES = Object.keys(MAY_USE)
+const dirOf = (name: string) => join(PACKAGES, FOLDER[name])
 
 /** The one package a reader installs or copies: every other is private. */
-const PUBLIC = "dither-kit"
+const PUBLIC = "@dither-ui/kit"
 
 /** Modules a build supplies rather than a package (`restyle`'s utility map). */
 const VIRTUAL = new Set(["virtual-dither-utilities"])
 
 /** The site's alias for its own `src/`: no other package has one. */
-const OWN_SOURCE = { package: "site", prefix: "@/" }
+const OWN_SOURCE = { package: "@dither-ui/site", prefix: "@/" }
 
 type Manifest = {
   name: string
   private?: boolean
   type?: string
   exports?: Record<string, string>
+  /** What the package's own `#` specifiers name (Node's subpath imports). */
+  imports?: Record<string, string>
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
   peerDependencies?: Record<string, string>
 }
 const manifest = (dir: string) => JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as Manifest
-const MANIFESTS = Object.fromEntries(NAMES.map((n) => [n, manifest(join(PACKAGES, n))]))
+const MANIFESTS = Object.fromEntries(NAMES.map((n) => [n, manifest(dirOf(n))]))
 const WORKSPACE = manifest(ROOT)
 
 const SKIP = new Set(["node_modules", "public"])
@@ -72,7 +98,7 @@ const importsOf = (text: string) => [
 
 /** Every import of every package: where it is written and what it names. */
 const IMPORTS = NAMES.flatMap((pkg) =>
-  walk(join(PACKAGES, pkg)).flatMap((file) =>
+  walk(dirOf(pkg)).flatMap((file) =>
     importsOf(readFileSync(file, "utf8")).map((spec) => ({ pkg, file, spec, at: relative(ROOT, file) })),
   ),
 )
@@ -89,33 +115,34 @@ const isBare = (spec: string) => !spec.startsWith(".") && !spec.startsWith("/") 
  * exact key, else the pattern with the longest prefix. */
 function exported(pkg: string, subpath: string): string | null {
   const table = MANIFESTS[pkg].exports ?? {}
-  if (table[subpath]) return join(PACKAGES, pkg, table[subpath])
+  if (table[subpath]) return join(dirOf(pkg), table[subpath])
   const patterns = Object.keys(table)
     .filter((k) => k.includes("*") && subpath.startsWith(k.split("*")[0]) && subpath.endsWith(k.split("*")[1]))
     .sort((a, b) => b.indexOf("*") - a.indexOf("*"))
   if (!patterns.length) return null
   const [before, after] = patterns[0].split("*")
   const star = subpath.slice(before.length, subpath.length - after.length)
-  return join(PACKAGES, pkg, table[patterns[0]].replace("*", star))
+  return join(dirOf(pkg), table[patterns[0]].replace("*", star))
 }
 
 /** Whether a file is the package's source: what ships, as against its
  * specs, benches and build tooling, which may use its devDependencies. */
-const isSource = (pkg: string, file: string) => file.startsWith(join(PACKAGES, pkg, "src") + "/")
+const isSource = (pkg: string, file: string) => file.startsWith(join(dirOf(pkg), "src") + "/")
 
 describe("the workspace", () => {
   it("is exactly the packages the order names", () => {
     const folders = readdirSync(PACKAGES, { withFileTypes: true })
       .filter((e) => e.isDirectory())
       .map((e) => e.name)
-    expect(folders.sort()).toEqual([...NAMES].sort())
+    expect(folders.sort()).toEqual(Object.values(FOLDER).sort())
+    expect(Object.keys(FOLDER).sort()).toEqual([...NAMES].sort())
     expect(WORKSPACE.private).toBe(true)
     expect((WORKSPACE as unknown as { workspaces: string[] }).workspaces).toEqual(["packages/*"])
   })
 
   it("gives every package its manifest, its source, its one entry and a doc that owns it", () => {
     for (const name of NAMES) {
-      const dir = join(PACKAGES, name)
+      const dir = dirOf(name)
       const pkg = MANIFESTS[name]
       expect(pkg.name, name).toBe(name)
       expect(pkg.type, name).toBe("module")
@@ -124,7 +151,36 @@ describe("the workspace", () => {
       expect(existsSync(join(dir, "AGENTS.md")), `${name}/AGENTS.md`).toBe(true)
       for (const [subpath, target] of Object.entries(pkg.exports ?? {}))
         if (!target.includes("*")) expect(existsSync(join(dir, target)), `${name} exports ${subpath}`).toBe(true)
+      for (const [spec, target] of Object.entries(pkg.imports ?? {}))
+        expect(existsSync(join(dir, target)), `${name} imports ${spec}`).toBe(true)
     }
+  })
+
+  it("names every package under its scope, and takes each from its folder, never from the registry", () => {
+    for (const name of NAMES) {
+      const pkg = MANIFESTS[name]
+      expect(pkg.name.startsWith(SCOPE) && pkg.name.length > SCOPE.length, `${pkg.name} is named under ${SCOPE}`).toBe(
+        true,
+      )
+      for (const deps of [pkg.dependencies, pkg.devDependencies, pkg.peerDependencies])
+        for (const [dep, range] of Object.entries(deps ?? {}))
+          if (dep in FOLDER) expect(range, `${name} takes ${dep}`).toBe(`file:../${FOLDER[dep]}`)
+    }
+    // The lockfile agrees: each is a link to its folder, with no registry address.
+    const lock = JSON.parse(readFileSync(join(ROOT, "package-lock.json"), "utf8")) as {
+      packages: Record<string, { name?: string; resolved?: string; link?: boolean }>
+    }
+    for (const name of NAMES) {
+      expect(lock.packages[`node_modules/${name}`], name).toEqual({ resolved: `packages/${FOLDER[name]}`, link: true })
+      expect(lock.packages[`packages/${FOLDER[name]}`]?.name, name).toBe(name)
+    }
+    // and no unscoped name of ours is left for the registry to answer
+    const bare = new Set(NAMES.flatMap((n) => [n.slice(SCOPE.length), FOLDER[n]]))
+    expect(Object.keys(lock.packages).filter((k) => bare.has(k.replace(/^.*node_modules\//, "")))).toEqual([])
+    const every = [WORKSPACE, ...Object.values(MANIFESTS)].flatMap((m) =>
+      [m.dependencies, m.devDependencies, m.peerDependencies].flatMap((d) => Object.keys(d ?? {})),
+    )
+    expect(every.filter((n) => bare.has(n))).toEqual([])
   })
 
   it("orders its packages one way: no package depends on one that reaches it", () => {
@@ -161,8 +217,7 @@ describe("an import between packages", () => {
 
   it("never leaves its package by a relative path", () => {
     const out = IMPORTS.filter(
-      (i) =>
-        i.spec.startsWith(".") && relative(join(PACKAGES, i.pkg), resolve(dirname(i.file), i.spec)).startsWith(".."),
+      (i) => i.spec.startsWith(".") && relative(dirOf(i.pkg), resolve(dirname(i.file), i.spec)).startsWith(".."),
     )
     expect(out.map((i) => `${i.at}: ${i.spec}`)).toEqual([])
   })
@@ -210,6 +265,7 @@ describe("an import between packages", () => {
       if (i.spec.startsWith("node:") || builtinModules.includes(to)) continue
       if (i.pkg === OWN_SOURCE.package && i.spec.startsWith(OWN_SOURCE.prefix)) continue
       const pkg = MANIFESTS[i.pkg]
+      if (i.spec.startsWith("#") && pkg.imports?.[i.spec]) continue
       const declared = { ...pkg.dependencies, ...pkg.peerDependencies, ...pkg.devDependencies, ...tools }
       if (!(to in declared)) undeclared.add(`${i.pkg}: ${to}`)
     }
@@ -217,7 +273,8 @@ describe("an import between packages", () => {
   })
 })
 
-// The kit and the site were Vue's before they were Solid's.
+// The kit is SolidJS only, and so is every snippet the docs write
+// (`packages/site/tests/site/source.spec.tsx` holds them to it).
 describe("no Vue", () => {
   it("is imported by any package, anywhere", () => {
     const offenders = IMPORTS.filter(

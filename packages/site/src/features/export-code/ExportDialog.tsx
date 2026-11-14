@@ -1,5 +1,5 @@
-import { copyText, DitherFocusScope, DitherIcon } from "dither-kit"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
+import { copyText, DitherFocusScope, DitherIcon } from "@dither-ui/kit"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
 import { createEffect, createMemo, createSignal, on, onCleanup } from "solid-js"
 import type { Artboard } from "@/entities/artboard"
 import { download } from "@/shared/lib/files"

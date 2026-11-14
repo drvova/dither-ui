@@ -1,10 +1,10 @@
-// Generated from dither-kit/solid/DitherAvatar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherAvatar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, type JSX, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
-import { directedTime, isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import { cellCanvas } from "dither-kit/engine/raster.ts"
-import { type AvatarPattern, clampGrid, normalizePattern, seededPattern } from "dither-kit/engine/avatar-pattern.ts"
-import { kitFromSeed } from "dither-kit/engine/dither-paint.ts"
+import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import { cellCanvas } from "@dither-ui/kit/engine/raster.ts"
+import { type AvatarPattern, clampGrid, normalizePattern, seededPattern } from "@dither-ui/kit/engine/avatar-pattern.ts"
+import { kitFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
 import {
   clamp01,
   fillOf,
@@ -13,9 +13,9 @@ import {
   type PixelColor,
   pixelBloomStyle,
   pixelPrefersReducedMotion,
-} from "dither-kit/engine/pixel.ts"
+} from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

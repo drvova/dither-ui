@@ -1,4 +1,4 @@
-import { For, mergeProps, onMount, Show } from "solid-js"
+import { createEffect, For, mergeProps, onMount, Show } from "solid-js"
 import { BAYER4, fillOf, type PixelColor } from "../engine/pixel"
 import { cellCanvas } from "../engine/raster"
 import { cn } from "../tailwind/lib"
@@ -37,52 +37,53 @@ export type DitherTimelineProps = {
 export default function DitherTimeline(raw: DitherTimelineProps) {
   const props = mergeProps({ dotSize: 12 }, raw)
 
-  const dots: HTMLCanvasElement[] = []
-
-  onMount(() => {
-    const cells = Math.max(4, Math.round(props.dotSize / CELL))
-    dots.forEach((canvas, i) => {
-      const ctx = canvas.getContext("2d", { willReadFrequently: true })
-      if (!ctx) return
-      canvas.width = cells
-      canvas.height = cells
-      paintDot(ctx, cells, props.items[i]?.color ?? "blue")
-    })
-  })
-
   return (
     <ol class={cn("relative flex flex-col", props.class)}>
       <For each={props.items}>
-        {(it, i) => (
-          <li class="relative flex gap-3 pb-5 last:pb-0">
-            {/* rail: dot + connecting line down to the next item */}
-            <div class="relative flex flex-col items-center">
-              <canvas
-                ref={(el) => (dots[i()] = el)}
-                aria-hidden="true"
-                style={{
-                  width: `${props.dotSize}px`,
-                  height: `${props.dotSize}px`,
-                  "image-rendering": "pixelated",
-                }}
-              />
-              <Show when={i() < props.items.length - 1}>
-                <span aria-hidden="true" class="mt-1 w-px flex-1 bg-border" />
-              </Show>
-            </div>
-            <div class="flex-1 pt-px">
-              <div class="flex items-baseline justify-between gap-2">
-                <p class="text-[13px] text-foreground">{it.title}</p>
-                <Show when={it.time}>
-                  <span class="shrink-0 text-[11px] tabular-nums text-muted-foreground">{it.time}</span>
+        {(it, i) => {
+          let dot: HTMLCanvasElement | undefined
+          // Each dot prints as its item and the size are now.
+          onMount(() =>
+            createEffect(() => {
+              const ctx = dot?.getContext("2d", { willReadFrequently: true })
+              if (!dot || !ctx) return
+              const cells = Math.max(4, Math.round(props.dotSize / CELL))
+              dot.width = cells
+              dot.height = cells
+              paintDot(ctx, cells, it.color ?? "blue")
+            }),
+          )
+          return (
+            <li class="relative flex gap-3 pb-5 last:pb-0">
+              {/* rail: dot + connecting line down to the next item */}
+              <div class="relative flex flex-col items-center">
+                <canvas
+                  ref={(el) => (dot = el)}
+                  aria-hidden="true"
+                  style={{
+                    width: `${props.dotSize}px`,
+                    height: `${props.dotSize}px`,
+                    "image-rendering": "pixelated",
+                  }}
+                />
+                <Show when={i() < props.items.length - 1}>
+                  <span aria-hidden="true" class="mt-1 w-px flex-1 bg-border" />
                 </Show>
               </div>
-              <Show when={it.body}>
-                <p class="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">{it.body}</p>
-              </Show>
-            </div>
-          </li>
-        )}
+              <div class="flex-1 pt-px">
+                <div class="flex items-baseline justify-between gap-2">
+                  <p class="text-[13px] text-foreground">{it.title}</p>
+                  <Show when={it.time}>
+                    <span class="shrink-0 text-[11px] tabular-nums text-muted-foreground">{it.time}</span>
+                  </Show>
+                </div>
+                <Show when={it.body}>
+                  <p class="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">{it.body}</p>
+                </Show>
+              </div>
+            </li>
+          )
+        }}
       </For>
     </ol>
   )

@@ -1,1 +1,1 @@
-export { artboardPng, exportArtboardPng, surfaceOf } from "./exportPng"
+export { exportArtboardPng } from "./exportPng"

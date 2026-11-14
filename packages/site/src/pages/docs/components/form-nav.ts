@@ -3,4 +3,4 @@ export const FORM_NAV = [
   { id: "checkbox", label: "Checkbox" },
   { id: "slider", label: "Slider" },
   { id: "progress", label: "Progress" },
-]
+] as const

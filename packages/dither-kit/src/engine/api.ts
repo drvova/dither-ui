@@ -1,6 +1,6 @@
 // The engine's public API: every framework-free name the kit hands a
 // consumer. A layer's `index.ts` (`solid/`, and its generated StyleX twin,
-// the `dither-kit-stylex` package) re-exports this whole file and adds its
+// the `@dither-ui/kit-stylex` package) re-exports this whole file and adds its
 // own components, so neither lists the engine twice.
 
 export type { DitherRenderMode, PrecompiledDither } from "./precompile"
@@ -15,7 +15,7 @@ export {
 } from "./precompile"
 export type { ButtonRasterOptions, GradientRasterOptions } from "./precompile"
 export { createRasterBuffer, putRasterBuffer, setRasterPixel32, setOrBlendRasterPixel } from "./raster"
-export { SCREENS, SCREEN_KINDS, screenMatrix, type ScreenKind } from "./pixel"
+export { clamp, clamp01, SCREENS, SCREEN_KINDS, screenMatrix, type ScreenKind } from "./pixel"
 export type { RasterBuffer } from "./raster"
 export {
   compileTrack,
@@ -40,6 +40,7 @@ export {
   type Terms,
 } from "./keyframes"
 export { project, rubberband } from "./gesture"
+export { inView } from "./place"
 export type {
   BloomBlend,
   BloomConfig,
@@ -72,7 +73,19 @@ export {
 export { cubicBezier, EASINGS, resolveEasing } from "./dither-paint"
 export type { DotVariant } from "./dot-paint"
 export type { DitherColor } from "./palette"
-export { colorToHex, cssColor, hexToHsv, hsvToHex, rgbToHex, seedFromColor, seedFromHue } from "./palette"
+export {
+  colorToHex,
+  contrast,
+  cssColor,
+  hexToHsv,
+  hsvToHex,
+  luminance,
+  rgbToHex,
+  seedFromColor,
+  seedFromHue,
+  toGamma,
+  toLinear,
+} from "./palette"
 export type { PixelBloom, PixelBloomConfig, PixelBloomInput, PixelColor } from "./pixel"
 export type { StackType } from "./scales"
 export {
@@ -85,6 +98,7 @@ export {
 } from "./avatar-pattern"
 export { wrapMaterial } from "./shader"
 export { copyText } from "./copy-text"
+export { isTab } from "./keys"
 export {
   applyTheme,
   THEME_TOKENS,

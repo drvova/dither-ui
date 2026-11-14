@@ -15,7 +15,7 @@ import {
   onMount,
   splitProps,
 } from "solid-js"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { type CarInk, DRIVEN_H, DRIVEN_TOP, DRIVEN_W, drivenCells, toRuns, WHEEL_STEPS } from "@/shared/ui/car"
 import "./MascotCar.css"
 

@@ -1,7 +1,7 @@
 // The close's heat worker's side (`heat-offload.ts` is the page's): what
 // the page asks for and how the worker answers. Its own module so the worker
 // never imports the module that spawns it (a cycle the bundler warned of).
-import type { Rgb } from "dither-kit/engine/palette.ts"
+import type { Rgb } from "@dither-ui/kit/engine/palette.ts"
 import { CLOSE, paintHeat } from "./heat"
 
 /** What the page asks the worker for: the close at `time`, painted into

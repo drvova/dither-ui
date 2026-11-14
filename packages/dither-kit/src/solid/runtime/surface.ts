@@ -15,15 +15,22 @@ export type DitherBackgroundOptions = Omit<SurfaceLoopOptions, "defer"> & {
 }
 
 export function createDitherBackground(opts: DitherBackgroundOptions): DitherSurface {
-  // A frame the surface holds (static mode, reduced motion, paused) is
-  // printed from what `render` read: those reads are tracked as it paints,
-  // and the first of them to change paints the same moment again. A running
-  // loop reads them afresh every frame and tracks nothing.
+  // A frame the surface holds (static mode, reduced motion, paused, a
+  // moment the kit clock directs) is printed from what `render` read: those
+  // reads are tracked as it paints, and the first of them to change paints
+  // the same moment again. A loop running free reads them afresh every
+  // frame and tracks nothing.
   const reprint = createReaction(() => loop.repaint())
   const loop = createSurfaceLoop({
     ...opts,
     render: (buffer, clock, dt, elapsed) =>
-      loop.holds() ? reprint(() => opts.render(buffer, clock, dt, elapsed)) : opts.render(buffer, clock, dt, elapsed),
+      loop.holds()
+        ? reprint(() => {
+            // A directed moment's clock is scaled by it: one of the print's reads.
+            opts.timeScale?.()
+            opts.render(buffer, clock, dt, elapsed)
+          })
+        : opts.render(buffer, clock, dt, elapsed),
   })
   // The loop hears of a pause only when the answer changes, not each time
   // something the answer reads does.

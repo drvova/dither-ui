@@ -87,45 +87,40 @@ export default function DitherProgress(raw: DitherProgressProps) {
   // every frame, so a frame whose band has not moved is not painted again.
   let shown: number | null | undefined
 
-  function paint(band: number | null) {
+  function paint(at: number | null) {
     const canvas = canvasRef
     const ctx = canvas?.getContext("2d", { willReadFrequently: true })
     if (!canvas || !ctx || cols <= 0) return
-    paintProgress(ctx, cols, rows, fillOf(color()), fillOf("grey"), clamp01(props.value / 100), band, matrix())
-    shown = band
+    paintProgress(ctx, cols, rows, fillOf(color()), fillOf("grey"), clamp01(props.value / 100), at, matrix())
+    shown = at
   }
 
-  function repaint() {
-    shown = undefined
-    if (props.indeterminate && !raf) {
-      // Reduced motion: a static 40% band, no animation loop.
-      const bandW = Math.max(2, Math.round(cols * 0.4))
-      paint(Math.round((cols - bandW) / 2))
-    } else if (!props.indeterminate) {
-      paint(null)
-    }
-  }
-
-  /** The indeterminate band's column at a moment (one step per 50ms). */
-  function bandAt(ms: number): number {
+  /** The band's column now: none when determinate, a still 40% band under
+   * reduced motion, else where the moment puts it (one step per 50ms), the
+   * directed one or the wall clock's. */
+  function band(): number | null {
+    if (!props.indeterminate) return null
     const bandW = Math.max(2, Math.round(cols * 0.4))
-    return (Math.floor(ms / 50) % (cols + bandW)) - bandW
+    if (pixelPrefersReducedMotion()) return Math.round((cols - bandW) / 2)
+    return (Math.floor((directedTime() ?? performance.now()) / 50) % (cols + bandW)) - bandW
   }
+
+  const repaint = () => paint(band())
 
   function tick() {
     if (!isVisible() || isDirected()) {
       raf = 0
       return // off-screen or directed: no loop
     }
-    const band = bandAt(performance.now())
-    if (band !== shown) paint(band)
+    const now = band()
+    if (now !== shown) paint(now)
     raf = requestAnimationFrame(tick)
   }
 
   function syncLoop() {
     const animate = props.indeterminate && !pixelPrefersReducedMotion()
     if (animate && isDirected()) {
-      paint(bandAt(directedTime() ?? 0))
+      repaint()
       return
     }
     if (animate && !raf) raf = requestAnimationFrame(tick)
@@ -157,7 +152,7 @@ export default function DitherProgress(raw: DitherProgressProps) {
       }
       if (raf) cancelAnimationFrame(raf)
       raf = 0
-      paint(bandAt(ms))
+      repaint()
     })
     requestAnimationFrame(() => {
       resize()

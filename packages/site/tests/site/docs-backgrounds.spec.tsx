@@ -5,11 +5,11 @@
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { BACKGROUNDS_NAV } from "@/pages/docs/backgrounds/backgrounds-nav"
-import { SCREEN_KINDS } from "dither-kit"
+import { SCREEN_KINDS } from "@dither-ui/kit"
 import BackgroundsDocs from "../../src/pages/docs/backgrounds/BackgroundsDocs"
 import PosterSection from "../../src/pages/docs/backgrounds/PosterSection"
 import ScreensSection from "../../src/pages/docs/utils/ScreensSection"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 let w: ReturnType<typeof world>
 beforeEach(() => {
@@ -148,7 +148,7 @@ describe("PosterSection", () => {
     fireEvent.click(kinds.find((b) => b.textContent?.trim() === "dot")!)
     expect(pressed(section)).toEqual(["dot"])
     expect(kinds.find((b) => b.textContent?.trim() === "dot")!.className).toBe(
-      "rounded border px-2 py-1 text-[11px] border-accent bg-accent/80 text-accent-foreground",
+      "rounded border px-2 py-1 text-[11px] border-accent bg-accent text-accent-foreground",
     )
     expect(kinds[0].className).toBe(
       "rounded border px-2 py-1 text-[11px] border-border/60 text-muted-foreground hover:bg-accent/40",

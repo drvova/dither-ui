@@ -1,4 +1,5 @@
 import { type JSX, mergeProps, onCleanup, onMount, splitProps } from "solid-js"
+import { FOCUSABLE, isTab } from "../engine/keys"
 import { cn } from "../tailwind/lib"
 
 type Own = {
@@ -9,9 +10,6 @@ type Own = {
 }
 
 export type FocusScopeProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 /** Rendered, so focus can land on it: neither it nor an ancestor inside the
  * scope is `display: none`, and it is not `visibility: hidden`. A control
@@ -45,7 +43,7 @@ export default function FocusScope(raw: FocusScopeProps) {
   }
 
   function onKeyDown(event: KeyboardEvent) {
-    if (!props.trapped || event.key !== "Tab" || !root) return
+    if (!props.trapped || !isTab(event) || !root) return
     const items = focusables()
     if (items.length === 0) return
     const first = items[0]

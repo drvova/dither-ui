@@ -5,22 +5,22 @@ import { readJson, writeJson } from "@/shared/lib/storage"
 import { Inspector } from "@/widgets/inspector"
 import { LayerTree } from "@/widgets/layer-tree"
 import "./StudioPanel.css"
+import { STORAGE_KEYS } from "@/shared/config/storage"
 
 type Tab = "properties" | "layers"
 const TABS: { id: Tab; label: string }[] = [
   { id: "properties", label: "Properties" },
   { id: "layers", label: "Layers" },
 ]
-const KEY = "dither-studio-panel-tab"
 
 export default function StudioPanel() {
   // A server render knows no choice: the kept one comes back as it mounts.
   const [tab, setTab] = createSignal<Tab>("properties")
-  onMount(() => setTab(readJson(KEY) === "layers" ? "layers" : "properties"))
+  onMount(() => setTab(readJson(STORAGE_KEYS.panelTab) === "layers" ? "layers" : "properties"))
   function pick(t: Tab) {
     if (t === tab()) return
     setTab(t)
-    writeJson(KEY, t)
+    writeJson(STORAGE_KEYS.panelTab, t)
   }
 
   function onKey(e: KeyboardEvent) {

@@ -1,22 +1,22 @@
 // The Solid kit's StyleX layer at run time: generated components
-// (the `dither-kit-stylex` package) on the docs' StyleX runtime (the work an
+// (the `@dither-ui/kit-stylex` package) on the docs' StyleX runtime (the work an
 // app's StyleX compiler does, done in the page), so the generated JSX, the
 // layer's `cn` and a consumer's styles all run.
 import { cleanup, render } from "@solidjs/testing-library"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import * as stylex from "@/widgets/source/model/stylex"
-import CheckboxCard from "dither-kit-stylex/CheckboxCard.tsx"
-import DitherCollapsible from "dither-kit-stylex/DitherCollapsible.tsx"
-import DitherGauge from "dither-kit-stylex/DitherGauge.tsx"
-import DitherInput from "dither-kit-stylex/DitherInput.tsx"
-import DitherSidebarItem from "dither-kit-stylex/DitherSidebarItem.tsx"
-import DitherSidebarSub from "dither-kit-stylex/DitherSidebarSub.tsx"
-import Heading from "dither-kit-stylex/Heading.tsx"
-import * as layer from "dither-kit-stylex"
-import Spacer from "dither-kit-stylex/Spacer.tsx"
-import Text from "dither-kit-stylex/Text.tsx"
-import * as solid from "dither-kit"
-import { world } from "dither-kit/testing/world.ts"
+import CheckboxCard from "@dither-ui/kit-stylex/CheckboxCard.tsx"
+import DitherCollapsible from "@dither-ui/kit-stylex/DitherCollapsible.tsx"
+import DitherGauge from "@dither-ui/kit-stylex/DitherGauge.tsx"
+import DitherInput from "@dither-ui/kit-stylex/DitherInput.tsx"
+import DitherSidebarItem from "@dither-ui/kit-stylex/DitherSidebarItem.tsx"
+import DitherSidebarSub from "@dither-ui/kit-stylex/DitherSidebarSub.tsx"
+import Heading from "@dither-ui/kit-stylex/Heading.tsx"
+import * as layer from "@dither-ui/kit-stylex"
+import Spacer from "@dither-ui/kit-stylex/Spacer.tsx"
+import Text from "@dither-ui/kit-stylex/Text.tsx"
+import * as solid from "@dither-ui/kit"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 vi.mock("@stylexjs/stylex", async () => await import("@/widgets/source/model/stylex"))
 

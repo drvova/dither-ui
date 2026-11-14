@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/DitherNavMenu.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherNavMenu.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createSignal, For, mergeProps, on, onCleanup, onMount } from "solid-js"
-import { BAYER4, fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
-import { cellCanvas } from "dither-kit/engine/raster.ts"
+import { BAYER4, fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import { cellCanvas } from "@dither-ui/kit/engine/raster.ts"
 import { cn } from "./lib"
 
 import * as stylex from "@stylexjs/stylex"
@@ -68,11 +68,13 @@ export type DitherNavMenuProps = {
   items: NavMenuItem[]
   modelValue: string
   color?: PixelColor
+  /** Its name as a landmark, apart from the page's other navigation. */
+  label?: string
   onUpdateModelValue?: (value: string) => void
 }
 
 export default function DitherNavMenu(raw: DitherNavMenuProps) {
-  const props = mergeProps({ color: "blue" as PixelColor }, raw)
+  const props = mergeProps({ color: "blue" as PixelColor, label: "Sections" }, raw)
 
   let list: HTMLDivElement | undefined
   let canvas: HTMLCanvasElement | undefined
@@ -106,7 +108,7 @@ export default function DitherNavMenu(raw: DitherNavMenuProps) {
   onCleanup(() => ro?.disconnect())
 
   return (
-    <nav {...stylex.props(styles.nav)}>
+    <nav {...stylex.props(styles.nav)} aria-label={props.label}>
       <div ref={(el) => (list = el)} {...stylex.props(styles.row)}>
         <For each={props.items}>
           {(item, i) => (

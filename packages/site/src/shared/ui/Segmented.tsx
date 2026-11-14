@@ -1,5 +1,5 @@
 import { For, type JSX, Show, splitProps } from "solid-js"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { breakable } from "@/shared/lib/words"
 
 // `labels` names an option where its value is not how a reader writes it

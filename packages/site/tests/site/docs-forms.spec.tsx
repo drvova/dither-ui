@@ -1,5 +1,5 @@
 // The docs' forms, primitives, typography and text families, the Quick
-// start and the handbook's Engine and Verification sections on Solid: each
+// start and the handbook's Engine and Verification sections: each
 // family's sections in its nav's order under their headings, each preview
 // holding its demo once it nears the viewport, and what the demos and the
 // sections do under a hand.
@@ -20,7 +20,7 @@ import QuickStart from "../../src/pages/docs/overview/QuickStart"
 import PrimitivesDocs from "../../src/pages/docs/primitives/PrimitivesDocs"
 import TextDocs from "../../src/pages/docs/text/TextDocs"
 import TypographyDocs from "../../src/pages/docs/typography/TypographyDocs"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 let w: ReturnType<typeof world>
 beforeEach(() => {
@@ -196,7 +196,7 @@ describe("the primitives demos", () => {
   })
 
   it("lay out every glyph of the icon set under its name", async () => {
-    const { ICON_NAMES } = await import("dither-kit")
+    const { ICON_NAMES } = await import("@dither-ui/kit")
     const docs = await family(PrimitivesDocs)
     await docs.show()
     const section = docs.section("icon")
@@ -277,6 +277,7 @@ describe("the Quick start", () => {
 
 describe("the Engine section", () => {
   it("names each part once, with a figure and a link to a real section", () => {
+    // its own section, as the Handbook pack mounts it once opened
     const { container } = render(() => <EngineSection />)
     const section = container.querySelector("section#engine")!
     expect(section.querySelector("h2")!.textContent).toBe("Engine")

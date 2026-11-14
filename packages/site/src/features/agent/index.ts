@@ -3,20 +3,8 @@ import { evolveArtboard, type EvolveOptions } from "@/features/agent/evolve"
 
 export { evolveArtboard, mutateProps, type EvolveOptions } from "@/features/agent/evolve"
 export { addLaunchFilm } from "./film"
-export {
-  COMMAND_EVENT,
-  chartFromData,
-  type CommandResult,
-  installStudioAgentApi,
-  MIRROR_ID,
-  PROTOCOL_VERSION,
-  registrySchema,
-  RESULT_EVENT,
-  runCommand,
-  type StudioAgentApi,
-  type StudioCommand,
-  summarize,
-} from "./protocol"
+export { type CommandResult, PROTOCOL_VERSION, registrySchema, runCommand, type StudioCommand } from "./commands"
+export { COMMAND_EVENT, installStudioAgentApi, MIRROR_ID, RESULT_EVENT, type StudioAgentApi } from "./protocol"
 
 /** The toolbar's evolve: a generation of the primary selection, placed as a
  * row beside it and selected. */

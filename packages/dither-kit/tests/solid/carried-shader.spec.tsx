@@ -1,5 +1,4 @@
-// The shader's first costs, carried from the kit's earlier component specs
-// when they went: its program compiles in the background (asking how a
+// The shader's first costs: its program compiles in the background (asking how a
 // compile went waited on the GPU driver, the largest main-thread stall left
 // on the landing), and its context is made at idle as it nears the screen,
 // never as its first frame on screen.
@@ -100,5 +99,74 @@ describe("a shader nearing the screen", () => {
     expect(asked.filter((k) => k.startsWith("webgl"))).toEqual([])
     for (const cb of idle.splice(0)) cb()
     expect(asked.filter((k) => k.startsWith("webgl"))).toEqual(["webgl2", "webgl"])
+  })
+})
+
+describe("a shader's context", () => {
+  /** A shader on screen with its frames in hand; every context the fake. */
+  async function mounted() {
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(private callback: IntersectionObserverCallback) {}
+        observe() {
+          this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as never)
+        }
+        disconnect() {}
+      },
+    )
+    vi.stubGlobal("requestIdleCallback", () => 1)
+    vi.stubGlobal("cancelIdleCallback", () => {})
+    const frames = new Map<number, FrameRequestCallback>()
+    let id = 0
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => (frames.set(++id, cb), id))
+    vi.stubGlobal("cancelAnimationFrame", (n: number) => frames.delete(n))
+    const fake = fakeGl()
+    fake.finish()
+    const glCanvases: HTMLCanvasElement[] = []
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, kind: string) {
+      if (kind.startsWith("webgl")) return (glCanvases.push(this), fake.gl)
+      return {
+        canvas: this,
+        createImageData: (w: number, h: number) => ({ width: w, height: h, data: new Uint8ClampedArray(w * h * 4) }),
+        putImageData() {},
+      }
+    } as unknown as typeof HTMLCanvasElement.prototype.getContext
+    const view = render(() => <DitherShader source={SOURCE} />)
+    await Promise.resolve()
+    let at = 1
+    const run = async (n: number) => {
+      for (let f = 0; f < n; f++) {
+        const due = [...frames.values()]
+        frames.clear()
+        for (const cb of due) cb(at++ * 100)
+        await Promise.resolve()
+      }
+    }
+    await run(3)
+    return { fake, view, run, canvas: () => glCanvases[0]! }
+  }
+
+  it("is lost whole as the shader leaves, nothing deleted one by one", async () => {
+    const { fake, view } = await mounted()
+    expect(fake.state.programs).toBe(1)
+    const before = fake.state.deleted.length
+    view.unmount()
+    expect(fake.state.released).toBe(1)
+    expect(fake.state.deleted.slice(before)).toEqual([])
+  })
+
+  it("compiles again once the browser restores it", async () => {
+    const { fake, run, canvas } = await mounted()
+    const before = fake.state.deleted.length
+    fake.lose()
+    canvas().dispatchEvent(new Event("webglcontextlost", { cancelable: true }))
+    await run(2)
+    fake.restore()
+    canvas().dispatchEvent(new Event("webglcontextrestored"))
+    await run(3)
+    expect(fake.state.programs).toBe(2)
+    // the new program's shaders, let go once linked, and the reads it collects; nothing of the gone context
+    expect(fake.state.deleted.slice(before).filter((call) => !/^delete(Shader|Sync)$/.test(call))).toEqual([])
   })
 })

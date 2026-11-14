@@ -1,12 +1,11 @@
-// The landing in Solid (`src/pages/landing/`), held to what its Vue twins
-// did: the brand's moment and its replay, the rise of every head, the bento
+// The landing (`src/pages/landing/`): the brand's moment and its replay, the rise of every head, the bento
 // and its one moving layer, the agent's story, the install's one gesture,
 // the art that moves only on cue, and a mount that reads no layout.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { MetaProvider } from "@solidjs/meta"
 import { createRoot, createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { MODEL_FORMATS } from "dither-kit/engine/models.ts"
+import { MODEL_FORMATS } from "@dither-ui/kit/engine/models.ts"
 import { LOCKUP, LOCKUP_SIZE, STAGINGS } from "@/pages/landing/brand"
 import { BUILD_CELLS } from "@/pages/landing/build"
 import { COMPONENT_COUNT, HARNESSES, MODEL_NAMES, RUNTIME_DEPS, SPECS, WORKS } from "@/pages/landing/facts"
@@ -19,9 +18,10 @@ import { ASK, DEPLOYS, DOES, STEPS } from "@/pages/landing/story"
 import { TOTAL } from "@/pages/landing/stat"
 import { RISE } from "@/shared/lib/rise"
 import { RISE_LIVE } from "@/shared/lib/rise-wait"
-import { STYLING_LABELS } from "restyle"
+import { STYLING_LABELS } from "@dither-ui/restyle"
 import { rise } from "../../src/shared/lib"
-import { LandingPage, MissingPage } from "../../src/pages/landing"
+import LandingPage from "../../src/pages/landing/LandingPage"
+import MissingPage from "../../src/pages/landing/MissingPage"
 import AgentStory from "../../src/pages/landing/AgentStory"
 import BrandBuild from "../../src/pages/landing/BrandBuild"
 import BrandGather from "../../src/pages/landing/BrandGather"
@@ -38,13 +38,14 @@ import Showcase from "../../src/pages/landing/Showcase"
 import TrailerDialog from "../../src/pages/landing/TrailerDialog"
 import WorksWith from "../../src/pages/landing/WorksWith"
 import { useDrive } from "../../src/pages/landing/drive"
-import { world } from "dither-kit/testing/world.ts"
+import { DitherWorld } from "../../src/pages/landing/parts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 // Every reveal the bento makes, as the props it was handed: its delay is
 // not in the page, so the stagger is read here.
 const reveals = vi.hoisted(() => [] as { class?: string; delay?: number }[])
-vi.mock("dither-kit/solid/DitherReveal.tsx", async (original) => {
-  const real = await original<typeof import("dither-kit/solid/DitherReveal.tsx")>()
+vi.mock("@dither-ui/kit/solid/DitherReveal.tsx", async (original) => {
+  const real = await original<typeof import("@dither-ui/kit/solid/DitherReveal.tsx")>()
   return {
     ...real,
     default: (props: Parameters<typeof real.default>[0]) => {
@@ -125,6 +126,7 @@ describe("the rise of a head", () => {
           seen = cb
         }
         observe() {}
+        unobserve() {}
         disconnect() {}
       },
     )
@@ -233,15 +235,18 @@ describe("the small parts", () => {
     expect(sheet.querySelector("canvas")!.style.imageRendering).toBe("pixelated")
   })
 
-  it("sets a plate as a hidden sheet of its proportion, the brand in its band", () => {
+  it("sets a plate as a hidden sheet of its proportion, the brand in its band, held as it scrolls", () => {
     const plate = PLATES.afterExamples
     // jsdom's style parser drops a clamp(): what the lockup is given is read
     // as it is set.
     const set = vi.spyOn(CSSStyleDeclaration.prototype, "setProperty")
     const w = render(() => <Plate plate={plate} />)
-    const sheet = w.container.querySelector<HTMLElement>(".plate")!
-    expect(sheet.getAttribute("aria-hidden")).toBe("true")
-    expect(parseFloat(sheet.style.aspectRatio)).toBe(plate.aspect)
+    // the run: the pin holding the sheet, then the hold it stands through
+    const run = w.container.querySelector<HTMLElement>(".plate-run")!
+    expect(run.getAttribute("aria-hidden")).toBe("true")
+    expect([...run.children].map((c) => c.className)).toEqual(["plate-pin", "plate-hold"])
+    expect(set.mock.calls.filter((c) => c[0] === "--aspect").map((c) => Number(c[1]))).toContain(plate.aspect)
+    const sheet = run.querySelector<HTMLElement>(".plate-pin > .plate")!
     expect(sheet.querySelector(".plate-print .heat-print canvas")).not.toBeNull()
     const lockup = sheet.querySelector<HTMLElement>(".plate-lockup.brand-gather")!
     expect(set.mock.calls.filter((c) => c[0] === "left").map((c) => c[1])).toContain(
@@ -354,6 +359,7 @@ describe("the brand's moment", () => {
           reveal = () => callback([{ isIntersecting: true } as IntersectionObserverEntry], this as never)
         }
         observe() {}
+        unobserve() {}
         disconnect() {}
       },
     )
@@ -452,6 +458,8 @@ describe("the brand's moment", () => {
 // of the whole page in the middle of mounting it.
 describe("mounting reads no layout", () => {
   it("the build's stage takes its first reading in the frame, not as it mounts", async () => {
+    // the world engine is a chunk of its own (`parts.tsx`), loaded first
+    await DitherWorld.preload()
     const boxes = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect")
     const w = render(() => <BrandBuild />)
     expect(boxes).not.toHaveBeenCalled()
@@ -627,7 +635,7 @@ describe("the styling card", () => {
     expect(all(w.container, ".seg button").map(text)).toEqual(Object.values(STYLING_LABELS))
     expect(pressed()).toEqual([STYLING_LABELS.stylex])
     expect(code().join("\n")).toContain("stylex")
-    // Written as the Solid file a reader takes, never in the snippets' authoring notation.
+    // Written as the Solid file a reader takes, never in Vue's notation.
     expect(code().join("\n")).toContain("{...stylex.props(")
     expect(code().join("\n")).not.toMatch(/v-bind|<script setup|<style scoped/)
     expect(text(w.container.querySelector(".export-live"))).toContain("Invoices")
@@ -689,6 +697,7 @@ describe("the agent's story", () => {
         observe(el: Element) {
           if (this.init?.rootMargin === "-50% 0px -50% 0px") watched.push(el)
         }
+        unobserve() {}
         disconnect() {}
       },
     )
@@ -702,6 +711,8 @@ describe("the agent's story", () => {
     // The first step: the first line at work under its spinner, the rest unsaid.
     expect(lines(story)).toEqual(["working", ...DOES.slice(1).map(() => "ahead")])
     expect(all(story, ".part.on")).toHaveLength(0)
+    // a part not laid out yet is out of reach: Tab never lands on its unseen switch
+    expect(all(story, ".part").every((p) => p.inert)).toBe(true)
     expect(story.querySelector(".render")!.className).toBe("render ahead")
     const cross = (i: number, isIntersecting: boolean) =>
       report!([{ target: markers[i], isIntersecting } as unknown as IntersectionObserverEntry], null as never)
@@ -717,6 +728,7 @@ describe("the agent's story", () => {
     cross(STEPS - 1, true)
     expect(lines(story)).toEqual(DOES.map(() => "done"))
     expect(all(story, ".part").every((p) => p.classList.contains("on"))).toBe(true)
+    expect(all(story, ".part").some((p) => p.inert)).toBe(false)
   })
 })
 
@@ -802,6 +814,8 @@ describe("what it works with", () => {
       HARNESSES.map((h) => h.name),
       MODEL_FORMATS.map((f) => MODEL_NAMES[f]),
     ])
+    // the page lists the names, in the kit's order
+    expect(Object.keys(MODEL_NAMES)).toEqual([...MODEL_FORMATS])
     expect(all(lists[2], "svg")).toHaveLength(0)
     expect(lists[2].className).toBe("files")
     expect(all(section, ".works-more").map(text)).toEqual([

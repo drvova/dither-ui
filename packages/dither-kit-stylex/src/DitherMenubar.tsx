@@ -1,8 +1,9 @@
-// Generated from dither-kit/solid/DitherMenubar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherMenubar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createSignal, For, on, onCleanup, onMount, Show } from "solid-js"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/DitherMenubar.css"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/DitherMenubar.css"
+import { menuKeys } from "@dither-ui/kit/engine/keys.ts"
 import { cn } from "./lib"
 
 import * as stylex from "@stylexjs/stylex"
@@ -139,14 +140,6 @@ export default function DitherMenubar(props: DitherMenubarProps) {
     if (openIndex() !== null) open(next)
   }
 
-  function moveFocus(dir: number) {
-    const els = itemRefs.filter((el): el is HTMLButtonElement => !!el)
-    if (!els.length) return
-    const i = els.indexOf(document.activeElement as HTMLButtonElement)
-    const next = i === -1 ? (dir > 0 ? 0 : els.length - 1) : (i + dir + els.length) % els.length
-    els[next]?.focus()
-  }
-
   function onKeydown(e: KeyboardEvent) {
     const at = openIndex()
     if (e.key === "ArrowRight") {
@@ -155,16 +148,11 @@ export default function DitherMenubar(props: DitherMenubarProps) {
     } else if (e.key === "ArrowLeft") {
       e.preventDefault()
       moveTop(-1)
-    } else if (e.key === "Escape" && at !== null) {
-      e.stopPropagation()
-      open(null)
-      topRefs[at]?.focus()
-    } else if (e.key === "ArrowDown" && at !== null) {
-      e.preventDefault()
-      moveFocus(1)
-    } else if (e.key === "ArrowUp" && at !== null) {
-      e.preventDefault()
-      moveFocus(-1)
+    } else if (at !== null) {
+      menuKeys(e, itemRefs, () => {
+        open(null)
+        topRefs[at]?.focus()
+      })
     }
   }
 

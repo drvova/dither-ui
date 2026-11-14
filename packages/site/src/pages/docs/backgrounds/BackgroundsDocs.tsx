@@ -53,9 +53,10 @@ import {
   DitherWaves,
   type DitherColor,
   type FlowDirection,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard, { DEMO_FIT } from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 import PosterSection from "./PosterSection"
 
 const COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange", "red", "grey"]
@@ -979,23 +980,31 @@ export default function BackgroundsDocs() {
   const auroraColors = createMemo(() => [...AURORA_PALETTES[aurora.palette]])
   const auroraCode = createMemo(
     () =>
-      `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherAurora :colors='${JSON.stringify(auroraColors())}' />\n</div>`,
+      `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherAurora colors={${JSON.stringify(auroraColors())}} />
+</div>`,
   )
   const [circuit, setCircuit] = createStore({ density: "even" as CircuitDensity, seed: 7 })
   const circuitCode = createMemo(
     () =>
-      `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherCircuit :density="${CIRCUIT_DENSITIES[circuit.density]}" :seed="${circuit.seed}" />\n</div>`,
+      `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherCircuit density={${CIRCUIT_DENSITIES[circuit.density]}} seed={${circuit.seed}} />
+</div>`,
   )
   const [trail, setTrail] = createStore({ cool: "even" as TrailCool, size: "even" as TrailSize })
   const trailCode = createMemo(
     () =>
-      `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherHeatTrail class="absolute inset-0" :cool="${TRAIL_COOLS[trail.cool]}" :size="${TRAIL_SIZES[trail.size]}" />\n</div>`,
+      `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherHeatTrail class="absolute inset-0" cool={${TRAIL_COOLS[trail.cool]}} size={${TRAIL_SIZES[trail.size]}} />
+</div>`,
   )
   const [waves, setWaves] = createStore({ palette: "aurora" as WavesPalette })
   const wavesColors = createMemo(() => [...WAVES_PALETTES[waves.palette]])
   const wavesCode = createMemo(
     () =>
-      `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherWaves :colors='${JSON.stringify(wavesColors())}' />\n</div>`,
+      `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherWaves colors={${JSON.stringify(wavesColors())}} />
+</div>`,
   )
   const [term, setTerm] = createStore({ tint: "green" as DitherColor, preset: "signal" as TermPreset })
   const termParams = createMemo(() => TERM_PRESETS[term.preset])
@@ -1003,20 +1012,22 @@ export default function BackgroundsDocs() {
     const p = termParams()
     const attrs = [
       `tint="${term.tint}"`,
-      `:scale="${p.scale}"`,
-      `:glitch-amount="${p.glitchAmount}"`,
-      `:scanline-intensity="${p.scanlineIntensity}"`,
+      `scale={${p.scale}}`,
+      `glitchAmount={${p.glitchAmount}}`,
+      `scanlineIntensity={${p.scanlineIntensity}}`,
     ]
-    if (p.dither) attrs.push(`:dither="${p.dither}"`)
-    if (p.curvature) attrs.push(`:curvature="${p.curvature}"`)
-    if (p.chromaticAberration) attrs.push(`:chromatic-aberration="${p.chromaticAberration}"`)
+    if (p.dither) attrs.push(`dither={${p.dither}}`)
+    if (p.curvature) attrs.push(`curvature={${p.curvature}}`)
+    if (p.chromaticAberration) attrs.push(`chromaticAberration={${p.chromaticAberration}}`)
     return `<div class="relative h-56 overflow-hidden rounded-md">\n  <DitherFaultyTerminal ${attrs.join(" ")} />\n</div>`
   })
   const [fluid, setFluid] = createStore({ palette: "acid" as FluidPalette, flow: "down" as FlowDirection })
   const fluidColors = createMemo(() => [...FLUID_PALETTES[fluid.palette]])
   const fluidCode = createMemo(
     () =>
-      `<div class="relative h-64 overflow-hidden rounded-md">\n  <DitherFerrofluid :colors='${JSON.stringify(fluidColors())}' flow-direction="${fluid.flow}" />\n</div>`,
+      `<div class="relative h-64 overflow-hidden rounded-md">
+  <DitherFerrofluid colors={${JSON.stringify(fluidColors())}} flowDirection="${fluid.flow}" />
+</div>`,
   )
 
   // Every background is a surface: its demo bleeds to the well's edges (the
@@ -1024,8 +1035,7 @@ export default function BackgroundsDocs() {
   return (
     <DEMO_FIT.Provider value="bleed">
       {/* Aurora */}
-      <section id="aurora" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Aurora</h2>
+      <DocSection id="aurora">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Glowing polar curtains: a wavy light band hangs near the top, broken into vertical rays and tinted across the
           colour ramp by width. No WebGL: it draws through the same Bayer engine, so the glow comes out dithered. Fills
@@ -1053,11 +1063,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.aurora} />
-      </section>
+      </DocSection>
 
       {/* Circuit */}
-      <section id="circuit" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Circuit</h2>
+      <DocSection id="circuit">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A board printed through the dither: chips on a lattice, traces leaving their pins in straight runs with 45
           degree jogs to a via or a pad, and a signal running every trace with a tail that fades through the thresholds.
@@ -1097,11 +1106,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.circuit} />
-      </section>
+      </DocSection>
 
       {/* Heat trail */}
-      <section id="heat-trail" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Heat trail</h2>
+      <DocSection id="heat-trail">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The pointer prints. Where a mouse or a pen passes, the kit's diamond lands in cells, hot, along the whole path
           however fast the hand moves; each cell then cools down the ramp and thins out through the dither thresholds
@@ -1109,7 +1117,8 @@ export default function BackgroundsDocs() {
           finger scrolls instead, nothing prints under reduced motion, and it paints only while something is cooling.
         </p>
         <DemoCard code={trailCode()}>
-          <div class="relative grid h-64 place-items-center overflow-hidden rounded-md border border-border/60 bg-black">
+          {/* a black stage in both themes: its words take the dark theme's inks */}
+          <div class="dark relative grid h-64 place-items-center overflow-hidden rounded-md border border-border/60 bg-black">
             <DitherHeatTrail class="absolute inset-0" cool={TRAIL_COOLS[trail.cool]} size={TRAIL_SIZES[trail.size]} />
             <p class="relative text-[13px] text-muted-foreground">Move a mouse or a pen across here</p>
           </div>
@@ -1149,11 +1158,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API["heat-trail"]} />
-      </section>
+      </DocSection>
 
       {/* Waves */}
-      <section id="waves" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Waves</h2>
+      <DocSection id="waves">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A stack of horizontal contour lines flowing on an fbm field, each a thin glowing band that ripples with noise,
           tinted across the colour ramp by depth. Move the pointer to bend the nearest lines toward it. No WebGL: it
@@ -1181,11 +1189,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.waves} />
-      </section>
+      </DocSection>
 
       {/* Line waves */}
-      <section id="line-waves" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Line waves</h2>
+      <DocSection id="line-waves">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A clean sinusoidal contour stack: like Waves but purely sine, each line phase-shifted into a travelling
           interference pattern. Dithered.
@@ -1196,11 +1203,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.lineWaves} />
-      </section>
+      </DocSection>
 
       {/* Threads */}
-      <section id="threads" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Threads</h2>
+      <DocSection id="threads">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Vertical filaments drifting on an fbm flow: thin glowing threads whose x wanders with noise, tinted across the
           ramp by depth. Dithered.
@@ -1211,11 +1217,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.threads} />
-      </section>
+      </DocSection>
 
       {/* Silk */}
-      <section id="silk" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Silk</h2>
+      <DocSection id="silk">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Flowing anisotropic sheen: fbm warps a rotated sine into liquid ribbons, tinted across the colour ramp. No
           WebGL; the sheen comes out dithered.
@@ -1226,11 +1231,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.silk} />
-      </section>
+      </DocSection>
 
       {/* Plasma */}
-      <section id="plasma" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Plasma</h2>
+      <DocSection id="plasma">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The classic layered-sine plasma, mapped across the colour ramp. Ordered dithering bands the gradient into the
           kit's crunch instead of a smooth blend.
@@ -1241,11 +1245,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.plasma} />
-      </section>
+      </DocSection>
 
       {/* Iridescence */}
-      <section id="iridescence" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Iridescence</h2>
+      <DocSection id="iridescence">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A shifting soap-bubble sheen: fbm perturbs an HSV hue swept across the surface; ordered dithering bands the
           rainbow. Self-tinting, no colours prop.
@@ -1256,11 +1259,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.iridescence} />
-      </section>
+      </DocSection>
 
       {/* Dot grid */}
-      <section id="dot-grid" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Dot grid</h2>
+      <DocSection id="dot-grid">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A lattice of round dots pulsing on fbm, brightened under the cursor. Cells stay square via the aspect ratio,
           tinted across the ramp by row. Move the pointer.
@@ -1271,11 +1273,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.dotGrid} />
-      </section>
+      </DocSection>
 
       {/* Ripple grid */}
-      <section id="ripple-grid" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Ripple grid</h2>
+      <DocSection id="ripple-grid">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A lattice of dots brightened by concentric ripples expanding from the centre, tinted across the ramp by ring.
           Dithered.
@@ -1286,11 +1287,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.rippleGrid} />
-      </section>
+      </DocSection>
 
       {/* Pixel snow */}
-      <section id="pixel-snow" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Pixel snow</h2>
+      <DocSection id="pixel-snow">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Sparse flakes drifting down a hashed grid: each cell hashes to a flake or empty, falling as time advances.
           Tinted across the ramp by depth, dithered.
@@ -1301,11 +1301,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.pixelSnow} />
-      </section>
+      </DocSection>
 
       {/* Beams */}
-      <section id="beams" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Beams</h2>
+      <DocSection id="beams">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Parallel light beams sweeping at an angle: a rotated coordinate banded by a sharpened sine that scrolls over
           time, tinted across the ramp. Dithered.
@@ -1316,11 +1315,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.beams} />
-      </section>
+      </DocSection>
 
       {/* Light rays */}
-      <section id="light-rays" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Light rays</h2>
+      <DocSection id="light-rays">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           God rays fanning from a source above: the angle to the source is banded by a sharpened sine, jittered with fbm
           and faded by distance. Dithered.
@@ -1331,11 +1329,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.lightRays} />
-      </section>
+      </DocSection>
 
       {/* Side rays */}
-      <section id="side-rays" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Side rays</h2>
+      <DocSection id="side-rays">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The same god-ray fan, but the source sits off a side edge for horizontal streaks. Flip{" "}
           <code class="text-foreground/80">side</code> to left or right.
@@ -1346,11 +1343,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.sideRays} />
-      </section>
+      </DocSection>
 
       {/* Light pillar */}
-      <section id="light-pillar" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Light pillar</h2>
+      <DocSection id="light-pillar">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Vertical light columns shimmering upward: fbm nudges the positions, a sharpened sine makes the pillars,
           brighter at the base. Dithered.
@@ -1361,11 +1357,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.lightPillar} />
-      </section>
+      </DocSection>
 
       {/* Soft aurora */}
-      <section id="soft-aurora" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Soft aurora</h2>
+      <DocSection id="soft-aurora">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Several overlapping soft curtains accumulating into a gentle glow: wider falloff and a lower default dither
           than Aurora for a hazier look.
@@ -1376,11 +1371,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.softAurora} />
-      </section>
+      </DocSection>
 
       {/* Grid motion */}
-      <section id="grid-motion" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Grid motion</h2>
+      <DocSection id="grid-motion">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A scrolling line grid drifting in a direction. Cells stay square via the aspect ratio, tinted across the ramp
           by depth. Dithered.
@@ -1391,11 +1385,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.gridMotion} />
-      </section>
+      </DocSection>
 
       {/* Grid scan */}
-      <section id="grid-scan" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Grid scan</h2>
+      <DocSection id="grid-scan">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A faint static grid with a bright bar sweeping down it, boosting gridline intensity as it passes. Dithered.
         </p>
@@ -1405,11 +1398,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.gridScan} />
-      </section>
+      </DocSection>
 
       {/* Grid distortion */}
-      <section id="grid-distortion" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Grid distortion</h2>
+      <DocSection id="grid-distortion">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A line grid warped by an fbm flow and the cursor: coordinates are displaced before the grid is sampled. Move
           the pointer to push it around.
@@ -1420,11 +1412,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.gridDistortion} />
-      </section>
+      </DocSection>
 
       {/* Dot field */}
-      <section id="dot-field" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Dot field</h2>
+      <DocSection id="dot-field">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A lattice of dots whose radius breathes with fbm and swells under the cursor, tinted across the ramp by row.
           Move the pointer to bloom them.
@@ -1435,11 +1426,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.dotField} />
-      </section>
+      </DocSection>
 
       {/* Color bends */}
-      <section id="color-bends" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Color bends</h2>
+      <DocSection id="color-bends">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Smooth colour bands undulating on an fbm warp: the ramp index is bent by noise so the bands ripple. Ordered
           dithering crunches the gradient.
@@ -1450,11 +1440,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.colorBends} />
-      </section>
+      </DocSection>
 
       {/* Gradient blinds */}
-      <section id="gradient-blinds" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Gradient blinds</h2>
+      <DocSection id="gradient-blinds">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Angled slats each showing a colour-ramp gradient, separated by thin transparent gaps and sliding over time.
           Dithered within each slat.
@@ -1465,11 +1454,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.gradientBlinds} />
-      </section>
+      </DocSection>
 
       {/* Grainient */}
-      <section id="grainient" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Grainient</h2>
+      <DocSection id="grainient">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A directional colour gradient dusted with animated grain: per-pixel hash noise breaks up the ramp; ordered
           dithering adds the crunch on top.
@@ -1480,11 +1468,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.grainient} />
-      </section>
+      </DocSection>
 
       {/* Plasma wave */}
-      <section id="plasma-wave" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Plasma wave</h2>
+      <DocSection id="plasma-wave">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Directional plasma with wavefronts travelling along an axis: sines along and across the flow sum into a value
           mapped across the ramp. Dithered.
@@ -1495,11 +1482,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.plasmaWave} />
-      </section>
+      </DocSection>
 
       {/* Floating lines */}
-      <section id="floating-lines" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Floating lines</h2>
+      <DocSection id="floating-lines">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A few thin horizontal lines bobbing and drifting independently, each with its own phase. Tinted across the
           ramp by line. Dithered.
@@ -1510,11 +1496,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.floatingLines} />
-      </section>
+      </DocSection>
 
       {/* Flow field */}
-      <section id="flow-field" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Flow field</h2>
+      <DocSection id="flow-field">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Thousands of tiny dots advected through seeded simplex wind. Each one samples the noise angle at its own
           position and drifts down-current while the buffer's ink decays beneath it: the trail is the buffer's own
@@ -1527,11 +1512,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.flowField} />
-      </section>
+      </DocSection>
 
       {/* Radar */}
-      <section id="radar-sweep" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Radar</h2>
+      <DocSection id="radar-sweep">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A rotating sweep with an afterglow trail over concentric rings. The scope is circular, tinted across the ramp
           by radius. Dithered.
@@ -1542,11 +1526,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.radar} />
-      </section>
+      </DocSection>
 
       {/* Dither */}
-      <section id="dither" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Dither</h2>
+      <DocSection id="dither">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The kit's signature at its purest: an animated fbm cloud thresholded 1-bit against the Bayer matrix, so the
           whole surface IS the ordered dither.
@@ -1557,11 +1540,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.dither} />
-      </section>
+      </DocSection>
 
       {/* Letter glitch */}
-      <section id="letter-glitch" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Letter glitch</h2>
+      <DocSection id="letter-glitch">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Matrix-style glyph rain: each column drops a bright head with a trailing fade; every cell holds a hashed 3x5
           glyph. Tinted by brightness, dithered.
@@ -1572,11 +1554,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.letterGlitch} />
-      </section>
+      </DocSection>
 
       {/* Shape grid */}
-      <section id="shape-grid" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Shape grid</h2>
+      <DocSection id="shape-grid">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A lattice where each cell holds a hashed shape (square, diamond, plus or ring) pulsing on its own phase.
           Tinted across the ramp, dithered.
@@ -1587,11 +1568,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.shapeGrid} />
-      </section>
+      </DocSection>
 
       {/* Lightning */}
-      <section id="lightning" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Lightning</h2>
+      <DocSection id="lightning">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Jagged fbm-displaced bolts flickering in bursts, each a thin glowing line wandering vertically, wider toward
           the ground. Dithered.
@@ -1602,11 +1582,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.lightning} />
-      </section>
+      </DocSection>
 
       {/* Orb */}
-      <section id="orb" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Orb</h2>
+      <DocSection id="orb">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A glowing pulsing sphere with a wobbling rim: fbm perturbs the radius for a plasma edge; a core glow plus a
           rim ring tint across the ramp by radius.
@@ -1617,11 +1596,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.orb} />
-      </section>
+      </DocSection>
 
       {/* Prism */}
-      <section id="prism" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Prism</h2>
+      <DocSection id="prism">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A spectral light fan dispersing from above: the angle across the fan maps to an HSV hue, so the beam splits
           into a rainbow. Self-colouring, dithered.
@@ -1632,11 +1610,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.prism} />
-      </section>
+      </DocSection>
 
       {/* Galaxy */}
-      <section id="galaxy" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Galaxy</h2>
+      <DocSection id="galaxy">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A rotating spiral of twinkling stars with a bright core: spiral arms modulate a hashed star density; inner
           stars rotate faster. Dithered.
@@ -1647,11 +1624,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.galaxy} />
-      </section>
+      </DocSection>
 
       {/* Liquid chrome */}
-      <section id="liquid-chrome" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Liquid chrome</h2>
+      <DocSection id="liquid-chrome">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Molten metal: iterative domain warping folds the coordinates into rippled reflective bands; a high-contrast
           sine reads them as chrome. Dithered.
@@ -1662,11 +1638,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.liquidChrome} />
-      </section>
+      </DocSection>
 
       {/* Dark veil */}
-      <section id="dark-veil" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Dark veil</h2>
+      <DocSection id="dark-veil">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A moody near-black wash with faint colour wisps and an edge vignette: sparse fbm highlights climb the ramp;
           dithering crunches the low light.
@@ -1677,11 +1652,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.darkVeil} />
-      </section>
+      </DocSection>
 
       {/* Balatro */}
-      <section id="balatro" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Balatro</h2>
+      <DocSection id="balatro">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A swirling psychedelic paint vortex: polar coordinates twisted by a radius-dependent spin, then layered sines
           paint the swirl. Dithered.
@@ -1692,11 +1666,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.balatro} />
-      </section>
+      </DocSection>
 
       {/* Liquid ether */}
-      <section id="liquid-ether" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Liquid ether</h2>
+      <DocSection id="liquid-ether">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An ethereal flowing colour fluid: coordinates are advected by an fbm flow and stirred by the cursor before
           sampling the ramp. Move the pointer.
@@ -1707,11 +1680,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.liquidEther} />
-      </section>
+      </DocSection>
 
       {/* Ballpit */}
-      <section id="ballpit" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Ballpit</h2>
+      <DocSection id="ballpit">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A pit of shaded spheres bobbing on a grid: sphere shading gives depth, and the balls repel from the cursor.
           Move the pointer to part them.
@@ -1722,11 +1694,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.ballpit} />
-      </section>
+      </DocSection>
 
       {/* Particles */}
-      <section id="particles" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Particles</h2>
+      <DocSection id="particles">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A drifting, twinkling point cloud: each particle wanders on a sine orbit and drifts toward the cursor. Move
           the pointer to gather them.
@@ -1737,11 +1708,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.particles} />
-      </section>
+      </DocSection>
 
       {/* Hyperspeed */}
-      <section id="hyperspeed" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Hyperspeed</h2>
+      <DocSection id="hyperspeed">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A warp-drive starfield streaking radially from the centre: angular lanes carry hashed star heads rushing
           outward with trailing tails. Dithered.
@@ -1752,11 +1722,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.hyperspeed} />
-      </section>
+      </DocSection>
 
       {/* Lightfall */}
-      <section id="lightfall" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Lightfall</h2>
+      <DocSection id="lightfall">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Soft columns of light drifting downward with long fading trails: each column drops a hashed head; the trail
           fades upward. Dithered.
@@ -1767,11 +1736,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.lightfall} />
-      </section>
+      </DocSection>
 
       {/* Pixel blast */}
-      <section id="pixel-blast" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Pixel blast</h2>
+      <DocSection id="pixel-blast">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Expanding shockwave rings broken into chunky pixels: several rings pulse outward from the centre and fade; a
           coarse hash grid pixelates them.
@@ -1782,11 +1750,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.pixelBlast} />
-      </section>
+      </DocSection>
 
       {/* Prismatic burst */}
-      <section id="prismatic-burst" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Prismatic burst</h2>
+      <DocSection id="prismatic-burst">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A rainbow starburst radiating from the centre: sharpened angular rays take an HSV hue from angle and radius,
           so the burst is a spectrum. Self-colouring.
@@ -1797,11 +1764,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.prismaticBurst} />
-      </section>
+      </DocSection>
 
       {/* Evil eye */}
-      <section id="evil-eye" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Evil eye</h2>
+      <DocSection id="evil-eye">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A glowing eye whose iris tracks the cursor and that blinks: a lens mask carves the eye; iris rings pulse
           around a dark pupil. Move the pointer.
@@ -1812,11 +1778,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.evilEye} />
-      </section>
+      </DocSection>
 
       {/* Faulty terminal */}
-      <section id="faulty-terminal" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Faulty terminal</h2>
+      <DocSection id="faulty-terminal">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A CRT glyph wall: animated value-noise lights a grid of characters, then scanlines, glitch, flicker, chromatic
           aberration and barrel curvature run over it. No WebGL: it draws through the same Bayer engine as everything
@@ -1867,11 +1832,10 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.faultyTerminal} />
-      </section>
+      </DocSection>
 
       {/* Ferrofluid */}
-      <section id="ferrofluid" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Ferrofluid</h2>
+      <DocSection id="ferrofluid">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Two fluid layers merge into metaball blobs; their contour rim glows, tinted across the array of colors by
           height. Turbulence swirls the domain, shimmer grains the lines, and the pointer raises a magnetic spike. No
@@ -1913,7 +1877,7 @@ export default function BackgroundsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.ferrofluid} />
-      </section>
+      </DocSection>
 
       {/* Poster */}
       <PosterSection />

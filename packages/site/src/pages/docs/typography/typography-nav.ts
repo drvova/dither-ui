@@ -15,9 +15,7 @@ export const TYPOGRAPHY_NAV = [
   { id: "external-link", label: "ExternalLink" },
   { id: "selectable-text", label: "SelectableText" },
   { id: "copyable-text", label: "CopyableText" },
-]
-// Batch 5: text formatters + time
-TYPOGRAPHY_NAV.push(
+  // Batch 5: text formatters + time
   { id: "number-text", label: "NumberText" },
   { id: "currency-text", label: "CurrencyText" },
   { id: "percent-text", label: "PercentText" },
@@ -27,4 +25,4 @@ TYPOGRAPHY_NAV.push(
   { id: "date-time-text", label: "DateTimeText" },
   { id: "plural-text", label: "PluralText" },
   { id: "emoji", label: "Emoji" },
-)
+] as const

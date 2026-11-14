@@ -6,9 +6,9 @@
 // in `plate.ts`), and the close keeps the install's column clear and runs
 // hot along its flat foot, where the footer rises into it through one tab
 // (`closeField`). One painter on the kit's own noise.
-import { fbm } from "dither-kit/engine/noise.ts"
-import type { Rgb } from "dither-kit/engine/palette.ts"
-import type { RasterBuffer } from "dither-kit/engine/raster.ts"
+import { fbm } from "@dither-ui/kit/engine/noise.ts"
+import type { Rgb } from "@dither-ui/kit/engine/palette.ts"
+import type { RasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 
 /** Where the heat may print at (`x`, `y`) CSS px from a sheet's top left,
  * 0-1, how much heat to add there (a hot edge) and, where the noise must

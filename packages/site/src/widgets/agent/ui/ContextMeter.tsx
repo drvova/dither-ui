@@ -1,5 +1,5 @@
 import { createMemo } from "solid-js"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import type { ContextUse } from "@/features/agent/tools"
 import "./ContextMeter.css"
 

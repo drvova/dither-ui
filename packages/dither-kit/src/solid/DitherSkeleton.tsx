@@ -1,4 +1,4 @@
-import { onCleanup, onMount } from "solid-js"
+import { createEffect, on, onCleanup, onMount } from "solid-js"
 import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { BAYER4, fillOf, pixelPrefersReducedMotion, xorshift32 } from "../engine/pixel"
 import { cellCanvas } from "../engine/raster"
@@ -51,9 +51,10 @@ export type DitherSkeletonProps = { seed?: number; class?: string }
 
 export default function DitherSkeleton(props: DitherSkeletonProps) {
   // Read once, as the component is made: a skeleton keeps its character.
+  // The screen around it is the print's, and a new one starts it again.
   const seed = props.seed
   const shimmer = seed !== undefined ? shimmerFromSeed(seed) : SHIMMER_DEFAULT
-  const matrix = useDitherMatrix(() => seed)()
+  const screenMatrix = useDitherMatrix(() => seed)
 
   let wrapEl: HTMLDivElement | undefined
   let canvasEl: HTMLCanvasElement | undefined
@@ -72,6 +73,7 @@ export default function DitherSkeleton(props: DitherSkeletonProps) {
     const ctx = canvas?.getContext("2d", { willReadFrequently: true })
     if (!wrap || !canvas || !ctx) return undefined
     const reduce = pixelPrefersReducedMotion()
+    const matrix = screenMatrix()
 
     let cols = 0
     let rows = 0
@@ -139,10 +141,13 @@ export default function DitherSkeleton(props: DitherSkeletonProps) {
     }
   }
 
+  const restart = () => {
+    teardown?.()
+    teardown = init()
+  }
   onMount(() => {
-    requestAnimationFrame(() => {
-      teardown = init()
-    })
+    requestAnimationFrame(restart)
+    createEffect(on(screenMatrix, restart, { defer: true }))
     onCleanup(() => teardown?.())
   })
 

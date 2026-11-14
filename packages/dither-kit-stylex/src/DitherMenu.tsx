@@ -1,8 +1,9 @@
-// Generated from dither-kit/solid/DitherMenu.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherMenu.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/DitherMenu.css"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/DitherMenu.css"
+import { menuKeys } from "@dither-ui/kit/engine/keys.ts"
 import { cn } from "./lib"
 
 import * as stylex from "@stylexjs/stylex"
@@ -109,26 +110,8 @@ export default function DitherMenu(props: DitherMenuProps) {
     closeMenu(true)
   }
 
-  function moveFocus(dir: number) {
-    const els = itemRefs.filter((el): el is HTMLButtonElement => !!el && el.isConnected)
-    if (!els.length) return
-    const i = els.indexOf(document.activeElement as HTMLButtonElement)
-    const next = i === -1 ? (dir > 0 ? 0 : els.length - 1) : (i + dir + els.length) % els.length
-    els[next]?.focus()
-  }
-
   function onKeydown(e: KeyboardEvent) {
-    if (!open()) return
-    if (e.key === "Escape") {
-      e.stopPropagation()
-      closeMenu(true)
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault()
-      moveFocus(1)
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault()
-      moveFocus(-1)
-    }
+    if (open()) menuKeys(e, itemRefs, () => closeMenu(true))
   }
 
   function onOutside(e: PointerEvent) {

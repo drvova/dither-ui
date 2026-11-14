@@ -15,9 +15,15 @@ export function world() {
     "IntersectionObserver",
     class {
       constructor(private callback: IntersectionObserverCallback) {}
-      observe() {
-        shows.push(() => this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as never))
+      observe(target: Element) {
+        shows.push(() =>
+          this.callback(
+            [{ isIntersecting: true, target, boundingClientRect: new DOMRect() } as IntersectionObserverEntry],
+            this as never,
+          ),
+        )
       }
+      unobserve() {}
       disconnect() {}
     },
   )
@@ -41,6 +47,13 @@ export function world() {
   let id = 0
   vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => (frames.set(++id, cb), id))
   vi.stubGlobal("cancelAnimationFrame", (n: number) => frames.delete(n))
+  /** Run the frames queued so far, stamped `now` ms. */
+  async function frame(now: number) {
+    await Promise.resolve()
+    const due = [...frames.values()]
+    frames.clear()
+    for (const cb of due) cb(base + now)
+  }
   const uploads: HTMLCanvasElement[] = []
   const real = HTMLCanvasElement.prototype.getContext
   HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement) {
@@ -50,6 +63,9 @@ export function world() {
       putImageData: () => uploads.push(this),
       clearRect() {},
       drawImage() {},
+      beginPath() {},
+      arc() {},
+      fill() {},
     }
   } as unknown as typeof HTMLCanvasElement.prototype.getContext
   return {
@@ -58,12 +74,12 @@ export function world() {
     show: () => shows.forEach((s) => s()),
     /** Every observed element reports its size. */
     size: () => sizes.forEach((s) => s()),
-    /** Run the frames queued so far, stamped `now` ms. */
-    async frame(now: number) {
-      await Promise.resolve()
-      const due = [...frames.values()]
-      frames.clear()
-      for (const cb of due) cb(base + now)
+    frame,
+    /** How many frames are asked for. */
+    queued: () => frames.size,
+    /** Run frames every `step` ms from `from` to `to`, each running what the last queued. */
+    async run(from: number, to: number, step = 50) {
+      for (let t = from; t <= to; t += step) await frame(t)
     },
     restore() {
       HTMLCanvasElement.prototype.getContext = real

@@ -1,18 +1,17 @@
-// The docs previews' source panel on Solid: the files a preview is made of,
+// The docs previews' source panel: the files a preview is made of,
 // the compiler and the linker behind Run, the kit's served sources, and a
-// DemoCard opened to its files, edited and run. The earlier Vue site's
-// `tests/source.spec.ts`, case for case where the behaviour is this site's
-// too (the zip, the sounds and the StyleX runtime are the earlier Vue site's own
-// modules, held there).
-import { readdirSync, readFileSync, statSync } from "node:fs"
+// DemoCard opened to its files, edited and run. The zip, the sounds and the
+// StyleX runtime are framework-free modules, held by `tests/source.spec.ts`.
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
+import ts from "typescript"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 import { KIT_SRC } from "@/shared/lib/kit-sources"
-import { restyleSolid, STYLINGS } from "restyle"
+import { restyleSolid, STYLINGS } from "@dither-ui/restyle"
 import { kitFiles } from "../../build/kit-sources"
+import { siteFileList } from "../../build/site-files"
 import DemoCard, { DEMO_FIT } from "../../src/pages/docs/DemoCard"
-import { toSolidCode } from "../../src/pages/docs/solid"
 import { docsCode } from "../../src/pages/docs/snippet"
 import { setStyling } from "../../src/shared/lib/restyle"
 import {
@@ -33,28 +32,248 @@ import {
   type SourceFile,
 } from "../../src/widgets/source/model/files"
 import { PACKAGES } from "../../src/widgets/source/model/run"
-import { asSfc, snippetKind } from "../../src/widgets/source/model/snippet"
-import { world } from "dither-kit/testing/world.ts"
+import { asTsx, snippetKind } from "../../src/widgets/source/model/snippet"
+import { world } from "@dither-ui/kit/testing/world.ts"
+import { createSignal } from "solid-js"
+import { SHOWN_SECTION } from "../../src/pages/docs/DocSection"
+import { PACK_LOADERS } from "../../src/pages/docs/pack-loaders"
+import { PACK_NAMES, PACKS } from "../../src/pages/docs/packs"
+
+// While `shows.on`, a DemoCard stands as a mark holding the example it is
+// given, the way the page gives it (its pickers at their first state), and
+// mounts nothing else: the docs render whole and cheap, and every card's
+// example is read where it stands.
+const shows = vi.hoisted(() => ({ on: false, codes: [] as string[] }))
+vi.mock("../../src/pages/docs/DemoCard", async (original) => {
+  const real = await original<typeof import("../../src/pages/docs/DemoCard")>()
+  const Card = (props: Parameters<typeof real.default>[0]) => {
+    if (!shows.on) return real.default(props)
+    const mark = document.createElement("i")
+    mark.dataset.example = String(shows.codes.push(props.code) - 1)
+    return mark
+  }
+  return { ...real, default: Card }
+})
 
 // the build's own listing of the kit (`kitSources` in `../../kit-sources.ts`)
 const SOLID = await kitFiles()
 const solidFiles = SOLID.map((f) => f.file)
 const read = (list: typeof SOLID, file: string) => readFileSync(list.find((f) => f.file === file)!.path, "utf8")
 const SOLID_INDEX = await loadKitIndex(async (f) => read(SOLID, f), solidFiles, "solid/index.ts")
+const KIT_NAMES = new Set(SOLID_INDEX.keys())
 
-const SWITCH = `<script setup lang="ts">
-import { ref } from "vue"
-import { DitherSwitch } from "@dither-kit"
+/** Every template literal of the docs' modules that holds markup, as its
+ * source writes it (its holes `${…}`); HTML (a void tag left open: an embed
+ * code, a page that links the kit's stylesheet) is not a component. */
+function docsLiterals(): { file: string; text: string }[] {
+  const files = (dir: string): string[] =>
+    readdirSync(dir).flatMap((n) => {
+      const p = join(dir, n)
+      return statSync(p).isDirectory() ? files(p) : /\.tsx?$/.test(n) ? [p] : []
+    })
+  const out: { file: string; text: string }[] = []
+  for (const file of files(join(process.cwd(), "src/pages/docs"))) {
+    const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.ESNext, true)
+    const visit = (node: ts.Node): void => {
+      if (ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node)) {
+        const text = node.getText().slice(1, -1)
+        if (/<[A-Za-z]/.test(text) && !/<(img|link|br|hr|meta|input)\b[^>]*[^/]>/.test(text)) out.push({ file, text })
+      }
+      ts.forEachChild(node, visit)
+    }
+    visit(source)
+  }
+  return out
+}
 
-const bloom = ref(true)
-</script>
+/** Every snippet of the docs' modules that is markup (a demo's, a Handbook
+ * block's, a doc comment's), read out of the source as a template, with
+ * what it interpolates as a stand-in. */
+function docsSnippets(): { file: string; where: string; code: string }[] {
+  const out: { file: string; where: string; code: string }[] = []
+  for (const { file, text } of docsLiterals()) {
+    // a hole on a line of its own declares the snippet's data; one inside a line is a name
+    let filled = ""
+    let hole = 0
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] !== "$" || text[i + 1] !== "{" || text[i - 1] === "\\") {
+        filled += text[i]
+        continue
+      }
+      let j = i + 2
+      for (let depth = 1; depth; j++) depth += text[j] === "{" ? 1 : text[j] === "}" ? -1 : 0
+      const own = /(^|\n)$/.test(filled) && /^(\n|$)/.test(text.slice(j))
+      filled += own ? `const data${hole++} = [0]` : "x"
+      i = j - 1
+    }
+    const code = filled.replace(/\\([\s\S])/g, (_, c: string) => (c === "n" ? "\n" : c)).replace(/…/g, "etc")
+    const kind = snippetKind(code)
+    const bare = code.replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+    if ((kind !== "file" && kind !== "fragment") || bare.indexOf(">", bare.lastIndexOf("<")) < 0) continue
+    out.push({
+      file,
+      where: `${file.slice(process.cwd().length + 1)}: ${code.trim().split("\n")[0].slice(0, 60)}`,
+      code,
+    })
+  }
+  return out
+}
 
-<template>
-  <label class="flex items-center justify-between gap-4">
-    <span class="text-[13px]">Bloom on hover</span>
-    <DitherSwitch v-model="bloom" label="Bloom on hover" color="blue" />
-  </label>
-</template>`
+/** Vue's template notation, which the docs' snippets once were written in:
+ * its blocks, directives, bindings, listeners and interpolation. */
+const VUE =
+  /from ["']vue["']|<script setup|<template[\s>]|\sv-[a-z]+(?=[\s=>:.])|(?<![=(])\{\{|\s@[a-z][\w.:-]*=|\s:[a-z][\w-]*=["']/
+
+type DocsExample = { where: string; code: string; tsx: string }
+
+/** Every example a docs card gives its source panel, as the page gives it,
+ * that Run renders: a component by the panel's own rule (`snippetKind`: a
+ * fragment or a file, never a command, a module or a stylesheet), named
+ * `<section>:<n>` (its section, its place there), with the Solid file Run compiles. */
+async function docsExamples(): Promise<{ examples: DocsExample[]; others: number }> {
+  shows.on = true
+  shows.codes.length = 0
+  const roots: HTMLElement[] = []
+  try {
+    // every pack, each of its sections shown in turn: a section that waits
+    // to be opened (`defer`) renders its cards too
+    for (const name of PACK_NAMES) {
+      const Pack = (await PACK_LOADERS[name]()).default
+      const [shown, show] = createSignal("")
+      roots.push(
+        render(() => (
+          <SHOWN_SECTION.Provider value={shown}>
+            <Pack />
+          </SHOWN_SECTION.Provider>
+        )).container,
+      )
+      for (const { id } of PACKS[name]) show(id)
+    }
+    const examples: DocsExample[] = []
+    let others = 0
+    const seen = new Map<string, number>()
+    for (const root of roots)
+      for (const mark of root.querySelectorAll<HTMLElement>("i[data-example]")) {
+        const code = shows.codes[Number(mark.dataset.example)]
+        const section = mark.closest("section[id]")?.id ?? "?"
+        const n = seen.get(section) ?? 0
+        seen.set(section, n + 1)
+        const kind = snippetKind(code)
+        if (kind !== "file" && kind !== "fragment") {
+          others++
+          continue
+        }
+        examples.push({ where: `${section}:${n}`, code, tsx: asTsx(code, KIT_NAMES) })
+      }
+    return { examples, others }
+  } finally {
+    cleanup()
+    shows.on = false
+  }
+}
+
+/** The window's own names that read as an example's state or handler
+ * (`open`, `name`, `confirm`): an example that means the window says
+ * `window.open`, so a bare one is a name the example forgot to declare. */
+const WINDOW_OWN = new Set(
+  "name open close closed status confirm find print stop event top parent self length origin focus blur scroll frames opener external".split(
+    " ",
+  ),
+)
+
+/** The names a file reads and never binds, as TypeScript's checker finds
+ * them over the browser's own globals (the DOM and the language's): one
+ * program for every file, the modules it imports left unresolved, so what
+ * an import binds stands and only a name nothing binds is reported, with
+ * any of the window's own names it reads bare. */
+function freeNames(sources: Map<string, string>): Map<string, string[]> {
+  const options: ts.CompilerOptions = {
+    jsx: ts.JsxEmit.Preserve,
+    target: ts.ScriptTarget.ESNext,
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.Bundler,
+    lib: ["lib.esnext.d.ts", "lib.dom.d.ts", "lib.dom.iterable.d.ts"],
+    types: [],
+    noEmit: true,
+    skipLibCheck: true,
+  }
+  const host = ts.createCompilerHost(options)
+  const getSourceFile = host.getSourceFile
+  host.getSourceFile = (name, lang, ...rest) =>
+    sources.has(name) ? ts.createSourceFile(name, sources.get(name)!, lang, true) : getSourceFile(name, lang, ...rest)
+  const fileExists = host.fileExists
+  host.fileExists = (name) => sources.has(name) || fileExists(name)
+  const program = ts.createProgram([...sources.keys()], options, host)
+  // "Cannot find name", "did you mean", "no value exists in scope for the shorthand property"
+  const UNBOUND = new Set([2304, 2552, 2580, 2581, 2582, 2583, 2584, 2591, 2592, 2593, 2662, 2663, 18004])
+  const checker = program.getTypeChecker()
+  const windows = (node: ts.Node, found: string[]): void => {
+    const p = node.parent
+    const named =
+      !p ||
+      (ts.isPropertyAccessExpression(p) && p.name === node) ||
+      (ts.isBindingElement(p) && p.propertyName === node) ||
+      ts.isPropertyAssignment(p) ||
+      ts.isJsxAttribute(p)
+    if (ts.isIdentifier(node) && WINDOW_OWN.has(node.text) && !named) {
+      const symbol = ts.isShorthandPropertyAssignment(p)
+        ? checker.getShorthandAssignmentValueSymbol(p)
+        : checker.getSymbolAtLocation(node)
+      const decls = symbol?.declarations ?? []
+      if (decls.length && decls.every((d) => program.isSourceFileDefaultLibrary(d.getSourceFile())))
+        found.push(node.text)
+    }
+    ts.forEachChild(node, (child) => windows(child, found))
+  }
+  const out = new Map<string, string[]>()
+  for (const name of sources.keys()) {
+    const file = program.getSourceFile(name)!
+    const found = program
+      .getSemanticDiagnostics(file)
+      .filter((d) => UNBOUND.has(d.code))
+      .map((d) => ts.flattenDiagnosticMessageText(d.messageText, " ").match(/'([^']+)'/)?.[1] ?? "?")
+    windows(file, found)
+    if (found.length) out.set(name, [...new Set(found)])
+  }
+  return out
+}
+
+/** The root-relative addresses a file asks for: every string it holds
+ * that is a path to a file (`"/sprites.webp"`), comments aside. */
+function addresses(tsx: string): string[] {
+  const found: string[] = []
+  const visit = (node: ts.Node): void => {
+    if ((ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) && /^\/[\w./-]+\.\w+$/.test(node.text))
+      found.push(node.text)
+    ts.forEachChild(node, visit)
+  }
+  visit(ts.createSourceFile("a.tsx", tsx, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TSX))
+  return found
+}
+
+/** An elision the reader would fill in: a `…` standing for code or copy
+ * (a word of its own or its start, outside a string), or `...` closing a
+ * list. An ellipsis a string or a word ends with ("Loading…") is copy. */
+function elisions(tsx: string): string[] {
+  const file = ts.createSourceFile("e.tsx", tsx, ts.ScriptTarget.ESNext, true, ts.ScriptKind.TSX)
+  const text = tsx.split("")
+  const blank = (node: ts.Node): void => {
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateLiteralToken(node))
+      for (let i = node.getStart(); i < node.getEnd(); i++) text[i] = " "
+    ts.forEachChild(node, blank)
+  }
+  blank(file)
+  return [...text.join("").matchAll(/(?:^|[^\p{L}\p{N}_])(…[^\n]{0,20})|(\.\.\.\s*[\]})])/gmu)].map((m) =>
+    (m[1] ?? m[2]).trim(),
+  )
+}
+
+const SWITCH = `const [bloom, setBloom] = createSignal(true)
+
+<label class="flex items-center justify-between gap-4">
+  <span class="text-[13px]">Bloom on hover</span>
+  <DitherSwitch modelValue={bloom()} onUpdateModelValue={setBloom} label="Bloom on hover" color="blue" />
+</label>`
 
 const SWITCH_TSX = `import { createSignal } from "solid-js"
 import { DitherSwitch } from "@dither-kit"
@@ -114,24 +333,26 @@ describe("source files", () => {
 
   it("completes a fragment into a Solid file with what it uses imported", () => {
     const names = new Set(SOLID_INDEX.keys())
-    expect(snippetKind(SWITCH)).toBe("sfc")
-    expect(toSolidCode(asSfc(SWITCH, names))).toBe(SWITCH_TSX)
-    expect(toSolidCode(asSfc('const level = ref(40)\n\n<!-- one -->\n<DitherSlider v-model="level" />', names))).toBe(
+    expect(snippetKind(SWITCH)).toBe("fragment")
+    expect(asTsx(SWITCH, names)).toBe(SWITCH_TSX)
+    expect(snippetKind(SWITCH_TSX)).toBe("file")
+    expect(asTsx(SWITCH_TSX, names)).toBe(SWITCH_TSX)
+    expect(asTsx("{/* one */}\n<DitherSlider modelValue={level()} />\n\nconst [level] = createSignal(40)", names)).toBe(
       `import { createSignal } from "solid-js"
 import { DitherSlider } from "@dither-kit"
 
 export default function Example() {
-  const [level, setLevel] = createSignal(40)
+  const [level] = createSignal(40)
 
   return (
     <>
       {/* one */}
-      <DitherSlider modelValue={level()} onUpdateModelValue={setLevel} />
+      <DitherSlider modelValue={level()} />
     </>
   )
 }`,
     )
-    expect(toSolidCode(asSfc('<DitherButton :matrix="bayerMatrix(4)">Go</DitherButton>', names))).toBe(
+    expect(asTsx("<DitherButton matrix={bayerMatrix(4)}>Go</DitherButton>", names)).toBe(
       `import { DitherButton, bayerMatrix } from "@dither-kit"
 
 export default function Example() {
@@ -153,7 +374,7 @@ export default function Example() {
   })
 
   it("names the example and writes the brief from the files", () => {
-    expect(exampleName("area-chart", 1, "sfc")).toBe("AreaChartExample.tsx")
+    expect(exampleName("area-chart", 1, "file")).toBe("AreaChartExample.tsx")
     expect(exampleName("switch", 2, "fragment")).toBe("SwitchExample2.tsx")
     expect(exampleName("install", 1, "sh")).toBe("install.sh")
     const files: SourceFile[] = [
@@ -292,36 +513,99 @@ export const mode = import.meta.env.MODE`,
   }, 120000)
 
   it("compiles every docs snippet's Solid file, in every styling system", () => {
-    const files = (dir: string): string[] =>
-      readdirSync(dir).flatMap((n) => {
-        const p = join(dir, n)
-        return statSync(p).isDirectory() ? files(p) : /\.tsx?$/.test(n) ? [p] : []
-      })
-    const docs = [join(process.cwd(), "src/pages/docs")]
-    const names = new Set(SOLID_INDEX.keys())
     const failures: string[] = []
-    let snippets = 0
-    for (const file of docs.flatMap(files)) {
-      for (const m of readFileSync(file, "utf8").matchAll(/`((?:[^`\\]|\\.)*)`/g)) {
-        if (!/<[A-Za-z]/.test(m[1])) continue
-        const code = m[1]
-          .replace(/\$\{[^}]*\}/g, "x")
-          .replace(/\\([\s\S])/g, (_, c: string) => (c === "n" ? "\n" : c))
-          .replace(/…/g, "etc")
-        const kind = snippetKind(code)
-        const bare = code.replace(/<!--[\s\S]*?-->/g, "")
-        if ((kind !== "sfc" && kind !== "fragment") || bare.indexOf(">", bare.lastIndexOf("<")) < 0) continue
-        snippets++
-        const tsx = toSolidCode(asSfc(code, names))
-        for (const system of STYLINGS)
-          try {
-            compile("Example.tsx", restyleSolid(tsx, system).code)
-          } catch (e) {
-            failures.push(`${file.slice(process.cwd().length + 1)} (${system}): ${(e as Error).message}`)
-          }
-      }
+    const snippets = docsSnippets()
+    for (const { file, where, code } of snippets) {
+      const tsx = asTsx(code, KIT_NAMES)
+      // what a reader gets stands in their app: every kit component it
+      // renders is imported, and nothing of this site's own is called
+      const imported = new Set(
+        [...tsx.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s+from/g)].flatMap((i) =>
+          i[1].split(",").map((n) =>
+            n
+              .trim()
+              .split(/\s+as\s+/)
+              .pop()!,
+          ),
+        ),
+      )
+      const loose = [...new Set([...tsx.matchAll(/<([A-Z][A-Za-z0-9]*)/g)].map((t) => t[1]))].filter(
+        (t) => KIT_NAMES.has(t) && !imported.has(t),
+      )
+      if (loose.length) failures.push(`${where} renders ${loose.join(", ")} without importing it`)
+      const own = /\b(assetPath|routePath)\(/.exec(tsx)
+      if (own) failures.push(`${where} calls the site's own ${own[1]}`)
+      // script written under its markup with no block around it is read as text
+      if (tsx.includes('{"{"}')) failures.push(`${where} prints its script as text`)
+      // a note between two tags is a comment of the markup, or it prints
+      const said = tsx
+        .slice(tsx.lastIndexOf("  return ("))
+        .split("\n")
+        .find((l) => l.trim().startsWith("// "))
+      if (said) failures.push(`${where} prints a note as text: ${said.trim()}`)
+      for (const system of STYLINGS)
+        try {
+          compile("Example.tsx", restyleSolid(tsx, system).code)
+        } catch (e) {
+          failures.push(`${file.slice(process.cwd().length + 1)} (${system}): ${(e as Error).message}`)
+        }
     }
-    expect(snippets).toBeGreaterThan(270)
+    expect(snippets.length).toBeGreaterThan(260)
+    expect(failures).toEqual([])
+  }, 120000)
+
+  it("writes every docs snippet in Solid, never in Vue's notation", () => {
+    const literals = docsLiterals()
+    const vue = literals.flatMap(({ file, text }) => {
+      // a comment of the markup is JSX's, `{/* */}`
+      const found = VUE.exec(text) ?? (snippetKind(text) === "fragment" ? /<!--/.exec(text) : null)
+      return found ? [`${file.slice(process.cwd().length + 1)}: ${found[0].trim()} in ${text.slice(0, 60)}`] : []
+    })
+    expect(literals.length).toBeGreaterThan(270)
+    expect(vue).toEqual([])
+    // the pattern itself reads each form it names, and JSX's objects pass
+    for (const said of [
+      'import { ref } from "vue"',
+      "<template>",
+      '<p v-if="ok" />',
+      "{{ name }}",
+      '<b @click="go" />',
+      '<b :size="2" />',
+    ])
+      expect(VUE.test(said), said).toBe(true)
+    expect(VUE.test('<b style={{ color: "red" }} class="a" onClick={go} />')).toBe(false)
+  })
+
+  it("runs every docs example as written: every name bound, nothing elided, no asset the site lacks", async () => {
+    const w = world()
+    vi.stubGlobal("scrollTo", vi.fn())
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: false,
+      media: query,
+      addEventListener() {},
+      removeEventListener() {},
+    }))
+    const { examples, others } = await docsExamples().finally(() => {
+      w.restore()
+      vi.unstubAllGlobals()
+    })
+    // every card of the docs, the few that are a command, a module or a stylesheet aside
+    expect(examples.length).toBeGreaterThan(290)
+    expect(others).toBeLessThan(10)
+    // what the site holds: its static files, and those its build writes beside the pages
+    const pub = join(process.cwd(), "public")
+    const built = await siteFileList()
+    const failures: string[] = []
+    const unbound = freeNames(new Map(examples.map((e, i) => [`/examples/${i}.tsx`, e.tsx])))
+    examples.forEach(({ where, tsx }, i) => {
+      const free = unbound.get(`/examples/${i}.tsx`)
+      if (free) failures.push(`${where} reads what it never declares: ${free.join(", ")}`)
+      const cut = elisions(tsx)
+      if (cut.length) failures.push(`${where} elides: ${cut.join(" / ")}`)
+      for (const path of addresses(tsx))
+        if (!existsSync(join(pub, path)) && !(path.slice(1) in built))
+          failures.push(`${where} asks for ${path}, which the site does not hold`)
+    })
     expect(failures).toEqual([])
   }, 120000)
 })
@@ -334,7 +618,7 @@ describe("the reader's styling system", () => {
 
   it("shows a snippet in Solid, whatever framework an earlier visit stored", () => {
     localStorage.setItem("dither-docs-framework", "svelte")
-    expect(docsCode('<DitherSwitch v-model="on" />')).toBe(
+    expect(docsCode("<DitherSwitch modelValue={on()} onUpdateModelValue={setOn} />")).toBe(
       "<DitherSwitch modelValue={on()} onUpdateModelValue={setOn} />",
     )
     setStyling("modules")
@@ -592,5 +876,9 @@ describe("the source panel on a docs preview", () => {
     expect(fireEvent.keyDown(editor(), { key: "Tab" })).toBe(false)
     fireEvent.keyDown(editor(), { key: "Escape" })
     expect(fireEvent.keyDown(editor(), { key: "Tab" })).toBe(true)
+    // and Shift+Tab, its Shift pressed first (as WebKitGTK names it, too)
+    fireEvent.keyDown(editor(), { key: "Escape" })
+    fireEvent.keyDown(editor(), { key: "Shift", shiftKey: true })
+    expect(fireEvent.keyDown(editor(), { key: "Unidentified", code: "Tab", shiftKey: true })).toBe(true)
   })
 })

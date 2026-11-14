@@ -9,124 +9,125 @@ import {
   DitherTextarea,
   DitherNumberField,
   DitherOtpField,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
-const SNIPPET_INPUT = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_INPUT = `import { createSignal } from "solid-js"
 import { DitherInput } from "@dither-kit"
 
-const name = ref("")
-const email = ref("not-an-email")
-</script>
+export default function Example() {
+  const [name, setName] = createSignal("")
+  const [email, setEmail] = createSignal("not-an-email")
 
-<template>
-  <div class="grid gap-3 sm:grid-cols-2">
-    <DitherInput v-model="name" placeholder="Ada Byte" />
-    <DitherInput v-model="email" type="email" invalid placeholder="you@dither-ui.com" />
-  </div>
-</template>`
+  return (
+    <div class="grid gap-3 sm:grid-cols-2">
+      <DitherInput modelValue={name()} onUpdateModelValue={setName} placeholder="Ada Byte" />
+      <DitherInput modelValue={email()} onUpdateModelValue={setEmail} type="email" invalid placeholder="you@dither-ui.com" />
+    </div>
+  )
+}`
 
-const SNIPPET_TEXTAREA = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_TEXTAREA = `import { createSignal } from "solid-js"
 import { DitherField, DitherTextarea } from "@dither-kit"
 
-const bio = ref("")
-</script>
+export default function Example() {
+  const [bio, setBio] = createSignal("")
 
-<template>
-  <DitherField label="Bio" description="A short introduction.">
-    <DitherTextarea v-model="bio" placeholder="Tell us what you make…" />
-  </DitherField>
-</template>`
+  return (
+    <DitherField label="Bio" description="A short introduction.">
+      <DitherTextarea modelValue={bio()} onUpdateModelValue={setBio} placeholder="Tell us what you make…" />
+    </DitherField>
+  )
+}`
 
-const SNIPPET_FIELD = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_FIELD = `import { createSignal } from "solid-js"
 import { DitherField, DitherInput } from "@dither-kit"
 
-const handle = ref("")
-const website = ref("")
-</script>
+export default function Example() {
+  const [handle, setHandle] = createSignal("")
+  const [website, setWebsite] = createSignal("")
 
-<template>
-  <div class="grid gap-5">
-    <DitherField label="Handle" description="Lowercase, no spaces.">
-      <DitherInput v-model="handle" placeholder="ada" />
-    </DitherField>
-    <DitherField label="Website" error="That URL does not resolve.">
-      <DitherInput v-model="website" placeholder="https://" />
-    </DitherField>
-  </div>
-</template>`
+  return (
+    <div class="grid gap-5">
+      <DitherField label="Handle" description="Lowercase, no spaces.">
+        <DitherInput modelValue={handle()} onUpdateModelValue={setHandle} placeholder="ada" />
+      </DitherField>
+      <DitherField label="Website" error="That URL does not resolve.">
+        <DitherInput modelValue={website()} onUpdateModelValue={setWebsite} placeholder="https://" />
+      </DitherField>
+    </div>
+  )
+}`
 
-const SNIPPET_FIELDSET = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_FIELDSET = `import { createSignal } from "solid-js"
 import { DitherField, DitherFieldset, DitherInput } from "@dither-kit"
 
-const name = ref("Ada Byte")
-const handle = ref("ada")
-</script>
+export default function Example() {
+  const [name, setName] = createSignal("Ada Byte")
+  const [handle, setHandle] = createSignal("ada")
 
-<template>
-  <DitherFieldset legend="Profile">
-    <DitherField label="Name" for="profile-name">
-      <DitherInput id="profile-name" v-model="name" />
-    </DitherField>
-    <DitherField label="Handle" for="profile-handle">
-      <DitherInput id="profile-handle" v-model="handle" />
-    </DitherField>
-  </DitherFieldset>
-</template>`
+  return (
+    <DitherFieldset legend="Profile">
+      <DitherField label="Name" for="profile-name">
+        <DitherInput id="profile-name" modelValue={name()} onUpdateModelValue={setName} />
+      </DitherField>
+      <DitherField label="Handle" for="profile-handle">
+        <DitherInput id="profile-handle" modelValue={handle()} onUpdateModelValue={setHandle} />
+      </DitherField>
+    </DitherFieldset>
+  )
+}`
 
-const SNIPPET_FORM = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_FORM = `import { createSignal } from "solid-js"
 import { DitherButton, DitherField, DitherForm, DitherInput } from "@dither-kit"
 
-const email = ref("")
-const submitted = ref(0)
-</script>
+export default function Example() {
+  const [email, setEmail] = createSignal("")
+  const [submitted, setSubmitted] = createSignal(0)
 
-<template>
-  <DitherForm @submit="submitted++">
-    <div class="grid gap-4">
-      <DitherField label="Email" for="form-email">
-        <DitherInput id="form-email" v-model="email" type="email" placeholder="you@dither-ui.com" />
-      </DitherField>
-      <DitherButton type="submit" color="blue" class="w-full">Subscribe</DitherButton>
-      <p class="text-[11px] text-muted-foreground">submitted {{ submitted }} times</p>
-    </div>
-  </DitherForm>
-</template>`
+  return (
+    <DitherForm onSubmit={() => setSubmitted(submitted() + 1)}>
+      <div class="grid gap-4">
+        <DitherField label="Email" for="form-email">
+          <DitherInput id="form-email" modelValue={email()} onUpdateModelValue={setEmail} type="email" placeholder="you@dither-ui.com" />
+        </DitherField>
+        <DitherButton type="submit" color="blue" class="w-full">Subscribe</DitherButton>
+        <p class="text-[11px] text-muted-foreground">submitted {submitted()} times</p>
+      </div>
+    </DitherForm>
+  )
+}`
 
-const SNIPPET_NUMBER = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_NUMBER = `import { createSignal } from "solid-js"
 import { DitherNumberField } from "@dither-kit"
 
-const qty = ref(3)
-</script>
+export default function Example() {
+  const [qty, setQty] = createSignal(3)
 
-<template>
-  <div class="flex items-center gap-4">
-    <DitherNumberField v-model="qty" :min="0" :max="10" label="Quantity" />
-    <span class="text-[13px] tabular-nums">{{ qty }} / 10</span>
-  </div>
-</template>`
+  return (
+    <div class="flex items-center gap-4">
+      <DitherNumberField modelValue={qty()} onUpdateModelValue={setQty} min={0} max={10} label="Quantity" />
+      <span class="text-[13px] tabular-nums">{qty()} / 10</span>
+    </div>
+  )
+}`
 
-const SNIPPET_OTP = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_OTP = `import { createSignal, Show } from "solid-js"
 import { DitherOtpField } from "@dither-kit"
 
-const otp = ref("")
-const complete = ref(false)
-</script>
+export default function Example() {
+  const [otp, setOtp] = createSignal("")
+  const [complete, setComplete] = createSignal(false)
 
-<template>
-  <div class="grid gap-3">
-    <DitherOtpField v-model="otp" :length="6" @complete="complete = true" />
-    <p v-if="complete" class="text-[11px]">complete!</p>
-  </div>
-</template>`
+  return (
+    <div class="grid gap-3">
+      <DitherOtpField modelValue={otp()} onUpdateModelValue={setOtp} length={6} onComplete={() => setComplete(true)} />
+      <Show when={complete()}><p class="text-[11px]">complete!</p></Show>
+    </div>
+  )
+}`
 
 const API: Record<string, PropRow[]> = {
   input: [
@@ -182,8 +183,7 @@ export default function FieldDocs() {
 
   return (
     <>
-      <section id="input" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Input</h2>
+      <DocSection id="input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A monospace text input on the token border stack: the border warms to the accent on focus, and{" "}
           <code class="text-foreground/80">invalid</code> swaps it for the red seed with{" "}
@@ -202,10 +202,9 @@ export default function FieldDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.input} />
-      </section>
+      </DocSection>
 
-      <section id="textarea" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Textarea</h2>
+      <DocSection id="textarea">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The multiline companion to Input, with the same field context, invalid, read-only, focus, and disabled
           contracts. Resize behavior stays explicit.
@@ -218,10 +217,9 @@ export default function FieldDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.textarea} />
-      </section>
+      </DocSection>
 
-      <section id="field" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Field</h2>
+      <DocSection id="field">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Label, control, and one line of small print. The <code class="text-foreground/80">error</code> replaces the
           description and drops a red pixel marker in front of the text.
@@ -237,10 +235,9 @@ export default function FieldDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.field} />
-      </section>
+      </DocSection>
 
-      <section id="fieldset" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Fieldset</h2>
+      <DocSection id="fieldset">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Groups related fields inside a bordered box with a tracking-spaced legend. Native{" "}
           <code class="text-foreground/80">&lt;fieldset&gt;</code> semantics, kit skin.
@@ -258,10 +255,9 @@ export default function FieldDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.fieldset} />
-      </section>
+      </DocSection>
 
-      <section id="form" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Form</h2>
+      <DocSection id="form">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A deliberately tiny wrapper: <code class="text-foreground/80">novalidate</code> suppresses the browser's
           validation bubbles and submit is prevented and handed on as a clean{" "}
@@ -289,10 +285,9 @@ export default function FieldDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.form} />
-      </section>
+      </DocSection>
 
-      <section id="number-field" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Number field</h2>
+      <DocSection id="number-field">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Stepper buttons around a spinbutton input: arrow keys step, typed values clamp and snap to the step on blur,
           and the buttons disable at the bounds.
@@ -304,10 +299,9 @@ export default function FieldDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.numberField} />
-      </section>
+      </DocSection>
 
-      <section id="otp-field" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">OTP field</h2>
+      <DocSection id="otp-field">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           One box per digit with auto-advancing focus. Backspace on an empty box steps back, and pasting a full code
           distributes it across the boxes. <code class="text-foreground/80">complete</code> fires once every box is
@@ -329,7 +323,7 @@ export default function FieldDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.otpField} />
-      </section>
+      </DocSection>
     </>
   )
 }

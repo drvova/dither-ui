@@ -2,6 +2,7 @@
 // through `state.current`. A binding's canvas (`solid/runtime/cartesian-canvas.tsx`)
 // mounts the canvases and starts it.
 
+import { seriesFill } from "./chart-fill"
 import type { Box, ChartContextValue } from "./chart-types"
 import {
   resolveEasing,
@@ -14,8 +15,9 @@ import {
   type Glyph,
 } from "./dither-paint"
 import { rgb } from "./palette"
-import { clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
-import { directedTime, isDirected, onSeek } from "./clock"
+import { clearRasterBuffer } from "./raster"
+import { chartEntrance, type ChartLoop, driveChartLoop, openChartCanvases } from "./chart-loop"
+import { isDirected } from "./clock"
 
 export type Star = { key: string; xi: number; depth: number; phase: number }
 export type Surface = { top: number[]; floor: number[] }
@@ -62,20 +64,10 @@ export function startCartesianLoop({
   spark,
   effect,
   glyph,
-}: LoopArgs): { stop: () => void; wake: () => void } | undefined {
-  const c = canvas.getContext("2d", { willReadFrequently: true })
-  if (!c || cols <= 0 || rows <= 0) return undefined
-  canvas.width = cols
-  canvas.height = rows
-
-  const frame = createRasterBuffer(cols, rows)
-  let imageData: ImageData | undefined
-
-  const bloomCtx = bloomCanvas?.getContext("2d") ?? null
-  if (bloomCanvas) {
-    bloomCanvas.width = cols
-    bloomCanvas.height = rows
-  }
+}: LoopArgs): ChartLoop | undefined {
+  const canvases = openChartCanvases(canvas, bloomCanvas, cols, rows)
+  if (!canvases) return undefined
+  const { c, frame } = canvases
 
   const reduce = prefersReducedMotion()
   const EASE = reduce ? 1 : 0.18
@@ -122,56 +114,27 @@ export function startCartesianLoop({
     })
   }
 
-  let raf = 0
   let tick = 0
   let last = 0
-  let animStart = 0
-  let lastProg = -1
-  let lastRevision = state.current.revision
-  let lastAnimate = state.current.animate && !reduce
-  let lastDuration = state.current.animationDuration
-  let lastDelay = state.current.animationDelay
-  let entranceReported = !lastAnimate
+  const entrance = chartEntrance(state, reduce)
+  let entranceReported = !(state.current.animate && !reduce)
   let intensity = 0
   let needsFill = true
-  let lastPaintSig = ""
-  let lastBloomSig = ""
+  let lastFill = ""
   let lastSelected: string | null | undefined = Symbol() as never
   let lastMarker: number | null | undefined = Symbol() as never
   let lastCrosshair: boolean | undefined
   // Directed (clock.ts): no frames are requested; `draw(ms)` paints the
   // moment and the entrance runs from composition time 0.
-  const schedule = () => {
-    if (!raf && visible() && !isDirected()) raf = requestAnimationFrame(draw)
-  }
-
-  const draw = (now: number) => {
-    raf = 0
-    if (!visible() && !isDirected()) return // off-screen: pause until useCanvasVisibility wakes it
+  return driveChartLoop(visible, (schedule) => (now) => {
     const s = state.current
     if (!s.ready) return
     const tgt = targets.current
-    const animate = s.animate && !reduce
-    const duration = Math.max(1, s.animationDuration)
-    if (
-      s.revision !== lastRevision ||
-      animate !== lastAnimate ||
-      duration !== lastDuration ||
-      s.animationDelay !== lastDelay
-    ) {
-      lastRevision = s.revision
-      lastAnimate = animate
-      lastDuration = duration
-      lastDelay = s.animationDelay
-      animStart = 0
-      lastProg = -1
+    const { animate, prog, progChanged, restarted } = entrance(now)
+    if (restarted) {
       entranceReported = !animate
       needsFill = true
     }
-    if (!animStart) animStart = now
-    const origin = isDirected() ? 0 : animStart
-    const prog = animate ? Math.min(1, Math.max(0, (now - origin - s.animationDelay) / duration)) : 1
-    const progChanged = prog !== lastProg
     if (prog >= 1 && !entranceReported) {
       entranceReported = true
       s.markEntranceDone()
@@ -226,15 +189,9 @@ export function startCartesianLoop({
     const winkPeriod = 100 / Math.max(0.1, s.sparkleSpeed)
     const winkTick = isDirected() ? Math.floor(now / winkPeriod) : tick + 1
     const winkDue = sparkleMotion && (isDirected() ? winkTick !== tick : now - last >= winkPeriod)
-    const paintSig = `${s.stackType}|${s.dimOpacity}|${JSON.stringify(s.configKeys.map((k) => [k, s.config[k]?.color, s.seriesSpecs[k]]))}`
-    const bloomSig = `${s.bloom}|${s.bloomOnHover}|${s.isMouseInChart}|${s.hovered}`
-    const sigChanged = paintSig !== lastPaintSig
-    if (sigChanged) {
-      lastPaintSig = paintSig
-      needsFill = true
-    }
-    if (bloomSig !== lastBloomSig) {
-      lastBloomSig = bloomSig
+    const fill = seriesFill(s)
+    if (fill !== lastFill) {
+      lastFill = fill
       needsFill = true
     }
     if (marker !== lastMarker || s.crosshair !== lastCrosshair) {
@@ -242,17 +199,14 @@ export function startCartesianLoop({
       lastCrosshair = s.crosshair
       needsFill = true
     }
-    if (!(moving || settling || (sparkleMotion && winkDue) || progChanged || sigChanged || needsFill)) {
+    if (!(moving || settling || (sparkleMotion && winkDue) || progChanged || needsFill)) {
       // Nothing new to paint this frame, but an entrance still under way
       // (its delay, or two frames on one timestamp) must keep the loop
       // alive, or it stops part drawn until a hover wakes it.
       if (sparkleMotion || (animate && !entranceReported)) schedule()
       return
     }
-    if (progChanged) {
-      lastProg = prog
-      needsFill = true
-    }
+    if (progChanged) needsFill = true
     if (winkDue) {
       last = now
       tick = winkTick
@@ -265,8 +219,7 @@ export function startCartesianLoop({
       paintFill(intensity, reveal)
       needsFill = false
     }
-    c.clearRect(0, 0, cols, rows)
-    imageData = putRasterBuffer(c, frame, imageData)
+    canvases.put()
 
     const mx = marker != null && s.dataLength > 1 ? Math.round((marker / (s.dataLength - 1)) * (cols - 1)) : -1
     if (s.crosshair && mx >= 0 && mx <= revealCols) {
@@ -283,10 +236,7 @@ export function startCartesianLoop({
     }
 
     if (!s.sparkles) {
-      if (bloomCtx && s.bloom !== "off" && (!s.bloomOnHover || s.isMouseInChart || s.hovered)) {
-        bloomCtx.clearRect(0, 0, cols, rows)
-        bloomCtx.drawImage(canvas, 0, 0)
-      }
+      canvases.bloom(s, s.isMouseInChart || s.hovered)
       if ((animate && !entranceReported) || moving || settling) schedule()
       return
     }
@@ -355,27 +305,7 @@ export function startCartesianLoop({
         }
       }
     }
-    if (bloomCtx && s.bloom !== "off" && (!s.bloomOnHover || s.isMouseInChart || s.hovered)) {
-      bloomCtx.clearRect(0, 0, cols, rows)
-      bloomCtx.drawImage(canvas, 0, 0)
-    }
+    canvases.bloom(s, s.isMouseInChart || s.hovered)
     if (sparkleMotion || (animate && !entranceReported) || moving || settling) schedule()
-  }
-
-  const paintDirected = (ms: number) => {
-    if (raf) cancelAnimationFrame(raf)
-    raf = 0
-    draw(ms)
-  }
-  const unseek = onSeek((ms) => (ms === null ? schedule() : paintDirected(ms)))
-  if (isDirected()) paintDirected(directedTime() ?? 0)
-  else if (visible()) schedule()
-  return {
-    stop: () => {
-      cancelAnimationFrame(raf)
-      unseek()
-    },
-    // A wake under direction (ready flipped, data changed) repaints the moment.
-    wake: () => (isDirected() ? paintDirected(directedTime() ?? 0) : schedule()),
-  }
+  })
 }

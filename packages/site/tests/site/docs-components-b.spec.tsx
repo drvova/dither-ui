@@ -1,4 +1,4 @@
-// The docs' component packs on Solid, second half (`src/pages/docs/components/`:
+// The docs' component packs, second half (`src/pages/docs/components/`:
 // Navigation, Overlay, Selection, Structure, Surface): each pack's sections
 // against the nav table the rail, the search and the crawler read, each
 // preview mounting its demo once in view, and the demos' own state.
@@ -15,7 +15,7 @@ import OverlayDocs from "../../src/pages/docs/components/OverlayDocs"
 import SelectionDocs from "../../src/pages/docs/components/SelectionDocs"
 import StructureDocs from "../../src/pages/docs/components/StructureDocs"
 import SurfaceDocs from "../../src/pages/docs/components/SurfaceDocs"
-import { world } from "dither-kit/testing/world.ts"
+import { world } from "@dither-ui/kit/testing/world.ts"
 
 const PACKS: { name: string; Pack: () => JSX.Element; nav: readonly { id: string; label: string }[] }[] = [
   { name: "NavigationDocs", Pack: NavigationDocs, nav: NAVIGATION_NAV },

@@ -1,15 +1,20 @@
-import { AUTH_NAV } from "./examples/auth-nav.ts"
+import { OVERVIEW_NAV } from "./overview/overview-nav.ts"
 import { PRIMITIVES_NAV } from "./primitives/primitives-nav.ts"
 import { TYPOGRAPHY_NAV } from "./typography/typography-nav.ts"
+import { HANDBOOK_NAV } from "./handbook/handbook-nav.ts"
+import { PAGE_NAV } from "./examples/page-nav.ts"
+import { AUTH_NAV } from "./examples/auth-nav.ts"
 import { PRODUCT_NAV } from "./examples/product-nav.ts"
 import { SIDEBAR_NAV } from "./examples/sidebar-nav.ts"
 import { STATS_NAV } from "./examples/stats-nav.ts"
 import { TABLE_NAV } from "./examples/table-nav.ts"
 import { CHAT_NAV } from "./examples/chat-nav.ts"
 import { NOTIFICATIONS_NAV } from "./examples/notifications-nav.ts"
+import { CHART_NAV } from "./components/chart-nav.ts"
+import { BASICS_NAV } from "./components/basics-nav.ts"
 import { FORM_NAV } from "./components/form-nav.ts"
-import { FORMS_NAV } from "./forms/forms-nav.ts"
 import { FIELD_NAV } from "./components/field-nav.ts"
+import { FORMS_NAV } from "./forms/forms-nav.ts"
 import { SELECTION_NAV } from "./components/selection-nav.ts"
 import { FEEDBACK_NAV } from "./components/feedback-nav.ts"
 import { STRUCTURE_NAV } from "./components/structure-nav.ts"
@@ -21,103 +26,89 @@ import { NAVIGATION_NAV } from "./components/navigation-nav.ts"
 import { BACKGROUNDS_NAV } from "./backgrounds/backgrounds-nav.ts"
 import { TEXT_NAV } from "./text/text-nav.ts"
 import { ANIMATIONS_NAV } from "./animations/animations-nav.ts"
+import { UTILS_NAV } from "./utils/utils-nav.ts"
 
-// Docs sidebar IA — the single source of truth for section ids, labels, and
-// grouping. Section ids are permanent deep links (`/docs/<id>`): relabel
-// freely, never rename an id.
-export interface DocsGroup {
-  title: string
-  items: { id: string; label: string }[]
-}
+// The docs' IA, the single source of truth for section ids, labels,
+// families and the packs that render them: each family (a sidebar group) is
+// its packs in order, each pack (by its component's name) the sections it
+// renders, its sibling `*-nav.ts`. Section ids are permanent deep links
+// (`/docs/<id>`): relabel freely, never rename an id. Read under Node too
+// (the build's crawl files): its imports stay `.ts` and data only, so each
+// pack's chunk is named beside it, in `pack-loaders.ts`.
 
-export const GROUPS: DocsGroup[] = [
-  {
-    title: "Overview",
-    items: [{ id: "getting-started", label: "Quick start" }],
-  },
-  {
-    title: "Primitives",
-    items: PRIMITIVES_NAV,
-  },
-  {
-    title: "Typography",
-    items: TYPOGRAPHY_NAV,
-  },
-  {
-    title: "Handbook",
-    items: [
-      { id: "styling", label: "Styling" },
-      { id: "composition", label: "Composition" },
-      { id: "seeds", label: "Seeds" },
-      { id: "engine", label: "Engine" },
-      { id: "verification", label: "Verification" },
-      { id: "motion", label: "Animation" },
-      { id: "accessibility", label: "Accessibility" },
-    ],
-  },
+/** A section as the docs name it: its id, its sidebar label and, where the
+ * section's heading says more than the label, that heading. */
+export type NavItem = { readonly id: string; readonly label: string; readonly title?: string }
+
+export const DOCS = [
+  { title: "Overview", packs: { QuickStart: OVERVIEW_NAV } },
+  { title: "Primitives", packs: { PrimitivesDocs: PRIMITIVES_NAV } },
+  { title: "Typography", packs: { TypographyDocs: TYPOGRAPHY_NAV } },
+  { title: "Handbook", packs: { HandbookDocs: HANDBOOK_NAV } },
   {
     title: "Examples",
-    items: [
-      { id: "dashboard", label: "Dashboard" },
-      { id: "shell", label: "App shell" },
-      { id: "monitoring", label: "Monitoring" },
-      { id: "team", label: "Team" },
-      { id: "usage", label: "Usage & billing" },
-      { id: "signin", label: "Sign in" },
-      ...AUTH_NAV,
-      ...PRODUCT_NAV,
-      ...SIDEBAR_NAV,
-      ...STATS_NAV,
-      ...TABLE_NAV,
-      ...CHAT_NAV,
-      ...NOTIFICATIONS_NAV,
-    ],
+    packs: {
+      PageExamples: PAGE_NAV,
+      AuthExamples: AUTH_NAV,
+      ProductExamples: PRODUCT_NAV,
+      SidebarExamples: SIDEBAR_NAV,
+      StatsExamples: STATS_NAV,
+      TableExamples: TABLE_NAV,
+      ChatExamples: CHAT_NAV,
+      NotificationsExamples: NOTIFICATIONS_NAV,
+    },
   },
   {
     title: "Components",
-    items: [
-      { id: "area", label: "Area chart" },
-      { id: "line", label: "Line chart" },
-      { id: "bar", label: "Bar chart" },
-      { id: "pie", label: "Pie chart" },
-      { id: "radar", label: "Radar chart" },
-      { id: "sparkline", label: "Sparkline" },
-      { id: "button", label: "Button" },
-      { id: "avatar", label: "Avatar" },
-      { id: "gradient", label: "Gradient" },
-      { id: "image", label: "Image" },
-      ...FORM_NAV,
-      ...FIELD_NAV,
-      ...FORMS_NAV,
-      ...SELECTION_NAV,
-      ...FEEDBACK_NAV,
-      ...STRUCTURE_NAV,
-      ...LAYOUT_NAV,
-      ...MEDIA_NAV,
-      ...OVERLAY_NAV,
-      ...SURFACE_NAV,
-      ...NAVIGATION_NAV,
-    ],
+    packs: {
+      ChartDocs: CHART_NAV,
+      BasicsDocs: BASICS_NAV,
+      FormDocs: FORM_NAV,
+      FieldDocs: FIELD_NAV,
+      FormsDocs: FORMS_NAV,
+      SelectionDocs: SELECTION_NAV,
+      FeedbackDocs: FEEDBACK_NAV,
+      StructureDocs: STRUCTURE_NAV,
+      LayoutDocs: LAYOUT_NAV,
+      MediaDocs: MEDIA_NAV,
+      OverlayDocs: OVERLAY_NAV,
+      SurfaceDocs: SURFACE_NAV,
+      NavigationDocs: NAVIGATION_NAV,
+    },
   },
-  {
-    title: "Backgrounds",
-    items: [...BACKGROUNDS_NAV],
-  },
-  {
-    title: "Text",
-    items: [...TEXT_NAV],
-  },
-  {
-    title: "Animations",
-    items: [...ANIMATIONS_NAV],
-  },
-  {
-    title: "Utils",
-    items: [
-      { id: "palette", label: "Palette" },
-      { id: "print-screens", label: "Print screens" },
-    ],
-  },
-]
+  { title: "Backgrounds", packs: { BackgroundsDocs: BACKGROUNDS_NAV } },
+  { title: "Text", packs: { TextDocs: TEXT_NAV } },
+  { title: "Animations", packs: { AnimationsDocs: ANIMATIONS_NAV } },
+  { title: "Utils", packs: { UtilsDocs: UTILS_NAV } },
+] as const satisfies readonly { title: string; packs: Record<string, readonly NavItem[]> }[]
+
+type Packs = (typeof DOCS)[number]["packs"]
+/** A pack of sections, by its component's name. */
+export type PackName = Packs extends infer P ? (P extends unknown ? keyof P : never) : never
+/** Every section id the docs have. */
+export type SectionId = (Packs extends infer P ? (P extends unknown ? P[keyof P] : never) : never)[number]["id"]
+
+export interface DocsGroup {
+  title: string
+  items: readonly NavItem[]
+}
+
+/** The sidebar's groups: each family's sections, its packs' in order. */
+export const GROUPS: DocsGroup[] = DOCS.map((family) => ({
+  title: family.title,
+  items: Object.values<readonly NavItem[]>(family.packs).flat(),
+}))
 
 export const SECTIONS = GROUPS.flatMap((g) => g.items)
+
+const ITEMS = new Map<string, NavItem>(SECTIONS.map((s) => [s.id, s]))
+
+/** A section's nav item: what its element, its heading and its links say. */
+export function sectionItem(id: SectionId): NavItem {
+  const item = ITEMS.get(id)
+  if (!item) throw new Error(`No docs section "${id}"`)
+  return item
+}
+
+/** The words a section's heading prints: its title, else its label. */
+export const headingOf = (item: NavItem): string => item.title ?? item.label

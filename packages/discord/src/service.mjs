@@ -28,6 +28,7 @@
 // Run: node discord/service.mjs
 import { createServer } from "node:http"
 import { createPublicKey, verify as cryptoVerify } from "node:crypto"
+import { statSync } from "node:fs"
 import { readFile } from "node:fs/promises"
 import { dirname, extname, join, resolve, sep } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -132,12 +133,37 @@ const TYPES = {
   ".woff2": "font/woff2",
 }
 
+/** Where a Chromium may stand, in the order it is looked for: a copy of the
+ * tasks package's `chromiumCandidates` (`packages/tasks/src/chromium.ts`;
+ * this service imports nothing of the workspace), held to it by the
+ * workspace's `tests/chromium.spec.ts`. */
+function chromiumCandidates(env = process.env) {
+  const programFiles = env["ProgramFiles"] ?? "C:\\Program Files"
+  const programFilesX86 = env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)"
+  const localAppData = env["LOCALAPPDATA"] ?? ""
+  return [
+    env["CHROME_PATH"] ?? "",
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    `${programFiles}\\Google\\Chrome\\Application\\chrome.exe`,
+    `${programFilesX86}\\Google\\Chrome\\Application\\chrome.exe`,
+    localAppData ? `${localAppData}\\Google\\Chrome\\Application\\chrome.exe` : "",
+    `${programFilesX86}\\Microsoft\\Edge\\Application\\msedge.exe`,
+    `${programFiles}\\Microsoft\\Edge\\Application\\msedge.exe`,
+    "/opt/pw-browsers/chromium",
+  ].filter((p) => p !== "")
+}
+
 /** The renderer page, launched once however many requests ask at once. */
 async function rendererPage() {
   if (renderPage) return renderPage
   browserStart ??= (async () => {
     const { chromium } = await import("playwright-core")
-    const exe = process.env.CHROME_PATH || "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
+    const exe = chromiumCandidates().find((p) => statSync(p, { throwIfNoEntry: false })?.isFile())
+    if (!exe) throw new Error("no chromium found. Set CHROME_PATH or install one of: google-chrome, chromium.")
     const browser = await chromium.launch({ executablePath: exe })
     const page = await browser.newPage({ viewport: { width: 1200, height: 630 } })
     // The renderer is a page of the build: its HTML, its script and font

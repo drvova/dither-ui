@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/IconSet.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/IconSet.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { For, type JSX } from "solid-js"
-import { ICONS } from "dither-kit/engine/icons.ts"
+import { ICONS } from "@dither-ui/kit/engine/icons.ts"
 
 /** Stamps the whole set as `<symbol>` sheets once (id: `di-icon-<Name>`) for
  * consumers who want `<use href="#di-icon-Name">` instead of repeated inline

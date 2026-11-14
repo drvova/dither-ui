@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherSidebarSub.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherSidebarSub.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { children, createUniqueId, type JSX, mergeProps, Show, useContext } from "solid-js"
 import { SIDEBAR_COLLAPSED, SIDEBAR_COMPACT } from "./DitherSidebar"

@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherRail.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherRail.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, type JSX, mergeProps } from "solid-js"
 import { cn, type StyleProp } from "./lib"
@@ -55,7 +55,9 @@ export default function DitherRail(raw: DitherRailProps) {
       <SIDEBAR_COMPACT.Provider value={() => false}>
         <aside aria-label={props.label} class={cn(styles.aside, edge(), styles.aside2, props.xstyle, props.class)}>
           {props.header}
-          <nav {...stylex.props(styles.nav)}>{props.children}</nav>
+          <nav aria-label={props.label} {...stylex.props(styles.nav)}>
+            {props.children}
+          </nav>
           {props.footer}
         </aside>
       </SIDEBAR_COMPACT.Provider>

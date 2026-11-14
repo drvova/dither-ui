@@ -1,12 +1,12 @@
 // Solid's binding of the area and line chart canvas: it mounts the canvases and
 // starts the framework-free paint loop (`engine/cartesian-loop.ts`).
 
-import { createEffect, createMemo, type JSX, on, onCleanup, onMount, Show } from "solid-js"
+import { createMemo } from "solid-js"
+import { seriesFill } from "../../engine/chart-fill"
 import { startCartesianLoop, type Star, type Surface } from "../../engine/cartesian-loop"
 import type { Box, ChartContextValue } from "../../engine/chart-types"
 import {
   backingSize,
-  bloomLayerStyle,
   resample,
   sparklesFromSeed,
   effectFromSeed,
@@ -14,7 +14,7 @@ import {
   mulberry32,
 } from "../../engine/dither-paint"
 import { useChart } from "./chart-context"
-import { createCanvasVisibility } from "./visibility"
+import { PlotCanvas } from "./plot-canvas"
 
 /**
  * Continuous dither canvas for area and line charts. Each series is reduced to a
@@ -23,14 +23,6 @@ import { createCanvasVisibility } from "./visibility"
  */
 export function CartesianCanvas() {
   const ctx = useChart()
-  let canvasEl: HTMLCanvasElement | undefined
-  let bloomEl: HTMLCanvasElement | undefined
-  let loop: { stop: () => void; wake: () => void } | undefined
-  const isVisible = createCanvasVisibility(
-    () => canvasEl,
-    () => loop?.wake(),
-  )
-
   const backing = createMemo(() => backingSize(ctx.plot.width, ctx.plot.height, ctx.cell))
 
   const targets = createMemo<Record<string, Surface>>(() => {
@@ -100,7 +92,7 @@ export function CartesianCanvas() {
     ctx.configKeys.forEach((key, k) => {
       for (let i = 0; i < per; i++) {
         // Seed-derived position and phase when a master seed exists;
-        // otherwise the legacy linear hash (unchanged behavior).
+        // otherwise a linear hash of the series and the sparkle.
         if (ctx.seed !== undefined) {
           const rand = mulberry32(ctx.seed ^ (k * 7919 + i * 31 + 0x5bd1e995))
           out.push({
@@ -135,69 +127,42 @@ export function CartesianCanvas() {
     },
   }
 
-  const restart = () => {
-    loop?.stop()
-    loop = undefined
-    // A precompiled image stands in place of the canvases: nothing to paint.
-    const canvas = ctx.precompiled ? undefined : canvasEl
-    if (!canvas) return
-    const { cols, rows } = backing()
-    loop = startCartesianLoop({
-      canvas,
-      visible: isVisible,
-      bloomCanvas: bloomEl ?? null,
-      cols,
-      rows,
-      state: stateBox,
-      targets: targetsBox,
-      stars: starsBox,
-      spark: {
-        get current() {
-          return spark()
-        },
-      },
-      effect: {
-        get current() {
-          return effect()
-        },
-      },
-      glyph: {
-        get current() {
-          return glyph()
-        },
-      },
-    })
-  }
-
-  onMount(restart)
-  createEffect(
-    on(() => [backing().cols, backing().rows, ctx.plot.width, ctx.plot.height, ctx.precompiled], restart, {
-      defer: true,
-    }),
-  )
-  // Ensure the loop wakes when the chart becomes ready (dimensions > 0).
-  // This covers the race where IntersectionObserver fires before ResizeObserver,
-  // causing restart() to skip schedule() because visible() is still false.
-  createEffect(
-    on(
-      () => ctx.ready,
-      () => loop?.wake(),
-      { defer: true },
-    ),
-  )
-  createEffect(
-    on(
-      () => [
+  return (
+    <PlotCanvas
+      chart={ctx}
+      backing={backing}
+      start={(s) =>
+        startCartesianLoop({
+          ...s,
+          state: stateBox,
+          targets: targetsBox,
+          stars: starsBox,
+          spark: {
+            get current() {
+              return spark()
+            },
+          },
+          effect: {
+            get current() {
+              return effect()
+            },
+          },
+          glyph: {
+            get current() {
+              return glyph()
+            },
+          },
+        })
+      }
+      restartOn={() => [ctx.plot.width, ctx.plot.height]}
+      wakeOn={() => [
         targets(),
         ctx.revision,
-        ctx.configKeys.map((key) => [key, ctx.config[key]?.color]),
-        ctx.seriesSpecs,
+        seriesFill(ctx),
         ctx.selectedDataKey,
         ctx.focusDataKey,
         ctx.hoverIndex,
         ctx.markerIndex,
-        ctx.isMouseInChart,
-        ctx.hovered,
         ctx.animate,
         ctx.animationDuration,
         ctx.animationDelay,
@@ -207,55 +172,9 @@ export function CartesianCanvas() {
         ctx.sparkleDensity,
         ctx.sparkleSpeed,
         ctx.hoverStrength,
-        ctx.dimOpacity,
-        ctx.bloom,
-        ctx.bloomOnHover,
         ctx.crosshair,
-      ],
-      () => loop?.wake(),
-      { defer: true },
-    ),
-  )
-  onCleanup(() => loop?.stop())
-
-  const pos = (): JSX.CSSProperties => ({
-    position: "absolute",
-    "pointer-events": "none",
-    left: `${ctx.margins.left}px`,
-    top: `${ctx.margins.top}px`,
-    width: `${ctx.plot.width}px`,
-    height: `${ctx.plot.height}px`,
-  })
-  const bloom = createMemo(() =>
-    bloomLayerStyle(ctx.bloom, ctx.bloomOnHover ? ctx.isMouseInChart || ctx.hovered : true),
-  )
-  const bloomStyle = (): JSX.CSSProperties => {
-    const b = bloom()
-    return {
-      ...pos(),
-      transition: "opacity 220ms ease",
-      ...(b
-        ? {
-            filter: b.filter,
-            opacity: b.opacity,
-            "mix-blend-mode": b.mixBlendMode,
-            "image-rendering": b.imageRendering,
-          }
-        : { opacity: 0 }),
-    }
-  }
-
-  return (
-    <Show
-      when={ctx.precompiled}
-      fallback={
-        <>
-          <canvas ref={(el) => (canvasEl = el)} style={{ ...pos(), "image-rendering": "pixelated" }} />
-          <canvas ref={(el) => (bloomEl = el)} style={bloomStyle()} />
-        </>
-      }
-    >
-      {(src) => <img src={src()} alt="" aria-hidden="true" style={{ ...pos(), "image-rendering": "pixelated" }} />}
-    </Show>
+      ]}
+      hover={ctx.isMouseInChart || ctx.hovered}
+    />
   )
 }

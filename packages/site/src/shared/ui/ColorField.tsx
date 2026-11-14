@@ -1,7 +1,9 @@
 import { createEffect, createMemo, createSignal, For, type JSX, on, Show, splitProps } from "solid-js"
-import { colorToHex, cssColor, type DitherColor, hexToHsv, hsvToHex } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import { colorToHex, cssColor, type DitherColor, hexToHsv, hsvToHex } from "@dither-ui/kit"
+import { clamp01 } from "@dither-ui/kit/engine/pixel.ts"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { COLORS } from "@/shared/config"
+import { followPointer } from "@/shared/lib/follow"
 import "./ColorField.css"
 
 type Own = {
@@ -12,7 +14,6 @@ type Own = {
 export type ColorFieldProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
 
 const presets = COLORS as readonly string[]
-const clamp = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
 
 export default function ColorField(raw: ColorFieldProps) {
   const [props, rest] = splitProps(raw, ["modelValue", "class", "onUpdateModelValue"])
@@ -46,18 +47,13 @@ export default function ColorField(raw: ColorFieldProps) {
       if (!r) return
       setHsv((c) => ({
         ...c,
-        s: clamp((ev.clientX - r.left) / r.width),
-        v: 1 - clamp((ev.clientY - r.top) / r.height),
+        s: clamp01((ev.clientX - r.left) / r.width),
+        v: 1 - clamp01((ev.clientY - r.top) / r.height),
       }))
       push()
     }
     move(e)
-    const up = () => {
-      window.removeEventListener("pointermove", move)
-      window.removeEventListener("pointerup", up)
-    }
-    window.addEventListener("pointermove", move)
-    window.addEventListener("pointerup", up)
+    followPointer(e, move)
   }
 
   function onHue(e: InputEvent & { currentTarget: HTMLInputElement }) {
@@ -82,7 +78,7 @@ export default function ColorField(raw: ColorFieldProps) {
             <button
               type="button"
               class={cn(
-                "size-5 rounded-[4px] transition-transform hover:scale-110",
+                "size-6 rounded-[4px] transition-transform hover:scale-110",
                 props.modelValue === c
                   ? "ring-2 ring-foreground ring-offset-1 ring-offset-background"
                   : "ring-1 ring-border",
@@ -97,7 +93,7 @@ export default function ColorField(raw: ColorFieldProps) {
         <button
           type="button"
           class={cn(
-            "size-5 rounded-[4px] transition-transform hover:scale-110",
+            "size-6 rounded-[4px] transition-transform hover:scale-110",
             !isPreset() ? "ring-2 ring-foreground ring-offset-1 ring-offset-background" : "ring-1 ring-border",
           )}
           style={
@@ -116,7 +112,7 @@ export default function ColorField(raw: ColorFieldProps) {
           {/* saturation / value square */}
           <div
             ref={(el) => (square = el)}
-            class="relative h-28 w-full cursor-crosshair overflow-hidden rounded-md ring-1 ring-border"
+            class="relative h-28 w-full cursor-crosshair touch-none overflow-hidden rounded-md ring-1 ring-border"
             style={{ "background-color": `hsl(${hsv().h} 100% 50%)` }}
             onPointerDown={onSquare}
           >
@@ -135,7 +131,7 @@ export default function ColorField(raw: ColorFieldProps) {
             name="hue"
             min="0"
             max="360"
-            class="dk-hue h-2.5 w-full cursor-pointer appearance-none rounded-full"
+            class="dk-hue h-6 w-full cursor-pointer appearance-none"
             onInput={onHue}
           />
 

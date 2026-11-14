@@ -8,6 +8,7 @@ import { nitro } from "nitro/vite"
 import { defineConfig } from "vite"
 import { GROUPS } from "./src/pages/docs/groups.ts"
 import { ALIASES } from "./build/aliases.ts"
+import { siteFacts } from "./build/facts.ts"
 import { kitSources } from "./build/kit-sources.ts"
 import { runCompiler } from "./build/run-compiler.ts"
 import { siteFiles } from "./build/site-files.ts"
@@ -33,6 +34,7 @@ export default defineConfig({
   base: process.env.BASE_PATH ?? "/",
   publicDir: PUBLIC_FILES,
   plugins: [
+    siteFacts(),
     solidStart(),
     nitro(),
     tailwindcss(),

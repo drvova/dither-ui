@@ -1,12 +1,12 @@
-// Generated from dither-kit/solid/DitherSkeleton.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherSkeleton.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { onCleanup, onMount } from "solid-js"
-import { directedTime, isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import { BAYER4, fillOf, pixelPrefersReducedMotion, xorshift32 } from "dither-kit/engine/pixel.ts"
-import { cellCanvas } from "dither-kit/engine/raster.ts"
+import { createEffect, on, onCleanup, onMount } from "solid-js"
+import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import { BAYER4, fillOf, pixelPrefersReducedMotion, xorshift32 } from "@dither-ui/kit/engine/pixel.ts"
+import { cellCanvas } from "@dither-ui/kit/engine/raster.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
-import { createCanvasVisibility } from "dither-kit/solid/runtime/visibility.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
+import { createCanvasVisibility } from "@dither-ui/kit/solid/runtime/visibility.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -59,9 +59,10 @@ export type DitherSkeletonProps = { seed?: number; class?: string; xstyle?: Styl
 
 export default function DitherSkeleton(props: DitherSkeletonProps) {
   // Read once, as the component is made: a skeleton keeps its character.
+  // The screen around it is the print's, and a new one starts it again.
   const seed = props.seed
   const shimmer = seed !== undefined ? shimmerFromSeed(seed) : SHIMMER_DEFAULT
-  const matrix = useDitherMatrix(() => seed)()
+  const screenMatrix = useDitherMatrix(() => seed)
 
   let wrapEl: HTMLDivElement | undefined
   let canvasEl: HTMLCanvasElement | undefined
@@ -80,6 +81,7 @@ export default function DitherSkeleton(props: DitherSkeletonProps) {
     const ctx = canvas?.getContext("2d", { willReadFrequently: true })
     if (!wrap || !canvas || !ctx) return undefined
     const reduce = pixelPrefersReducedMotion()
+    const matrix = screenMatrix()
 
     let cols = 0
     let rows = 0
@@ -147,10 +149,13 @@ export default function DitherSkeleton(props: DitherSkeletonProps) {
     }
   }
 
+  const restart = () => {
+    teardown?.()
+    teardown = init()
+  }
   onMount(() => {
-    requestAnimationFrame(() => {
-      teardown = init()
-    })
+    requestAnimationFrame(restart)
+    createEffect(on(screenMatrix, restart, { defer: true }))
     onCleanup(() => teardown?.())
   })
 

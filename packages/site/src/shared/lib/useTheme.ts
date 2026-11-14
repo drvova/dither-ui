@@ -1,8 +1,12 @@
 import { type Accessor, createSignal, onMount, onCleanup } from "solid-js"
-import { ditherTransition } from "dither-kit/engine/transition.ts"
+import { ditherTransition } from "@dither-ui/kit/engine/transition.ts"
 import { storage } from "@/shared/lib/storage"
+import { STORAGE_KEYS } from "@/shared/config/storage"
 
-const STORAGE_KEY = "dither-theme"
+/** The head's script on a page that turns with the reader's theme: the
+ * stored theme on the root before the first paint, as `useTheme` sets it
+ * when the app mounts (the bytes are rendered dark). */
+export const THEME_HEAD_SCRIPT = `try{document.documentElement.classList.toggle("dark",localStorage.getItem(${JSON.stringify(STORAGE_KEYS.theme)})!=="light")}catch(e){}`
 
 let killSwitch: HTMLStyleElement | null = null
 
@@ -50,7 +54,7 @@ export function useTheme(): {
     document.documentElement.classList.toggle("dark", dark())
     tintChrome()
   }
-  const persist = () => storage.set(STORAGE_KEY, dark() ? "dark" : "light")
+  const persist = () => storage.set(STORAGE_KEYS.theme, dark() ? "dark" : "light")
 
   const toggle = () =>
     withoutTransitions(() => {
@@ -73,7 +77,7 @@ export function useTheme(): {
   }
 
   onMount(() => {
-    const stored = storage.get(STORAGE_KEY)
+    const stored = storage.get(STORAGE_KEYS.theme)
     if (stored) setDark(stored === "dark")
     document.documentElement.classList.toggle("dark", dark())
     // The tint reads the page's computed ground: inside the mount it forced

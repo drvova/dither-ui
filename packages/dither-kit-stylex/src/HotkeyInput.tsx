@@ -1,6 +1,7 @@
-// Generated from dither-kit/solid/HotkeyInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/HotkeyInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { mergeProps, splitProps } from "solid-js"
+import { isTab } from "@dither-ui/kit/engine/keys.ts"
 import { type StyleProp } from "./lib"
 import DitherInput, { type DitherInputProps } from "./DitherInput"
 import * as stylex from "@stylexjs/stylex"
@@ -10,7 +11,8 @@ const styles = stylex.create({
 })
 
 /** Shortcut capture: the field listens, modifiers hold until a non-modifier
- * arrives, Escape clears. Value shape: `Ctrl+Shift+K` (order Ctrl, Alt,
+ * arrives, Escape clears, Tab and Shift+Tab move focus on as anywhere (a
+ * bare Tab is never a shortcut: taking it would trap the keyboard). Value shape: `Ctrl+Shift+K` (order Ctrl, Alt,
  * Shift, Meta + normalized key). Repeat keys are ignored so holding a combo
  * doesn't re-fire. */
 type Own = {
@@ -47,6 +49,7 @@ export default function HotkeyInput(raw: HotkeyInputProps) {
 
   function onKeydown(e: KeyboardEvent) {
     if (props.disabled) return
+    if (isTab(e) && !e.ctrlKey && !e.altKey && !e.metaKey) return
     if (e.key === "Escape") {
       e.preventDefault()
       props.onUpdateModelValue?.("")

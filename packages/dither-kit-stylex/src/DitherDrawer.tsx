@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherDrawer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherDrawer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import {
   createContext,
@@ -13,12 +13,12 @@ import {
   useContext,
 } from "solid-js"
 import { Portal } from "solid-js/web"
-import { project, rubberband, velocityFrom, type VelocitySample } from "dither-kit/engine/gesture.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
+import { project, rubberband, velocityFrom, type VelocitySample } from "@dither-ui/kit/engine/gesture.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn } from "./lib"
 import FocusScope from "./FocusScope"
-import { Presence } from "dither-kit/solid/runtime/presence.tsx"
-import "dither-kit/solid/DitherDrawer.css"
+import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
+import "@dither-ui/kit/solid/DitherDrawer.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

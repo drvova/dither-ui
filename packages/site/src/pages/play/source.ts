@@ -1,13 +1,14 @@
 // Where the player's document comes from: the composition's embedded JSON
 // first (an exported HyperFrames file), then the hash a live preview link
 // carries (`/play/#doc=<base64url document>&artboard=<id>&theme=light`).
+import { DOCUMENT_SCRIPT_ID, STAGE_ID } from "@/shared/config/player"
 import { fromBase64Url } from "@/shared/lib"
 
 export type PlaySource = { document: unknown; artboardId: string | null; theme: "dark" | "light" }
 
 export function readPlaySource(): PlaySource {
-  const stage = document.getElementById("dither-stage")
-  const embedded = document.getElementById("dither-document")?.textContent
+  const stage = document.getElementById(STAGE_ID)
+  const embedded = document.getElementById(DOCUMENT_SCRIPT_ID)?.textContent
   const hash = new URLSearchParams(location.hash.replace(/^#/, ""))
   let doc: unknown
   try {

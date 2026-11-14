@@ -11,11 +11,11 @@ describe("a field's value", () => {
     const email = componentEntry("DitherEmailInput")!
     expect(sanitizeModel(email, "")).toBe("")
     expect(sanitizeModel(email, "me@studio.com")).toBe("me@studio.com")
-    expect(sanitizeModel(email, 42)).toBe(email.vmodel!.def)
-    expect(sanitizeModel(email, "x".repeat(30_000))).toBe(email.vmodel!.def)
+    expect(sanitizeModel(email, 42)).toBe(email.model!.def)
+    expect(sanitizeModel(email, "x".repeat(30_000))).toBe(email.model!.def)
     const sw = componentEntry("DitherSwitch")!
     expect(sanitizeModel(sw, false)).toBe(false)
-    expect(sanitizeModel(sw, "yes")).toBe(sw.vmodel!.def)
+    expect(sanitizeModel(sw, "yes")).toBe(sw.model!.def)
     // No v-model: no value.
     expect(sanitizeModel(componentEntry("DitherBadge")!, "x")).toBeUndefined()
   })

@@ -1,10 +1,6 @@
-// The Studio's panels on Solid: the inspector (with its avatar grid, its
-// spec-driven component rows and the reel's cut), the layer tree, the title
-// bar and the canvas's bar, held to what their Vue twins did. The canvas
-// bar's and the name column's cases carry the earlier Vue site's specs
-// (`tests/canvas-bar.spec.ts`, `tests/inspector-names.spec.ts`), assertion
-// for assertion; the rest is this port's own, a render and behaviour spec
-// for each panel the earlier Vue site had none for.
+// The Studio's panels: the inspector (with its avatar grid, its spec-driven
+// component rows and the reel's cut), the layer tree, the title bar and the
+// canvas's bar, each rendered and driven.
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
@@ -12,26 +8,41 @@ import { createSignal } from "solid-js"
 import { createMutable } from "solid-js/store"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard/model/factory"
-import { type AvatarModel, componentEntry, createCell, createReel, createRow, createScreen } from "@/entities/widget"
+import { layersOf } from "@/entities/chart"
+import {
+  type AvatarModel,
+  componentEntry,
+  createCell,
+  createComponent,
+  createReel,
+  createRow,
+  createScreen,
+  SIMPLE_WIDGET_KINDS,
+} from "@/entities/widget"
+import { CHART_TYPES } from "@/shared/config"
 import { createWidget } from "@/entities/widget/model/factory"
-import { GLIDE_BEZIER } from "dither-kit/engine/dither-paint.ts"
+import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import {
   deselect,
   editor,
   groupSelected,
+  history,
+  resetHistory,
   selectArtboard,
   selectLayer,
   selectMany,
+  stopHistory,
   stopInspecting,
 } from "../../src/entities/editor"
 import { handoff } from "../../src/features/agent/handoff"
 import { STUDIO_TOOLS } from "../../src/features/agent/tools"
-import { history, resetHistory, stopHistory } from "../../src/features/history"
 import { activeProjectId, projects, stopAutosave } from "../../src/features/persistence"
 import { presets } from "../../src/features/presets"
-import AvatarDrawGrid from "../../src/widgets/inspector/AvatarDrawGrid"
-import ComponentPropsPanel from "../../src/widgets/inspector/ComponentPropsPanel"
-import ReelPanel from "../../src/widgets/inspector/ReelPanel"
+import { installHand } from "../../src/shared/lib/hand"
+import { LAYER_PANELS, WIDGET_PANELS } from "../../src/widgets/inspector/panels"
+import ReelPanel from "../../src/widgets/inspector/panels/ReelPanel"
+import AvatarDrawGrid from "../../src/widgets/inspector/ui/AvatarDrawGrid"
+import ComponentPropsPanel from "../../src/widgets/inspector/ui/ComponentPropsPanel"
 import { Inspector } from "../../src/widgets/inspector"
 import { LayerTree } from "../../src/widgets/layer-tree"
 import { CanvasBar, Toolbar, type ToolbarApi } from "../../src/widgets/toolbar"
@@ -182,10 +193,10 @@ describe("the canvas bar", () => {
 describe("the inspector's name column", () => {
   it("is the one name width: no row keeps a fixed width of its own beside a control", () => {
     const dir = "packages/site/src/widgets/inspector"
-    const files = readdirSync(join(root, dir))
+    const files = readdirSync(join(root, dir), { recursive: true, encoding: "utf8" })
       .filter((f) => f.endsWith(".tsx"))
       .map((f) => join(dir, f))
-    expect(files.length).toBe(4)
+    expect(files.length).toBe(23)
     // A fixed width that will not shrink, on anything but a readout of a value.
     const own = files.flatMap((f) =>
       [...read(f).matchAll(/<span\s+class="([^"]*)"\s*>([^<]+)<\/span>/g)]
@@ -309,7 +320,7 @@ describe("the reel's cut", () => {
     editor.artboards.push(frame)
     const held = editor.artboards[2]
     const reel = held.widget as ReturnType<typeof createReel>
-    const view = render(() => <ReelPanel reel={reel} artboardId={held.id} />)
+    const view = render(() => <ReelPanel widget={reel} artboard={held} />)
     const clips = () => [...view.container.querySelectorAll<HTMLElement>("[data-reel-clip]")]
     return { ...view, reel, chart, plain, clips }
   }
@@ -520,6 +531,33 @@ describe("the inspector", () => {
     frame.widget = createReel([editor.artboards[0].id])
     selectArtboard(frame.id)
     expect(container.querySelector("[data-reel-clip]")).not.toBeNull()
+  })
+
+  it("has a panel for every layer kind and every widget kind, and shows it", () => {
+    const charts = CHART_TYPES.map((t) => createArtboard(t))
+    const parts = [createComponent(componentEntry("DitherSwitch")!), createScreen(), createReel([charts[0].id])]
+    const widgets = [
+      ...SIMPLE_WIDGET_KINDS.map((k) => createArtboard(k)),
+      ...parts.map((widget) => ({ ...createArtboard("button"), widget })),
+    ]
+    editor.artboards = [...charts, ...widgets]
+    // Every kind a frame's layers come in has its panel, and every panel is reached.
+    const layers = charts.flatMap((a) => layersOf(a.chart, a.id))
+    expect([...new Set(layers.map((l) => l.kind))].sort()).toEqual(Object.keys(LAYER_PANELS).sort())
+    expect(widgets.map((a) => a.widget!.kind).sort()).toEqual(Object.keys(WIDGET_PANELS).sort())
+
+    const { container } = render(() => <Inspector />)
+    const panel = () => container.querySelector(".overflow-y-auto")!
+    for (const l of layers) {
+      selectArtboard(l.id.split(":")[0])
+      selectLayer(l.id)
+      expect(panel().childElementCount, l.id).toBeGreaterThan(0)
+    }
+    // A widget frame's panel stands under the frame's name and box.
+    for (const a of widgets) {
+      selectArtboard(a.id)
+      expect(panel().childElementCount, a.widget!.kind).toBeGreaterThan(2)
+    }
   })
 
   it("builds an avatar from a seed, a drawing or an image", () => {
@@ -893,6 +931,46 @@ describe("the title bar", () => {
     fireEvent.click(open)
     fireEvent.click(container.querySelector<HTMLElement>('[role="dialog"] .library-item.text-left')!)
     expect(editor.artboards[before + 2].widget?.kind).toBe("component")
+  })
+
+  it("closes the library on Escape from anywhere in it and hands focus back to its key", async () => {
+    const { container, library } = bar()
+    const open = button(container, "Library")
+    fireEvent.click(open)
+    const dialog = container.querySelector<HTMLElement>('[role="dialog"]')!
+    const item = button(dialog, "area chart")
+    item.focus()
+    fireEvent.keyDown(item, { key: "Escape" })
+    expect(library()).toBe(false)
+    await tick()
+    expect(document.activeElement).toBe(open)
+  })
+
+  it("opened by a finger, takes focus on the panel, not its search, and hands it back unringed", async () => {
+    const uninstall = installHand(document)
+    const finger = (el: Element) => fireEvent.pointerDown(el, { pointerType: "touch" })
+    const { container, library } = bar()
+    const open = button(container, "Library")
+    finger(open)
+    fireEvent.click(open)
+    const dialog = container.querySelector<HTMLElement>('[role="dialog"]')!
+    await tick()
+    // no field focused, so no on-screen keyboard over half the screen; a screen reader is in the dialog
+    expect(document.activeElement).toBe(dialog)
+    const focus = vi.spyOn(open, "focus")
+    finger(button(dialog, "area chart"))
+    fireEvent.click(button(dialog, "area chart"))
+    expect(library()).toBe(false)
+    await tick()
+    expect(document.activeElement).toBe(open)
+    expect(focus).toHaveBeenLastCalledWith({ focusVisible: false })
+    // the keyboard opens it on its search, as ever
+    fireEvent.keyDown(open, { key: "Enter" })
+    fireEvent.click(open)
+    await tick()
+    expect(document.activeElement).toBe(input(container.querySelector('[role="dialog"]')!, "component-search"))
+    fireEvent.pointerDown(open, { pointerType: "mouse" })
+    uninstall()
   })
 
   it("lists the saved presets in the library", () => {

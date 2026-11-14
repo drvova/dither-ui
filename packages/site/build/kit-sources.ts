@@ -11,7 +11,7 @@ import type { Plugin } from "vite"
 import { isKitSource, KIT_SRC } from "../src/shared/lib/kit-sources.ts"
 
 /** The kit's package, wherever the workspace keeps it. */
-const KIT = dirname(createRequire(import.meta.url).resolve("dither-kit/package.json"))
+const KIT = dirname(createRequire(import.meta.url).resolve("@dither-ui/kit/package.json"))
 const at = (path: string) => join(KIT, path)
 
 /** The kit's folders: where each is read inside its package, the folder it

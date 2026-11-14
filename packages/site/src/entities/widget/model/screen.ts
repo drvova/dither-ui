@@ -42,7 +42,7 @@ export function createCell(entry: ComponentEntry): ScreenCell {
     is: entry.is,
     props: defaultComponentProps(entry),
     slotText: entry.slotText ?? null,
-    model: entry.vmodel ? entry.vmodel.def : undefined,
+    model: entry.model ? entry.model.def : undefined,
     grow: false,
   }
 }

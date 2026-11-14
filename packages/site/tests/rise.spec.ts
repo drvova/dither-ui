@@ -2,12 +2,12 @@
 // The rise: a headline's words come up one after another on the glide, then
 // what stands with it; the prerendered bytes wait for it (the head script)
 // and let go by themselves if the app never comes; reduced motion stands
-// everything where it is. Every riser on the landing stands inside a `v-rise`.
+// everything where it is. Every riser on the landing stands inside an element that takes `rise` as its ref.
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it, rs } from "rstack/test"
-import { GLIDE_BEZIER } from "dither-kit/engine/dither-paint.ts"
-import { RISE, riseDelays } from "../src/shared/lib/rise"
+import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
+import { RISE, rise, riseDelays } from "../src/shared/lib/rise"
 import { RISE_HEAD_SCRIPT, RISE_LIVE, RISE_WAIT } from "../src/shared/lib/rise-wait"
 
 let reduced = false
@@ -39,6 +39,22 @@ describe("the rise", () => {
     expect(riseDelays(["word", "word", "word", "block", "block"])).toEqual([0, 60, 120, 240, 330])
     expect(riseDelays(["block", "block"])).toEqual([0, RISE.block])
     expect(RISE.easing).toBe(`cubic-bezier(${GLIDE_BEZIER.join(", ")})`)
+  })
+
+  it("stands everything up at once when focus comes in before the view: a key Tabbed to is never invisible", () => {
+    const node = document.createElement("div")
+    node.innerHTML = '<p data-rise>Lede</p><a data-rise href="#">Read on</a>'
+    document.body.append(node)
+    const { destroy } = rise(node)
+    const items = [...node.querySelectorAll<HTMLElement>("[data-rise]")]
+    expect(items.map((el) => el.style.opacity)).toEqual(["0", "0"])
+    items[1].dispatchEvent(new FocusEvent("focusin", { bubbles: true }))
+    expect(items.map((el) => [el.style.opacity, el.hasAttribute("data-risen")])).toEqual([
+      ["", true],
+      ["", true],
+    ])
+    destroy()
+    node.remove()
   })
 })
 

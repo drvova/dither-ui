@@ -1,14 +1,12 @@
 // Colour for the workbench: what `getComputedStyle` and a sampled pixel hand
 // back, read into one RGBA, printed in the format the reader copies, and
-// held against WCAG's contrast rule. sRGB in 0–255 with alpha 0–1.
+// held against WCAG's contrast rule (the kit's reading of it). sRGB in 0–255
+// with alpha 0–1.
+import { clamp, contrast as ratio, luminance, toGamma, toLinear } from "@dither-ui/kit/engine"
 
 export type RGBA = { r: number; g: number; b: number; a: number }
 export type ColorFormat = "hex" | "rgb" | "hsl" | "oklch"
 export const COLOR_FORMATS: ColorFormat[] = ["hex", "rgb", "hsl", "oklch"]
-
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
-const toLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
-const toGamma = (c: number) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055)
 
 /** A CSS number, percentage (of `pct`) or `none`. */
 function num(token: string | undefined, pct = 1): number {
@@ -173,17 +171,10 @@ export function over(top: RGBA, bottom: RGBA): RGBA {
   return { r: mix(top.r, bottom.r), g: mix(top.g, bottom.g), b: mix(top.b, bottom.b), a }
 }
 
-/** WCAG 2 relative luminance of an opaque colour. */
-export function luminance({ r, g, b }: RGBA): number {
-  const [R, G, B] = [r, g, b].map((c) => toLinear(c / 255))
-  return 0.2126 * R + 0.7152 * G + 0.0722 * B
-}
-
-/** WCAG 2 contrast ratio of `fg` over an opaque `bg` (1–21). */
+/** WCAG 2 contrast ratio of `fg` laid over an opaque `bg` (1–21). */
 export function contrast(fg: RGBA, bg: RGBA): number {
-  const a = luminance(over(fg, { ...bg, a: 1 }))
-  const b = luminance({ ...bg, a: 1 })
-  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+  const top = over(fg, { ...bg, a: 1 })
+  return ratio(luminance([top.r, top.g, top.b]), luminance([bg.r, bg.g, bg.b]))
 }
 
 /** WCAG 2.2 text grades for a ratio: large text is ≥ 24px, or ≥ 18.66px bold. */

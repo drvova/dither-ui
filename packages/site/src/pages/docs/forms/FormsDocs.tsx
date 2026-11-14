@@ -29,83 +29,190 @@ import {
   DitherSignaturePad,
   DitherTagInput,
   DitherTransferList,
-} from "dither-kit"
-import { DitherField, DitherInput } from "dither-kit"
+} from "@dither-ui/kit"
+import { DitherField, DitherInput } from "@dither-ui/kit"
 import { createSignal } from "solid-js"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
-const SNIPPET_PASSWORD_INPUT = `<DitherField label="Password">
-  <DitherPasswordInput v-model="pw" placeholder="At least 12 characters" />
+const SNIPPET_PASSWORD_INPUT = `const [pw, setPw] = createSignal("correct-horse-battery")
+
+<DitherField label="Password">
+  <DitherPasswordInput modelValue={pw()} onUpdateModelValue={setPw} placeholder="At least 12 characters" />
 </DitherField>`
 
-const SNIPPET_SEARCH_INPUT = `<DitherSearchInput v-model="q" @clear="resetResults" />`
+const SNIPPET_SEARCH_INPUT = `const [q, setQ] = createSignal("dither")
+const [results, setResults] = createSignal<string[]>(["DitherButton", "DitherImage"])
 
-const SNIPPET_EMAIL_INPUT = `<DitherEmailInput v-model="email" />`
+<DitherSearchInput modelValue={q()} onUpdateModelValue={setQ} onClear={() => setResults([])} />`
 
-const SNIPPET_PHONE_INPUT = `<DitherPhoneInput v-model="phone" />`
+const SNIPPET_EMAIL_INPUT = `const [email, setEmail] = createSignal("")
 
-const SNIPPET_CURRENCY_INPUT = `<DitherCurrencyInput v-model="amount" prefix="$" />`
+<DitherEmailInput modelValue={email()} onUpdateModelValue={setEmail} />`
 
-const SNIPPET_SCRUB_INPUT = `<DitherScrubInput v-model="opacity" :min="0" :max="100" :step="1" />`
+const SNIPPET_PHONE_INPUT = `const [phone, setPhone] = createSignal("(415) 555-2671")
 
-const SNIPPET_HOTKEY_INPUT = `<DitherHotkeyInput v-model="binding" />`
+<DitherPhoneInput modelValue={phone()} onUpdateModelValue={setPhone} />`
 
-const SNIPPET_CODE_INPUT = `<DitherCodeInput v-model="snippet" @submit="run" :rows="8" />`
+const SNIPPET_CURRENCY_INPUT = `const [amount, setAmount] = createSignal("1234567.5")
 
-const SNIPPET_INPUT_GROUP = `<DitherInputGroup>
-  <template #prefix>https://</template>
-  <DitherInput v-model="host" aria-label="Site address" class="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" />
-  <template #suffix>/docs</template>
+<DitherCurrencyInput modelValue={amount()} onUpdateModelValue={setAmount} prefix="$" />`
+
+const SNIPPET_SCRUB_INPUT = `const [opacity, setOpacity] = createSignal(64)
+
+<DitherField label="Opacity" description="Drag the grip, or focus it and use the arrows">
+  <DitherScrubInput modelValue={opacity()} onUpdateModelValue={setOpacity} min={0} max={100} step={1} />
+</DitherField>`
+
+const SNIPPET_HOTKEY_INPUT = `const [binding, setBinding] = createSignal("Ctrl+Shift+K")
+
+<DitherField label="Command palette" description="Click the field, then press the combo">
+  <DitherHotkeyInput modelValue={binding()} onUpdateModelValue={setBinding} />
+</DitherField>`
+
+const SNIPPET_CODE_INPUT = `const [snippet, setSnippet] = createSignal("const dither = bayer(4)")
+const [submitted, setSubmitted] = createSignal("")
+
+<DitherCodeInput modelValue={snippet()} onUpdateModelValue={setSnippet} onSubmit={() => setSubmitted(snippet())} rows={4} />`
+
+const SNIPPET_INPUT_GROUP = `const [host, setHost] = createSignal("dither-ui.com")
+
+<DitherInputGroup
+  prefix="https://"
+  suffix="/docs"
+>
+  <DitherInput modelValue={host()} onUpdateModelValue={setHost} aria-label="Site address" class="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" />
 </DitherInputGroup>`
 
-const SNIPPET_INLINE_EDIT = `<DitherInlineEdit v-model="name" @save="persist" />`
+const SNIPPET_INLINE_EDIT = `const [name, setName] = createSignal("bogdan")
 
-const SNIPPET_TAG_INPUT = `<DitherTagInput v-model="tags" :max="8" placeholder="Add tag…" />`
+function persist(next: string) {
+  localStorage.setItem("display-name", next)
+}
 
-const SNIPPET_CHOICE_CHIPS = `<DitherChoiceChips v-model="size" label="Size" :options="['S', 'M', 'L', 'XL']" />
-<DitherChoiceChips v-model="tags" multiple :options="['bug', 'feat', 'docs']" />`
+<DitherField label="Display name" description="Click the value to edit it">
+  <DitherInlineEdit modelValue={name()} onUpdateModelValue={setName} onSave={persist} />
+</DitherField>`
 
-const SNIPPET_CHECKBOX_CARD = `<DitherCheckboxCard v-model="on"
+const SNIPPET_TAG_INPUT = `const [tags, setTags] = createSignal(["solid", "dither"])
+
+<DitherTagInput modelValue={tags()} onUpdateModelValue={setTags} max={8} placeholder="Add tag…" />`
+
+const SNIPPET_CHOICE_CHIPS = `const [size, setSize] = createSignal("M")
+const [labels, setLabels] = createSignal(["bug"])
+
+<DitherChoiceChips modelValue={size()} onUpdateModelValue={setSize} label="Size" options={['S', 'M', 'L', 'XL']} />
+<DitherChoiceChips modelValue={labels()} onUpdateModelValue={setLabels} multiple options={['bug', 'feat', 'docs']} />`
+
+const SNIPPET_CHECKBOX_CARD = `const [telemetry, setTelemetry] = createSignal(true)
+
+<DitherCheckboxCard modelValue={telemetry()} onUpdateModelValue={setTelemetry}
   label="Telemetry"
   description="Anonymous usage stats help pick the next components" />`
 
-const SNIPPET_KEY_VALUE_INPUT = `<DitherKeyValueInput v-model="headers" />`
+const SNIPPET_KEY_VALUE_INPUT = `const [headers, setHeaders] = createSignal([
+  { key: "Content-Type", value: "application/json" },
+  { key: "X-Client", value: "dither-ui" },
+])
 
-const SNIPPET_MENTION_INPUT = `<DitherMentionInput v-model="body" :options="handles" @mention="notify" />`
+<DitherKeyValueInput modelValue={headers()} onUpdateModelValue={setHeaders} />`
 
-const SNIPPET_FILE_INPUT = `<DitherFileInput v-model="picked" multiple accept="image/*" />`
+const SNIPPET_MENTION_INPUT = `const [body, setBody] = createSignal("cc @da")
+const handles = ["dana", "darius", "daniela", "sam"]
+const [notified, setNotified] = createSignal<string[]>([])
 
-const SNIPPET_LIST_BOX = `<DitherListBox v-model="city" :options="['Kyoto', 'Seoul', 'Taipei']" aria-label="City" @select="go" />`
+<DitherMentionInput modelValue={body()} onUpdateModelValue={setBody} options={handles} rows={3}
+  onMention={(handle) => (setNotified([...notified(), handle]))} />`
 
-const SNIPPET_MULTI_SELECT = `<DitherMultiSelect v-model="tags" :options="ALL_TAGS" @search="filter" />`
+const SNIPPET_FILE_INPUT = `const [picked, setPicked] = createSignal<File[]>([])
 
-const SNIPPET_CASCADE_SELECT = `<DitherCascadeSelect v-model="region" :tree="TREE"
-  :placeholders="['Country', 'Region', 'City']" />`
+<DitherFileInput modelValue={picked()} onUpdateModelValue={setPicked} multiple accept="image/*" />`
 
-const SNIPPET_TRANSFER_LIST = `<DitherTransferList v-model="roles" :source="ALL_ROLES"
-  source-label="Roles" target-label="Assigned" />`
+const SNIPPET_LIST_BOX = `const [city, setCity] = createSignal("Seoul")
 
-const SNIPPET_LANGUAGE_SELECT = `<DitherLanguageSelect v-model="locale" include-default />`
+<DitherListBox value={city()} onUpdateModelValue={(next) => (setCity(next))}
+  options={['Kyoto', 'Seoul', 'Taipei', 'Osaka', 'Busan']} aria-label="City" />`
 
-const SNIPPET_ICON_PICKER = `<DitherIconPicker v-model="glyph" @update:model-value="save" />`
+const SNIPPET_MULTI_SELECT = `const ALL_TAGS = ["solid", "dither", "canvas", "tokens", "ssr"]
+const [tags, setTags] = createSignal(["solid", "dither"])
 
-const SNIPPET_FONT_PICKER = `<DitherFontPicker v-model="font" />`
+<DitherMultiSelect value={tags()} onUpdateModelValue={(next) => (setTags(next))} options={ALL_TAGS} />`
 
-const SNIPPET_CALENDAR = `<DitherCalendar v-model="day" :max="today" />`
+const SNIPPET_CASCADE_SELECT = `const TREE = [
+  {
+    value: "Japan",
+    children: [
+      { value: "Kansai", children: [{ value: "Kyoto" }, { value: "Osaka" }] },
+      { value: "Kanto", children: [{ value: "Tokyo" }, { value: "Yokohama" }] },
+    ],
+  },
+  { value: "Korea", children: [{ value: "Seoul Region", children: [{ value: "Seoul" }, { value: "Incheon" }] }] },
+]
+const [region, setRegion] = createSignal(["Japan", "Kansai"])
 
-const SNIPPET_DATE_PICKER = `<DitherDatePicker v-model="due" min="2026-01-01" />`
+<DitherCascadeSelect value={region()} onUpdateModelValue={(next) => (setRegion(next))} tree={TREE}
+  placeholders={['Country', 'Region', 'City']} />`
 
-const SNIPPET_MONTH_PICKER = `<DitherMonthPicker v-model="month" />`
+const SNIPPET_TRANSFER_LIST = `const ALL_ROLES = ["admin", "editor", "viewer", "billing", "support"]
+const [roles, setRoles] = createSignal(["admin"])
 
-const SNIPPET_COLOR_SWATCH = `<DitherColorSwatch v-for="c in palette" :key="c" :color="c"
-  :selected="c === active" @select="active = c" />`
+<DitherTransferList value={roles()} onUpdateModelValue={(next) => (setRoles(next))} source={ALL_ROLES}
+  sourceLabel="Roles" targetLabel="Assigned" />`
 
-const SNIPPET_COLOR_PICKER = `<DitherColorPicker v-model="tint" />`
+const SNIPPET_LANGUAGE_SELECT = `const [locale, setLocale] = createSignal("ja")
 
-const SNIPPET_KNOB = `<DitherKnob v-model="gain" :min="0" :max="100" :step="1" />`
+<DitherLanguageSelect modelValue={locale()} onUpdateModelValue={setLocale} includeDefault />`
 
-const SNIPPET_SIGNATURE_PAD = `<DitherSignaturePad v-model="sig" @change="save" :height="180" />`
+const SNIPPET_ICON_PICKER = `const [glyph, setGlyph] = createSignal("Check")
+
+<DitherIconPicker modelValue={glyph()} onUpdateModelValue={setGlyph} />`
+
+const SNIPPET_FONT_PICKER = `const [font, setFont] = createSignal("'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace")
+
+<DitherFontPicker modelValue={font()} onUpdateModelValue={setFont} />`
+
+const SNIPPET_CALENDAR = `const [day, setDay] = createSignal("2026-10-07")
+
+<DitherCalendar modelValue={day()} onUpdateModelValue={setDay} max="2026-12-31" />`
+
+const SNIPPET_DATE_PICKER = `const [due, setDue] = createSignal("2026-10-07")
+
+<DitherDatePicker modelValue={due()} onUpdateModelValue={setDue} min="2026-01-01" />`
+
+const SNIPPET_MONTH_PICKER = `const [month, setMonth] = createSignal("2026-10")
+
+<DitherMonthPicker modelValue={month()} onUpdateModelValue={setMonth} />`
+
+const SNIPPET_COLOR_SWATCH = `const palette = [
+  { color: "#5227FF", label: "Iris" },
+  { color: "#7CFF67", label: "Mint" },
+  { color: "#FFB454", label: "Amber" },
+  { color: "#FF5C7A", label: "Rose" },
+  { color: "#4CC2FF", label: "Sky" },
+]
+const [active, setActive] = createSignal("#5227FF")
+
+<div class="flex gap-2">
+  <For each={palette}>
+    {(c) => (
+      <DitherColorSwatch color={c.color} label={c.label}
+        selected={c.color === active()} onSelect={() => setActive(c.color)} />
+    )}
+  </For>
+</div>`
+
+const SNIPPET_COLOR_PICKER = `const [tint, setTint] = createSignal("#5227FF")
+
+<DitherColorPicker modelValue={tint()} onUpdateModelValue={setTint} />`
+
+const SNIPPET_KNOB = `const [gain, setGain] = createSignal(64)
+
+<DitherKnob modelValue={gain()} onUpdateModelValue={setGain} min={0} max={100} step={1} />`
+
+const SNIPPET_SIGNATURE_PAD = `const [sig, setSig] = createSignal("")
+
+<DitherSignaturePad modelValue={sig()} onUpdateModelValue={setSig} height={140} />`
 
 const API: Record<string, PropRow[]> = {
   passwordInput: [
@@ -254,8 +361,7 @@ export default function FormsDocs() {
   return (
     <>
       {/* PasswordInput */}
-      <section class="mt-16 scroll-mt-24" id="password-input">
-        <h2 class="text-lg tracking-tight">PasswordInput</h2>
+      <DocSection id="password-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Password field with a reveal toggle: the type flips text/password, the button carries its own accessible name
           and never submits (<code class="text-foreground/80">type="button"</code>).
@@ -268,10 +374,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.passwordInput} />
-      </section>
+      </DocSection>
       {/* SearchInput */}
-      <section class="mt-16 scroll-mt-24" id="search-input">
-        <h2 class="text-lg tracking-tight">SearchInput</h2>
+      <DocSection id="search-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Leading glyph, one-click clear (only when there is something to clear) and Escape empties the field. Either
           way it fires a <code class="text-foreground/80">clear</code> event so results can reset in the same beat.
@@ -282,10 +387,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.searchInput} />
-      </section>
+      </DocSection>
       {/* EmailInput */}
-      <section class="mt-16 scroll-mt-24" id="email-input">
-        <h2 class="text-lg tracking-tight">EmailInput</h2>
+      <DocSection id="email-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The three things a bare text input gets wrong, fixed in one place:{" "}
           <code class="text-foreground/80">type=email</code>, <code class="text-foreground/80">inputmode=email</code>,{" "}
@@ -297,10 +401,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.emailInput} />
-      </section>
+      </DocSection>
       {/* PhoneInput */}
-      <section class="mt-16 scroll-mt-24" id="phone-input">
-        <h2 class="text-lg tracking-tight">PhoneInput</h2>
+      <DocSection id="phone-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Digits normalized into the <code class="text-foreground/80">(415) 555-2671</code> shape while you type
           (10-digit NANP), tel keyboard on mobile. The model is always the formatted string; the caret is end-anchored
@@ -312,10 +415,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.phoneInput} />
-      </section>
+      </DocSection>
       {/* CurrencyInput */}
-      <section class="mt-16 scroll-mt-24" id="currency-input">
-        <h2 class="text-lg tracking-tight">CurrencyInput</h2>
+      <DocSection id="currency-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Money entry with predictable mechanics: the model stays a plain decimal string (
           <code class="text-foreground/80">"1234.56"</code>), the display groups thousands while blurred and shows raw
@@ -327,10 +429,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.currencyInput} />
-      </section>
+      </DocSection>
       {/* ScrubInput */}
-      <section class="mt-16 scroll-mt-24" id="scrub-input">
-        <h2 class="text-lg tracking-tight">ScrubInput</h2>
+      <DocSection id="scrub-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The Figma-style drag gesture on a number: the grip is a real{" "}
           <code class="text-foreground/80">role="slider"</code> (arrow keys, PageUp/Down and Home/End work without a
@@ -345,13 +446,13 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.scrubInput} />
-      </section>
+      </DocSection>
       {/* HotkeyInput */}
-      <section class="mt-16 scroll-mt-24" id="hotkey-input">
-        <h2 class="text-lg tracking-tight">HotkeyInput</h2>
+      <DocSection id="hotkey-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Shortcut capture: modifiers hold until a non-modifier key arrives, repeat is ignored, Escape clears. Value
-          shape: <code class="text-foreground/80">Ctrl+Shift+K</code> (order Ctrl, Alt, Shift, Meta, then the key).
+          Shortcut capture: modifiers hold until a non-modifier key arrives, repeat is ignored, Escape clears, Tab moves
+          on as anywhere. Value shape: <code class="text-foreground/80">Ctrl+Shift+K</code> (order Ctrl, Alt, Shift,
+          Meta, then the key).
         </p>
         <DemoCard code={SNIPPET_HOTKEY_INPUT}>
           <div class="mx-auto w-full max-w-xs">
@@ -361,13 +462,13 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.hotkeyInput} />
-      </section>
+      </DocSection>
       {/* CodeInput */}
-      <section class="mt-16 scroll-mt-24" id="code-input">
-        <h2 class="text-lg tracking-tight">CodeInput</h2>
+      <DocSection id="code-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Code entry where Tab indents (two spaces), Shift+Tab dedents the selected lines, and Ctrl/Cmd+Enter fires{" "}
-          <code class="text-foreground/80">submit</code>. The browser's tab trap is handled once, here.
+          <code class="text-foreground/80">submit</code>. The browser's tab trap is handled once, here: Escape lets go,
+          and the Tab after it moves on.
         </p>
         <DemoCard code={SNIPPET_CODE_INPUT}>
           <div class="mx-auto w-full max-w-md">
@@ -375,10 +476,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.codeInput} />
-      </section>
+      </DocSection>
       {/* InputGroup */}
-      <section class="mt-16 scroll-mt-24" id="input-group">
-        <h2 class="text-lg tracking-tight">InputGroup</h2>
+      <DocSection id="input-group">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Addon props around a control in one bordered group: the group owns the border and the focus-within ring, the
           inner control drops its own chrome (the code tab shows the exact class set).
@@ -395,10 +495,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         {/* no props: slots and the focus ring are the API */}
-      </section>
+      </DocSection>
       {/* InlineEdit */}
-      <section class="mt-16 scroll-mt-24" id="inline-edit">
-        <h2 class="text-lg tracking-tight">InlineEdit</h2>
+      <DocSection id="inline-edit">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Click-to-edit text: view mode is a real button (keyboard reachable), edit mode focus-selects. Enter or blur
           commits (only when the value actually changed). Escape reverts.
@@ -411,10 +510,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.inlineEdit} />
-      </section>
+      </DocSection>
       {/* TagInput */}
-      <section class="mt-16 scroll-mt-24" id="tag-input">
-        <h2 class="text-lg tracking-tight">TagInput</h2>
+      <DocSection id="tag-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Tags as chips in one field: Enter or comma commits, Backspace on an empty input pulls the last chip back in,
           per-chip × removes. Trimmed, case-deduped, <code class="text-foreground/80">max</code>-capped.
@@ -425,10 +523,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.tagInput} />
-      </section>
+      </DocSection>
       {/* ChoiceChips */}
-      <section class="mt-16 scroll-mt-24" id="choice-chips">
-        <h2 class="text-lg tracking-tight">ChoiceChips</h2>
+      <DocSection id="choice-chips">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Chip-style choice group where the chip IS the label of a real radio (or checkbox when{" "}
           <code class="text-foreground/80">multiple</code>). Native keyboard semantics and focus come for free: no
@@ -441,10 +538,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.choiceChips} />
-      </section>
+      </DocSection>
       {/* CheckboxCard */}
-      <section class="mt-16 scroll-mt-24" id="checkbox-card">
-        <h2 class="text-lg tracking-tight">CheckboxCard</h2>
+      <DocSection id="checkbox-card">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The whole card is the checkbox's label: title and description ride along, one click anywhere toggles, the
           focus ring shows keyboard focus. The checkbox stays the source of truth.
@@ -466,10 +562,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.checkboxCard} />
-      </section>
+      </DocSection>
       {/* KeyValueInput */}
-      <section class="mt-16 scroll-mt-24" id="key-value-input">
-        <h2 class="text-lg tracking-tight">KeyValueInput</h2>
+      <DocSection id="key-value-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Repeatable key/value rows: headers, metadata, query params. Every edit hands back the whole array (the parent
           owns the truth), rows are added and removed from the bottom.
@@ -485,10 +580,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.keyValueInput} />
-      </section>
+      </DocSection>
       {/* MentionInput */}
-      <section class="mt-16 scroll-mt-24" id="mention-input">
-        <h2 class="text-lg tracking-tight">MentionInput</h2>
+      <DocSection id="mention-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Textarea with <code class="text-foreground/80">@</code>-mention autocomplete: detection is a regex on the text
           before the caret, the list anchors to the field, Arrow keys pick, Enter/Tab inserts, Escape closes. The caret
@@ -500,10 +594,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.mentionInput} />
-      </section>
+      </DocSection>
       {/* FileInput */}
-      <section class="mt-16 scroll-mt-24" id="file-input">
-        <h2 class="text-lg tracking-tight">FileInput</h2>
+      <DocSection id="file-input">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           File picker with a visible selection: a hidden native input driven by its label (keyboard-reachable), files
           listed with sizes, per-file remove, clear-all, and drop-zone drag styling. The model is{" "}
@@ -515,10 +608,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.fileInput} />
-      </section>
+      </DocSection>
       {/* ListBox */}
-      <section class="mt-16 scroll-mt-24" id="list-box">
-        <h2 class="text-lg tracking-tight">ListBox</h2>
+      <DocSection id="list-box">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Single-select with the full WAI-ARIA keyboard contract: arrows move the active option, Home/End jump,
           Enter/Space selects, and the active row carries <code class="text-foreground/80">aria-activedescendant</code>{" "}
@@ -530,10 +622,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.listBox} />
-      </section>
+      </DocSection>
       {/* MultiSelect */}
-      <section class="mt-16 scroll-mt-24" id="multi-select">
-        <h2 class="text-lg tracking-tight">MultiSelect</h2>
+      <DocSection id="multi-select">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Chips for what's picked, native checkboxes for what's pickable, a filter box over the pool. Keyboard semantics
           come from the checkboxes, and the selected set stays visible and individually removable.
@@ -544,10 +635,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.multiSelect} />
-      </section>
+      </DocSection>
       {/* CascadeSelect */}
-      <section class="mt-16 scroll-mt-24" id="cascade-select">
-        <h2 class="text-lg tracking-tight">CascadeSelect</h2>
+      <DocSection id="cascade-select">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Dependent pickers: each level's options come from the tree under the current path, and changing a parent
           truncates the deeper segments (the classic cascade rule, in one component). The model is the chosen path.
@@ -574,10 +664,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.cascadeSelect} />
-      </section>
+      </DocSection>
       {/* TransferList */}
-      <section class="mt-16 scroll-mt-24" id="transfer-list">
-        <h2 class="text-lg tracking-tight">TransferList</h2>
+      <DocSection id="transfer-list">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Two-panel shuttle: the source pool stays put, the destination IS the model. Checkboxes select in either
           direction, Add/Remove move the selection, Add all/Remove all flush. Every control is a real button.
@@ -593,10 +682,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.transferList} />
-      </section>
+      </DocSection>
       {/* LanguageSelect */}
-      <section class="mt-16 scroll-mt-24" id="language-select">
-        <h2 class="text-lg tracking-tight">LanguageSelect</h2>
+      <DocSection id="language-select">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Language picker over a curated BCP 47 list: the label is the human name, the value is the tag, and{" "}
           <code class="text-foreground/80">includeDefault</code> keeps the opt-out one option away.
@@ -607,10 +695,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.languageSelect} />
-      </section>
+      </DocSection>
       {/* IconPicker */}
-      <section class="mt-16 scroll-mt-24" id="icon-picker">
-        <h2 class="text-lg tracking-tight">IconPicker</h2>
+      <DocSection id="icon-picker">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The kit's own glyphs behind a name filter: a radio grid, so arrow keys roam the whole grid as one tab stop.
           Value = the icon name, ready for <code class="text-foreground/80">&lt;DitherIcon&gt;</code>.
@@ -621,10 +708,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.iconPicker} />
-      </section>
+      </DocSection>
       {/* FontPicker */}
-      <section class="mt-16 scroll-mt-24" id="font-picker">
-        <h2 class="text-lg tracking-tight">FontPicker</h2>
+      <DocSection id="font-picker">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Each option renders its own name in its own family. The preview IS the choice, so no swatch can drift from the
           value. Value = the CSS font stack string.
@@ -635,10 +721,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.fontPicker} />
-      </section>
+      </DocSection>
       {/* Calendar */}
-      <section class="mt-16 scroll-mt-24" id="calendar">
-        <h2 class="text-lg tracking-tight">Calendar</h2>
+      <DocSection id="calendar">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Month grid with real grid semantics: arrows move the day, PageUp/PageDown change month, Home/End jump to week
           edges, and the model is ISO <code class="text-foreground/80">YYYY-MM-DD</code> so timezone math never enters
@@ -650,13 +735,13 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.calendar} />
-      </section>
+      </DocSection>
       {/* DatePicker */}
-      <section class="mt-16 scroll-mt-24" id="date-picker">
-        <h2 class="text-lg tracking-tight">DatePicker</h2>
+      <DocSection id="date-picker">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Date field + calendar popover: the input shows a human format, the calendar opens on click/focus, select
-          closes, Escape and outside-click dismiss. The model stays ISO.
+          Date field + calendar popover: the input shows a human format, the calendar opens on a click or Enter with its
+          day focused, select closes, Escape and outside-click dismiss, a pick or Escape hands focus back to the field.
+          The model stays ISO.
         </p>
         <DemoCard code={SNIPPET_DATE_PICKER}>
           <div class="mx-auto w-full max-w-xs">
@@ -664,10 +749,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.datePicker} />
-      </section>
+      </DocSection>
       {/* MonthPicker */}
-      <section class="mt-16 scroll-mt-24" id="month-picker">
-        <h2 class="text-lg tracking-tight">MonthPicker</h2>
+      <DocSection id="month-picker">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Year + twelve-month grid: model is <code class="text-foreground/80">YYYY-MM</code>, arrows roam the grid
           (three columns), PageUp/PageDown shift the year, the current month keeps a ring.
@@ -678,10 +762,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.monthPicker} />
-      </section>
+      </DocSection>
       {/* ColorSwatch */}
-      <section class="mt-16 scroll-mt-24" id="color-swatch">
-        <h2 class="text-lg tracking-tight">ColorSwatch</h2>
+      <DocSection id="color-swatch">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           One color as a pickable chip: a real button with the color in its accessible name, a selected ring, a keyboard
           focus ring. Reads as pure display when nothing listens to <code class="text-foreground/80">select</code>.
@@ -696,10 +779,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.colorSwatch} />
-      </section>
+      </DocSection>
       {/* ColorPicker */}
-      <section class="mt-16 scroll-mt-24" id="color-picker">
-        <h2 class="text-lg tracking-tight">ColorPicker</h2>
+      <DocSection id="color-picker">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           HSV field + hue strip + hex readout: the plane is pointer-driven (arrows nudge S/V, Shift for coarse), the hue
           strip is a slider of its own, and the hex input accepts what you type. Model = hex string.
@@ -710,10 +792,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.colorPicker} />
-      </section>
+      </DocSection>
       {/* Knob */}
-      <section class="mt-16 scroll-mt-24" id="knob">
-        <h2 class="text-lg tracking-tight">Knob</h2>
+      <DocSection id="knob">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Rotary control with the reliable gesture: drag VERTICALLY to change the value (angle-following wraps badly at
           the detent), arrows / PageUp-Down / Home-End on the keyboard, full slider semantics. The indicator sweeps
@@ -727,10 +808,9 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.knob} />
-      </section>
+      </DocSection>
       {/* SignaturePad */}
-      <section class="mt-16 scroll-mt-24" id="signature-pad">
-        <h2 class="text-lg tracking-tight">SignaturePad</h2>
+      <DocSection id="signature-pad">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Pointer drawing on a canvas. The <code class="text-foreground/80">change</code> event fires the dataURL after
           every stroke and on clear. A context-less environment refuses strokes instead of throwing, so degraded engines
@@ -742,7 +822,7 @@ export default function FormsDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.signaturePad} />
-      </section>
+      </DocSection>
     </>
   )
 }

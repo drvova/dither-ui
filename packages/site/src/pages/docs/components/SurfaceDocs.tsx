@@ -1,6 +1,6 @@
 import { createMemo, createSignal, For, Show } from "solid-js"
-import { createInviewLoop } from "dither-kit/solid/runtime/in-view.ts"
-import type { ScopeWave } from "dither-kit/engine/scope.ts"
+import { createInviewLoop } from "@dither-ui/kit/solid/runtime/in-view.ts"
+import type { ScopeWave } from "@dither-ui/kit/engine/scope.ts"
 import { FRAME_WINDOW, readFrames } from "@/pages/docs/components/frames"
 import {
   cssColor,
@@ -25,9 +25,10 @@ import {
   DitherToggleGroup,
   DitherToolbar,
   toast,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const FAQ = [
   { value: "what", title: "What is dithering?" },
@@ -56,131 +57,152 @@ const WAVES: { value: ScopeWave; label: string }[] = ["sine", "square", "triangl
 
 const LOG_LINES = Array.from({ length: 15 }, (_, i) => i + 1)
 
-const SNIPPET_GAUGE = `<script setup>
-const pressure = ref(62)
-</script>
+const SNIPPET_GAUGE = `const [pressure, setPressure] = createSignal(62)
 
 <div class="grid grid-cols-3 gap-4">
-  <DitherGauge :value="pressure" label="kPa" />
-  <DitherGauge :value="84" label="load" :warn="0.75" />
-  <DitherGauge :value="1.6" :min="0" :max="4" :ticks="8" :decimals="1" label="bar" :warn="null" />
+  <DitherGauge value={pressure()} label="kPa" />
+  <DitherGauge value={84} label="load" warn={0.75} />
+  <DitherGauge value={1.6} min={0} max={4} ticks={8} decimals={1} label="bar" warn={null} />
 </div>
-<DitherSlider v-model="pressure" label="Pressure" />`
+<DitherSlider modelValue={pressure()} onUpdateModelValue={setPressure} label="Pressure" />`
 
-const SNIPPET_GAUGE_LIVE = `<script setup>
-// this page's frames a second and its worst frame, read every half second
-const fps = ref(0)
-const worst = ref(0)
+const SNIPPET_GAUGE_LIVE = `// this page's frames a second and its worst frame, read every half second
+const [fps, setFps] = createSignal(0)
+const [worst, setWorst] = createSignal(0)
 let raf = 0
 let stamps = []
 function measure(now) {
   stamps.push(now)
   if (now - stamps[0] >= 500) {
-    fps.value = Math.round(((stamps.length - 1) * 1000) / (now - stamps[0]))
-    worst.value = Math.max(...stamps.slice(1).map((t, i) => t - stamps[i]))
+    setFps(Math.round(((stamps.length - 1) * 1000) / (now - stamps[0])))
+    setWorst(Math.max(...stamps.slice(1).map((t, i) => t - stamps[i])))
     stamps = [now]
   }
   raf = requestAnimationFrame(measure)
 }
-onMounted(() => (raf = requestAnimationFrame(measure)))
-onBeforeUnmount(() => cancelAnimationFrame(raf))
-</script>
+onMount(() => (raf = requestAnimationFrame(measure)))
+onCleanup(() => cancelAnimationFrame(raf))
 
 <div class="grid grid-cols-2 gap-4">
-  <DitherGauge :value="fps" :max="120" :ticks="6" :warn="null" label="fps" />
-  <DitherGauge :value="worst" :max="50" :decimals="1" :warn="0.66" label="worst ms" />
+  <DitherGauge value={fps()} max={120} ticks={6} warn={null} label="fps" />
+  <DitherGauge value={worst()} max={50} decimals={1} warn={0.66} label="worst ms" />
 </div>`
 
-const SNIPPET_ACCORDION = `<script setup>
-const faq = ref("what")
+const SNIPPET_ACCORDION = `const [faq, setFaq] = createSignal("what")
 const items = [
   { value: "what", title: "What is dithering?" },
   { value: "why", title: "Why canvas?" },
   { value: "copy", title: "Can I copy the kit out?" },
 ]
-</script>
 
-<DitherAccordion v-model="faq" :items="items" type="single" color="blue">
-  <template #what>
-    Ordered dithering trades smooth gradients for a fixed threshold
-    matrix: the same Bayer 4x4 behind every fill in this kit.
-  </template>
-  <template #why>
-    One engine paints every fill, so components stay coherent.
-  </template>
-  <template #copy>
-    Yes, the kit folder has zero app imports; copy it and alias it.
-  </template>
-</DitherAccordion>`
+<DitherAccordion modelValue={faq()} onUpdateModelValue={setFaq} items={items} type="single" color="blue"
+  what={
+    <>
+      Ordered dithering trades smooth gradients for a fixed threshold
+      matrix: the same Bayer 4x4 behind every fill in this kit.
+    </>
+  }
+  why="One engine paints every fill, so components stay coherent."
+  copy="Yes, the kit folder has zero app imports; copy it and alias it."
+/>`
 
-const SNIPPET_ALERT_DIALOG = `<script setup>
-const open = ref(false)
-</script>
+const SNIPPET_ALERT_DIALOG = `const [open, setOpen] = createSignal(false)
 
-<DitherButton color="red" @click="open = true">Delete artboard…</DitherButton>
+<DitherButton color="red" onClick={() => setOpen(true)}>Delete artboard…</DitherButton>
 <DitherAlertDialog
-  :open="open"
+  open={open()}
   danger
   title="Delete artboard?"
   description="This removes the artboard and its layers. There is no undo across sessions."
-  confirm-label="Delete"
-  @confirm="open = false"
-  @cancel="open = false"
+  confirmLabel="Delete"
+  onConfirm={() => setOpen(false)}
+  onCancel={() => setOpen(false)}
 />`
 
-const SNIPPET_DRAWER = `<!-- side drawers swipe-dismiss along their axis;
-     bottom sheets get a handle and dismiss downward -->
-<DitherDrawer :open="open" side="right" title="Settings" @close="open = false">
-  …
-</DitherDrawer>
-<DitherDrawer :open="sheet" side="bottom" title="Notifications" @close="sheet = false" />
+const SNIPPET_DRAWER = `const [settings, setSettings] = createSignal(false)
+const [sheet, setSheet] = createSignal(false)
+const [sized, setSized] = createSignal(false)
+const [snap, setSnap] = createSignal(0.35)
+const [account, setAccount] = createSignal(false)
+const [security, setSecurity] = createSignal(false)
 
-<!-- nesting: a child drawer pushes its parent back automatically -->
-<DitherDrawer :open="account" title="Account" @close="account = false">
-  <DitherDrawer :open="security" title="Security" @close="security = false" />
-</DitherDrawer>
-
-<!-- swipe-to-open from the viewport edge -->
-<DitherSwipeArea side="right" @open="open = true" />
-
-<!-- snap points: vh fractions or px; flicks can skip points -->
-<DitherDrawer v-model:snap-point="snap" :open="open" side="bottom"
-  :snap-points="[0.35, 0.75]" @close="open = false" />
-
-<!-- indent: your app scales back while any drawer is open -->
+{/* indent: what DitherDrawerIndent holds (your app) scales back while any drawer is open */}
 <DitherDrawerIndent>
-  <App />
-</DitherDrawerIndent>`
+  <div class="flex flex-wrap gap-3">
+    <DitherButton onClick={() => setSettings(true)}>Open settings</DitherButton>
+    <DitherButton color="purple" onClick={() => setSheet(true)}>Bottom sheet</DitherButton>
+    <DitherButton color="pink" onClick={() => setSized(true)}>Snap points</DitherButton>
+    <DitherButton color="green" onClick={() => setAccount(true)}>Nested</DitherButton>
+  </div>
+</DitherDrawerIndent>
 
-const SNIPPET_SIDEBAR = `<DitherSidebar v-model="collapsed" variant="default" collapse="rail">
-  <template #header>…wordmark…</template>
+{/* side drawers swipe-dismiss along their axis;
+     bottom sheets get a handle and dismiss downward */}
+<DitherDrawer open={settings()} side="right" title="Settings" onClose={() => setSettings(false)}>
+  <p class="text-[13px]">Swipe the panel right to dismiss.</p>
+</DitherDrawer>
+<DitherDrawer open={sheet()} side="bottom" title="Notifications" onClose={() => setSheet(false)}>
+  <p class="text-[13px]">You are all caught up.</p>
+</DitherDrawer>
 
-  <DitherSidebarGroup label="Platform">   <!-- label folds to a hairline on the rail -->
-    <DitherSidebarItem label="Overview" :active="active === 'Overview'" />
-    <DitherSidebarItem label="Charts" :badge="12" />  <!-- badge folds to a dot -->
-  </DitherSidebarGroup>
+{/* snap points: vh fractions or px; flicks can skip points */}
+<DitherDrawer snapPoint={snap()} onUpdateSnapPoint={setSnap} open={sized()} side="bottom" title="Snap points"
+  snapPoints={[0.35, 0.75]} onClose={() => setSized(false)}>
+  <p class="text-[13px]">Resting at {Math.round(snap() * 100)}vh.</p>
+</DitherDrawer>
 
-  <DitherSidebarGroup label="Library">
-    <DitherSidebarSub v-model="subOpen" label="Components">
-      <DitherSidebarItem label="Buttons" />
-      <DitherSidebarItem label="Forms" />
-    </DitherSidebarSub>
-  </DitherSidebarGroup>
-</DitherSidebar>
+{/* nesting: a child drawer pushes its parent back automatically */}
+<DitherDrawer open={account()} side="right" title="Account" onClose={() => setAccount(false)}>
+  <DitherButton onClick={() => setSecurity(true)}>Security</DitherButton>
+  <DitherDrawer open={security()} side="right" title="Security" onClose={() => setSecurity(false)}>
+    <p class="text-[13px]">Two-factor sign-in is on.</p>
+  </DitherDrawer>
+</DitherDrawer>
 
-<!-- variant: default | floating | inset | washed (dither gradient chrome)
-     collapse: rail | hide | none · side: left | right
-     density: default | compact · :toggle="false" = permanent rail -->`
+{/* swipe-to-open from the viewport edge */}
+<DitherSwipeArea side="right" onOpen={() => setSettings(true)} />`
 
-const SNIPPET_TOAST = `<script setup>
-import { DitherToaster, toast } from "@dither-kit"
-</script>
+const SNIPPET_SIDEBAR = `const [collapsed, setCollapsed] = createSignal(false)
+const [active, setActive] = createSignal("Overview")
+const [components, setComponents] = createSignal(true)
+
+<div class="flex h-80 overflow-hidden rounded-lg border">
+  <DitherSidebar modelValue={collapsed()} onUpdateModelValue={setCollapsed} variant="default" collapse="rail"
+    header={
+      <div class="flex h-8 items-center gap-2 px-2.5 text-[12px]">
+        <span class="size-2.5 shrink-0 rounded-[2px] bg-foreground" />
+        <Show when={!collapsed()}><span>dither-ui</span></Show>
+      </div>
+    }
+  >
+
+    {/* a group's label folds to a hairline on the rail, a badge to a dot */}
+    <DitherSidebarGroup label="Platform">
+      <DitherSidebarItem label="Overview" active={active() === 'Overview'} onSelect={() => setActive('Overview')} />
+      <DitherSidebarItem label="Charts" badge={12} active={active() === 'Charts'} onSelect={() => setActive('Charts')} />
+    </DitherSidebarGroup>
+
+    <DitherSidebarGroup label="Library">
+      <DitherSidebarSub modelValue={components()} onUpdateModelValue={setComponents} label="Components">
+        <DitherSidebarItem label="Buttons" active={active() === 'Buttons'} onSelect={() => setActive('Buttons')} />
+        <DitherSidebarItem label="Forms" active={active() === 'Forms'} onSelect={() => setActive('Forms')} />
+      </DitherSidebarSub>
+    </DitherSidebarGroup>
+  </DitherSidebar>
+  <div class="grid flex-1 place-items-center text-[12px]">{active()}</div>
+</div>
+
+{/* variant: default, floating, inset or washed (dither gradient chrome);
+     collapse: rail, hide or none; side: left or right;
+     density: default or compact; toggle={false} keeps a permanent rail */}`
+
+const SNIPPET_TOAST = `import { DitherToaster, toast } from "@dither-kit"
 
 <DitherToaster />
-<DitherButton color="green" @click="toast('Saved', { color: 'green' })">
+<DitherButton color="green" onClick={() => toast('Saved', { color: 'green' })}>
   Save
 </DitherButton>
-<DitherButton color="red" @click="toast('Export failed', { color: 'red' })">
+<DitherButton color="red" onClick={() => toast('Export failed', { color: 'red' })}>
   Export
 </DitherButton>`
 
@@ -189,26 +211,30 @@ const SNIPPET_METER = `<div class="grid gap-3">
     <div class="mb-1 flex justify-between text-[11px] text-muted-foreground">
       <span>Disk</span><span>35%</span>
     </div>
-    <DitherMeter :value="35" />
+    <DitherMeter value={35} />
   </div>
   <div>
     <div class="mb-1 flex justify-between text-[11px] text-muted-foreground">
       <span>Memory</span><span>68%</span>
     </div>
-    <DitherMeter :value="68" />
+    <DitherMeter value={68} />
   </div>
   <div>
     <div class="mb-1 flex justify-between text-[11px] text-muted-foreground">
       <span>CPU</span><span>92%</span>
     </div>
-    <DitherMeter :value="92" />
+    <DitherMeter value={92} />
   </div>
 </div>`
 
 const SNIPPET_SCROLL_AREA = `<DitherScrollArea class="h-40 rounded-lg border border-border/60 p-3">
-  <p v-for="i in 15" :key="i" class="py-1 text-[12px] text-muted-foreground">
-    Log line {{ i }}: ordered dither keeps the texture coherent.
-  </p>
+  <For each={Array.from({ length: 15 }, (_, k) => k + 1)}>
+    {(i) => (
+      <p class="py-1 text-[12px] text-muted-foreground">
+        Log line {i}: ordered dither keeps the texture coherent.
+      </p>
+    )}
+  </For>
 </DitherScrollArea>`
 
 const SNIPPET_TOOLBAR = `<DitherToolbar label="Formatting">
@@ -221,18 +247,16 @@ const SNIPPET_TOOLBAR = `<DitherToolbar label="Formatting">
   <DitherButton class="px-2.5 py-1" aria-label="Align right">⇥</DitherButton>
 </DitherToolbar>`
 
-const SNIPPET_NAV_MENU = `<script setup>
-const active = ref("Overview")
+const SNIPPET_NAV_MENU = `const [active, setActive] = createSignal("Overview")
 const items = [
   { label: "Overview" },
   { label: "Components" },
   { label: "Pricing" },
   { label: "Docs" },
 ]
-</script>
 
-<DitherNavMenu v-model="active" :items="items" color="blue" />
-<p class="mt-4 text-[12px] text-muted-foreground">Viewing: {{ active }}</p>`
+<DitherNavMenu modelValue={active()} onUpdateModelValue={setActive} items={items} color="blue" />
+<p class="mt-4 text-[12px] text-muted-foreground">Viewing: {active()}</p>`
 
 const API: Record<string, PropRow[]> = {
   accordion: [
@@ -312,6 +336,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "items", type: "{ label: string; href?: string }[]", default: "" },
     { prop: "modelValue", type: "string", default: "" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
+    { prop: "label", type: "string", default: '"Sections"' },
   ],
 }
 
@@ -381,21 +406,18 @@ export default function SurfaceDocs() {
   )
 
   const SNIPPET_SCOPE = createMemo(
-    () => `<script setup>
-const wave = ref("${wave()}")
-const glow = ref(${glow()})
+    () => `const [wave, setWave] = createSignal("${wave()}")
+const [glow, setGlow] = createSignal(${glow()})
 const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, label: w }))
-</script>
 
-<DitherScope :signal="wave" :afterglow="glow / 100" label="ch1" />
-<DitherToggleGroup v-model="wave" :options="waves" />
-<DitherSlider v-model="glow" label="Afterglow" />`,
+<DitherScope signal={wave()} afterglow={glow() / 100} label="ch1" />
+<DitherToggleGroup modelValue={wave()} onUpdateModelValue={setWave} options={waves} />
+<DitherSlider modelValue={glow()} onUpdateModelValue={setGlow} label="Afterglow" />`,
   )
 
   return (
     <>
-      <section id="accordion" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Accordion</h2>
+      <DocSection id="accordion">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A stack of disclosure rows animated through grid-template-rows, each with the 2px dithered rail. Single type
           closes siblings on open.
@@ -422,10 +444,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.accordion} />
-      </section>
+      </DocSection>
 
-      <section id="alert-dialog" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Alert dialog</h2>
+      <DocSection id="alert-dialog">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A modal that demands an answer: overlay clicks do nothing, Escape cancels, and focus lands on the safe Cancel
           button. Danger seeds the confirm fill red.
@@ -448,10 +469,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.alertDialog} />
-      </section>
+      </DocSection>
 
-      <section id="drawer" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Drawer</h2>
+      <DocSection id="drawer">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A side panel that slides in over a scrim. Escape or scrim click closes, the close button takes focus on open.
         </p>
@@ -582,10 +602,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </DitherDrawer>
         </div>
         <PropsTable rows={API.drawer} />
-      </section>
+      </DocSection>
 
-      <section id="sidebar" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Sidebar</h2>
+      <DocSection id="sidebar">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An app sidebar that collapses to an icon rail: items keep their hit area, labels fold away, the active item
           carries a dithered rail.
@@ -729,10 +748,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </div>
         <PropsTable rows={API.sidebar} />
-      </section>
+      </DocSection>
 
-      <section id="toast" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Toast</h2>
+      <DocSection id="toast">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A module-level toast() call feeds a portalled bottom-right stack; each toast carries a 3px dithered rail in
           its color and dismisses itself after its duration. API table below documents the toast() function.
@@ -749,10 +767,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.toast} />
-      </section>
+      </DocSection>
 
-      <section id="meter" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Meter</h2>
+      <DocSection id="meter">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A static gauge on the progress track. The fill seed picks itself: green below the low mark, orange between,
           red above the high mark.
@@ -773,10 +790,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.meter} />
-      </section>
+      </DocSection>
 
-      <section id="gauge" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Gauge</h2>
+      <DocSection id="gauge">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An instrument dial. The band prints cell by cell through the threshold matrix, filled to the needle; past the
           warn mark the zone is in the warning ink. A changed value settles on the spring, and under reduced motion the
@@ -808,10 +824,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.gauge} />
-      </section>
+      </DocSection>
 
-      <section id="scope" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Scope</h2>
+      <DocSection id="scope">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An oscilloscope screen. The beam prints through the threshold matrix, bright where it moves slowly and faint
           on its edges, and a named wave drifts with a trail of its earlier phases. Give it samples and it traces those.
@@ -827,10 +842,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.scope} />
-      </section>
+      </DocSection>
 
-      <section id="scroll-area" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Scroll area</h2>
+      <DocSection id="scroll-area">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An honest overflow container: no canvas, just thin token-colored scrollbars that match the house border.
         </p>
@@ -846,10 +860,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </DitherScrollArea>
         </DemoCard>
         <PropsTable rows={API.scrollArea} />
-      </section>
+      </DocSection>
 
-      <section id="toolbar" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Toolbar</h2>
+      <DocSection id="toolbar">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A roving-tabindex strip: one Tab stop for the whole bar, arrow keys walk the buttons, Home and End jump to the
           edges.
@@ -880,10 +893,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.toolbar} />
-      </section>
+      </DocSection>
 
-      <section id="nav-menu" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Navigation menu</h2>
+      <DocSection id="nav-menu">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           DitherTabs' sliding dithered underline with nav semantics: anchors instead of tabs, aria-current on the active
           page.
@@ -895,7 +907,7 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           </div>
         </DemoCard>
         <PropsTable rows={API.navMenu} />
-      </section>
+      </DocSection>
     </>
   )
 }

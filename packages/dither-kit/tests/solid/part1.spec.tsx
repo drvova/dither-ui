@@ -1,4 +1,4 @@
-// The Solid kit's backgrounds, second sheet: each mounts and prints through
+// The kit's backgrounds from FloatingLines on: each mounts and prints through
 // the shared surface loop once in view, shows a precompiled image in place
 // of its canvas, and the grid that leans from the pointer lets go of it.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"

@@ -9,9 +9,10 @@ import {
   DitherToggleGroup,
   DitherWheelPicker,
   type PixelColor,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const CHARTS = [
   { value: "area", label: "Area" },
@@ -64,143 +65,159 @@ const STYLES = [
   { value: "underline", label: "Underline" },
 ]
 
-const SNIPPET_SELECT = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_SELECT = `import { createSignal } from "solid-js"
 import { DitherSelect } from "@dither-kit"
 
-const chart = ref("area")
-const CHARTS = [
-  { value: "area", label: "Area" },
-  { value: "line", label: "Line" },
-  { value: "bar", label: "Bar" },
-  { value: "pie", label: "Pie" },
-  { value: "radar", label: "Radar" },
-]
-</script>
+export default function Example() {
+  const [chart, setChart] = createSignal("area")
+  const CHARTS = [
+    { value: "area", label: "Area" },
+    { value: "line", label: "Line" },
+    { value: "bar", label: "Bar" },
+    { value: "pie", label: "Pie" },
+    { value: "radar", label: "Radar" },
+  ]
 
-<template>
-  <DitherSelect v-model="chart" :options="CHARTS" placeholder="Chart type…" />
-  <p class="text-[11px] text-muted-foreground">chart: "{{ chart }}"</p>
-</template>`
+  return (
+    <>
+      <DitherSelect modelValue={chart()} onUpdateModelValue={setChart} options={CHARTS} placeholder="Chart type…" />
+      <p class="text-[11px] text-muted-foreground">chart: "{chart()}"</p>
+    </>
+  )
+}`
 
-const SNIPPET_COMBOBOX = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_COMBOBOX = `import { createSignal } from "solid-js"
 import { DitherCombobox } from "@dither-kit"
 
-const swatch = ref("blue")
-const COLORS = ["green", "blue", "purple", "pink", "orange", "red", "grey"].map(
-  (c) => ({ value: c, label: c })
-)
-</script>
+export default function Example() {
+  const [swatch, setSwatch] = createSignal("blue")
+  const COLORS = ["green", "blue", "purple", "pink", "orange", "red", "grey"].map(
+    (c) => ({ value: c, label: c })
+  )
 
-<template>
-  <DitherCombobox v-model="swatch" :options="COLORS" :color="swatch" />
-  <p class="text-[11px] text-muted-foreground">swatch: "{{ swatch }}"</p>
-</template>`
+  return (
+    <>
+      <DitherCombobox modelValue={swatch()} onUpdateModelValue={setSwatch} options={COLORS} color={swatch()} />
+      <p class="text-[11px] text-muted-foreground">swatch: "{swatch()}"</p>
+    </>
+  )
+}`
 
-const SNIPPET_AUTOCOMPLETE = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_AUTOCOMPLETE = `import { createSignal } from "solid-js"
 import { DitherAutocomplete } from "@dither-kit"
 
-const term = ref("")
-const TERMS = ["dither", "dithering", "bayer", "bayer 4x4", "pixel", "pixel art"]
-</script>
+export default function Example() {
+  const [term, setTerm] = createSignal("")
+  const TERMS = ["dither", "dithering", "bayer", "bayer 4x4", "pixel", "pixel art"]
 
-<template>
-  <DitherAutocomplete v-model="term" :suggestions="TERMS" placeholder="Search the docs…" />
-  <p class="text-[11px] text-muted-foreground">term: "{{ term }}"</p>
-</template>`
+  return (
+    <>
+      <DitherAutocomplete modelValue={term()} onUpdateModelValue={setTerm} suggestions={TERMS} placeholder="Search the docs…" />
+      <p class="text-[11px] text-muted-foreground">term: "{term()}"</p>
+    </>
+  )
+}`
 
-const SNIPPET_WHEEL = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_WHEEL = `import { createSignal } from "solid-js"
 import { DitherWheelPicker } from "@dither-kit"
 
-const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"))
-const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))
-const hour = ref("09")
-const minute = ref("30")
-</script>
+export default function Example() {
+  const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"))
+  const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))
+  const [hour, setHour] = createSignal("09")
+  const [minute, setMinute] = createSignal("30")
 
-<template>
-  <!-- wheels compose side by side; each is one drum -->
-  <div class="flex items-center gap-1">
-    <DitherWheelPicker v-model="hour" :options="HOURS" label="Hour" />
-    <span class="text-muted-foreground">:</span>
-    <DitherWheelPicker v-model="minute" :options="MINUTES" label="Minute" color="green" />
-  </div>
-</template>`
+  return (
+    <>
+      {/* wheels compose side by side; each is one drum */}
+      <div class="flex items-center gap-1">
+        <DitherWheelPicker modelValue={hour()} onUpdateModelValue={setHour} options={HOURS} label="Hour" />
+        <span class="text-muted-foreground">:</span>
+        <DitherWheelPicker modelValue={minute()} onUpdateModelValue={setMinute} options={MINUTES} label="Minute" color="green" />
+      </div>
+    </>
+  )
+}`
 
-const SNIPPET_RADIO = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_RADIO = `import { createSignal } from "solid-js"
 import { DitherRadioGroup } from "@dither-kit"
 
-const bloomLevel = ref("low")
-const BLOOMS = [
-  { value: "off", label: "Off" },
-  { value: "low", label: "Low" },
-  { value: "high", label: "High" },
-  { value: "aura", label: "Aura" },
-]
-</script>
+export default function Example() {
+  const [bloomLevel, setBloomLevel] = createSignal("low")
+  const BLOOMS = [
+    { value: "off", label: "Off" },
+    { value: "low", label: "Low" },
+    { value: "high", label: "High" },
+    { value: "aura", label: "Aura" },
+  ]
 
-<template>
-  <DitherRadioGroup v-model="bloomLevel" :options="BLOOMS" label="Bloom level" />
-  <p class="text-[11px] text-muted-foreground">bloom: "{{ bloomLevel }}"</p>
-</template>`
+  return (
+    <>
+      <DitherRadioGroup modelValue={bloomLevel()} onUpdateModelValue={setBloomLevel} options={BLOOMS} label="Bloom level" />
+      <p class="text-[11px] text-muted-foreground">bloom: "{bloomLevel()}"</p>
+    </>
+  )
+}`
 
-const SNIPPET_CHECKBOX_GROUP = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_CHECKBOX_GROUP = `import { createSignal } from "solid-js"
 import { DitherCheckboxGroup } from "@dither-kit"
 
-const parts = ref(["grid", "axes"])
-const PARTS = [
-  { value: "grid", label: "Grid" },
-  { value: "axes", label: "Axes" },
-  { value: "legend", label: "Legend" },
-  { value: "tooltip", label: "Tooltip" },
-]
-</script>
+export default function Example() {
+  const [parts, setParts] = createSignal(["grid", "axes"])
+  const PARTS = [
+    { value: "grid", label: "Grid" },
+    { value: "axes", label: "Axes" },
+    { value: "legend", label: "Legend" },
+    { value: "tooltip", label: "Tooltip" },
+  ]
 
-<template>
-  <DitherCheckboxGroup v-model="parts" :options="PARTS" label="Chart parts" />
-  <p class="text-[11px] text-muted-foreground">parts: [{{ parts.join(", ") }}]</p>
-</template>`
+  return (
+    <>
+      <DitherCheckboxGroup modelValue={parts()} onUpdateModelValue={setParts} options={PARTS} label="Chart parts" />
+      <p class="text-[11px] text-muted-foreground">parts: [{parts().join(", ")}]</p>
+    </>
+  )
+}`
 
-const SNIPPET_TOGGLE = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_TOGGLE = `import { createSignal } from "solid-js"
 import { DitherToggle } from "@dither-kit"
 
-const bloomOn = ref(true)
-</script>
+export default function Example() {
+  const [bloomOn, setBloomOn] = createSignal(true)
 
-<template>
-  <DitherToggle v-model="bloomOn">bloom</DitherToggle>
-  <p class="text-[11px] text-muted-foreground">bloom: {{ bloomOn }}</p>
-</template>`
+  return (
+    <>
+      <DitherToggle modelValue={bloomOn()} onUpdateModelValue={setBloomOn}>bloom</DitherToggle>
+      <p class="text-[11px] text-muted-foreground">bloom: {bloomOn()}</p>
+    </>
+  )
+}`
 
-const SNIPPET_TOGGLE_GROUP = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_TOGGLE_GROUP = `import { createSignal } from "solid-js"
 import { DitherToggleGroup } from "@dither-kit"
 
-const align = ref("left")
-const ALIGN = [
-  { value: "left", label: "Left" },
-  { value: "center", label: "Center" },
-  { value: "right", label: "Right" },
-]
+export default function Example() {
+  const [align, setAlign] = createSignal("left")
+  const ALIGN = [
+    { value: "left", label: "Left" },
+    { value: "center", label: "Center" },
+    { value: "right", label: "Right" },
+  ]
 
-const styles = ref(["bold"])
-const STYLES = [
-  { value: "bold", label: "Bold" },
-  { value: "italic", label: "Italic" },
-  { value: "underline", label: "Underline" },
-]
-</script>
+  const [styles, setStyles] = createSignal(["bold"])
+  const STYLES = [
+    { value: "bold", label: "Bold" },
+    { value: "italic", label: "Italic" },
+    { value: "underline", label: "Underline" },
+  ]
 
-<template>
-  <DitherToggleGroup v-model="align" :options="ALIGN" />
-  <DitherToggleGroup v-model="styles" :options="STYLES" type="multiple" />
-</template>`
+  return (
+    <>
+      <DitherToggleGroup modelValue={align()} onUpdateModelValue={setAlign} options={ALIGN} />
+      <DitherToggleGroup modelValue={styles()} onUpdateModelValue={setStyles} options={STYLES} type="multiple" />
+    </>
+  )
+}`
 
 const API: Record<string, PropRow[]> = {
   select: [
@@ -277,8 +294,7 @@ export default function SelectionDocs() {
 
   return (
     <>
-      <section id="select" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Select</h2>
+      <DocSection id="select">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A listbox behind an input-like trigger: Enter, Space or ArrowDown opens the panel, arrows move the highlight,
           and the picked row carries a small dithered swatch. Escape or an outside click closes it.
@@ -295,10 +311,9 @@ export default function SelectionDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.select} />
-      </section>
+      </DocSection>
 
-      <section id="combobox" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Combobox</h2>
+      <DocSection id="combobox">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A select whose trigger is an input: typing filters the options (case-insensitive), Enter picks the highlighted
           match, and blur snaps the text back to the last valid value.
@@ -315,10 +330,9 @@ export default function SelectionDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.combobox} />
-      </section>
+      </DocSection>
 
-      <section id="autocomplete" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Autocomplete</h2>
+      <DocSection id="autocomplete">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A free-text input with suggestions: anything you type is the value; picking a row just fills the input. Try{" "}
           <code class="text-foreground/80">dither</code>, <code class="text-foreground/80">bayer</code> or{" "}
@@ -336,10 +350,9 @@ export default function SelectionDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.autocomplete} />
-      </section>
+      </DocSection>
 
-      <section id="wheel-picker" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Wheel picker</h2>
+      <DocSection id="wheel-picker">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An iOS-style picker wheel: a 3D drum on native momentum scroll that snaps to the nearest notch, steered by
           wheel, drag or spinbutton keys. Wheels compose side by side for date and time pickers; reduced motion flattens
@@ -369,10 +382,9 @@ export default function SelectionDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.wheelPicker} />
-      </section>
+      </DocSection>
 
-      <section id="radio" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Radio</h2>
+      <DocSection id="radio">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A radiogroup of pixel circles: unchecked rings are a 1px pixel border, the checked one fills its inner dot
           with the Bayer texture. Arrow keys move and select (roving tabindex).
@@ -389,10 +401,9 @@ export default function SelectionDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.radio} />
-      </section>
+      </DocSection>
 
-      <section id="checkbox-group" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Checkbox group</h2>
+      <DocSection id="checkbox-group">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A labelled group of DitherCheckboxes bound to one string array: toggling a box adds or removes its option's
           value.
@@ -409,10 +420,9 @@ export default function SelectionDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.checkboxGroup} />
-      </section>
+      </DocSection>
 
-      <section id="toggle" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Toggle</h2>
+      <DocSection id="toggle">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A pressed-state button: off is a quiet border, on fills behind the label with the badge's dithered gradient.
           Label goes in as children.
@@ -426,10 +436,9 @@ export default function SelectionDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.toggle} />
-      </section>
+      </DocSection>
 
-      <section id="toggle-group" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Toggle group</h2>
+      <DocSection id="toggle-group">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A bordered row of toggles: <code class="text-foreground/80">single</code> behaves like a radio group (one
           value, arrows move), while <code class="text-foreground/80">multiple</code> keeps each button independently
@@ -450,7 +459,7 @@ export default function SelectionDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.toggleGroup} />
-      </section>
+      </DocSection>
     </>
   )
 }

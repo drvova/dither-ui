@@ -1,7 +1,7 @@
-// The Solid kit's text, navigation and small canvas pieces, held to what
-// their Vue twins did: each renders its content under the role and name a
-// reader finds it by, reports a change through its callback, keeps its
-// keyboard path, and paints its canvas where it has one.
+// The kit's text, navigation and small canvas pieces: each renders its
+// content under the role and name a reader finds it by, reports a change
+// through its callback, keeps its keyboard path, and paints its canvas
+// where it has one.
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -345,6 +345,8 @@ describe("DitherNavMenu", () => {
   it("marks the current link, and reports a pick without leaving the page", () => {
     const picked = vi.fn()
     const { getByRole } = render(() => <DitherNavMenu items={items} modelValue="Docs" onUpdateModelValue={picked} />)
+    // a named landmark, apart from the page's other navigation
+    expect(getByRole("navigation", { name: "Sections" })).toBeTruthy()
     const docs = getByRole("link", { name: "Docs" })
     const studio = getByRole("link", { name: "Studio" })
     expect(docs.getAttribute("aria-current")).toBe("page")
@@ -431,6 +433,14 @@ describe("DitherTabs", () => {
     expect(panel.textContent).toBe("The preview")
     expect(preview.getAttribute("aria-controls")).toBe(panel.id)
     expect(getAllByRole("tabpanel").length).toBe(1)
+  })
+
+  it("names in aria-controls only a panel that stands: tabs that switch content of their own name none", () => {
+    const { getByRole } = render(() => <Tabs />)
+    expect(getByRole("tab", { name: "Notes" }).hasAttribute("aria-controls")).toBe(false)
+    cleanup()
+    const bare = render(() => <DitherTabs tabs={["One", "Two"]} modelValue="One" />)
+    for (const tab of bare.getAllByRole("tab")) expect(tab.hasAttribute("aria-controls")).toBe(false)
   })
 
   it("reports a click, and shows that tab's panel while the other stays mounted", () => {
@@ -712,32 +722,32 @@ describe("ShinyText", () => {
 })
 
 describe("TextType", () => {
-  it("types its first line, deletes it, then types the next", () => {
-    vi.useFakeTimers()
+  it("types its first line, deletes it, then types the next, on the kit clock", async () => {
     const { container } = render(() => (
       <TextType texts={["Hi", "Yo"]} typingSpeed={10} deletingSpeed={10} pause={100} />
     ))
     const [typed, caret] = [...container.firstElementChild!.children]
     expect(caret.getAttribute("aria-hidden")).toBe("true")
     expect(typed.textContent).toBe("")
-    vi.advanceTimersByTime(300)
-    expect(typed.textContent).toBe("H")
-    vi.advanceTimersByTime(10)
-    expect(typed.textContent).toBe("Hi")
-    vi.advanceTimersByTime(10 + 100 + 10 + 10)
+    w.show()
+    await w.run(0, 290, 10)
     expect(typed.textContent).toBe("")
-    vi.advanceTimersByTime(10 + 220 + 10)
+    await w.frame(300)
+    expect(typed.textContent).toBe("H")
+    await w.frame(310)
+    expect(typed.textContent).toBe("Hi")
+    await w.run(320, 440, 10)
+    expect(typed.textContent).toBe("")
+    await w.run(450, 680, 10)
     expect(typed.textContent).toBe("Yo")
   })
 
-  it("stops after its last line without a loop, and stops typing when it leaves", () => {
-    vi.useFakeTimers()
+  it("stops after its last line without a loop, and stops typing when it leaves", async () => {
     const { container, unmount } = render(() => <TextType texts={["Hi"]} loop={false} cursor={false} />)
-    vi.advanceTimersByTime(5000)
+    w.show()
+    await w.run(0, 5000, 100)
     expect(container.textContent).toBe("Hi")
-    expect(vi.getTimerCount()).toBe(0)
     unmount()
-    render(() => <TextType />).unmount()
-    expect(vi.getTimerCount()).toBe(0)
+    expect(w.queued()).toBe(0)
   })
 })

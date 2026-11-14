@@ -1,6 +1,8 @@
 import { createMemo, For, Index, type JSX, splitProps } from "solid-js"
-import type { BezierPoints } from "dither-kit"
-import { cn } from "dither-kit/tailwind/lib.ts"
+import type { BezierPoints } from "@dither-ui/kit"
+import { cn } from "@dither-ui/kit/tailwind/lib.ts"
+import { followPointer } from "@/shared/lib/follow"
+import { clamp } from "@dither-ui/kit/engine/pixel.ts"
 
 type Own = { modelValue: BezierPoints; class?: string; onUpdateModelValue?: (value: BezierPoints) => void }
 export type BezierEditorProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
@@ -12,7 +14,6 @@ const Y_MIN = -0.5
 const Y_MAX = 1.5
 const sx = (x: number) => x * W
 const sy = (y: number) => ((Y_MAX - y) / (Y_MAX - Y_MIN)) * H
-const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
 
 // Animator staples — overshoot, anticipation, hard snap.
 const PRESETS: { name: string; pts: BezierPoints }[] = [
@@ -42,12 +43,7 @@ export default function BezierEditor(raw: BezierEditorProps) {
       props.onUpdateModelValue?.(next)
     }
     move(e)
-    const up = () => {
-      window.removeEventListener("pointermove", move)
-      window.removeEventListener("pointerup", up)
-    }
-    window.addEventListener("pointermove", move)
-    window.addEventListener("pointerup", up)
+    followPointer(e, move)
   }
 
   function setNum(i: number, e: Event) {
@@ -85,23 +81,25 @@ export default function BezierEditor(raw: BezierEditorProps) {
         {/* endpoints */}
         <circle cx={sx(0)} cy={sy(0)} r="3" class="fill-muted-foreground" />
         <circle cx={sx(1)} cy={sy(1)} r="3" class="fill-muted-foreground" />
-        {/* draggable control points */}
-        <circle
-          cx={sx(p()[0])}
-          cy={sy(p()[1])}
-          r="6"
-          class="cursor-grab fill-foreground stroke-background active:cursor-grabbing"
-          stroke-width="2"
-          onPointerDown={(e) => dragHandle(0, e)}
-        />
-        <circle
-          cx={sx(p()[2])}
-          cy={sy(p()[3])}
-          r="6"
-          class="cursor-grab fill-foreground stroke-background active:cursor-grabbing"
-          stroke-width="2"
-          onPointerDown={(e) => dragHandle(1, e)}
-        />
+        {/* draggable control points: a 12px dot in a 28px reach, a finger's */}
+        <Index each={[0, 1] as const}>
+          {(which) => (
+            <g
+              class="cursor-grab active:cursor-grabbing"
+              data-handle={which()}
+              onPointerDown={(e) => dragHandle(which(), e)}
+            >
+              <circle cx={sx(p()[which() * 2])} cy={sy(p()[which() * 2 + 1])} r="14" class="fill-transparent" />
+              <circle
+                cx={sx(p()[which() * 2])}
+                cy={sy(p()[which() * 2 + 1])}
+                r="6"
+                class="fill-foreground stroke-background"
+                stroke-width="2"
+              />
+            </g>
+          )}
+        </Index>
       </svg>
 
       <div class="flex items-center gap-1.5">
@@ -113,7 +111,7 @@ export default function BezierEditor(raw: BezierEditorProps) {
               name={`bezier-${i}`}
               step="0.01"
               value={v()}
-              class="w-full min-w-0 rounded border border-edge bg-background/60 px-1 py-0.5 text-center text-[11px] tabular-nums text-foreground outline-none [appearance:textfield] focus:border-ring [&::-webkit-inner-spin-button]:appearance-none"
+              class="h-6 w-full min-w-0 rounded border border-edge bg-background/60 px-1 text-center text-[11px] tabular-nums text-foreground outline-none [appearance:textfield] focus:border-ring [&::-webkit-inner-spin-button]:appearance-none"
               onChange={(e) => setNum(i, e)}
             />
           )}
@@ -126,7 +124,7 @@ export default function BezierEditor(raw: BezierEditorProps) {
           {(pr) => (
             <button
               type="button"
-              class="rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+              class="min-h-6 rounded border border-border px-1.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
               onClick={() => props.onUpdateModelValue?.(pr.pts)}
             >
               {pr.name}

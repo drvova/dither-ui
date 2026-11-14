@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/DitherGradient.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherGradient.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, type JSX, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
-import { kitFromSeed } from "dither-kit/engine/dither-paint.ts"
-import { pixelBloomStyle, type PixelBloomInput, type PixelColor } from "dither-kit/engine/pixel.ts"
+import { kitFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
+import { pixelBloomStyle, type PixelBloomInput, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import {
   DEFAULT_MAX_COLS,
   DEFAULT_MAX_ROWS,
@@ -13,10 +13,10 @@ import {
   type DitherRenderMode,
   type GradientDirection,
   type PrecompiledDither,
-} from "dither-kit/engine/precompile.ts"
-import { putRasterBuffer } from "dither-kit/engine/raster.ts"
+} from "@dither-ui/kit/engine/precompile.ts"
+import { putRasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import { cn, type StyleProp } from "./lib"
-import { useScreen } from "dither-kit/solid/runtime/screen.ts"
+import { useScreen } from "@dither-ui/kit/solid/runtime/screen.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({

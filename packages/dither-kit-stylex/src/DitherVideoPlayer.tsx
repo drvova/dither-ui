@@ -1,7 +1,7 @@
-// Generated from dither-kit/solid/DitherVideoPlayer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherVideoPlayer.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, mergeProps, onMount, Show } from "solid-js"
-import type { PixelColor } from "dither-kit/engine/pixel.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { CONTROL_BUTTON } from "./control"
 import { cn, type StyleProp } from "./lib"
 import DitherSlider from "./DitherSlider"
@@ -121,7 +121,9 @@ export default function DitherVideoPlayer(raw: DitherVideoPlayerProps) {
   function toggle() {
     const v = video()
     if (!v) return
-    if (v.paused) void v.play()
+    // a source this browser cannot play, or a play it refuses (autoplay
+    // rules), leaves it paused: the element's own events say so, nothing throws
+    if (v.paused) v.play().catch(() => {})
     else v.pause()
   }
   function seek(t: number | [number, number]) {
@@ -172,7 +174,9 @@ export default function DitherVideoPlayer(raw: DitherVideoPlayerProps) {
   }
   function fullscreen() {
     // An iPhone has no element fullscreen; its video takes the system's own.
-    if (host?.requestFullscreen) void host.requestFullscreen()
+    // A request the browser refuses (a window without focus, a frame not
+    // allowed it) leaves the player as it stands.
+    if (host?.requestFullscreen) host.requestFullscreen().catch(() => {})
     else (video() as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | undefined)?.webkitEnterFullscreen?.()
   }
 

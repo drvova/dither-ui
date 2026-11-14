@@ -1,5 +1,5 @@
 {
-  "name": "dither-kit",
+  "name": "@dither-ui/kit",
   "version": "0.1.0",
   "description": "Dithered UI toolkit for Solid: composable ordered-dither charts (area, line, bar, pie, radar) on one tiny canvas engine, plus generative avatars, buttons, gradient washes and more.",
   "type": "module",

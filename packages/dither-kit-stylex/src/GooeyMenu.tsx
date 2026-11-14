@@ -1,8 +1,8 @@
-// Generated from dither-kit/solid/GooeyMenu.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/GooeyMenu.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createUniqueId, For, mergeProps } from "solid-js"
-import { cssColor } from "dither-kit/engine/palette.ts"
-import type { PixelColor } from "dither-kit/engine/pixel.ts"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { CONTROL_BUTTON } from "./control"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"

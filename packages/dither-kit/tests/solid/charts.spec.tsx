@@ -1,7 +1,6 @@
-// The chart family in Solid, held to what its Vue twins did: every kind
-// paints its canvas, the parts land in the root's layers, the legend and
-// tooltip read whichever root they sit in, and a part outside its root
-// says so in the words the Vue kit used.
+// The chart family: every kind paints its canvas, the parts land in the
+// root's layers, the legend and tooltip read whichever root they sit in,
+// and a part outside its root says which root it belongs in.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createSignal, type JSX } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -10,6 +9,7 @@ import Area from "../../src/solid/Area"
 import { AreaChart, LineChart } from "../../src/solid/area-chart"
 import Bar from "../../src/solid/Bar"
 import { BarChart } from "../../src/solid/bar-chart"
+import DitherScreen from "../../src/solid/DitherScreen"
 import Dot from "../../src/solid/Dot"
 import Grid from "../../src/solid/Grid"
 import Legend from "../../src/solid/Legend"
@@ -25,6 +25,7 @@ import Sparkline from "../../src/solid/Sparkline"
 import Tooltip from "../../src/solid/Tooltip"
 import XAxis from "../../src/solid/XAxis"
 import YAxis from "../../src/solid/YAxis"
+import type { ScreenKind } from "../../src/engine/pixel"
 import { world } from "../support/world"
 
 const rows = [
@@ -181,6 +182,84 @@ describe("every chart kind paints its canvas", () => {
     await w.frame(300)
     expect(w.uploads.length).toBeGreaterThan(before)
   })
+})
+
+describe("a chart under a DitherScreen", () => {
+  const charts: [string, () => JSX.Element][] = [
+    [
+      "area",
+      () => (
+        <AreaChart data={rows} config={config} sparkles={false} animate={false}>
+          <Area dataKey="sales" />
+        </AreaChart>
+      ),
+    ],
+    [
+      "bar",
+      () => (
+        <BarChart data={rows} config={config} animate={false}>
+          <Bar dataKey="sales" />
+        </BarChart>
+      ),
+    ],
+    [
+      "pie",
+      () => (
+        <PieChart data={slices} config={sliceConfig} dataKey="value" nameKey="name" animate={false}>
+          <Pie />
+        </PieChart>
+      ),
+    ],
+    [
+      "radar",
+      () => (
+        <RadarChart data={axes} config={radarConfig} nameKey="axis" animate={false}>
+          <Radar dataKey="now" />
+        </RadarChart>
+      ),
+    ],
+  ]
+  /** The bytes each canvas was last handed. */
+  const printed = new WeakMap<HTMLCanvasElement, string>()
+  beforeEach(() => {
+    const recorded = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, ...args: unknown[]) {
+      const c = (recorded as unknown as (...a: unknown[]) => { putImageData: (image: ImageData) => void }).apply(
+        this,
+        args,
+      )
+      const put = c.putImageData
+      return Object.assign(c, {
+        putImageData: (image: ImageData) => {
+          printed.set(this, image.data.join())
+          put(image)
+        },
+      })
+    } as unknown as typeof HTMLCanvasElement.prototype.getContext
+  })
+
+  for (const [kind, chart] of charts) {
+    it(`${kind}: reprints through the new screen when the screen changes, and not otherwise`, async () => {
+      const [screen, setScreen] = createSignal<ScreenKind>("bayer")
+      const { container } = await shown(() => <DitherScreen screen={screen()}>{chart()}</DitherScreen>)
+      const canvas = container.querySelector("canvas")!
+      const bayer = printed.get(canvas)
+      expect(bayer).toBeDefined()
+      const uploads = w.uploads.length
+      await w.frame(200)
+      expect(w.uploads.length).toBe(uploads)
+
+      setScreen("line")
+      await w.frame(300)
+      expect(w.uploads.length).toBe(uploads + 1)
+      const line = printed.get(canvas)
+      expect(line).not.toBe(bayer)
+
+      // What it prints now is what a chart mounted under that screen prints.
+      const fresh = await shown(() => <DitherScreen screen="line">{chart()}</DitherScreen>)
+      expect(line).toBe(printed.get(fresh.container.querySelector("canvas")!))
+    })
+  }
 })
 
 describe("a chart root's layers", () => {
@@ -384,7 +463,7 @@ describe("a part outside its chart root", () => {
     }
     return null
   }
-  it("says where it belongs, in the Vue kit's words", () => {
+  it("says which root it belongs in", () => {
     expect(thrown(() => <Grid />)).toBe("<Grid /> must be used within a chart root.")
     expect(thrown(() => <XAxis />)).toBe("<XAxis /> must be used within a chart root.")
     expect(thrown(() => <YAxis />)).toBe("<YAxis /> must be used within a chart root.")

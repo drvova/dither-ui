@@ -14,7 +14,7 @@ import { scaleBand, scaleLinear, scalePoint } from "d3-scale"
 import { stack, stackOffsetExpand } from "d3-shape"
 import type { Component } from "solid-js"
 import { twMerge } from "tailwind-merge"
-import * as Kit from "dither-kit"
+import * as Kit from "@dither-ui/kit"
 import * as StyleX from "@/widgets/source/model/stylex"
 import {
   type Compiled,

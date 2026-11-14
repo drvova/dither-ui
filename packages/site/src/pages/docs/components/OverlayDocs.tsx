@@ -10,9 +10,10 @@ import {
   DitherPopover,
   DitherPreviewCard,
   DitherTooltip,
-} from "dither-kit"
+} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const COMMAND_ITEMS = [
   { value: "new-artboard", label: "New artboard", group: "Studio", kbd: "N" },
@@ -47,91 +48,92 @@ const MENUBAR = [
   },
 ]
 
-const SNIPPET_POPOVER = `<script setup>
-const open = ref(false)
-</script>
+const SNIPPET_POPOVER = `const [open, setOpen] = createSignal(false)
 
-<DitherPopover :open="open" align="center" @close="open = false">
-  <template #trigger>
-    <DitherButton @click="open = !open">Open popover</DitherButton>
-  </template>
+<DitherPopover open={open()} align="center" onClose={() => setOpen(false)}
+  trigger={
+    <DitherButton onClick={() => setOpen(!open())}>Open popover</DitherButton>
+  }
+>
   <p class="text-[12px] leading-relaxed text-muted-foreground">
     Anchored to its trigger. Escape or an outside press closes it.
   </p>
 </DitherPopover>`
 
-const SNIPPET_MENU = `<script setup>
-const items = [
+const SNIPPET_MENU = `const items = [
   { label: "New" },
   { label: "Duplicate" },
   { divider: true },
   { label: "Delete", danger: true },
 ]
-</script>
+const [last, setLast] = createSignal("none")
 
-<DitherMenu :items="items" @select="(label) => run(label)">
+<DitherMenu items={items} onSelect={(label) => (setLast(label))}>
   Actions
-</DitherMenu>`
+</DitherMenu>
+<p class="mt-3 text-[12px] text-muted-foreground">last action: {last()}</p>`
 
-const SNIPPET_CONTEXT = `<script setup>
-const items = [
+const SNIPPET_CONTEXT = `const items = [
   { label: "Cut" },
   { label: "Copy" },
   { label: "Paste" },
   { divider: true },
   { label: "Delete", danger: true },
 ]
-</script>
+const [last, setLast] = createSignal("none")
 
-<DitherContextMenu :items="items" @select="(label) => run(label)">
+<DitherContextMenu items={items} onSelect={(label) => (setLast(label))}>
   <div class="rounded-lg border border-dashed border-border p-10">
     right-click me
   </div>
-</DitherContextMenu>`
+</DitherContextMenu>
+<p class="mt-3 text-[12px] text-muted-foreground">last action: {last()}</p>`
 
-const SNIPPET_MENUBAR = `<script setup>
-const menus = [
+const SNIPPET_MENUBAR = `const menus = [
   { label: "File", items: [{ label: "New" }, { label: "Open" }, { label: "Save" }] },
   { label: "Edit", items: [{ label: "Undo" }, { label: "Redo" }, { label: "Find" }] },
   { label: "View", items: [{ label: "Zoom in" }, { label: "Zoom out" }] },
 ]
-const last = ref("none")
-</script>
+const [last, setLast] = createSignal("none")
 
-<DitherMenubar :menus="menus" @select="(m, i) => (last = \`\${m} → \${i}\`)" />
-<p class="mt-3 text-[12px] text-muted-foreground">last action: {{ last }}</p>`
+<DitherMenubar menus={menus} onSelect={(m, i) => (setLast(\`\${m} → \${i}\`))} />
+<p class="mt-3 text-[12px] text-muted-foreground">last action: {last()}</p>`
 
 const SNIPPET_TOOLTIP = `<DitherTooltip text="Deploys are frozen until Monday">
   <DitherBadge color="orange">frozen</DitherBadge>
 </DitherTooltip>`
 
-const SNIPPET_COMMAND = `<script setup>
-const open = ref(false)
-window.addEventListener("keydown", (e) => {   // the hotkey stays yours
-  if ((e.metaKey || e.ctrlKey) && e.key === "k") (e.preventDefault(), open.value = !open.value)
-})
-</script>
+const SNIPPET_COMMAND = `const [open, setOpen] = createSignal(false)
+const [ran, setRan] = createSignal("nothing yet")
+// the hotkey stays yours
+function hotkey(e: KeyboardEvent) {
+  if ((e.metaKey || e.ctrlKey) && e.key === "k") (e.preventDefault(), setOpen(!open()))
+}
+onMount(() => window.addEventListener("keydown", hotkey))
+onCleanup(() => window.removeEventListener("keydown", hotkey))
 
-<DitherButton @click="open = true">Command (⌘K)</DitherButton>
+<DitherButton onClick={() => setOpen(true)}>Command (⌘K)</DitherButton>
 <DitherCommand
-  :open="open"
-  :items="[
+  open={open()}
+  items={[
     { value: 'new', label: 'New artboard', group: 'Studio', kbd: 'N' },
     { value: 'export', label: 'Export image', group: 'Studio' },
     { value: 'docs', label: 'Open docs', group: 'Navigate' },
-  ]"
-  @select="run"
-  @close="open = false"
+  ]}
+  onSelect={(value) => (setRan(value))}
+  onClose={() => setOpen(false)}
 />
+<p class="text-[10px] text-muted-foreground">last ran: {ran()}</p>
 
-<!-- type to filter · ↑↓ walk · Enter runs · Escape leaves -->`
+{/* type to filter, the arrows walk, Enter runs, Escape leaves */}`
 
-const SNIPPET_PREVIEW = `<DitherPreviewCard>
-  <template #trigger>
+const SNIPPET_PREVIEW = `<DitherPreviewCard
+  trigger={
     <button type="button" class="underline decoration-border underline-offset-4">@ada</button>
-  </template>
+  }
+>
   <div class="flex items-center gap-3">
-    <DitherAvatar name="Ada Lovelace" :size="40" />
+    <DitherAvatar name="Ada Lovelace" size={40} />
     <div>
       <p class="text-[13px]">Ada Lovelace</p>
       <p class="text-[11px] text-muted-foreground">Wrote the first program.</p>
@@ -195,8 +197,7 @@ export default function OverlayDocs() {
 
   return (
     <>
-      <section id="popover" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Popover</h2>
+      <DocSection id="popover">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           An anchored panel below its trigger. Bring your own trigger and content. Escape or an outside press calls
           onClose.
@@ -216,10 +217,9 @@ export default function OverlayDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.popover} />
-      </section>
+      </DocSection>
 
-      <section id="menu" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Menu</h2>
+      <DocSection id="menu">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A dropdown menu behind a single button: arrow keys move focus, Enter selects, Escape closes and refocuses the
           trigger.
@@ -233,10 +233,9 @@ export default function OverlayDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.menu} />
-      </section>
+      </DocSection>
 
-      <section id="context-menu" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Context menu</h2>
+      <DocSection id="context-menu">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A right-click menu portalled to the pointer. It shares Menu's items and keyboard behavior, and Escape or any
           outside press dismisses it.
@@ -252,10 +251,9 @@ export default function OverlayDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.contextMenu} />
-      </section>
+      </DocSection>
 
-      <section id="menubar" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Menubar</h2>
+      <DocSection id="menubar">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A desktop-style horizontal bar: one menu open at a time, hover switches between top items, ArrowLeft/Right
           move across them.
@@ -267,10 +265,9 @@ export default function OverlayDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.menubar} />
-      </section>
+      </DocSection>
 
-      <section id="tooltip" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Tooltip</h2>
+      <DocSection id="tooltip">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A delayed hover tip above its target. It also shows on focus and hides on leave, blur, or Escape. No
           transition under reduced motion.
@@ -283,10 +280,9 @@ export default function OverlayDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.tooltip} />
-      </section>
+      </DocSection>
 
-      <section id="preview-card" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Preview card</h2>
+      <DocSection id="preview-card">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A hover preview for rich content. It opens after a delay on hover or focus, and a short close delay lets the
           pointer travel into the card.
@@ -311,10 +307,9 @@ export default function OverlayDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.previewCard} />
-      </section>
+      </DocSection>
 
-      <section id="command" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Command</h2>
+      <DocSection id="command">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           The ⌘K palette: type to filter, arrows to walk, Enter runs, Escape leaves. Groups follow first appearance; the
           hotkey stays in your hands. Try ⌘K right here.
@@ -334,7 +329,7 @@ export default function OverlayDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.command} />
-      </section>
+      </DocSection>
     </>
   )
 }

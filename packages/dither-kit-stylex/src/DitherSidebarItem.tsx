@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherSidebarItem.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherSidebarItem.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import {
   children,
@@ -13,9 +13,9 @@ import {
   Switch,
   useContext,
 } from "solid-js"
-import { cssColor } from "dither-kit/engine/palette.ts"
-import { BAYER4, fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
-import { cellCanvas } from "dither-kit/engine/raster.ts"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
+import { BAYER4, fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import { cellCanvas } from "@dither-ui/kit/engine/raster.ts"
 import { SIDEBAR_COLLAPSED, SIDEBAR_COMPACT } from "./DitherSidebar"
 import { cn, type StyleProp } from "./lib"
 

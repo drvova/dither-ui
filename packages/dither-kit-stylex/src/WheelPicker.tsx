@@ -1,10 +1,10 @@
-// Generated from dither-kit/solid/WheelPicker.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/WheelPicker.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, For, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
-import { project, velocityFrom, type VelocitySample } from "dither-kit/engine/gesture.ts"
-import { cssColor } from "dither-kit/engine/palette.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
-import type { PixelColor } from "dither-kit/engine/pixel.ts"
+import { project, velocityFrom, type VelocitySample } from "@dither-ui/kit/engine/gesture.ts"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"
 
@@ -168,11 +168,11 @@ export default function WheelPicker(raw: WheelPickerProps) {
   const indexOfValue = (v: string | undefined) => opts().findIndex((o) => o.value === v)
   onMount(() => {
     setStill(pixelPrefersReducedMotion())
+    // The drum follows the value to its row, wherever the options put it.
     createEffect(
       on(
-        () => props.modelValue,
-        (v) => {
-          const i = indexOfValue(v)
+        () => indexOfValue(props.modelValue),
+        (i) => {
           if (i >= 0 && i !== index() && !dragging)
             scroller?.scrollTo({ top: i * ITEM, behavior: still() ? "auto" : "smooth" })
         },

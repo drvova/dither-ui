@@ -2,6 +2,7 @@ import { createMemo, createSignal, mergeProps, onCleanup, onMount } from "solid-
 import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
+import { latestEntry } from "../engine/visibility"
 
 export type DecryptedTextProps = {
   text?: string
@@ -21,35 +22,46 @@ export default function DecryptedText(raw: DecryptedTextProps) {
   const props = mergeProps({ text: "DECRYPTED", speed: 1, trigger: "view" as const }, raw)
 
   const target = createMemo(() => props.text)
-  const [display, setDisplay] = createSignal("")
+  // Where the reveal stands, the text shown read off it, so a new text or
+  // speed shows at once: before it (every glyph a "?"), at a frame, or done.
+  const [state, setState] = createSignal<"masked" | "done" | { frame: number; seeded: boolean }>(
+    props.trigger === "hover" ? "done" : "masked",
+  )
   let el: HTMLSpanElement | undefined
   let raf = 0
   let running = false
 
-  /** The text at a decrypt frame, or null once the reveal is complete. */
-  function frameText(frame: number, seeded: boolean): string | null {
+  const revealEvery = () => Math.max(1, Math.round(3 / Math.max(0.1, props.speed)))
+  /** Whether the reveal is complete at a decrypt frame. */
+  const ended = (frame: number) => frame >= target().length * revealEvery() + 8
+
+  /** The text at a decrypt frame. */
+  function frameText(frame: number, seeded: boolean): string {
     const t = target()
-    const revealEvery = Math.max(1, Math.round(3 / Math.max(0.1, props.speed)))
-    if (frame >= t.length * revealEvery + 8) return null
-    const revealed = Math.floor(frame / revealEvery)
+    const revealed = Math.floor(frame / revealEvery())
     let out = ""
     for (let i = 0; i < t.length; i++)
       out += i < revealed ? t[i] : t[i] === " " ? " " : seeded ? seededChar(frame, i) : rand()
     return out
   }
 
+  const display = createMemo(() => {
+    const s = state()
+    if (s === "masked") return target().replace(/[^ ]/g, "?")
+    return s === "done" || ended(s.frame) ? target() : frameText(s.frame, s.seeded)
+  })
+
   function scramble() {
     if (running) return
     running = true
     let frame = 0
     const tick = () => {
-      const out = frameText(++frame, false)
-      if (out === null || isDirected()) {
-        setDisplay(target())
+      if (ended(++frame) || isDirected()) {
+        setState("done")
         running = false
         return
       }
-      setDisplay(out)
+      setState({ frame, seeded: false })
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
@@ -60,7 +72,7 @@ export default function DecryptedText(raw: DecryptedTextProps) {
     if (raf) cancelAnimationFrame(raf)
     raf = 0
     running = false
-    setDisplay(frameText(Math.floor(ms / (1000 / 60)), true) ?? target())
+    setState({ frame: Math.floor(ms / (1000 / 60)), seeded: true })
   }
 
   onMount(() => {
@@ -71,13 +83,8 @@ export default function DecryptedText(raw: DecryptedTextProps) {
       if (raf) cancelAnimationFrame(raf)
       io?.disconnect()
     })
-    setDisplay(target().replace(/[^ ]/g, "?"))
-    if (pixelPrefersReducedMotion()) {
-      setDisplay(target())
-      return
-    }
-    if (props.trigger === "hover") {
-      setDisplay(target())
+    if (pixelPrefersReducedMotion() || props.trigger === "hover") {
+      setState("done")
       return
     }
     if (isDirected()) {
@@ -88,7 +95,8 @@ export default function DecryptedText(raw: DecryptedTextProps) {
       scramble()
       return
     }
-    io = new IntersectionObserver(([entry]) => {
+    io = new IntersectionObserver((entries) => {
+      const entry = latestEntry(entries)
       if (entry?.isIntersecting) {
         scramble()
         io?.disconnect()

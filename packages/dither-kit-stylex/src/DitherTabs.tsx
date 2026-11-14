@@ -1,4 +1,4 @@
-// Generated from dither-kit/solid/DitherTabs.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/DitherTabs.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import {
   type Accessor,
@@ -15,11 +15,11 @@ import {
   onMount,
   Show,
 } from "solid-js"
-import { kitFromSeed } from "dither-kit/engine/dither-paint.ts"
-import { fillOf, type PixelColor } from "dither-kit/engine/pixel.ts"
-import { cellCanvas } from "dither-kit/engine/raster.ts"
+import { kitFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
+import { fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import { cellCanvas } from "@dither-ui/kit/engine/raster.ts"
 import { cn, type StyleProp } from "./lib"
-import { useDitherMatrix } from "dither-kit/solid/runtime/screen.ts"
+import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -97,7 +97,10 @@ export type TabItem = {
   disabled?: boolean
 }
 
-export type TabsContext = { active: Accessor<string>; idBase: string }
+/** What the panels share with their tabs: the selected value, the ids'
+ * stem, and the panels that stand (a tab names a panel in `aria-controls`
+ * only while it is there: tabs may switch content of their own). */
+export type TabsContext = { active: Accessor<string>; idBase: string; hold: (value: string) => void }
 export const TABS_CTX = createContext<TabsContext>()
 
 const CELL = 2
@@ -175,6 +178,17 @@ export default function DitherTabs(raw: DitherTabsProps) {
 
   // An id the server and the browser agree on, where a counter would not.
   const idBase = `dk-tabs-${createUniqueId()}`
+  const [panels, setPanels] = createSignal<ReadonlySet<string>>(new Set())
+  const hold = (value: string) => {
+    setPanels((had) => new Set(had).add(value))
+    onCleanup(() =>
+      setPanels((had) => {
+        const left = new Set(had)
+        left.delete(value)
+        return left
+      }),
+    )
+  }
 
   const items = createMemo<TabItem[]>(() => props.tabs.map((t) => (typeof t === "string" ? { value: t } : t)))
   const vertical = createMemo(() => props.orientation === "vertical")
@@ -256,7 +270,7 @@ export default function DitherTabs(raw: DitherTabsProps) {
   onCleanup(() => ro?.disconnect())
 
   return (
-    <TABS_CTX.Provider value={{ active: () => props.modelValue, idBase }}>
+    <TABS_CTX.Provider value={{ active: () => props.modelValue, idBase, hold }}>
       <div class={cn(styles.frame, vertical() ? styles.flex : null, props.xstyle, props.class)}>
         <div
           ref={(el) => (list = el)}
@@ -282,7 +296,7 @@ export default function DitherTabs(raw: DitherTabsProps) {
                 type="button"
                 role="tab"
                 aria-selected={t.value === props.modelValue}
-                aria-controls={`${idBase}-panel-${t.value}`}
+                aria-controls={panels().has(t.value) ? `${idBase}-panel-${t.value}` : undefined}
                 tabIndex={t.value === props.modelValue ? 0 : -1}
                 disabled={t.disabled}
                 class={cn(

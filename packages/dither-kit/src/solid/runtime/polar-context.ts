@@ -81,7 +81,6 @@ export function usePolarController(input: PolarControllerInput): PolarChartConte
   const [cursorY, setCursorYSignal] = createSignal(0)
   const [isMouseInChart, setIsMouseInChartSignal] = createSignal(false)
   const [variants, setVariantsSignal] = createSignal<Record<string, VariantInput>>({})
-  const [variantRevision, setVariantRevisionSignal] = createSignal(0)
 
   const [revision, setRevision] = createSignal(0)
   createEffect(on([input.data, input.replayToken], () => setRevision((r) => r + 1), { defer: true }))
@@ -104,14 +103,12 @@ export function usePolarController(input: PolarControllerInput): PolarChartConte
   const registerVariant = (key: string, variant: VariantInput) => {
     if (variants()[key] === variant) return
     setVariantsSignal({ ...variants(), [key]: variant })
-    setVariantRevisionSignal((n) => n + 1)
   }
   const unregisterVariant = (key: string) => {
     if (!(key in variants())) return
     const next = { ...variants() }
     delete next[key]
     setVariantsSignal(next)
-    setVariantRevisionSignal((n) => n + 1)
   }
 
   const selectDataKey = (key: string | null) => {
@@ -277,9 +274,6 @@ export function usePolarController(input: PolarControllerInput): PolarChartConte
     },
     get revision() {
       return revision()
-    },
-    get variantRevision() {
-      return variantRevision()
     },
     get bloom() {
       return input.bloom()

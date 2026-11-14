@@ -1,11 +1,11 @@
 // What a docs preview is made of, as files: the example as a complete file
-// (a fragment completed by `asSfc`, then translated by the page into a Solid
-// `.tsx` module), the stylesheet it imports on CSS or CSS Modules, the
+// (a fragment completed by `asTsx` into a Solid `.tsx` module, written by the
+// page in the reader's styling system), the stylesheet it imports on CSS or CSS Modules, the
 // kit's own source for every kit export the example imports, the kit's
 // tokens, and a prompt that hands the lot to a coding agent. Pure: the panel
 // fetches the kit sources and renders these. What a snippet is before it
 // is a file (its kind, its completion) is `./snippet`.
-import type { snippetKind } from "./snippet"
+import type { SnippetKind } from "./snippet"
 
 export type Lang = "tsx" | "ts" | "css" | "md" | "sh"
 
@@ -109,9 +109,9 @@ export function kitFilesOf(
 const pascal = (id: string) => id.replace(/(^|[-_\s]+)([a-z0-9])/gi, (_, __, c: string) => c.toUpperCase())
 
 /** The example's file name: `SwitchExample.tsx`, `install.sh`. */
-export function exampleName(section: string, n: number, kind: ReturnType<typeof snippetKind>) {
+export function exampleName(section: string, n: number, kind: SnippetKind) {
   const suffix = n > 1 ? `${n}` : ""
-  if (kind === "sfc" || kind === "fragment") return `${pascal(section || "docs")}Example${suffix}.tsx`
+  if (kind === "file" || kind === "fragment") return `${pascal(section || "docs")}Example${suffix}.tsx`
   return `${section || "example"}${suffix ? `-${suffix}` : ""}.${kind}`
 }
 

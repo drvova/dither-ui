@@ -1,7 +1,8 @@
-// The Solid kit's dialogs, palette, dials, text and small widgets, held to
-// what their Vue twins did: each renders what it is given, reports through
-// its callbacks, keeps its keyboard paths, and lets go of what it listened
-// to when it leaves.
+// The kit's dialogs, palette, dials, text and small widgets: each renders
+// what it is given, reports through its callbacks, keeps its keyboard
+// paths, and lets go of what it listened to when it leaves.
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -26,7 +27,7 @@ import RotatingText from "../../src/solid/RotatingText"
 import StarBorder from "../../src/solid/StarBorder"
 import Thumbnail from "../../src/solid/Thumbnail"
 import VisuallyHidden from "../../src/solid/VisuallyHidden"
-import WalletCard from "../../src/solid/WalletCard"
+import WalletCard, { CHANGE_TINT } from "../../src/solid/WalletCard"
 import { world } from "../support/world"
 
 let w: ReturnType<typeof world>
@@ -53,7 +54,7 @@ const focusOpener = () => {
 }
 
 describe("DitherAntigravity", () => {
-  it("holds its content and draws its motes once in view, until it leaves", async () => {
+  it("holds its content, draws its motes, and moves them on the kit clock in view until it leaves", async () => {
     const arc = vi.fn()
     HTMLCanvasElement.prototype.getContext = (() => ({
       clearRect() {},
@@ -64,12 +65,15 @@ describe("DitherAntigravity", () => {
     const { getByText, container, unmount } = render(() => <Antigravity count={5}>Floating</Antigravity>)
     expect(getByText("Floating")).toBeTruthy()
     expect(container.querySelector("canvas")?.getAttribute("aria-hidden")).toBe("true")
+    expect(arc).toHaveBeenCalledTimes(5) // the moment at mount
     w.show()
-    await w.frame(16)
+    await w.frame(0)
     expect(arc).toHaveBeenCalledTimes(5)
+    await w.frame(16)
+    expect(arc).toHaveBeenCalledTimes(10)
     unmount()
     await w.frame(32)
-    expect(arc).toHaveBeenCalledTimes(5)
+    expect(arc).toHaveBeenCalledTimes(10)
   })
 })
 
@@ -280,6 +284,9 @@ describe("DitherDialog", () => {
     done.focus()
     fireEvent.keyDown(done, { key: "Tab" })
     expect(document.activeElement).toBe(close)
+    // Shift+Tab as WebKitGTK names it (GTK's ISO_Left_Tab): its code is still Tab
+    fireEvent.keyDown(close, { key: "Unidentified", code: "Tab", shiftKey: true })
+    expect(document.activeElement).toBe(done)
     fireEvent.pointerDown(dialog)
     expect(screen.queryByRole("dialog")).not.toBeNull()
     fireEvent.pointerDown(dialog.parentElement!)
@@ -488,6 +495,22 @@ describe("DitherMentionInput", () => {
     fireEvent.keyDown(field, { key: "Escape" })
     expect(queryByRole("listbox")).toBeNull()
   })
+
+  it("opens nothing as Tab comes in, so Tab always leaves: once to insert, then on", () => {
+    const { field, type, value, queryByRole } = setup()
+    type("cc @al")
+    fireEvent.keyDown(field, { key: "Escape" })
+    // Tab arriving: its keyup lands on the field with the caret after an @
+    fireEvent.keyUp(field, { key: "Tab" })
+    expect(queryByRole("listbox")).toBeNull()
+    expect(fireEvent.keyDown(field, { key: "Tab" })).toBe(true)
+    type("cc @al")
+    expect(fireEvent.keyDown(field, { key: "Tab" })).toBe(false)
+    expect(value()).toBe("cc @alice ")
+    fireEvent.keyUp(field, { key: "Tab" })
+    expect(queryByRole("listbox")).toBeNull()
+    expect(fireEvent.keyDown(field, { key: "Tab" })).toBe(true)
+  })
 })
 
 describe("DitherNumberFlow", () => {
@@ -531,24 +554,25 @@ describe("DitherPluralText", () => {
 })
 
 describe("DitherRotatingText", () => {
-  it("shows its first word, then turns to the next once the first has left", async () => {
-    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] })
+  it("shows its first word, then turns to the next on the kit clock once the first has left", async () => {
     const { container, unmount } = render(() => <RotatingText texts={["one", "two"]} interval={500} />)
     expect(container.textContent).toBe("one")
-    vi.advanceTimersByTime(500)
+    w.show()
+    await w.run(0, 450)
     expect(container.textContent).toBe("one")
-    await w.frame(16)
+    await w.frame(500) // the word turns: the first leaves
+    expect(container.textContent).toBe("one")
+    await w.frame(516)
     await settle()
     expect(container.textContent).toBe("two")
     unmount()
-    expect(vi.getTimerCount()).toBe(0)
   })
 
-  it("stands still on a single word", () => {
-    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] })
+  it("stands still on a single word", async () => {
     const { container } = render(() => <RotatingText texts={["only"]} />)
+    w.show()
+    await w.run(0, 3000, 100)
     expect(container.textContent).toBe("only")
-    expect(vi.getTimerCount()).toBe(0)
   })
 })
 
@@ -599,6 +623,26 @@ describe("DitherVisuallyHidden", () => {
 })
 
 describe("DitherWalletCard", () => {
+  it("prints its change at 4.5:1 on the pill its own colour tints, in the light theme", () => {
+    // a browser walk measured the green change at 4.35:1 over a 15% tint
+    const css = readFileSync(join(process.cwd(), "src/engine/theme.css"), "utf8")
+    const light = css.slice(0, css.indexOf("\n.dark {"))
+    const hex = (h: string) => h.match(/../g)!.map((v) => parseInt(v, 16))
+    const swatch = (hue: string) =>
+      /--swatch-[a-z]+: rgb\((\d+), (\d+), (\d+)\)/.exec(light.slice(light.indexOf(`--swatch-${hue}:`)))!
+    const lum = (c: number[]) =>
+      c
+        .map((v) => v / 255)
+        .map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+        .reduce((n, v, i) => n + v * [0.2126, 0.7152, 0.0722][i], 0)
+    const card = hex(/--card: #([0-9a-f]{6})/.exec(light)![1])
+    for (const hue of ["green", "red"]) {
+      const ink = swatch(hue).slice(1).map(Number)
+      const ground = card.map((v, i) => v * (1 - CHANGE_TINT) + ink[i] * CHANGE_TINT)
+      expect((lum(ground) + 0.05) / (lum(ink) + 0.05), hue).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
   const ACCOUNTS = [
     { value: "main", label: "Main", address: "0x1234567890abcdef", balance: 1234.5, change: 2.25 },
     { value: "cold", label: "Cold", address: "0xshort", balance: 10, change: -1 },

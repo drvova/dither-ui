@@ -4,7 +4,11 @@
 // `#new/film` link builds it: the film feature's own demo, and a starting
 // point to recut. Frames are 960x540, so the video renders at 1080p with
 // `--resolution landscape`.
-import { runCommand, type StudioCommand } from "./protocol"
+import { FACTS } from "#dither-facts"
+import { runCommand, type StudioCommand } from "./commands"
+
+/** The Backgrounds family's size, which the film counts up to and states. */
+const BACKGROUNDS = FACTS.families.find((f) => f.title === "Backgrounds")!.count
 
 const FRAME = { w: 960, h: 540 }
 const GAP = 80
@@ -32,9 +36,9 @@ export function addLaunchFilm(): string | null {
         },
         {
           cells: [
-            { is: "DitherCountUp", props: { to: 270, duration: 2400 } },
-            { is: "DitherCountUp", props: { to: 311, duration: 2400 } },
-            { is: "DitherCountUp", props: { to: 49, duration: 2400 } },
+            { is: "DitherCountUp", props: { to: FACTS.components, duration: 2400 } },
+            { is: "DitherCountUp", props: { to: FACTS.sections, duration: 2400 } },
+            { is: "DitherCountUp", props: { to: BACKGROUNDS, duration: 2400 } },
           ],
           justify: "between",
         },
@@ -72,8 +76,8 @@ export function addLaunchFilm(): string | null {
         chapter: {
           line: "A UI kit drawn pixel by pixel.",
           spec: [
-            ["270", "components"],
-            ["311", "docs sections"],
+            [String(FACTS.components), "components"],
+            [String(FACTS.sections), "docs sections"],
             ["1", "dither rule"],
           ],
         },
@@ -89,7 +93,7 @@ export function addLaunchFilm(): string | null {
         chapter: {
           line: "Backgrounds that seek to the frame.",
           spec: [
-            ["49", "backgrounds"],
+            [String(BACKGROUNDS), "backgrounds"],
             ["1", "clock for all of them"],
           ],
         },

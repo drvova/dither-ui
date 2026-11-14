@@ -17,10 +17,6 @@ export type GuideStop = {
 export type Box = { left: number; top: number; right: number; bottom: number }
 export type Size = { width: number; height: number }
 
-/** The tour runs once on its own, on a first visit; the title bar's key
- * runs it again. */
-export const GUIDE_SEEN_KEY = "dither-studio-guide-seen"
-
 const GAP = 12
 const INSET = 16
 const MARGIN = 8
@@ -44,6 +40,6 @@ export function placeGuide(part: Box, guide: Size, view: Size, end = false): { x
   return { x: clamp(x, view.width - guide.width), y: clamp(y, view.height - guide.height) }
 }
 
-/** Automation (the prerender, recordings, browser tests) never sees the
+/** Automation (the post-build, recordings, browser tests) never sees the
  * tour on its own: it would print into the page's snapshot. */
 export const firstVisitTour = (seen: unknown) => seen !== true && !navigator.webdriver

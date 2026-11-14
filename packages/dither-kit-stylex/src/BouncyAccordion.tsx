@@ -1,9 +1,9 @@
-// Generated from dither-kit/solid/BouncyAccordion.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/BouncyAccordion.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createUniqueId, For, type JSX, mergeProps, on, onMount, Show } from "solid-js"
-import { cssColor } from "dither-kit/engine/palette.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
-import type { PixelColor } from "dither-kit/engine/pixel.ts"
+import { cssColor } from "@dither-ui/kit/engine/palette.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"
 
@@ -158,10 +158,6 @@ export default function BouncyAccordion(raw: BouncyAccordionProps) {
       }
       springHeight(el, open ? el.scrollHeight : 0, open)
     }
-    props.items.forEach((item, i) => {
-      const el = panels[i]
-      if (el) el.style.height = isOpen(item.value) ? "auto" : "0px"
-    })
     createEffect(
       on(
         () => props.modelValue,
@@ -209,7 +205,11 @@ export default function BouncyAccordion(raw: BouncyAccordionProps) {
             </button>
             <div
               id={`${id}-${i()}`}
-              ref={(el) => (panels[i()] = el)}
+              ref={(el) => {
+                // A panel stands as its item is, however late it was made.
+                panels[i()] = el
+                el.style.height = isOpen(item.value) ? "auto" : "0px"
+              }}
               inert={!isOpen(item.value)}
               {...stylex.props(styles.box2)}
             >

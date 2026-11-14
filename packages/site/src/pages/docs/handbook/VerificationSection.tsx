@@ -4,10 +4,11 @@
    the section comes into view (at once without IntersectionObserver) and
    again on demand, one per task so a cold first run never holds a frame;
    the results copy as a Markdown table for an issue. */
-import { copyText, DitherIcon } from "dither-kit"
+import { copyText, DitherIcon } from "@dither-ui/kit"
 import { createMemo, createSignal, For, Match, onCleanup, onMount, Show, Switch } from "solid-js"
 import { CHECKS, type Check, engineOf, type Reading } from "@/pages/docs/handbook/lab"
 import { REPO_URL } from "@/pages/docs/seo"
+import DocSection from "../DocSection"
 import { play } from "@/shared/lib/sound"
 
 // A run: its conditions and the readings taken so far (all of them once it is done).
@@ -106,32 +107,36 @@ export default function VerificationSection() {
   })
 
   return (
-    <section id="verification" ref={(el) => (root = el)} class="mt-16 scroll-mt-24">
-      <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 class="text-lg tracking-tight">Verification</h2>
-        <div class="flex gap-2">
-          <button
-            type="button"
-            class="-m-2 inline-flex items-center gap-1.5 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-            onClick={again}
-          >
-            <DitherIcon name="Refresh" size={12} strokeWidth={1.5} />
-            Measure again
-          </button>
-          <button
-            type="button"
-            class="-m-2 inline-flex items-center gap-1.5 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-            disabled={!report() || measuring()}
-            onClick={copy}
-          >
-            <DitherIcon name={COPY_KEY[copyState()].icon} size={12} strokeWidth={1.5} />
-            {COPY_KEY[copyState()].label}
-          </button>
-          <span class="sr-only" aria-live="polite">
-            {COPY_KEY[copyState()].said}
-          </span>
+    <DocSection
+      id="verification"
+      head={(heading) => (
+        <div ref={(el) => (root = el)} class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          {heading}
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="-m-2 inline-flex items-center gap-1.5 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+              onClick={again}
+            >
+              <DitherIcon name="Refresh" size={12} strokeWidth={1.5} />
+              Measure again
+            </button>
+            <button
+              type="button"
+              class="-m-2 inline-flex items-center gap-1.5 p-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+              disabled={!report() || measuring()}
+              onClick={copy}
+            >
+              <DitherIcon name={COPY_KEY[copyState()].icon} size={12} strokeWidth={1.5} />
+              {COPY_KEY[copyState()].label}
+            </button>
+            <span class="sr-only" aria-live="polite">
+              {COPY_KEY[copyState()].said}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
+    >
       <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
         The kit's claims, measured with its own engine in the browser reading this page: what each one claims, how it is
         measured and against what, then the reading. CI takes the same readings on every push, and each claim links the
@@ -194,6 +199,6 @@ export default function VerificationSection() {
           }}
         </For>
       </dl>
-    </section>
+    </DocSection>
   )
 }

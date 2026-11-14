@@ -1,5 +1,4 @@
-// Behaviour the kit's earlier component specs held that no other spec here
-// did, carried over when those specs went: the icon set mounted whole, a
+// Behaviour no other spec here holds: the icon set mounted whole, a
 // field's and a dialog's generated ids, the toast store by itself, and a
 // surface that starts painting once its precompiled image is taken away,
 // the thumbnail's look, the palette's empty state, container units in a

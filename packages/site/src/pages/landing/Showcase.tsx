@@ -1,9 +1,11 @@
 import { createSignal, For } from "solid-js"
-import { DitherIcon, DitherPoster, DitherReveal } from "dither-kit"
+import { DitherIcon, DitherPoster, DitherReveal } from "@dither-ui/kit"
 import { STAGINGS } from "@/pages/landing/brand"
 import { COMPONENT_COUNT, MATRIX, WORKS } from "@/pages/landing/facts"
 import { INKS } from "@/pages/landing/plate"
+import { SCENES } from "@/pages/landing/scenes"
 import { rise, routePath } from "@/shared/lib"
+import { scene } from "@/shared/lib/scroll-scene-ref"
 import ToolMark from "@/shared/ui/ToolMark"
 import BrandGather from "./BrandGather"
 import RiseWords from "./RiseWords"
@@ -19,7 +21,9 @@ const HERO_RUN = 4000
 // The hero, our own: the first screen tall, the statement beside a print
 // the kit makes (a live DitherPoster: the palette as tone, the kit's
 // diamond knocked out of it, its screen sliding inside the mark), on the
-// obsidian like a print on black stock. The film is a key away.
+// obsidian like a print on black stock. The film is a key away. As the page
+// leaves it the hero eases back in step with the scroll (`SCENES.hero`):
+// the statement recedes and fades, the print drifts down behind it.
 export default function Showcase() {
   const [film, setFilm] = createSignal(false)
 
@@ -37,7 +41,7 @@ export default function Showcase() {
   const held = () => !driven() || !gathered()
 
   return (
-    <section aria-labelledby="hero-h" class="showcase-scope hero">
+    <section ref={scene(SCENES.hero)} aria-labelledby="hero-h" class="showcase-scope hero">
       <div class="hero-in">
         {/* The statement rises as the page opens: the headline word by word,
             then the lede, the keys and what it works with. */}

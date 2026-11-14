@@ -1,4 +1,4 @@
-# dither-kit
+# @dither-ui/kit
 
 Dithered UI toolkit for Solid: composable ordered-dither **charts** (area,
 line, bar, pie, radar) on one tiny canvas engine, plus generative **avatars**,
@@ -12,7 +12,7 @@ painters, chart and field contexts, the clock, `theme.css` and `theme.ts`),
 `solid/` holds the SolidJS components styled with Tailwind classes, the
 package's main entry (`src/solid/index.ts`), and `tailwind/` what the
 Tailwind layer shares (the class helpers and `kit.css`). The same components
-in StyleX are a package of their own, `dither-kit-stylex`, generated from
+in StyleX are a package of their own, `@dither-ui/kit-stylex`, generated from
 these: a StyleX app takes it beside this one, compiles it with its StyleX
 plugin, loads `engine/theme.css` and `engine/base.css`, and passes its own
 styles to any component as `xstyle`. To copy the kit instead of installing
@@ -31,7 +31,7 @@ Requirements for the Tailwind layer:
   `engine/theme.ts` (`applyTheme`, `themeCss`, `themeVars`) sets the tokens from JS.
 
 ```ts
-import { AreaChart, Area, Grid, XAxis, YAxis, Legend, Tooltip } from "dither-kit"
+import { AreaChart, Area, Grid, XAxis, YAxis, Legend, Tooltip } from "@dither-ui/kit"
 ```
 
 ```tsx
@@ -107,8 +107,9 @@ Keep `animate`, `sparkles`, and bloom off for static content, and use the
 precompiled path for content whose data and dimensions are known on the server.
 
 The package's benchmarks are run by hand: `npm run bench` times the engine's
-hot paths in Node (the per-pixel writes, the gradient compiler and a chart
-column), and `npm run bench:browser` mounts the Solid components in headless
+hot paths in Node (the per-pixel writes, the gradient compiler, a chart
+column and one frame of each paint path the pages lean on), and `npm run
+bench:browser` mounts the Solid components in headless
 Chromium and compares the gradient's `fillRect` and `putImageData` painters
 and button fresh-buffer versus reused-buffer rendering. See the root README
 for the figures and the machine they were measured on.

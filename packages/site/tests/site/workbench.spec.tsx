@@ -1,11 +1,10 @@
-// The workbench in Solid (`src/widgets/workbench/`), held to what its Vue
-// twin did: the controller's undoable workspace, its keys and its Escape
-// ladder, every layer of the overlay and every panel under the frame, the
+// The workbench (`src/widgets/workbench/`): the controller's undoable
+// workspace, its keys and its Escape ladder, every layer of the overlay and every panel under the frame, the
 // feedback sent to an agent or copied, and what unmounting gives back.
 import { cleanup, render } from "@solidjs/testing-library"
 import { createRoot, createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { isDirected } from "dither-kit"
+import { isDirected } from "@dither-ui/kit"
 import { DEFAULT_SETTINGS } from "@/widgets/workbench/model/settings"
 import { TOGGLES, TOOLS } from "@/widgets/workbench/model/tools"
 import { Workbench, type WorkbenchApi } from "../../src/widgets/workbench"

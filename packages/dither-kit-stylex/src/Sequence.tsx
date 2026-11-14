@@ -1,12 +1,13 @@
-// Generated from dither-kit/solid/Sequence.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
+// Generated from @dither-ui/kit/solid/Sequence.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import { directedTime, isDirected, onSeek } from "dither-kit/engine/clock.ts"
-import { pixelPrefersReducedMotion } from "dither-kit/engine/pixel.ts"
-import { planSequence, sampleSequence, type SequencePlan, type StaggerFrom } from "dither-kit/engine/sequence.ts"
-import { frameIndex, linear, type Easing } from "dither-kit/engine/timing.ts"
+import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
+import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
+import { planSequence, sampleSequence, type SequencePlan, type StaggerFrom } from "@dither-ui/kit/engine/sequence.ts"
+import { frameIndex, linear, type Easing } from "@dither-ui/kit/engine/timing.ts"
 import { cn, type StyleProp } from "./lib"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 export type SequenceProps = {
   /** Seconds between neighbouring children's starts. */
@@ -211,7 +212,8 @@ export default function Sequence(raw: SequenceProps) {
       // The observer doubles as start trigger AND visibility gate (loop-visibility
       // contract: no offscreen rAF). Leaving mid-play pauses the clock; re-entry
       // wakes with lastDt=-1, so no time jumps across the pause.
-      io = new IntersectionObserver(([entry]) => {
+      io = new IntersectionObserver((entries) => {
+        const entry = latestEntry(entries)
         const visible = entry?.isIntersecting ?? true
         if (visible) {
           if (!started || props.restartOnView) start()

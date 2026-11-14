@@ -7,4 +7,4 @@ export const SELECTION_NAV = [
   { id: "checkbox-group", label: "Checkbox group" },
   { id: "toggle", label: "Toggle" },
   { id: "toggle-group", label: "Toggle group" },
-]
+] as const

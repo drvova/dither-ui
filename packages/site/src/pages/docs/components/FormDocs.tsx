@@ -1,66 +1,68 @@
 import { createSignal, For } from "solid-js"
 import { createStore } from "solid-js/store"
-import { DitherCheckbox, DitherProgress, DitherSlider, DitherSwitch } from "dither-kit"
+import { DitherCheckbox, DitherProgress, DitherSlider, DitherSwitch } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+import DocSection from "../DocSection"
 
 const SLIDER_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
 
-const SNIPPET_SWITCH = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_SWITCH = `import { createSignal } from "solid-js"
 import { DitherSwitch } from "@dither-kit"
 
-const bloom = ref(true)
-</script>
+export default function Example() {
+  const [bloom, setBloom] = createSignal(true)
 
-<template>
-  <label class="flex items-center justify-between gap-4">
-    <span class="text-[13px]">Bloom on hover</span>
-    <DitherSwitch v-model="bloom" label="Bloom on hover" color="blue" />
-  </label>
-</template>`
+  return (
+    <label class="flex items-center justify-between gap-4">
+      <span class="text-[13px]">Bloom on hover</span>
+      <DitherSwitch modelValue={bloom()} onUpdateModelValue={setBloom} label="Bloom on hover" color="blue" />
+    </label>
+  )
+}`
 
-const SNIPPET_CHECKBOX = `<script setup lang="ts">
-import { reactive } from "vue"
+const SNIPPET_CHECKBOX = `import { createStore } from "solid-js/store"
 import { DitherCheckbox } from "@dither-kit"
 
-const opts = reactive({ grid: true, snap: false, rulers: true })
-</script>
+export default function Example() {
+  const [opts, setOpts] = createStore({ grid: true, snap: false, rulers: true })
 
-<template>
-  <div class="grid gap-3">
-    <DitherCheckbox v-model="opts.grid">Show grid</DitherCheckbox>
-    <DitherCheckbox v-model="opts.snap">Snap to pixels</DitherCheckbox>
-    <DitherCheckbox v-model="opts.rulers">Show rulers</DitherCheckbox>
-  </div>
-</template>`
+  return (
+    <div class="grid gap-3">
+      <DitherCheckbox modelValue={opts.grid} onUpdateModelValue={(v) => setOpts("grid", v)}>Show grid</DitherCheckbox>
+      <DitherCheckbox modelValue={opts.snap} onUpdateModelValue={(v) => setOpts("snap", v)}>Snap to pixels</DitherCheckbox>
+      <DitherCheckbox modelValue={opts.rulers} onUpdateModelValue={(v) => setOpts("rulers", v)}>Show rulers</DitherCheckbox>
+    </div>
+  )
+}`
 
-const SNIPPET_SLIDER = `const level = ref(40)
-const range = ref<[number, number]>([25, 75])
+const SNIPPET_SLIDER = `const [level, setLevel] = createSignal(40)
+const [range, setRange] = createSignal<[number, number]>([25, 75])
+const [quality, setQuality] = createSignal(60)
 
-<!-- single -->
-<DitherSlider v-model="level" label="Level" />
+{/* single */}
+<DitherSlider modelValue={level()} onUpdateModelValue={setLevel} label="Level" />
 
-<!-- range: an array v-model grows a second thumb -->
-<DitherSlider v-model="range" label="Price" show-value />
+{/* range: an array modelValue grows a second thumb */}
+<DitherSlider modelValue={range()} onUpdateModelValue={setRange} label="Price" showValue />
 
-<!-- ticks mark the steps; variant picks the fill texture -->
-<DitherSlider v-model="quality" label="Quality" :step="10" ticks
-  variant="dotted" show-value />`
+{/* ticks mark the steps; variant picks the fill texture */}
+<DitherSlider modelValue={quality()} onUpdateModelValue={setQuality} label="Quality" step={10} ticks
+  variant="dotted" showValue />`
 
-const SNIPPET_PROGRESS = `<script setup lang="ts">
-import { ref } from "vue"
+const SNIPPET_PROGRESS = `import { createSignal } from "solid-js"
 import { DitherProgress } from "@dither-kit"
 
-const level = ref(40)
-</script>
+export default function Example() {
+  const [level, setLevel] = createSignal(40)
 
-<template>
-  <div class="grid gap-6">
-    <DitherProgress :value="level" color="blue" />
-    <DitherProgress indeterminate color="purple" />
-  </div>
-</template>`
+  return (
+    <div class="grid gap-6">
+      <DitherProgress value={level()} color="blue" />
+      <DitherProgress indeterminate color="purple" />
+    </div>
+  )
+}`
 
 const API: Record<string, PropRow[]> = {
   switch: [
@@ -109,8 +111,7 @@ export default function FormDocs() {
 
   return (
     <>
-      <section id="switch" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Switch</h2>
+      <DocSection id="switch">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A toggle whose track is a dithered canvas: the accent gradient fills in when on, fades to a muted wash when
           off.
@@ -124,10 +125,9 @@ export default function FormDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.switch} />
-      </section>
+      </DocSection>
 
-      <section id="checkbox" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Checkbox</h2>
+      <DocSection id="checkbox">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A pixel-border box that fills with the Bayer texture and draws a chunky near-white checkmark when checked.
           Label goes in as children.
@@ -146,10 +146,9 @@ export default function FormDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.checkbox} />
-      </section>
+      </DocSection>
 
-      <section id="slider" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Slider</h2>
+      <DocSection id="slider">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Drag or arrow-key the square thumb. The filled side of the track dithers denser toward the value, and the rest
           stays a muted rail.
@@ -217,10 +216,9 @@ export default function FormDocs() {
           </For>
         </div>
         <PropsTable rows={API.slider} />
-      </section>
+      </DocSection>
 
-      <section id="progress" class="mt-16 scroll-mt-24">
-        <h2 class="text-lg tracking-tight">Progress</h2>
+      <DocSection id="progress">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A dithered fill that grows with <code class="text-foreground/80">value</code>; set{" "}
           <code class="text-foreground/80">indeterminate</code> to scroll a texture band instead (static under reduced
@@ -242,7 +240,7 @@ export default function FormDocs() {
           </div>
         </DemoCard>
         <PropsTable rows={API.progress} />
-      </section>
+      </DocSection>
     </>
   )
 }
