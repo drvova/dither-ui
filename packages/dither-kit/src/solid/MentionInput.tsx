@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, mergeProps, Show } from "solid-js"
+import { isTab } from "../engine/keys"
 import { cn } from "../tailwind/lib"
 
 /** @-mention autocomplete over a textarea: detection is a regex on the text
@@ -19,7 +20,7 @@ export type MentionInputProps = {
 }
 
 /** Keys that move no caret: their keyup never opens the list. */
-const STILL_KEYS = new Set(["Tab", "Escape", "Shift", "Control", "Alt", "Meta", "Enter"])
+const STILL_KEYS = new Set(["Escape", "Shift", "Control", "Alt", "Meta", "Enter"])
 
 export default function MentionInput(raw: MentionInputProps) {
   const props = mergeProps(
@@ -77,7 +78,7 @@ export default function MentionInput(raw: MentionInputProps) {
     } else if (e.key === "ArrowUp") {
       e.preventDefault()
       setActive((active() - 1 + matches().length) % matches().length)
-    } else if (e.key === "Enter" || e.key === "Tab") {
+    } else if (e.key === "Enter" || isTab(e)) {
       const pick = matches()[active()]
       if (pick) {
         e.preventDefault()
@@ -102,7 +103,7 @@ export default function MentionInput(raw: MentionInputProps) {
           props.class,
         )}
         onInput={(e) => props.onUpdateModelValue?.(e.currentTarget.value)}
-        onKeyUp={(e) => STILL_KEYS.has(e.key) || syncOpen()}
+        onKeyUp={(e) => isTab(e) || STILL_KEYS.has(e.key) || syncOpen()}
         onClick={syncOpen}
         onKeyDown={onKeydown}
       />

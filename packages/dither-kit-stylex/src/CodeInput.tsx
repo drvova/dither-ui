@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/CodeInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type JSX, mergeProps, splitProps } from "solid-js"
+import { isTab } from "@dither-ui/kit/engine/keys.ts"
 import { type StyleProp } from "./lib"
 import DitherTextarea, { type DitherTextareaProps } from "./DitherTextarea"
 import * as stylex from "@stylexjs/stylex"
@@ -53,8 +54,8 @@ export default function CodeInput(raw: CodeInputProps) {
     else if (theirs) theirs[0](theirs[1], e)
     const left = leaving
     leaving = e.key === "Escape" || (left && e.key === "Shift")
-    if (e.key === "Tab" && left) return
-    if (e.key === "Tab" && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    if (isTab(e) && left) return
+    if (isTab(e) && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault()
       const el = e.currentTarget
       const { value, selectionStart, selectionEnd } = el

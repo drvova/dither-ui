@@ -2,6 +2,7 @@
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, type JSX, mergeProps, on, onCleanup } from "solid-js"
 import { Portal } from "solid-js/web"
+import { isTab } from "@dither-ui/kit/engine/keys.ts"
 import { CONTROL_BUTTON } from "./control"
 import { cn, type StyleProp } from "./lib"
 import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
@@ -91,7 +92,7 @@ export default function CenterMorphModal(raw: CenterMorphModalProps) {
       props.onClose?.()
       return
     }
-    if (e.key !== "Tab") return
+    if (!isTab(e)) return
     const items = focusable()
     if (!items.length) return e.preventDefault()
     const first = items[0],

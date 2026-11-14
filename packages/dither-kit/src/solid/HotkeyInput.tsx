@@ -1,4 +1,5 @@
 import { mergeProps, splitProps } from "solid-js"
+import { isTab } from "../engine/keys"
 import { cn } from "../tailwind/lib"
 import DitherInput, { type DitherInputProps } from "./DitherInput"
 
@@ -39,7 +40,7 @@ export default function HotkeyInput(raw: HotkeyInputProps) {
 
   function onKeydown(e: KeyboardEvent) {
     if (props.disabled) return
-    if (e.key === "Tab" && !e.ctrlKey && !e.altKey && !e.metaKey) return
+    if (isTab(e) && !e.ctrlKey && !e.altKey && !e.metaKey) return
     if (e.key === "Escape") {
       e.preventDefault()
       props.onUpdateModelValue?.("")

@@ -1,4 +1,5 @@
 import { type JSX, mergeProps, onCleanup, onMount, splitProps } from "solid-js"
+import { isTab } from "../engine/keys"
 import { cn } from "../tailwind/lib"
 
 type Own = {
@@ -45,7 +46,7 @@ export default function FocusScope(raw: FocusScopeProps) {
   }
 
   function onKeyDown(event: KeyboardEvent) {
-    if (!props.trapped || event.key !== "Tab" || !root) return
+    if (!props.trapped || !isTab(event) || !root) return
     const items = focusables()
     if (items.length === 0) return
     const first = items[0]

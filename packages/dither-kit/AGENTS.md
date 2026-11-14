@@ -1001,7 +1001,9 @@ generated twin. Inside the kit every import is relative
   and its own text. An invalid field's edge is its style, which no focus
   class outranks: it wears `CONTROL_INVALID` (a ring in the ring ink), so it
   still shows focus.
-- The keyboard is never held: Tab moves on from every control. A field that
+- The keyboard is never held: Tab moves on from every control, and every
+  trap and field reads Tab through `isTab` (`engine/keys.ts`: WebKitGTK
+  names Shift+Tab "Unidentified", its code still Tab). A field that
   takes Tab for itself (`DitherCodeInput`'s indent) lets go on Escape, the
   next Tab moving on; `DitherHotkeyInput` never records a bare Tab; a
   suggestion list opens on what moves the caret, never on Tab arriving

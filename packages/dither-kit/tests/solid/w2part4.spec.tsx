@@ -284,6 +284,9 @@ describe("DitherDialog", () => {
     done.focus()
     fireEvent.keyDown(done, { key: "Tab" })
     expect(document.activeElement).toBe(close)
+    // Shift+Tab as WebKitGTK names it (GTK's ISO_Left_Tab): its code is still Tab
+    fireEvent.keyDown(close, { key: "Unidentified", code: "Tab", shiftKey: true })
+    expect(document.activeElement).toBe(done)
     fireEvent.pointerDown(dialog)
     expect(screen.queryByRole("dialog")).not.toBeNull()
     fireEvent.pointerDown(dialog.parentElement!)

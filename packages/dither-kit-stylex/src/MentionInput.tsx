@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/MentionInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, For, mergeProps, Show } from "solid-js"
+import { isTab } from "@dither-ui/kit/engine/keys.ts"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"
 
@@ -88,7 +89,7 @@ export type MentionInputProps = {
 }
 
 /** Keys that move no caret: their keyup never opens the list. */
-const STILL_KEYS = new Set(["Tab", "Escape", "Shift", "Control", "Alt", "Meta", "Enter"])
+const STILL_KEYS = new Set(["Escape", "Shift", "Control", "Alt", "Meta", "Enter"])
 
 export default function MentionInput(raw: MentionInputProps) {
   const props = mergeProps(
@@ -146,7 +147,7 @@ export default function MentionInput(raw: MentionInputProps) {
     } else if (e.key === "ArrowUp") {
       e.preventDefault()
       setActive((active() - 1 + matches().length) % matches().length)
-    } else if (e.key === "Enter" || e.key === "Tab") {
+    } else if (e.key === "Enter" || isTab(e)) {
       const pick = matches()[active()]
       if (pick) {
         e.preventDefault()
@@ -168,7 +169,7 @@ export default function MentionInput(raw: MentionInputProps) {
         disabled={props.disabled}
         class={cn(styles.textarea, props.xstyle, props.class)}
         onInput={(e) => props.onUpdateModelValue?.(e.currentTarget.value)}
-        onKeyUp={(e) => STILL_KEYS.has(e.key) || syncOpen()}
+        onKeyUp={(e) => isTab(e) || STILL_KEYS.has(e.key) || syncOpen()}
         onClick={syncOpen}
         onKeyDown={onKeydown}
       />

@@ -1,4 +1,5 @@
 import { type JSX, mergeProps, splitProps } from "solid-js"
+import { isTab } from "../engine/keys"
 import { cn } from "../tailwind/lib"
 import DitherTextarea, { type DitherTextareaProps } from "./DitherTextarea"
 
@@ -44,8 +45,8 @@ export default function CodeInput(raw: CodeInputProps) {
     else if (theirs) theirs[0](theirs[1], e)
     const left = leaving
     leaving = e.key === "Escape" || (left && e.key === "Shift")
-    if (e.key === "Tab" && left) return
-    if (e.key === "Tab" && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    if (isTab(e) && left) return
+    if (isTab(e) && !e.ctrlKey && !e.altKey && !e.metaKey) {
       e.preventDefault()
       const el = e.currentTarget
       const { value, selectionStart, selectionEnd } = el

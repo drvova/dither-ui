@@ -10,6 +10,7 @@ import {
   Show,
   splitProps,
 } from "solid-js"
+import { isTab } from "../engine/keys"
 import { cssColor } from "../engine/palette"
 import type { PixelColor } from "../engine/pixel"
 import { CONTROL, CONTROL_INVALID, POPOVER } from "../tailwind/control"
@@ -110,7 +111,7 @@ export default function DitherSelect(raw: DitherSelectProps) {
       e.preventDefault()
       const option = props.options[highlighted()]
       if (option) pick(option)
-    } else if (e.key === "Escape" || e.key === "Tab") close()
+    } else if (e.key === "Escape" || isTab(e)) close()
   }
   function onOutside(e: PointerEvent) {
     if (open() && root && !root.contains(e.target as Node)) close()

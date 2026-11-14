@@ -85,6 +85,7 @@ export {
 } from "./avatar-pattern"
 export { wrapMaterial } from "./shader"
 export { copyText } from "./copy-text"
+export { isTab } from "./keys"
 export {
   applyTheme,
   THEME_TOKENS,
