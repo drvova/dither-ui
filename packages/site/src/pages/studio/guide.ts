@@ -17,10 +17,6 @@ export type GuideStop = {
 export type Box = { left: number; top: number; right: number; bottom: number }
 export type Size = { width: number; height: number }
 
-/** The tour runs once on its own, on a first visit; the title bar's key
- * runs it again. */
-export const GUIDE_SEEN_KEY = "dither-studio-guide-seen"
-
 const GAP = 12
 const INSET = 16
 const MARGIN = 8

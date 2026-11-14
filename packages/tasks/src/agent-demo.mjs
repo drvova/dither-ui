@@ -24,6 +24,7 @@ import { tmpdir } from "node:os"
 import { basename, extname, join, resolve } from "node:path"
 import { chromium } from "playwright-core"
 import { chromiumPath } from "./chromium.ts"
+import { agentConfig, SITE_STORAGE } from "./site-storage.mjs"
 
 const args = process.argv.slice(2)
 const flag = (name, fallback) => {
@@ -80,13 +81,8 @@ const context = await browser.newContext({
 // the preset (or the bridge's own --agent), prompts left to answer.
 // The top page only: a built tool's sandbox frame has no storage to set.
 await context.addInitScript(
-  ([bridgeUrl, id]) =>
-    window === window.top &&
-    localStorage.setItem(
-      "dither-agent-config",
-      JSON.stringify({ bridgeUrl, harness: id, command: "", auto: false, follow: true }),
-    ),
-  [`ws://127.0.0.1:${PORT}`, agent ? "" : harness],
+  ([key, config]) => window === window.top && localStorage.setItem(key, JSON.stringify(config)),
+  [SITE_STORAGE.agentConfig, agentConfig(`ws://127.0.0.1:${PORT}`, agent ? "" : harness)],
 )
 const page = await context.newPage()
 page.on("pageerror", (e) => console.error("page error:", e.message))

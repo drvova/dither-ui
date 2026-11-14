@@ -15,6 +15,7 @@
 import { directedTime, directFromHyperframes, isDirected, release, seek } from "@dither-ui/kit"
 import { createComponent } from "solid-js"
 import { render } from "solid-js/web"
+import { STAGE_ID } from "@/shared/config/player"
 import PlayPage from "./PlayPage"
 import { readPlaySource } from "./source"
 
@@ -56,7 +57,7 @@ export function mountPlayer(): () => void {
   window.__hf.buildReady = window.__hf.buildReady ?? {}
   window.__hf.buildReady["dither-ui"] = ready
 
-  const stage = document.getElementById("dither-stage")
-  if (!stage) throw new Error("The player needs a #dither-stage element to mount in.")
+  const stage = document.getElementById(STAGE_ID)
+  if (!stage) throw new Error(`The player needs a #${STAGE_ID} element to mount in.`)
   return render(() => createComponent(PlayPage, { source }), stage)
 }

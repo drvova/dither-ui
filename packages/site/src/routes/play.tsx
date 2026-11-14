@@ -7,6 +7,7 @@ import { Link, Meta, Title } from "@solidjs/meta"
 import { For, onCleanup, onMount } from "solid-js"
 import { ICON_HEAD } from "@/app/install-files"
 import { mountPlayer } from "@/pages/play/main"
+import { STAGE_ID } from "@/shared/config/player"
 import { assetPath } from "@/shared/lib"
 
 export default function Play() {
@@ -23,7 +24,7 @@ export default function Play() {
       <For each={ICON_HEAD}>{(t) => <Link {...t.attrs} href={assetPath(t.attrs.href)} />}</For>
       {/* The page's name and its one landmark, for a reader the frame says nothing to. */}
       <h1 class="sr-only">Studio frame player</h1>
-      <main id="dither-stage" class="grid min-h-screen place-items-center" />
+      <main id={STAGE_ID} class="grid min-h-screen place-items-center" />
     </>
   )
 }

@@ -9,6 +9,7 @@ import { createMutable } from "solid-js/store"
 import { readJson, writeJson } from "@/shared/lib/storage"
 import { type CommandResult, registrySchema, type ToolDef } from "./commands"
 import { callStudioTool, finishStudioTool, STUDIO_TOOLS } from "./tools"
+import { STORAGE_KEYS } from "@/shared/config/storage"
 
 /** The tool's name, as the harness calls it (`mcp__dither-studio__dither`). */
 export const DITHER_TOOL = "dither"
@@ -44,7 +45,6 @@ const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v =
 
 /* ------------------------------ built tools ------------------------------ */
 
-const BUILT_KEY = "dither-agent-built"
 const NAME = /^[a-z][a-z0-9_]{2,39}$/
 const CODE_MAX = 20_000
 
@@ -65,11 +65,11 @@ function parseBuilt(v: unknown): Built | string {
 /** The tools harnesses built, newest first, kept across visits. */
 export const built = createMutable({
   list: (() => {
-    const kept = readJson(BUILT_KEY)
+    const kept = readJson(STORAGE_KEYS.agentBuilt)
     return Array.isArray(kept) ? kept.map(parseBuilt).filter((b): b is Built => typeof b !== "string") : []
   })(),
 })
-const keepBuilt = () => writeJson(BUILT_KEY, built.list)
+const keepBuilt = () => writeJson(STORAGE_KEYS.agentBuilt, built.list)
 
 export function removeBuilt(name: string): void {
   built.list = built.list.filter((b) => b.name !== name)

@@ -1499,7 +1499,8 @@ in the page's folder.
   (`fitScale`, never up), laid out and painted at its own size; a
   composition's window is the frame, so there it stands at 1. `source.ts` reads the document
   from the composition's embedded `#dither-document` JSON (with
-  `data-artboard` / `data-theme` on `#dither-stage`) or else from the hash
+  `data-artboard` / `data-theme` on `#dither-stage`; both ids
+  `shared/config/player.ts`'s, which the composition writes) or else from the hash
   `#doc=<base64url document>&artboard=<id>&theme=<dark|light>`; documents
   are untrusted and go through `parseDocument` (`entities/editor`) before they
   render. `main.ts` installs `directFromHyperframes()` before mount and

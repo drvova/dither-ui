@@ -117,7 +117,14 @@ around this tree (entries, routes, the build, how Solid is written) is
   loaded before a server renders it), so their scales (d3) and engines stay out
   of a page's first load, read by the landing's cards and the docs' chart
   sections in place of the kit's index), config (CHART_TYPES; `titles.ts`, the routes' titles, a leaf the
-  landing can load without the docs IA), lib (theme, routes (with `safeUrl`,
+  landing can load without the docs IA; `storage.ts`, `STORAGE_KEYS` and
+  `STORAGE_PREFIXES`, every localStorage key the site keeps, the ONE place
+  one is spelled (never renamed: a reader's browser holds them); `player.ts`,
+  `STAGE_ID` and `DOCUMENT_SCRIPT_ID`, the player's page as a composition
+  writes it and the player reads it; both imported by path and held by
+  `tests/site/protocols.spec.ts`, which also holds the tasks' and the
+  Discord service's pinned copies of them and of the `window.og` and
+  `window.ditherStudio` surfaces to the site's), lib (theme, routes (with `safeUrl`,
   the ONE test of a URL a document may carry into an href or a src: http(s),
   mailto, a raster `data:` image or a relative path, read as the browser reads
   it), base64 (`bytesToBase64`, the one chunked encoding: a document's URL
@@ -869,7 +876,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   and the app takes over (`data-rise="live"`) or the wait lets go after
   3s. On a page that turns with the reader's theme (`TURNS_WITH_THEME`
   in `pages/docs/heads.ts`: the docs and the Studio) `THEME_HEAD_SCRIPT`
-  (`shared/lib/useTheme.ts`, beside the storage key it reads) sets the
+  (`shared/lib/useTheme.ts`, reading `STORAGE_KEYS.theme`) sets the
   stored theme on `<html>` before the first paint, so a reader in light
   never meets the dark bytes until the app mounts. The theme toggle
   (`useTheme`'s `revealToggle`) dithers the new theme in as an iris from

@@ -7,6 +7,7 @@ import { clamp } from "@dither-ui/kit/engine/pixel.ts"
 import type { Box, Point } from "@/shared/lib/inspect/geometry"
 import type { InkPoint } from "./ink"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
+import { STORAGE_PREFIXES } from "@/shared/config/storage"
 
 export type Guide = { id: string; axis: "x" | "y"; at: number }
 export type Arrow = { id: string; from: Point; to: Point; color: string; width: number }
@@ -230,16 +231,14 @@ export function createHistory(limit = 100) {
 
 // --- persistence ------------------------------------------------------------
 
-const PREFIX = "dither-workbench:"
-
 export function loadWorkspace(key: string): Workspace {
-  const d = readJson(PREFIX + key)
+  const d = readJson(STORAGE_PREFIXES.workspace + key)
   return d === null ? emptyWorkspace() : normalizeWorkspace(d)
 }
 
 export function saveWorkspace(key: string, ws: Workspace): void {
-  if (isEmpty(ws) && !Object.values(ws.grid.show).some(Boolean)) storage.remove(PREFIX + key)
-  else writeJson(PREFIX + key, ws)
+  if (isEmpty(ws) && !Object.values(ws.grid.show).some(Boolean)) storage.remove(STORAGE_PREFIXES.workspace + key)
+  else writeJson(STORAGE_PREFIXES.workspace + key, ws)
 }
 
 // --- agent hand-off ---------------------------------------------------------

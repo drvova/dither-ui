@@ -1,6 +1,6 @@
 import { children, createEffect, createMemo, createSignal, For, on, onCleanup, onMount, Show } from "solid-js"
 import { DitherClipboard, DitherIcon, DitherPoster } from "@dither-ui/kit"
-import { firstVisitTour, GUIDE_SEEN_KEY, type GuideStop } from "@/pages/studio/guide"
+import { firstVisitTour, type GuideStop } from "@/pages/studio/guide"
 import { CHART_TYPES, type ChartType } from "@/shared/config"
 import { readJson, writeJson } from "@/shared/lib/storage"
 import { addArtboard, editor, frame, startHistory, stopHistory, stopInspecting } from "@/entities/editor"
@@ -21,6 +21,7 @@ import StudioGuide from "./ui/StudioGuide"
 import StudioPanel from "./ui/StudioPanel"
 import StudioSidebar from "./ui/StudioSidebar"
 import "./StudioPage.css"
+import { STORAGE_KEYS } from "@/shared/config/storage"
 
 const AgentPanel = lazyPart(() => import("@/widgets/agent").then((m) => ({ default: m.AgentPanel })))
 // The docs' workbench over the canvas (Inspect on its bar): one lazy chunk,
@@ -33,7 +34,6 @@ const VideoDialog = lazyPart(() => import("@/features/export-video").then((m) =>
 // open from the start; the panel of properties and layers is the canvas's
 // other neighbour, open at first where the window is wide enough for all
 // four (1600px), then as the reader last left it.
-const PANEL_KEY = "dither-studio-panel-open"
 /** The narrowest window the editor opens in (an iPad on its side). */
 const EDITOR_WIDTH = 1024
 
@@ -54,7 +54,7 @@ export default function StudioPage() {
   const setPanelOpen = (v: boolean) => {
     if (v === panelOpen()) return
     restorePanel(v)
-    writeJson(PANEL_KEY, v)
+    writeJson(STORAGE_KEYS.panelOpen, v)
   }
   // The sidebar lists the project's chats whether or not the panel is open.
   createEffect(
@@ -194,7 +194,7 @@ export default function StudioPage() {
     },
   ]
   function showAround() {
-    writeJson(GUIDE_SEEN_KEY, true)
+    writeJson(STORAGE_KEYS.guideSeen, true)
     setTourOpen(true)
   }
 
@@ -219,7 +219,7 @@ export default function StudioPage() {
   }
 
   onMount(() => {
-    const keptPanel = readJson(PANEL_KEY)
+    const keptPanel = readJson(STORAGE_KEYS.panelOpen)
     restorePanel(typeof keptPanel === "boolean" ? keptPanel : window.innerWidth >= 1600)
 
     const fresh = hydrate()
@@ -254,7 +254,7 @@ export default function StudioPage() {
     let tourTimer: ReturnType<typeof setTimeout> | undefined
     queueMicrotask(() => {
       if (fresh && isDesktop() && editor.artboards[0]) frame([editor.artboards[0]])
-      if (isDesktop() && firstVisitTour(readJson(GUIDE_SEEN_KEY))) tourTimer = setTimeout(showAround, 900)
+      if (isDesktop() && firstVisitTour(readJson(STORAGE_KEYS.guideSeen))) tourTimer = setTimeout(showAround, 900)
     })
 
     onCleanup(() => {

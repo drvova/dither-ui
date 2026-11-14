@@ -8,6 +8,7 @@
 // inputs to every pixel. `data-no-timeline` tells the renderer not to wait for
 // a GSAP timeline: the kit is the animation runtime here.
 import type { Artboard } from "@/entities/artboard"
+import { DOCUMENT_SCRIPT_ID, STAGE_ID } from "@/shared/config/player"
 
 export type VideoOptions = { seconds: number; fps: 24 | 30 | 60; theme: "dark" | "light" }
 export const DEFAULT_VIDEO: VideoOptions = { seconds: 6, fps: 30, theme: "dark" }
@@ -76,18 +77,18 @@ ${css}
 <style>
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: var(--color-background); }
 #root { position: relative; width: 100%; height: 100%; overflow: hidden; }
-#dither-stage { position: absolute; inset: 0; }
+#${STAGE_ID} { position: absolute; inset: 0; }
 </style>
 </head>
 <body>
 <div id="root" data-composition-id="dither-${slug}" data-start="0" data-width="${w}" data-height="${h}" data-duration="${o.seconds}" data-fps="${o.fps}" data-no-timeline>
-  <div id="dither-stage" data-artboard="${attr(artboard.id)}" data-theme="${o.theme}"></div>${
+  <div id="${STAGE_ID}" data-artboard="${attr(artboard.id)}" data-theme="${o.theme}"></div>${
     audio
       ? `\n  <audio id="dither-score" src="${attr(audio)}" data-start="0" data-duration="${o.seconds}" data-track-index="1"></audio>`
       : ""
   }
 </div>
-<script type="application/json" id="dither-document">${embedJson({ artboards: [artboard, ...extra.filter((a) => a.id !== artboard.id)] })}</script>
+<script type="application/json" id="${DOCUMENT_SCRIPT_ID}">${embedJson({ artboards: [artboard, ...extra.filter((a) => a.id !== artboard.id)] })}</script>
 ${js}
 </body>
 </html>

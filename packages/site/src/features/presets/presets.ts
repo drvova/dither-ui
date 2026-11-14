@@ -3,14 +3,13 @@ import { type Artboard, normalizeArtboard } from "@/entities/artboard"
 import type { ChartModel } from "@/entities/chart"
 import { placeArtboard } from "../../entities/editor"
 import { readJson, writeJson } from "@/shared/lib/storage"
-
-const KEY = "dither-presets-v1"
+import { STORAGE_KEYS } from "@/shared/config/storage"
 
 export type Preset = { name: string; chart: ChartModel }
 
 /** The stored presets, each a name and a chart (normalised when applied). */
 const load = (): Preset[] => {
-  const d = readJson(KEY)
+  const d = readJson(STORAGE_KEYS.presets)
   return (Array.isArray(d) ? d : []).filter(
     (p): p is Preset => !!p && typeof p.name === "string" && !!p.chart && typeof p.chart === "object",
   )
@@ -19,7 +18,7 @@ const load = (): Preset[] => {
 /** Reactive preset list, persisted to localStorage on every change. */
 export const presets = createMutable<Preset[]>(load())
 
-const save = () => writeJson(KEY, presets)
+const save = () => writeJson(STORAGE_KEYS.presets, presets)
 
 /** Snapshot an artboard's chart under a name (replaces a same-named preset). */
 export function savePreset(name: string, artboard: Artboard): void {

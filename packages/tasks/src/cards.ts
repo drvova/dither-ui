@@ -125,7 +125,10 @@ export function cardsHash(renderer: Uint8Array, manifest: Uint8Array, ledes: Rec
   return createHash("sha256").update(renderer).update(manifest).update(JSON.stringify(ledes)).digest("hex").slice(0, 16)
 }
 
-interface OgWindow {
+/** What the renderer page answers as `window.og`: the site's, restated
+ * (the tasks never import the site), held to it by the site's
+ * `tests/site/protocols.spec.ts`. */
+export interface OgWindow {
   og: { ids(): string[]; files(id: string): Promise<{ png: string; gif: string }> }
 }
 
@@ -195,7 +198,9 @@ export async function renderOgCards(opts: {
   return done
 }
 
-interface StudioWindow {
+/** What the mounted Studio answers as `window.ditherStudio`, restated and
+ * held like `OgWindow`. */
+export interface StudioWindow {
   ditherStudio?: { registry(): { components: unknown[] } }
 }
 

@@ -51,6 +51,19 @@ by the site's post-build. Paths here are from this package's root.
   Flags: `--jobs`, `--only`, `--run`, `--styles`, `--light`, `--phone`,
   `--contrast`, `--a11y`. Out: `<out>/<engine>.json`, `<engine>.md` and
   `shots/<engine>/`.
+- `src/walk-page.js`: the walk's own page scripts, real JavaScript the
+  lint reads: one function a script on `window.__walkPage`, given `arg`,
+  in every top page before its own scripts (Playwright's
+  `addInitScript({ path })`; over WebDriver sent ahead of each script a
+  session runs, defining nothing where it stands). `walk.mjs` calls each
+  by its name (`inPage`).
+- `src/site-storage.mjs` (types in `site-storage.d.mts`, exported as
+  `@dither-ui/tasks/site-storage`): `SITE_STORAGE`, the site's localStorage
+  keys the walk and the agent demo write, and `agentConfig`, the panel's
+  saved harness: a pinned copy of the site's `STORAGE_KEYS` and
+  `AgentConfig`, held to them by the site's `tests/site/protocols.spec.ts`.
+  `cards.ts`'s `OgWindow` and `StudioWindow` restate the site's `window`
+  surfaces and are held there the same way.
 - `src/walk-checks.mjs`: the walk's audits of what a reader sees. `PHONE`
   (`--phone on`: every page again in the dark at an iPhone's size, 390x844,
   touch and its user agent in Chromium, the window's size and the agent
@@ -102,7 +115,8 @@ by the site's post-build. Paths here are from this package's root.
   read and its menu sheets walked.
 - `src/walk-drivers.mjs`: what the walk stands on: the static server (a
   recorder first in every page's head, the theme set and the docs' styling
-  put back to Tailwind before the app reads them), the devices it looks
+  put back to Tailwind before the app reads them, by `SITE_STORAGE`), the
+  page scripts loaded into every page (`PAGE_SCRIPTS`), the devices it looks
   through (`DEVICES`: the desktop and the phone; a session opens on one),
   the one driver shape (`go`, `run`, `shot`, `press`, `drain`, `close`) over
   Playwright for Chromium and plain W3C WebDriver for WebKit
@@ -161,8 +175,8 @@ by the site's post-build. Paths here are from this package's root.
   Discord service's copy run against it.
 - `tests/walk-checks.spec.ts` (jsdom): the walk's accessibility rules, each
   on a page of its own, the contrast measured off a shot and looked at
-  twice, and every page script compiling as the drivers run
-  it. The site holds the static rules over its built pages
+  twice, every page script compiling as the drivers run it, and
+  `walk-page.js` standing for every page script `walk.mjs` calls. The site holds the static rules over its built pages
   (`packages/site/tests/site/page-reading.spec.tsx`).
 - The drawing code's pure parts are held where they run, by the site
   (`packages/site/tests/site/cards.spec.ts`), and its browser parts by the

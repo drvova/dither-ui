@@ -2,7 +2,10 @@
 // The walk's rules of what assistive technology meets (`walk-checks.mjs`):
 // each one on a page of its own here, the way the walk sends it into every
 // page it visits. The page scripts are the rules' own source, so they are
-// checked to compile as the drivers run them.
+// checked to compile as the drivers run them; the walk's own page scripts
+// (`walk-page.js`) are checked to stand for every one the walk calls.
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { afterEach, describe, expect, it } from "rstack/test"
 import {
   A11Y,
@@ -300,5 +303,24 @@ describe("the page scripts", () => {
       HELD_FACES,
     ])
       expect(() => new Function("arg", `return (async()=>{${body}\n})()`)).not.toThrow()
+  })
+})
+
+describe("the walk's own page scripts", () => {
+  const src = (file: string) => readFileSync(join(import.meta.dirname, "../src", file), "utf8")
+
+  it("stand in walk-page.js for every one the walk calls, each a function of the page", () => {
+    const page = window as unknown as { __walkPage?: Record<string, unknown> }
+    delete page.__walkPage
+    new Function(src("walk-page.js"))()
+    const called = [...src("walk.mjs").matchAll(/inPage\("(\w+)"\)/g)].map((m) => m[1])
+    expect(called.length).toBeGreaterThan(10)
+    expect(Object.keys(page.__walkPage ?? {}).sort()).toEqual([...new Set(called)].sort())
+    for (const name of called) expect(typeof page.__walkPage?.[name], name).toBe("function")
+    // a second load (WebDriver sends it ahead of every script) keeps the first
+    const first = page.__walkPage
+    new Function(src("walk-page.js"))()
+    expect(page.__walkPage).toBe(first)
+    delete page.__walkPage
   })
 })

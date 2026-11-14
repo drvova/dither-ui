@@ -7,12 +7,21 @@
 // through plain W3C WebDriver over HTTP; with no `geckodriver` on the machine,
 // Playwright's own Firefox. Every check is a script run in the
 // page, which is all WebDriver gives; what the page threw is kept by a
-// recorder the server puts first in every HTML page's head.
+// recorder the server puts first in every HTML page's head, and the walk's
+// page scripts (`walk-page.js`) stand in every page before its own.
 import { spawn } from "node:child_process"
 import { createReadStream, existsSync, readFileSync, statSync } from "node:fs"
 import http from "node:http"
 import { extname, join, normalize, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 import { inflateSync } from "node:zlib"
+import { SITE_STORAGE } from "./site-storage.mjs"
+
+/** The walk's page scripts, one file of real JavaScript (`walk-page.js`):
+ * Playwright's init script, and over WebDriver (which has none) sent ahead
+ * of each script a session runs, defining nothing where it already stands. */
+export const PAGE_SCRIPTS = fileURLToPath(new URL("./walk-page.js", import.meta.url))
+const PAGE_SOURCE = readFileSync(PAGE_SCRIPTS, "utf8")
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
@@ -49,7 +58,7 @@ const recorder = (theme) => `<script>(function(){
 var W=window.__walk={errors:[],logs:[],failed:[],released:0};
 // a GL context the page lets go of on purpose (the kit loses one on unmount), which Gecko's console names as lost
 ;[window.WebGLRenderingContext,window.WebGL2RenderingContext].forEach(function(C){if(!C)return;var get=C.prototype.getExtension;C.prototype.getExtension=function(n){var x=get.call(this,n);if(x&&n==="WEBGL_lose_context"&&!x.__walk){var lose=x.loseContext;x.loseContext=function(){W.released++;return lose.call(this)};x.__walk=1}return x}})
-try{localStorage.setItem("dither-theme",${JSON.stringify(theme)});localStorage.setItem("dither-sounds","off");localStorage.setItem("dither-styling","tailwind")}catch(e){}
+try{localStorage.setItem(${JSON.stringify(SITE_STORAGE.theme)},${JSON.stringify(theme)});localStorage.setItem(${JSON.stringify(SITE_STORAGE.sounds)},"off");localStorage.setItem(${JSON.stringify(SITE_STORAGE.styling)},"tailwind")}catch(e){}
 function text(v){try{return v&&v.stack?String(v.stack).split("\\n").slice(0,4).join(" | "):typeof v==="object"?JSON.stringify(v):String(v)}catch(e){return String(v)}}
 addEventListener("error",function(e){
   var t=e.target
@@ -288,6 +297,7 @@ const PARK = { x: 0, y: 0 }
  * (page errors, the console, failed requests) kept beside the recorder's:
  * `drain()`. `done` closes what the page stands on. */
 async function playwrightPage(context, done) {
+  await context.addInitScript({ path: PAGE_SCRIPTS })
   const page = await context.newPage()
   await page.mouse.move(PARK.x, PARK.y)
   let seen = []
@@ -487,7 +497,7 @@ export function webDriver({ name, command, capabilities }) {
         go: (url) => call("POST", `/session/${id}/url`, { url }),
         async run(body, arg) {
           const r = await call("POST", `/session/${id}/execute/async`, {
-            script: `var arg=arguments[0],done=arguments[arguments.length-1];(async()=>{${body}\n})().then(function(v){done({ok:v===undefined?null:v})},function(e){done({err:String(e&&e.stack||e)})})`,
+            script: `${PAGE_SOURCE}\nvar arg=arguments[0],done=arguments[arguments.length-1];(async()=>{${body}\n})().then(function(v){done({ok:v===undefined?null:v})},function(e){done({err:String(e&&e.stack||e)})})`,
             args: [arg ?? null],
           })
           if (r && r.err) throw new Error(r.err)

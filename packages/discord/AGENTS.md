@@ -40,7 +40,8 @@ Paths here are from this package's root.
 
 - `npm run lint` at the root covers the file. The site's
   `packages/site/tests/crawler-files.spec.ts` holds what the service and
-  the site's embeds must agree on.
+  the site's embeds must agree on, and `tests/site/protocols.spec.ts`
+  that the service calls only members of the renderer's `window.og`.
 - By hand: `npm run build` at the root, then the service against the
   build (`README.md`), `GET /health`, and a signed `PING`.
 

@@ -6,6 +6,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./site-storage": "./src/site-storage.mjs",
     "./walk-checks": "./src/walk-checks.mjs"
   },
   "dependencies": {

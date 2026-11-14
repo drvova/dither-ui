@@ -2,6 +2,7 @@ import { createMutable } from "solid-js/store"
 import { DOCUMENT_KEYS, documentOf, editor, loadDocument, parseDocument, resetHistory, watch } from "@/entities/editor"
 import { download } from "@/shared/lib/files"
 import { readJson, storage as store, writeJson } from "@/shared/lib/storage"
+import { STORAGE_KEYS, STORAGE_PREFIXES } from "@/shared/config/storage"
 
 /**
  * Per-visitor project workspace. Every browser owns its own project list in
@@ -12,10 +13,6 @@ import { readJson, storage as store, writeJson } from "@/shared/lib/storage"
  * Keys: an index of project metas, one doc blob per project, and the active
  * project id. The legacy single-document key migrates into the first project.
  */
-const INDEX_KEY = "dither-studio-projects"
-const ACTIVE_KEY = "dither-studio-active"
-const DOC_PREFIX = "dither-studio-doc-"
-const LEGACY_KEY = "dither-studio-v8"
 
 export type ProjectMeta = { id: string; name: string; updatedAt: number }
 
@@ -25,7 +22,7 @@ export const activeProjectId = createMutable({ value: "" })
 let pc = 0
 const uid = () => `p${Date.now().toString(36)}${(pc++).toString(36)}`
 
-const saveIndex = () => writeJson(INDEX_KEY, projects)
+const saveIndex = () => writeJson(STORAGE_KEYS.projects, projects)
 const touch = (id: string) => {
   const meta = projects.find((p) => p.id === id)
   if (meta) meta.updatedAt = Date.now()
@@ -55,7 +52,7 @@ export function flushSave(): void {
   clearTimeout(timer)
   timer = undefined
   if (!activeProjectId.value) return
-  writeJson(DOC_PREFIX + activeProjectId.value, documentOf())
+  writeJson(STORAGE_PREFIXES.document + activeProjectId.value, documentOf())
   touch(activeProjectId.value)
   saveIndex()
 }
@@ -65,25 +62,25 @@ export function flushSave(): void {
  * placed before the canvas measured itself, so the page frames it once
  * the canvas is mounted (`frame`). */
 export function hydrate(): boolean {
-  projects.splice(0, projects.length, ...parseProjects(readJson(INDEX_KEY)))
+  projects.splice(0, projects.length, ...parseProjects(readJson(STORAGE_KEYS.projects)))
 
   // Migrate the legacy single-document world into the first project.
   if (!projects.length) {
-    const legacy = readJson(LEGACY_KEY)
+    const legacy = readJson(STORAGE_KEYS.legacyDocument)
     const meta: ProjectMeta = { id: uid(), name: "My project", updatedAt: Date.now() }
     projects.push(meta)
     if (legacy) {
-      writeJson(DOC_PREFIX + meta.id, legacy)
-      store.remove(LEGACY_KEY)
+      writeJson(STORAGE_PREFIXES.document + meta.id, legacy)
+      store.remove(STORAGE_KEYS.legacyDocument)
     }
     saveIndex()
   }
 
-  const requested = store.get(ACTIVE_KEY)
+  const requested = store.get(STORAGE_KEYS.activeProject)
   const active = projects.find((p) => p.id === requested) ?? projects[0]
   activeProjectId.value = active.id
-  store.set(ACTIVE_KEY, active.id)
-  return applyStored(DOC_PREFIX + active.id)
+  store.set(STORAGE_KEYS.activeProject, active.id)
+  return applyStored(STORAGE_PREFIXES.document + active.id)
 }
 
 export function createProject(name: string): void {
@@ -92,7 +89,7 @@ export function createProject(name: string): void {
   const meta: ProjectMeta = { id: uid(), name: clean, updatedAt: Date.now() }
   projects.push(meta)
   activeProjectId.value = meta.id
-  store.set(ACTIVE_KEY, meta.id)
+  store.set(STORAGE_KEYS.activeProject, meta.id)
   loadDocument(null) // fresh default document
   flushSave()
   resetHistory()
@@ -104,8 +101,8 @@ export function switchProject(id: string): void {
   if (!meta) return
   flushSave()
   activeProjectId.value = id
-  store.set(ACTIVE_KEY, id)
-  applyStored(DOC_PREFIX + id)
+  store.set(STORAGE_KEYS.activeProject, id)
+  applyStored(STORAGE_PREFIXES.document + id)
   resetHistory()
 }
 
@@ -116,8 +113,8 @@ export function duplicateProject(id: string): void {
   if (!meta) return
   flushSave()
   const copy: ProjectMeta = { id: uid(), name: `${meta.name} copy`.slice(0, 80), updatedAt: Date.now() }
-  const doc = readJson(DOC_PREFIX + id)
-  if (doc) writeJson(DOC_PREFIX + copy.id, doc)
+  const doc = readJson(STORAGE_PREFIXES.document + id)
+  if (doc) writeJson(STORAGE_PREFIXES.document + copy.id, doc)
   projects.splice(projects.indexOf(meta) + 1, 0, copy)
   saveIndex()
   switchProject(copy.id)
@@ -135,7 +132,7 @@ export function deleteProject(id: string): void {
   const i = projects.findIndex((p) => p.id === id)
   if (i < 0) return
   projects.splice(i, 1)
-  store.remove(DOC_PREFIX + id)
+  store.remove(STORAGE_PREFIXES.document + id)
   if (activeProjectId.value === id) {
     if (projects.length) {
       activeProjectId.value = "" // force the switch through

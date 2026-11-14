@@ -12,6 +12,7 @@ import { artboardPng } from "@/entities/artboard/picture"
 import { normalizeVideoOptions, selfContainedComposition, slugOf, type VideoOptions } from "@/entities/video"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
 import { type CommandResult, commandRows, type CommandType, runCommand, type ToolDef } from "./commands"
+import { STORAGE_KEYS, STORAGE_PREFIXES } from "@/shared/config/storage"
 
 export type Usage = { input: number; output: number }
 export type ContextUse = { used: number; size: number; cost?: { amount: number; currency: string } }
@@ -131,8 +132,6 @@ export type AgentEvent =
 
 /* -------------------------------- storage -------------------------------- */
 
-const CONFIG_KEY = "dither-agent-config"
-
 /** Nothing here is a secret: the bridge address, the harness to start,
  * whether permission prompts are answered with their allow option, and
  * whether the canvas follows the agent. */
@@ -148,7 +147,7 @@ export type AgentConfig = {
 export const DEFAULT_BRIDGE_URL = "ws://127.0.0.1:8790"
 
 export function loadAgentConfig(): AgentConfig {
-  const d = (readJson(CONFIG_KEY) ?? {}) as Partial<Record<keyof AgentConfig, unknown>>
+  const d = (readJson(STORAGE_KEYS.agentConfig) ?? {}) as Partial<Record<keyof AgentConfig, unknown>>
   return {
     bridgeUrl: typeof d.bridgeUrl === "string" && d.bridgeUrl ? d.bridgeUrl : DEFAULT_BRIDGE_URL,
     harness: typeof d.harness === "string" ? d.harness : "",
@@ -158,16 +157,14 @@ export function loadAgentConfig(): AgentConfig {
   }
 }
 
-export const saveAgentConfig = (c: AgentConfig): void => writeJson(CONFIG_KEY, c)
-
-export const DRAFT_PREFIX = "dither-agent-draft-"
+export const saveAgentConfig = (c: AgentConfig): void => writeJson(STORAGE_KEYS.agentConfig, c)
 
 /** A chat's unsent message: its words and what it carries, as stored (the
  * panel parses the attachments, untrusted, where they come back in). */
 export type Draft = { text: string; attachments: unknown[] }
 /** The most a draft keeps, as JSON: past it, its pictures stay out. */
 export const DRAFT_MAX = 1_500_000
-const draftKey = (projectId: string, chatId: string) => `${DRAFT_PREFIX}${projectId}/${chatId}`
+const draftKey = (projectId: string, chatId: string) => `${STORAGE_PREFIXES.draft}${projectId}/${chatId}`
 
 /** A chat's unsent message, kept while the panel is closed, a reload, or
  * another chat; an empty one is removed. A project's draft from before
@@ -179,9 +176,9 @@ export function loadDraft(projectId: string, chatId: string): Draft {
       text: typeof raw.text === "string" ? raw.text : "",
       attachments: Array.isArray(raw.attachments) ? raw.attachments : [],
     }
-  const old = storage.get(DRAFT_PREFIX + projectId)
+  const old = storage.get(STORAGE_PREFIXES.draft + projectId)
   if (old === null) return { text: "", attachments: [] }
-  storage.remove(DRAFT_PREFIX + projectId)
+  storage.remove(STORAGE_PREFIXES.draft + projectId)
   return { text: old, attachments: [] }
 }
 export function saveDraft(projectId: string, chatId: string, draft: Draft): void {

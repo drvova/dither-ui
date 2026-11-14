@@ -6,6 +6,7 @@
 // plays while it is off.
 import { createRoot, createSignal } from "solid-js"
 import { storage } from "@/shared/lib/storage"
+import { STORAGE_KEYS } from "@/shared/config/storage"
 
 export type Cue = "on" | "off" | "tap" | "copy" | "theme" | "fold" | "unfold"
 
@@ -91,8 +92,6 @@ export const CUES: Record<Cue, Voice[]> = {
   ],
 }
 
-const KEY = "dither-sounds"
-
 const [on, setOn] = createRoot(() => createSignal(true))
 let restored = false
 
@@ -102,7 +101,7 @@ let restored = false
 export function restoreSounds(): void {
   if (restored) return
   restored = true
-  setOn(storage.get(KEY) !== "off")
+  setOn(storage.get(STORAGE_KEYS.sounds) !== "off")
 }
 
 /** The reader's switch for interface sounds (on unless they turned it off). */
@@ -112,7 +111,7 @@ export const sounds = on
 export function setSounds(next: boolean): void {
   restored = true
   setOn(next)
-  storage.set(KEY, next ? "on" : "off")
+  storage.set(STORAGE_KEYS.sounds, next ? "on" : "off")
 }
 
 let ctx: AudioContext | null = null
