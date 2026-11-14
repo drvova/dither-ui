@@ -103,39 +103,51 @@ export function paintPoster(buffer: RasterBuffer, layout: PosterLayout, p: Poste
   const cx = place(layout.mark.x * cols, cols)
   const cy = place(layout.mark.y * rows, rows)
   const ink = (i: number) => p.inks[((i % p.inks.length) + p.inks.length) % p.inks.length]
-  // The tiles each column holds, top to bottom, and the column under each x.
+  // The tiles each column holds, top to bottom.
   const columns = [...new Set(layout.tiles.map((t) => t.x0))].sort((a, b) => a - b)
   const stacks = columns.map((x0) => layout.tiles.filter((t) => t.x0 === x0).sort((a, b) => a.y0 - b.y0))
-  const columnOf = new Int32Array(cols)
+  // Each column's run of x: the cells whose centre falls in it.
+  const runEnd = new Int32Array(stacks.length)
   for (let x = 0, c = 0; x < cols; x++) {
     const fx = (x + 0.5) / cols
     while (c < stacks.length - 1 && fx >= stacks[c][0].x1) c++
-    columnOf[x] = c
+    runEnd[c] = x + 1
   }
-  const at = new Array<PosterTile>(stacks.length)
-  const step = new Int32Array(stacks.length)
+  // A tone across (`x`) is the same down the tile: worked out once per cell
+  // of its run, not once per row.
+  const across = new Float64Array(cols)
+  const step = new Int32Array(stacks.length).fill(-1)
   for (let y = 0; y < rows; y++) {
     const fy = (y + 0.5) / rows
-    for (let c = 0; c < stacks.length; c++) {
-      while (step[c] < stacks[c].length - 1 && fy >= stacks[c][step[c]].y1) step[c]++
-      at[c] = stacks[c][step[c]]
-    }
     const sy = screen[y & 3]
     const ay = Math.abs(y + 0.5 - cy)
-    for (let x = 0; x < cols; x++) {
-      const t = at[columnOf[x]]
-      const along = t.axis === "y" ? (fy - t.y0) / (t.y1 - t.y0) : ((x + 0.5) / cols - t.x0) / (t.x1 - t.x0)
-      const tone = t.from + (t.to - t.from) * along
-      const inside = Math.abs(x + 0.5 - cx) + ay < r
-      const lit = inside ? 1 - tone > sy[(x + drift) & 3] : tone > sy[x & 3]
-      const c = lit ? ink(t.ink) : t.under < 0 ? p.ground : ink(t.under)
-      const i = (y * cols + x) * 4
-      if (c) {
-        data[i] = c[0]
-        data[i + 1] = c[1]
-        data[i + 2] = c[2]
-        data[i + 3] = 255
-      } else data[i + 3] = 0
+    const row = y * cols * 4
+    for (let c = 0, x0 = 0; c < stacks.length; x0 = Math.max(x0, runEnd[c]), c++) {
+      const stack = stacks[c]
+      let s = step[c]
+      const fresh = s < 0
+      if (fresh) s = 0
+      while (s < stack.length - 1 && fy >= stack[s].y1) s++
+      const t = stack[s]
+      if (t.axis === "x" && (fresh || s !== step[c]))
+        for (let x = x0; x < runEnd[c]; x++) across[x] = ((x + 0.5) / cols - t.x0) / (t.x1 - t.x0)
+      step[c] = s
+      const lit = ink(t.ink)
+      const open = t.under < 0 ? p.ground : ink(t.under)
+      const down = t.axis === "y"
+      const toneY = down ? t.from + (t.to - t.from) * ((fy - t.y0) / (t.y1 - t.y0)) : 0
+      for (let x = x0; x < runEnd[c]; x++) {
+        const tone = down ? toneY : t.from + (t.to - t.from) * across[x]
+        const inside = Math.abs(x + 0.5 - cx) + ay < r
+        const color = (inside ? 1 - tone > sy[(x + drift) & 3] : tone > sy[x & 3]) ? lit : open
+        const i = row + x * 4
+        if (color) {
+          data[i] = color[0]
+          data[i + 1] = color[1]
+          data[i + 2] = color[2]
+          data[i + 3] = 255
+        } else data[i + 3] = 0
+      }
     }
   }
 }

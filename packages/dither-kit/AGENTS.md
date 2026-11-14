@@ -897,9 +897,12 @@ generated twin. Inside the kit every import is relative
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never
   re-derive hash/valueNoise/fbm or a per-pixel gradient lerp per component.
-  `fbm` keeps each octave's last lattice cell and its four corner hashes, so
-  a raster walk hashes once per cell crossed; its output stays bit-identical
-  to summing `valueNoise`.
+  `valueNoise` and each octave of `fbm` keep their last four lattice cells
+  and each one's corner hashes, so a raster walk hashes once per cell
+  crossed even when a painter samples two or three fields a cell; their
+  output stays bit-identical to the plain hashes. A sample that depends on
+  a column alone (an aurora's curtain edge) is worked out once per column
+  a frame, never once per cell.
 - Perf seams (measured on the docs page, 6x-throttled mobile):
   `ScrollReveal` measures via `getBoundingClientRect` at most once per frame
   (rAF-coalesced; its first measure lands before first paint — a direct
@@ -1107,10 +1110,18 @@ generated twin. Inside the kit every import is relative
   `DitherScreen` cases of `tests/solid/charts.spec.tsx`; the poster:
   `tests/poster.spec.ts`.
 - Painting at memory speed: `tests/paint-limits.spec.ts` pins `cellCanvas`
-  to the fillRect pixel and `fbm`'s cache to the plain sum.
+  to the fillRect pixel, the noise cache to the plain hashes, and the
+  engines that paint a run or a row at once (`paintPoster`'s column runs,
+  `renderDitherGradient`'s repeated rows, `paintColumn`'s hoisted
+  thresholds, the auroras' per-column edges) to the per-cell walk they
+  replaced, byte for byte. A speed-up to a paint path keeps its bytes and
+  adds its reference there.
 - Benchmarks, in `benches/`, run by hand and never part of a build or a
   spec: `npm run bench` times the engine's hot paths in Node
-  (`node-bench.mts`; `resolve-ts.mts` is the resolve hook that gives the
+  (`node-bench.mts`, whose last section profiles one frame of each path
+  in `engine-cases.mts`: fixed inputs that return what they painted, so
+  the same cases hash as an output oracle before and after a change;
+  `resolve-ts.mts` is the resolve hook that gives the
   kit's extensionless imports their `.ts` under Node's own TypeScript);
   `npm run bench:browser` (`browser-bench.mts`, its page
   `browser-bench-page.tsx`) bundles the page in memory, mounts the Solid

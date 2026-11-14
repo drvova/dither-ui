@@ -18,6 +18,8 @@ export type AuroraParams = {
   dither: number
 }
 
+let edges = new Float64Array(0)
+
 /**
  * Paint one frame of the aurora into a backing buffer.
  * @param time   seconds (the caller has NOT pre-scaled by speed).
@@ -31,6 +33,10 @@ export function paintAurora(buffer: RasterBuffer, p: AuroraParams, time: number,
   const blendLo = 0.0025 + p.blend * 0.02
   const blendHi = 0.02 + p.blend * 0.15
   const col: [number, number, number] = [0, 0, 0]
+  // The curtain's wavy lower edge, near the top third: one per column.
+  if (edges.length < cols) edges = new Float64Array(cols)
+  for (let x = 0; x < cols; x++)
+    edges[x] = 0.28 + p.amplitude * 0.22 * (fbm(((x + 0.5) / cols) * 2.5 + t * 0.15, 7.3, t * 0.4) - 0.5) * 2
 
   for (let y = 0; y < rows; y++) {
     const v = (y + 0.5) / rows
@@ -38,9 +44,7 @@ export function paintAurora(buffer: RasterBuffer, p: AuroraParams, time: number,
     for (let x = 0; x < cols; x++) {
       const i = (y * cols + x) * 4
       const u = (x + 0.5) / cols
-      // Wavy lower edge of the curtain, near the top third.
-      const edge = 0.28 + p.amplitude * 0.22 * (fbm(u * 2.5 + t * 0.15, 7.3, t * 0.4) - 0.5) * 2
-      const d = v - edge
+      const d = v - edges[x]
       // Sharp fade above the edge, a longer glowing tail below it.
       let inten = Math.exp(-(d * d) / (d < 0 ? blendLo : blendHi))
       // Vertical curtain rays.

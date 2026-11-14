@@ -18,6 +18,8 @@ export type SoftAuroraParams = {
   dither: number
 }
 
+let edges = new Float64Array(0)
+
 export function paintSoftAurora(buffer: RasterBuffer, p: SoftAuroraParams, time: number, matrix: number[][]): void {
   const cols = buffer.width
   const rows = buffer.height
@@ -26,6 +28,13 @@ export function paintSoftAurora(buffer: RasterBuffer, p: SoftAuroraParams, time:
   const bands = Math.max(1, Math.round(p.bands))
   const spread = 0.01 + p.blend * 0.08
   const col: [number, number, number] = [0, 0, 0]
+  // Each curtain's wavy edge: one per band and column, not per cell.
+  if (edges.length < bands * cols) edges = new Float64Array(bands * cols)
+  for (let b = 0; b < bands; b++) {
+    const base = 0.22 + b * (0.5 / bands)
+    for (let x = 0; x < cols; x++)
+      edges[b * cols + x] = base + p.amplitude * 0.15 * (fbm(((x + 0.5) / cols) * 2 + b * 3, 7 + b, t * 0.4) - 0.5) * 2
+  }
 
   for (let y = 0; y < rows; y++) {
     const v = (y + 0.5) / rows
@@ -35,9 +44,7 @@ export function paintSoftAurora(buffer: RasterBuffer, p: SoftAuroraParams, time:
       const u = (x + 0.5) / cols
       let inten = 0
       for (let b = 0; b < bands; b++) {
-        const base = 0.22 + b * (0.5 / bands)
-        const edge = base + p.amplitude * 0.15 * (fbm(u * 2 + b * 3, 7 + b, t * 0.4) - 0.5) * 2
-        const d = v - edge
+        const d = v - edges[b * cols + x]
         inten += Math.exp(-(d * d) / spread) * 0.6
       }
       inten *= 0.6 + 0.4 * fbm(u * 10, v * 2, t * 0.15)
