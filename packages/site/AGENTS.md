@@ -121,7 +121,18 @@ are from the repository's.
   string stays data; `tests/site/codegen.spec.tsx` proves it against the
   real compiler). `entities/widget/model/model.ts` is the one reading of
   the shared registry's `model` rows as Solid's prop and callback.
-- Vite plugins, each a file in `build/`: `utilities.ts` (the utility map
+- The figures the site states (the kit's `Dither*` components, the docs'
+  sections and each family's size) are counted once, in `build/facts.ts`,
+  and every module takes them as `#dither-facts` (this package's
+  `imports`): under Node (the configs, the post-build, `rs test`) the
+  module itself, counting as it loads; in Vite (the build, dev and the
+  component specs) its plugin, `siteFacts`, answers with the numbers
+  inlined, so the landing carries three numbers, never the docs table.
+  The landing's facts and hub, the heads, the share cards and the Studio's
+  film read them; adding a component or a section touches no count. Text
+  shipped as written (the README, `public/agent/SKILL.md`) keeps its
+  figures, pinned to them by `tests/landing-facts.spec.ts`.
+- Vite plugins, each a file in `build/`: `facts.ts` (above), `utilities.ts` (the utility map
   the rewriter reads, compiled by `@dither-ui/restyle/utility-map` from the folders
   `utility-sources.ts` names, which the workspace's `rstack.config.ts`
   reads too), `kit-sources.ts` (the kit's own source at `kit/src/solid/`

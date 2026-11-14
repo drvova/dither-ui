@@ -1,24 +1,15 @@
 // The landing's docs data: every docs family with its true size, the
-// families "What's inside" lists, and the example bento's cards.
-// Static on purpose — the landing does not load the docs IA — and held
-// honest by tests/hub.spec.ts, which checks every id resolves to a docs
-// section of the family it names and every count against the family's size.
+// families "What's inside" lists, and the example bento's cards. The sizes
+// are the build's count of the docs table (`#dither-facts`), inlined so the
+// landing never loads the docs IA; the rest is static, held honest by
+// tests/hub.spec.ts, which checks every id resolves to a docs section of the
+// family it names.
+import { FACTS } from "#dither-facts"
 
 /** Every docs family in sidebar order with its section count. */
-export const FAMILIES = [
-  { title: "Overview", count: 1 },
-  { title: "Primitives", count: 19 },
-  { title: "Typography", count: 25 },
-  { title: "Handbook", count: 7 },
-  { title: "Examples", count: 32 },
-  { title: "Components", count: 103 },
-  { title: "Backgrounds", count: 49 },
-  { title: "Text", count: 24 },
-  { title: "Animations", count: 50 },
-  { title: "Utils", count: 2 },
-] as const
+export const FAMILIES = FACTS.families
 
-export const SECTION_COUNT = FAMILIES.reduce((n, f) => n + f.count, 0)
+export const SECTION_COUNT = FACTS.sections
 
 const count = (title: string) => FAMILIES.find((f) => f.title === title)?.count ?? 0
 

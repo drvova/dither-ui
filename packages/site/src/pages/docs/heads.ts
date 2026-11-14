@@ -3,6 +3,7 @@
 // docs section (`sectionTags`, the list the section manifest writes).
 // `PageHead` renders a page's tags; the shell (`entry-server.tsx`) reads
 // `pageOf` for the page an address opens on.
+import { FACTS } from "#dither-facts"
 import { docsSection } from "@/pages/docs/seo"
 import { type HeadTag, sectionTags, shareCards, shareTags } from "@/pages/docs/share-cards"
 import { ROUTE_TITLES, type RouteName } from "@/shared/config/titles"
@@ -27,15 +28,13 @@ const PAGES: Record<
 > = {
   landing: {
     card: "home",
-    description:
-      "dither-ui is a Solid UI toolkit of 270 components drawn pixel by pixel from one seeded palette: charts, controls, forms, overlays, backgrounds, text effects, 3D models and shaders. A live docs section for every component and a Studio your coding agent can drive. MIT licensed.",
+    description: `dither-ui is a Solid UI toolkit of ${FACTS.components} components drawn pixel by pixel from one seeded palette: charts, controls, forms, overlays, backgrounds, text effects, 3D models and shaders. A live docs section for every component and a Studio your coding agent can drive. MIT licensed.`,
     keywords:
       "dither, dithering, Solid, SolidJS, UI toolkit, component library, charts, canvas, pixel art, ordered dither, Bayer, seed-generative, shadcn, Base UI, data visualization",
     data: {
       ...APP,
       name: "dither-ui",
-      description:
-        "A Solid UI toolkit of 270 components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive.",
+      description: `A Solid UI toolkit of ${FACTS.components} components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive.`,
       operatingSystem: "Web",
       license: "https://opensource.org/licenses/MIT",
       author: { "@type": "Organization", name: "dither-ui" },

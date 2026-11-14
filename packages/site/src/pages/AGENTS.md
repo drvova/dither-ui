@@ -270,19 +270,19 @@ in the page's folder.
   string with a glyph the face lacks throws; every string the page sets
   is covered by `tests/pixel-type.spec.ts`.
 - Facts are claims: `facts.ts` holds `COMPONENT_COUNT` (the hero's and
-  the examples' ledes), `MATRIX` (the threshold matrix as the page writes
+  the examples' ledes, the build's count: `#dither-facts`), `MATRIX` (the threshold matrix as the page writes
   it, read from `SCREENS`), `RUNTIME_DEPS` (the packages beside Solid, which
   the install bar's commands and the install lede's count are built from)
   and `SPECS` (the spec sheet closing the
   install: label and value rows on the raised ground, two columns from
   640px, values read from the kit where they can be: the counts, the
   screens, the license; the facts spec holds the rest to the kit's peers,
-  matrices and styling systems); `tests/landing-facts.spec.ts` recounts
-  the first from `@dither-ui/kit/solid/index.ts` and holds the second to
-  the kit's required `peerDependencies` (a styling layer's optional one
-  aside), and the plates' stock to the raised ground's mix; section counts
-  come from `hub.ts`. A change that moves one
-  fails until the page says it.
+  matrices and styling systems); `tests/landing-facts.spec.ts` holds
+  `RUNTIME_DEPS` to the kit's required `peerDependencies` (a styling
+  layer's optional one aside), and the plates' stock to the raised
+  ground's mix; section counts come from `hub.ts`. A change that moves one
+  fails until the page says it; a component or a section added moves the
+  counts by itself.
 - Examples (`Examples.tsx`, `#examples`, "Every component, live."): a
   section head (the component count from `facts.ts`, "See every section in
   the docs"), then the bento: `BENTO` (`hub.ts`), twelve live kit
@@ -357,11 +357,12 @@ in the page's folder.
   on the glide; a row together); the rail moves only under the finger.
   A press on a card's ground gives (`data-press="card"`), never one on its
   controls, links or canvases, which take the press themselves.
-- `hub.ts` is static data (the landing never loads the docs IA): `FAMILIES`
-  (every docs family and its size), `DOCS_FAMILIES` (the five big
-  families, a line each and the section each opens on) and `BENTO`, held
-  honest by `tests/hub.spec.ts` (families and counts equal `GROUPS`, every
-  card and first section is a section of the family it names).
+- `hub.ts` is the landing's docs data (the landing never loads the docs
+  IA): `FAMILIES` (every docs family and its size) and `SECTION_COUNT`,
+  the build's count of `GROUPS` (`#dither-facts`, inlined), then static
+  `DOCS_FAMILIES` (the five big families, a line each and the section each
+  opens on) and `BENTO`, held honest by `tests/hub.spec.ts` (every card and
+  first section is a section of the family it names).
 - Build (`#build`, "Built from the wire up."), between the bento's plate
   and the ask: a section head (the cell count read from the model, "See
   the world engine"), then `BrandBuild.tsx`: the brand itself as a model
@@ -1505,10 +1506,10 @@ in the page's folder.
 
 ## Verification
 
-- `tests/landing-facts.spec.ts` recounts `COMPONENT_COUNT` in `facts.ts`
-  and holds every count the site states to it (the files its spec lists:
-  the README, SKILL.md, `llms.txt`'s source, the Studio film's counters,
-  which also count the sections and the Backgrounds);
+- `tests/landing-facts.spec.ts` holds `#dither-facts` to the kit's index
+  and `GROUPS`, and pins the counts the files shipped as text state (the
+  README's components and families, SKILL.md's film figure) to it, each
+  failing with the right number;
   `tests/hub.spec.ts` holds `FAMILIES`, `DOCS_FAMILIES` and `BENTO` to the
   docs' `GROUPS`; `tests/pixel-type.spec.ts` every string the pixel face
   sets.

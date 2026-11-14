@@ -411,7 +411,7 @@ exports:
 
 The barrel also exports the control, form, feedback, navigation, overlay and
 surface families, 49 generative backgrounds (the poster among them), 24 text
-effects and 49 interaction and motion effects. Every surface thresholds
+effects and 50 interaction and motion effects. Every surface thresholds
 through a 4x4 screen: Bayer, unless a `DitherScreen` around it picks a
 printer's `line`, `diagonal`, `dot` or `cross` (a fill that carries a label
 keeps Bayer). Shared chart props:

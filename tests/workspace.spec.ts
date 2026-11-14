@@ -65,6 +65,8 @@ type Manifest = {
   private?: boolean
   type?: string
   exports?: Record<string, string>
+  /** What the package's own `#` specifiers name (Node's subpath imports). */
+  imports?: Record<string, string>
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
   peerDependencies?: Record<string, string>
@@ -149,6 +151,8 @@ describe("the workspace", () => {
       expect(existsSync(join(dir, "AGENTS.md")), `${name}/AGENTS.md`).toBe(true)
       for (const [subpath, target] of Object.entries(pkg.exports ?? {}))
         if (!target.includes("*")) expect(existsSync(join(dir, target)), `${name} exports ${subpath}`).toBe(true)
+      for (const [spec, target] of Object.entries(pkg.imports ?? {}))
+        expect(existsSync(join(dir, target)), `${name} imports ${spec}`).toBe(true)
     }
   })
 
@@ -261,6 +265,7 @@ describe("an import between packages", () => {
       if (i.spec.startsWith("node:") || builtinModules.includes(to)) continue
       if (i.pkg === OWN_SOURCE.package && i.spec.startsWith(OWN_SOURCE.prefix)) continue
       const pkg = MANIFESTS[i.pkg]
+      if (i.spec.startsWith("#") && pkg.imports?.[i.spec]) continue
       const declared = { ...pkg.dependencies, ...pkg.peerDependencies, ...pkg.devDependencies, ...tools }
       if (!(to in declared)) undeclared.add(`${i.pkg}: ${to}`)
     }

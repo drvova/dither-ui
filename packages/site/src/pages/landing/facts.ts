@@ -1,13 +1,16 @@
-// The kit as the landing states it. Claims are facts:
-// tests/landing-facts.spec.ts recounts each one from the kit, so a kit
-// change that moves one fails until the page says it.
+// The kit as the landing states it. Claims are facts: the counts are the
+// build's (`#dither-facts`), the rest read from the kit or held to it by
+// tests/landing-facts.spec.ts, so a kit change that moves one fails until
+// the page says it.
+import { FACTS } from "#dither-facts"
 import { SCREEN_KINDS, SCREENS } from "@dither-ui/kit/engine"
 import type { ModelFormat } from "@dither-ui/kit/engine/models.ts"
 import type { MarkId } from "@/shared/ui/marks"
 import { license } from "@dither-ui/kit/package.json"
 import { SECTION_COUNT } from "./hub"
 
-export const COMPONENT_COUNT = 270
+/** The kit's public `Dither*` components. */
+export const COMPONENT_COUNT = FACTS.components
 
 /** The threshold matrix every surface prints through, as the page writes it. */
 export const MATRIX = `${SCREENS.bayer.length}×${SCREENS.bayer[0].length}`

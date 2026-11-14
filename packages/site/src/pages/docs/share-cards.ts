@@ -2,6 +2,7 @@
 // reads (the crawler files, the section manifest, the install surface) and
 // the pages read (each route's own head), so a card's tags are written once.
 // Loaded under Node by the configs too, so its imports carry `.ts`.
+import { FACTS } from "#dither-facts"
 import { SECTIONS } from "./groups.ts"
 import { docsBreadcrumb, docsMeta, REPO_URL, SITE_URL } from "./seo.ts"
 
@@ -35,8 +36,7 @@ export const ROUTE_CARDS = [
     url: `${SITE_URL}/`,
     title: "dither-ui",
     line: "A dithered UI toolkit for Solid",
-    description:
-      "270 Solid components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed.",
+    description: `${FACTS.components} Solid components drawn pixel by pixel from one seeded palette, with live docs and a Studio your coding agent can drive. MIT licensed.`,
     links: [
       { label: "Read the docs", url: `${SITE_URL}/docs` },
       { label: "Open the studio", url: `${SITE_URL}/studio` },

@@ -7,6 +7,8 @@ import { llmsTxt, ROUTE_CARDS } from "../src/pages/docs/crawler-files"
 import { DOCS_ROOT, docsMeta } from "../src/pages/docs/seo"
 import { COMPONENT_COUNT, RUNTIME_DEPS, SPECS, WORKS } from "../src/pages/landing/facts"
 import { FAMILIES, SECTION_COUNT } from "../src/pages/landing/hub"
+import { GROUPS, SECTIONS } from "../src/pages/docs/groups"
+import { FACTS } from "#dither-facts"
 import { choreograph, LOCKUP, LOCKUP_SIZE, MOMENT, MOVES, type Scene, STAGINGS } from "../src/pages/landing/brand"
 import { MARK_CELLS } from "../src/shared/ui/brand-mark"
 import { GROUND, PLATES, sceneOf, STOCK } from "../src/pages/landing/plate"
@@ -20,31 +22,30 @@ const kit = JSON.parse(readFileSync(new URL("../../../packages/dither-kit/packag
 }
 
 describe("landing facts", () => {
-  it("counts the kit's public Dither components", () => {
-    expect(COMPONENT_COUNT).toBe(components.filter((n) => n.startsWith("Dither")).length)
+  it("states the build's counts, which count the kit and the docs", () => {
+    // `#dither-facts` counts as it loads under Node: the same figures a
+    // build inlines into the pages.
+    expect(FACTS.components).toBe(components.filter((n) => n.startsWith("Dither")).length)
+    expect(COMPONENT_COUNT).toBe(FACTS.components)
+    expect(FAMILIES).toEqual(GROUPS.map((g) => ({ title: g.title, count: g.items.length })))
+    expect(SECTION_COUNT).toBe(SECTIONS.length)
   })
 
-  it("is the count every page, card and doc states", () => {
+  it("pins the counts the files shipped as text state, each to the build's", () => {
+    // The README and the agent skill ship as written, so their figures are
+    // literals: each must read what the build counts.
     const read = (f: string) => readFileSync(new URL(`../../../${f}`, import.meta.url), "utf8")
-    const stated = [
-      "packages/site/src/pages/docs/heads.ts",
-      "README.md",
-      "packages/site/public/agent/SKILL.md",
-      "packages/site/src/pages/docs/crawler-files.ts",
-    ].flatMap((f) =>
-      [...read(f).matchAll(/\b(\d{3}) (?:Solid |public `Dither\*` )?components\b|\["(\d{3})", "components"\]/g)].map(
-        (m) => Number(m[1] ?? m[2]),
-      ),
-    )
-    expect(stated.length).toBeGreaterThanOrEqual(5)
-    expect(new Set(stated)).toEqual(new Set([COMPONENT_COUNT]))
-    // The Studio's film counts up to the components, the sections and the backgrounds, and names two.
-    const film = read("packages/site/src/features/agent/film.ts")
-    const counts = [...film.matchAll(/to: (\d+), duration/g)].map((m) => Number(m[1]))
-    expect(counts).toEqual([COMPONENT_COUNT, SECTION_COUNT, FAMILIES.find((f) => f.title === "Backgrounds")?.count])
-    expect(film).toContain(`["${COMPONENT_COUNT}", "components"]`)
-    expect(film).toContain(`["${SECTION_COUNT}", "docs sections"]`)
-    expect(film).toContain(`["${FAMILIES.find((f) => f.title === "Backgrounds")?.count}", "backgrounds"]`)
+    const size = (title: string) => FAMILIES.find((f) => f.title === title)!.count
+    const stated: [file: string, figure: RegExp, count: number][] = [
+      ["README.md", /for Solid\. (\d+) components draw/, FACTS.components],
+      ["README.md", /^(\d+) public `Dither\*` components/m, FACTS.components],
+      ["README.md", /(\d+) generative backgrounds/, size("Backgrounds")],
+      ["README.md", /(\d+) text\s+effects/, size("Text")],
+      ["README.md", /(\d+) interaction and motion effects/, size("Animations")],
+      ["packages/site/public/agent/SKILL.md", /\["(\d+)", "components"\]/, FACTS.components],
+    ]
+    for (const [file, figure, count] of stated)
+      expect(read(file).match(figure)?.[1], `${file} ${figure}`).toBe(String(count))
   })
 
   it("keeps a spec sheet the kit bears out", () => {

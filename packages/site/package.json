@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#dither-facts": "./build/facts.ts"
+  },
   "engines": {
     "node": ">=24"
   },
