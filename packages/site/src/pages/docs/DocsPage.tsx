@@ -1,8 +1,4 @@
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
   cssColor,
   DitherAvatar,
   DitherButton,
@@ -11,19 +7,6 @@ import {
   DitherIcon,
   DitherImage,
   DitherNumberFlow,
-  Dot,
-  Grid,
-  Legend,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  Radar,
-  RadarChart,
-  Sparkline,
-  Tooltip,
-  XAxis,
-  YAxis,
   type AreaVariant,
   type ButtonVariant,
   type DitherColor,
@@ -42,18 +25,36 @@ import { groupOf, neighbours, sectionOf, SECTION_IDS } from "@/pages/docs/pages"
 import { docsMeta } from "@/pages/docs/seo"
 import "@/shared/fonts/display.css"
 import { version } from "../../../package.json"
-import { assetPath, modKey, routePath, useTheme } from "@/shared/lib"
+import { assetPath, lazyPart, modKey, routePath, useTheme } from "@/shared/lib"
 import { restoreStyling, setStyling, STYLING_LABELS, styling, STYLINGS } from "@/shared/lib/restyle"
 import { play, restoreSounds, setSounds, sounds } from "@/shared/lib/sound"
-import { AdSlot, CodeBlock } from "@/shared/ui"
+import AdSlot from "@/shared/ui/AdSlot"
+import CodeBlock from "@/shared/ui/CodeBlock"
 import Mascot from "@/shared/ui/Mascot"
 import ToolMark from "@/shared/ui/ToolMark"
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  Dot,
+  Grid,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  Radar,
+  RadarChart,
+  Sparkline,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "@/shared/ui/charts"
 import { SiteHeader } from "@/widgets/site-header"
 import DemoCard from "./DemoCard"
 import DocsNav, { docsUrl, type PagePart } from "./DocsNav"
 import DocsSheet, { SHEET_ID } from "./DocsSheet"
-import EngineSection from "./handbook/EngineSection"
-import VerificationSection from "./handbook/VerificationSection"
 import PageHead from "./PageHead"
 import OnThisPage from "./OnThisPage"
 import QuickStart from "./overview/QuickStart"
@@ -63,6 +64,14 @@ import SectionShare from "./SectionShare"
 import { dataCode, docsCode } from "./snippet"
 import ScreensSection from "./utils/ScreensSection"
 import "./DocsPage.css"
+
+// The handbook's Engine and Verification read the model parsers and the
+// world engine (the verification lab paints with them): their own chunks,
+// loaded only where the section opens. A server renders a page whole, so it
+// loads them first (as it does the packs).
+const EngineSection = lazyPart(() => import("./handbook/EngineSection"))
+const VerificationSection = lazyPart(() => import("./handbook/VerificationSection"))
+if (import.meta.env.SSR) await Promise.all([EngineSection.preload(), VerificationSection.preload()])
 
 // Believable dashboard numbers, not sine waves.
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -788,12 +797,17 @@ export default function DocsPage(props: DocsPageProps) {
   /* Counts the sections arriving in the flow: a pack is a chunk of its own
      (`pack-loaders.ts`) and renders its sections after the page has, so
      whatever reads the flow's sections reads them again as they come (the
-     hiding once missed them, and a family's every section showed at once). */
+     hiding once missed them, and a family's every section showed at once).
+     A section this page writes whose contents are a chunk of their own (the
+     Engine, the Verification) fills its element after the page too, so its
+     element's own children are watched as well (never deeper: a demo's
+     motion changes the DOM every frame). */
   const [arrived, setArrived] = createSignal(0)
   onMount(() => {
     if (!flow || typeof MutationObserver === "undefined") return
     const arrivals = new MutationObserver(() => setArrived((n) => n + 1))
     arrivals.observe(flow, { childList: true })
+    for (const section of flow.children) arrivals.observe(section, { childList: true })
     onCleanup(() => arrivals.disconnect())
   })
   const [onPage, setOnPage] = createSignal<PagePart[]>([])
@@ -1207,10 +1221,14 @@ export default function DocsPage(props: DocsPageProps) {
             </Own>
 
             {/* Engine: the parts under every surface, a figure each */}
-            <EngineSection />
+            <Own id="engine">
+              <EngineSection />
+            </Own>
 
             {/* Verification: the kit's claims measured in the reader's browser */}
-            <VerificationSection />
+            <Own id="verification">
+              <VerificationSection />
+            </Own>
 
             {/* Composition */}
             <Own id="composition">

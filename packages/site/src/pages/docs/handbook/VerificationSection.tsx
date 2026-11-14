@@ -106,8 +106,8 @@ export default function VerificationSection() {
   })
 
   return (
-    <section id="verification" ref={(el) => (root = el)} class="mt-16 scroll-mt-24">
-      <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+    <>
+      <div ref={(el) => (root = el)} class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2 class="text-lg tracking-tight">Verification</h2>
         <div class="flex gap-2">
           <button
@@ -194,6 +194,6 @@ export default function VerificationSection() {
           }}
         </For>
       </dl>
-    </section>
+    </>
   )
 }

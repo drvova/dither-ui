@@ -1,7 +1,5 @@
 import { createSignal, For } from "solid-js"
 import {
-  Area,
-  AreaChart,
   DitherAvatar,
   DitherGradient,
   DitherScreen,
@@ -9,6 +7,7 @@ import {
   type DitherColor,
   type ScreenKind,
 } from "@dither-ui/kit"
+import { Area, AreaChart } from "@/shared/ui/charts"
 import DemoCard from "../DemoCard"
 import { dataCode } from "../snippet"
 import PropsTable, { type PropRow } from "../PropsTable"

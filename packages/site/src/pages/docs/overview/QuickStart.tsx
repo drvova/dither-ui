@@ -4,7 +4,7 @@
 // heading: the kit without Tailwind.
 import { For, Show } from "solid-js"
 import { INSTALL_DEPS, INSTALL_STEPS } from "@/pages/docs/install"
-import { CodeBlock } from "@/shared/ui"
+import CodeBlock from "@/shared/ui/CodeBlock"
 import "./QuickStart.css"
 
 const COUNT = ["no", "one", "two", "three", "four", "five", "six"]
