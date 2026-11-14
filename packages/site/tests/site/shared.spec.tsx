@@ -53,6 +53,9 @@ afterEach(() => {
 
 const all = (root: ParentNode, sel: string) => [...root.querySelectorAll<HTMLElement>(sel)]
 const text = (el: Element) => (el.textContent ?? "").trim()
+/** A finger's (or a cursor's) event, by its pointer's id. */
+const pointer = (type: string, pointerId: number, clientX: number, clientY: number) =>
+  new PointerEvent(type, { bubbles: true, cancelable: true, button: 0, pointerId, clientX, clientY })
 
 // One header for the pages that read: the same links and key on each, the
 // page's own link current, a page's tools beside the key.
@@ -418,20 +421,37 @@ describe("the inspector's fields", () => {
     expect(got).toHaveBeenLastCalledWith([0.34, 1.56, 0.64, 1])
   })
 
-  it("drags a bezier's handle inside its box", () => {
+  it("drags a bezier's handle inside its box, from a finger's reach, and lets go on a cancel", () => {
     const got = vi.fn()
     const w = render(() => <BezierEditor modelValue={[0.25, 0.1, 0.25, 1]} onUpdateModelValue={got} />)
     const svg = w.container.querySelector("svg")!
     svg.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 100 }) as DOMRect
-    const handle = all(w.container, "circle.cursor-grab")[1]
-    fireEvent.pointerDown(handle, { clientX: 100, clientY: 25 })
+    const handles = all(w.container, "[data-handle]")
+    expect(handles).toHaveLength(2)
+    // The dot is 12px; what a finger presses reaches 28px (a radius of 14).
+    expect(handles.map((h) => all(h, "circle").map((c) => c.getAttribute("r")))).toEqual([
+      ["14", "6"],
+      ["14", "6"],
+    ])
+    handles[1].dispatchEvent(pointer("pointerdown", 1, 100, 25))
     expect(got).toHaveBeenLastCalledWith([0.25, 0.1, 0.5, 1])
-    fireEvent(window, new MouseEvent("pointermove", { clientX: 500, clientY: 500 }))
+    // a second finger steers nothing
+    window.dispatchEvent(pointer("pointermove", 2, 0, 0))
+    expect(got).toHaveBeenLastCalledWith([0.25, 0.1, 0.5, 1])
+    window.dispatchEvent(pointer("pointermove", 1, 500, 500))
     expect(got).toHaveBeenLastCalledWith([0.25, 0.1, 1, -0.5])
-    fireEvent(window, new MouseEvent("pointerup"))
+    window.dispatchEvent(pointer("pointerup", 1, 500, 500))
     got.mockClear()
-    fireEvent(window, new MouseEvent("pointermove", { clientX: 10, clientY: 10 }))
+    window.dispatchEvent(pointer("pointermove", 1, 10, 10))
     expect(got).not.toHaveBeenCalled()
+    // A touch the browser takes for a scroll is cancelled: the drag ends there.
+    handles[0].dispatchEvent(pointer("pointerdown", 3, 100, 25))
+    window.dispatchEvent(pointer("pointercancel", 3, 100, 25))
+    got.mockClear()
+    window.dispatchEvent(pointer("pointermove", 3, 10, 10))
+    expect(got).not.toHaveBeenCalled()
+    // every key and field of the editor is a 24px target at least
+    for (const el of all(w.container, "button, input")) expect(el.className).toMatch(/(^|\s)(min-)?h-6(\s|$)/)
   })
 
   it("offers bloom's levels, and its own sliders once custom, seeded from the level it left", () => {
@@ -502,13 +522,26 @@ describe("the inspector's fields", () => {
     expect(hue.classList.contains("dk-hue")).toBe(true)
     fireEvent.input(hue, { target: { value: "120" } })
     expect(got.mock.lastCall![0]).toBe("#00ff00")
+    // The hue is a 24px target, its band drawn inside it.
+    expect(hue.classList.contains("h-6")).toBe(true)
     const square = w.container.querySelector<HTMLElement>(".cursor-crosshair")!
+    // A finger in the square picks, never scrolls the panel under it.
+    expect(square.classList.contains("touch-none")).toBe(true)
     square.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100 }) as DOMRect
-    fireEvent.pointerDown(square, { clientX: 0, clientY: 0 })
+    square.dispatchEvent(pointer("pointerdown", 1, 0, 0))
     expect(got).toHaveBeenLastCalledWith("#ffffff")
-    fireEvent(window, new MouseEvent("pointermove", { clientX: 100, clientY: 100 }))
+    window.dispatchEvent(pointer("pointermove", 1, 100, 100))
     expect(got).toHaveBeenLastCalledWith("#000000")
-    fireEvent(window, new MouseEvent("pointerup"))
+    window.dispatchEvent(pointer("pointerup", 1, 100, 100))
+    // A cancelled touch lets go too: no pointer moving after it steers the colour.
+    square.dispatchEvent(pointer("pointerdown", 2, 0, 0))
+    window.dispatchEvent(pointer("pointercancel", 2, 0, 0))
+    got.mockClear()
+    window.dispatchEvent(pointer("pointermove", 2, 100, 100))
+    window.dispatchEvent(pointer("pointermove", 1, 50, 50))
+    expect(got).not.toHaveBeenCalled()
+    // every swatch is a 24px target
+    for (const b of swatches) expect(b.classList.contains("size-6")).toBe(true)
     fireEvent.click(swatches[0])
     expect(got).toHaveBeenLastCalledWith(COLORS[0])
     expect(w.container.querySelector("input")).toBeNull()
@@ -538,6 +571,23 @@ describe("the context menu", () => {
     expect(text(document.activeElement!)).toBe("Delete")
     fireEvent.keyDown(document.activeElement!, { key: "ArrowDown" })
     expect(text(document.activeElement!)).toBe("Rename")
+  })
+
+  it("moves in from the window's edge, where a long press on the right column's rows opens it", async () => {
+    vi.stubGlobal("innerWidth", 1194)
+    vi.stubGlobal("innerHeight", 834)
+    const box = vi
+      .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+      .mockReturnValue({ left: 0, top: 0, width: 172, height: 252, right: 172, bottom: 252 } as DOMRect)
+    const [at, setAt] = createSignal({ x: 1100, y: 700 })
+    render(() => <ContextMenu x={at().x} y={at().y} items={items()} />)
+    await Promise.resolve()
+    const menu = document.body.querySelector<HTMLElement>("[role=menu]")!
+    expect([menu.style.left, menu.style.top]).toEqual([`${1194 - 172 - 8}px`, `${834 - 252 - 8}px`])
+    // opened again elsewhere, it stands where it was asked
+    setAt({ x: 300, y: 200 })
+    expect([menu.style.left, menu.style.top]).toEqual(["300px", "200px"])
+    box.mockRestore()
   })
 
   it("runs an item and closes; a disabled one does neither", () => {

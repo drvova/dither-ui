@@ -1,5 +1,6 @@
+/* The hue slider: a 24px target (a finger's floor) carrying a 10px band. */
 .color-field-scope .dk-hue {
-  background: linear-gradient(
+  --hue-band: linear-gradient(
     to right,
     hsl(0 100% 50%),
     hsl(60 100% 50%),
@@ -9,11 +10,24 @@
     hsl(300 100% 50%),
     hsl(360 100% 50%)
   );
+  background: transparent;
+}
+.color-field-scope .dk-hue::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--hue-band);
+}
+.color-field-scope .dk-hue::-moz-range-track {
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--hue-band);
 }
 .color-field-scope .dk-hue::-webkit-slider-thumb {
   appearance: none;
   width: 14px;
   height: 14px;
+  /* centred on the band */
+  margin-top: -2px;
   border-radius: 9999px;
   background: #fff;
   border: 2px solid rgba(0, 0, 0, 0.35);

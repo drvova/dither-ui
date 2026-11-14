@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, For, type JSX, on, Show, splitP
 import { colorToHex, cssColor, type DitherColor, hexToHsv, hsvToHex } from "@dither-ui/kit"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { COLORS } from "@/shared/config"
+import { followPointer } from "@/shared/lib/follow"
 import "./ColorField.css"
 
 type Own = {
@@ -52,12 +53,7 @@ export default function ColorField(raw: ColorFieldProps) {
       push()
     }
     move(e)
-    const up = () => {
-      window.removeEventListener("pointermove", move)
-      window.removeEventListener("pointerup", up)
-    }
-    window.addEventListener("pointermove", move)
-    window.addEventListener("pointerup", up)
+    followPointer(e, move)
   }
 
   function onHue(e: InputEvent & { currentTarget: HTMLInputElement }) {
@@ -82,7 +78,7 @@ export default function ColorField(raw: ColorFieldProps) {
             <button
               type="button"
               class={cn(
-                "size-5 rounded-[4px] transition-transform hover:scale-110",
+                "size-6 rounded-[4px] transition-transform hover:scale-110",
                 props.modelValue === c
                   ? "ring-2 ring-foreground ring-offset-1 ring-offset-background"
                   : "ring-1 ring-border",
@@ -97,7 +93,7 @@ export default function ColorField(raw: ColorFieldProps) {
         <button
           type="button"
           class={cn(
-            "size-5 rounded-[4px] transition-transform hover:scale-110",
+            "size-6 rounded-[4px] transition-transform hover:scale-110",
             !isPreset() ? "ring-2 ring-foreground ring-offset-1 ring-offset-background" : "ring-1 ring-border",
           )}
           style={
@@ -116,7 +112,7 @@ export default function ColorField(raw: ColorFieldProps) {
           {/* saturation / value square */}
           <div
             ref={(el) => (square = el)}
-            class="relative h-28 w-full cursor-crosshair overflow-hidden rounded-md ring-1 ring-border"
+            class="relative h-28 w-full cursor-crosshair touch-none overflow-hidden rounded-md ring-1 ring-border"
             style={{ "background-color": `hsl(${hsv().h} 100% 50%)` }}
             onPointerDown={onSquare}
           >
@@ -135,7 +131,7 @@ export default function ColorField(raw: ColorFieldProps) {
             name="hue"
             min="0"
             max="360"
-            class="dk-hue h-2.5 w-full cursor-pointer appearance-none rounded-full"
+            class="dk-hue h-6 w-full cursor-pointer appearance-none"
             onInput={onHue}
           />
 

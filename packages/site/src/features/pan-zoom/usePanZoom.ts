@@ -1,4 +1,5 @@
 import { editor, zoomTo } from "../../entities/editor"
+import { followPointer } from "@/shared/lib/follow"
 
 /** The canvas's gestures over `editor.viewport` (the keys and the bar zoom
  * through the editor's view functions). Wheel pans; ctrl/cmd-wheel (or a
@@ -23,25 +24,14 @@ export function usePanZoom(host: () => HTMLElement | null | undefined) {
 
   function startPan(e: PointerEvent) {
     if (e.button !== 0 && e.button !== 1) return
-    const id = e.pointerId
     let px = e.clientX
     let py = e.clientY
-    const move = (ev: PointerEvent) => {
-      if (ev.pointerId !== id) return
+    followPointer(e, (ev) => {
       editor.viewport.x += ev.clientX - px
       editor.viewport.y += ev.clientY - py
       px = ev.clientX
       py = ev.clientY
-    }
-    const up = (ev: PointerEvent) => {
-      if (ev.pointerId !== id) return
-      window.removeEventListener("pointermove", move)
-      window.removeEventListener("pointerup", up)
-      window.removeEventListener("pointercancel", up)
-    }
-    window.addEventListener("pointermove", move)
-    window.addEventListener("pointerup", up)
-    window.addEventListener("pointercancel", up)
+    })
   }
 
   // Two fingers pinch: zoom about their midpoint by the change in their
