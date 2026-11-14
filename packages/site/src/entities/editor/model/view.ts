@@ -4,6 +4,7 @@
 // from a key, a wheel or a harness.
 import type { Artboard } from "@/entities/artboard"
 import { centreOn, editor, selectedArtboard } from "./store"
+import { clamp } from "@dither-ui/kit/engine/pixel.ts"
 
 export const MIN_ZOOM = 0.2
 export const MAX_ZOOM = 3
@@ -13,8 +14,6 @@ export const ZOOM_STEP = 1.2
 const FIT_PAD = 96
 /** Room over a frame for its title label, in world px. */
 const LABEL_ROOM = 28
-
-const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
 
 /** Zoom to `next` about a point of the stage (its centre unless given), the
  * world under that point staying put. The viewport is read at each use,

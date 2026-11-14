@@ -4,7 +4,7 @@
 // reaches every surface and chart series below it through one function.
 import { describe, expect, it } from "rstack/test"
 import { matrixFromSeed } from "../src/engine/dither-paint"
-import { BAYER4, pixelMatrixFromSeed, SCREEN_KINDS, SCREENS, screenMatrix } from "../src/engine/pixel"
+import { BAYER4, clamp, clamp01, pixelMatrixFromSeed, SCREEN_KINDS, SCREENS, screenMatrix } from "../src/engine/pixel"
 
 /** The cells a density lights, as "x,y". */
 const lit = (m: number[][], density: number) =>
@@ -40,5 +40,14 @@ describe("print screens", () => {
       expect(screenMatrix("line", seed)).not.toEqual(SCREENS.line)
     }
     expect(screenMatrix("dot")).toBe(SCREENS.dot)
+  })
+})
+
+describe("the clamps every surface and the site hold a number with", () => {
+  it("hold to their bounds, pass a value inside them and keep NaN for the caller to see", () => {
+    expect([clamp(-3, 0, 10), clamp(4, 0, 10), clamp(12, 0, 10)]).toEqual([0, 4, 10])
+    expect([clamp01(-0.5), clamp01(0.25), clamp01(2)]).toEqual([0, 0.25, 1])
+    expect(clamp(Number.NaN, 0, 1)).toBeNaN()
+    expect(clamp01(Number.NaN)).toBeNaN()
   })
 })

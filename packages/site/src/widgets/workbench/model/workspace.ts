@@ -3,6 +3,7 @@
 // threads anchored to live elements. Plain data (stage px), undoable by
 // snapshot, saved per preview in localStorage (sanitized on the way back
 // in: storage is untrusted), and written out as Markdown for an agent.
+import { clamp } from "@dither-ui/kit/engine/pixel.ts"
 import type { Box, Point } from "@/shared/lib/inspect/geometry"
 import type { InkPoint } from "./ink"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
@@ -75,7 +76,7 @@ export const isEmpty = (ws: Workspace) =>
 const LIMIT = 500
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
 const fin = (v: unknown, fallback = 0, lo = -1e5, hi = 1e5) =>
-  typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : fallback
+  typeof v === "number" && Number.isFinite(v) ? clamp(v, lo, hi) : fallback
 const str = (v: unknown, max = 2000) => (typeof v === "string" ? v.slice(0, max) : "")
 const id = (v: unknown, prefix: string) => (typeof v === "string" && /^[\w-]{1,40}$/.test(v) ? v : uid(prefix))
 /** Colours a reader can pick: hex, a theme token, or a CSS keyword. */

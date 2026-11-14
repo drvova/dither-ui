@@ -15,7 +15,7 @@ export {
 } from "./precompile"
 export type { ButtonRasterOptions, GradientRasterOptions } from "./precompile"
 export { createRasterBuffer, putRasterBuffer, setRasterPixel32, setOrBlendRasterPixel } from "./raster"
-export { SCREENS, SCREEN_KINDS, screenMatrix, type ScreenKind } from "./pixel"
+export { clamp, clamp01, SCREENS, SCREEN_KINDS, screenMatrix, type ScreenKind } from "./pixel"
 export type { RasterBuffer } from "./raster"
 export {
   compileTrack,

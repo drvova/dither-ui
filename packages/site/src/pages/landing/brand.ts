@@ -2,7 +2,7 @@
 // wordmark, and its moment, `choreograph`, pure: cells in, a path per cell
 // out, in one of five moves, so each place the brand stands (the hero, the
 // plates, the footer) forms it its own way. `BrandGather` plays it.
-import { xorshift32 } from "@dither-ui/kit/engine/pixel.ts"
+import { clamp, xorshift32 } from "@dither-ui/kit/engine/pixel.ts"
 import { MARK_CELLS } from "@/shared/ui/brand-mark"
 import { layoutPixelText, PIXEL_ROWS } from "./pixel-type"
 
@@ -93,7 +93,6 @@ type Stage = {
   width: number
 }
 
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 const ids = (n: number) => [...Array(n).keys()]
 /** A leg's duration: `steps` cells at `pace` cells a second, held to `span`. */
 const leg = (steps: number, pace: number, span: readonly [number, number]) =>

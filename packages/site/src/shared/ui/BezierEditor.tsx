@@ -2,6 +2,7 @@ import { createMemo, For, Index, type JSX, splitProps } from "solid-js"
 import type { BezierPoints } from "@dither-ui/kit"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { followPointer } from "@/shared/lib/follow"
+import { clamp } from "@dither-ui/kit/engine/pixel.ts"
 
 type Own = { modelValue: BezierPoints; class?: string; onUpdateModelValue?: (value: BezierPoints) => void }
 export type BezierEditorProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
@@ -13,7 +14,6 @@ const Y_MIN = -0.5
 const Y_MAX = 1.5
 const sx = (x: number) => x * W
 const sy = (y: number) => ((Y_MAX - y) / (Y_MAX - Y_MIN)) * H
-const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
 
 // Animator staples — overshoot, anticipation, hard snap.
 const PRESETS: { name: string; pts: BezierPoints }[] = [

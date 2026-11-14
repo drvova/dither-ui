@@ -4,7 +4,7 @@
 
 import type { AreaVariant } from "./chart-types"
 import { rgb, type Rgb, type Seed } from "./palette"
-import { xorshift32 } from "./pixel"
+import { clamp01, xorshift32 } from "./pixel"
 import { setOrBlendRasterPixel, type RasterBuffer } from "./raster"
 import { spring } from "./spring"
 
@@ -612,7 +612,6 @@ export function bloomLayerStyle(input: BloomInput, active: boolean): BloomStyle 
 // Easing — gentle start + soft settle so entrances don't feel linear.
 export const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 export const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
-export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
 
 /** Selectable entrance easing — one name every canvas resolves the same way. */
 /** "spring" is Apple's smooth motion (`spring.ts`): from rest, settling long

@@ -2,13 +2,11 @@
 // back, read into one RGBA, printed in the format the reader copies, and
 // held against WCAG's contrast rule (the kit's reading of it). sRGB in 0–255
 // with alpha 0–1.
-import { contrast as ratio, luminance, toGamma, toLinear } from "@dither-ui/kit/engine"
+import { clamp, contrast as ratio, luminance, toGamma, toLinear } from "@dither-ui/kit/engine"
 
 export type RGBA = { r: number; g: number; b: number; a: number }
 export type ColorFormat = "hex" | "rgb" | "hsl" | "oklch"
 export const COLOR_FORMATS: ColorFormat[] = ["hex", "rgb", "hsl", "oklch"]
-
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
 /** A CSS number, percentage (of `pct`) or `none`. */
 function num(token: string | undefined, pct = 1): number {

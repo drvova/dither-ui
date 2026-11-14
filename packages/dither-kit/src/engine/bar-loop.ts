@@ -5,7 +5,8 @@
 import { seriesFill } from "./chart-fill"
 import type { Box, ChartContextValue } from "./chart-types"
 import { clearRasterBuffer, createRasterBuffer, putRasterBuffer } from "./raster"
-import { clamp01, resolveEasing, paintColumn, prefersReducedMotion } from "./dither-paint"
+import { resolveEasing, paintColumn, prefersReducedMotion } from "./dither-paint"
+import { clamp01 } from "./pixel"
 import { directedTime, isDirected, onSeek } from "./clock"
 
 export type Bars = { top: number[]; base: number[] } // per data index, in backing rows

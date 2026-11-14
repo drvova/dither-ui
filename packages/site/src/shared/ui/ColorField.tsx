@@ -1,5 +1,6 @@
 import { createEffect, createMemo, createSignal, For, type JSX, on, Show, splitProps } from "solid-js"
 import { colorToHex, cssColor, type DitherColor, hexToHsv, hsvToHex } from "@dither-ui/kit"
+import { clamp01 } from "@dither-ui/kit/engine/pixel.ts"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { COLORS } from "@/shared/config"
 import { followPointer } from "@/shared/lib/follow"
@@ -13,7 +14,6 @@ type Own = {
 export type ColorFieldProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
 
 const presets = COLORS as readonly string[]
-const clamp = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
 
 export default function ColorField(raw: ColorFieldProps) {
   const [props, rest] = splitProps(raw, ["modelValue", "class", "onUpdateModelValue"])
@@ -47,8 +47,8 @@ export default function ColorField(raw: ColorFieldProps) {
       if (!r) return
       setHsv((c) => ({
         ...c,
-        s: clamp((ev.clientX - r.left) / r.width),
-        v: 1 - clamp((ev.clientY - r.top) / r.height),
+        s: clamp01((ev.clientX - r.left) / r.width),
+        v: 1 - clamp01((ev.clientY - r.top) / r.height),
       }))
       push()
     }

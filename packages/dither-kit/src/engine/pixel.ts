@@ -52,6 +52,9 @@ export const SCREENS: Readonly<Record<ScreenKind, number[][]>> = {
 }
 export const SCREEN_KINDS = Object.keys(SCREENS) as ScreenKind[]
 
+/** `v` held between `lo` and `hi`: the ONE clamp the kit and the site use. */
+export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
+/** `t` held to 0–1. */
 export const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t)
 
 /** 32-bit FNV-1a hash — turns any string seed into a stable uint32. */

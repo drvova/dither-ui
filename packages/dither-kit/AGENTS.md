@@ -189,7 +189,9 @@ generated twin. Inside the kit every import is relative
   luminances; in `api.ts`): `label-fill.ts` inks by it, and the site's
   workbench, its lab and the tasks' walk measure with it
   (`tests/palette.spec.ts`).
-- `pixel.ts` owns BAYER4, the print screens and bloom presets. `SCREENS`
+- `pixel.ts` owns BAYER4, the print screens and bloom presets, and the ONE
+  `clamp(v, lo, hi)` and `clamp01` (in `api.ts`) every engine, component
+  and the site's own modules hold a number with (`tests/screens.spec.ts`). `SCREENS`
   (`bayer`, `line`, `diagonal`, `dot`, `cross`; `SCREEN_KINDS`) are 4x4
   rank matrices, each a permutation of the sixteen ranks, so every
   `matrix[y & 3][x & 3]` painter takes any of them; `screenMatrix(screen,
