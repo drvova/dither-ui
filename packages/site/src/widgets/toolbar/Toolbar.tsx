@@ -3,7 +3,7 @@ import { DitherAlertDialog, DitherIcon } from "@dither-ui/kit"
 import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import type { ArtboardKind } from "@/entities/artboard"
-import { COMPONENT_REGISTRY, type ComponentEntry, type ComponentGroup } from "@/entities/widget"
+import { COMPONENT_REGISTRY, type ComponentEntry, type ComponentGroup, SIMPLE_WIDGET_KINDS } from "@/entities/widget"
 import { CHART_TYPES } from "@/shared/config"
 import { addArtboard, addComponentArtboard, addScreenArtboard } from "@/entities/editor"
 import type { AgentActivity } from "@/features/agent/tools"
@@ -62,7 +62,6 @@ const GROUPS: { id: ComponentGroup; label: string }[] = [
   { id: "overlays", label: "Overlays" },
   { id: "structure", label: "Structure" },
 ]
-const WIDGETS = ["avatar", "button", "gradient", "image"] as const
 
 // The Studio's title bar, across the window: the sidebar's key and the
 // history on the left, the project (its menu) in the middle, the library,
@@ -393,7 +392,7 @@ export default function Toolbar(props: ToolbarProps) {
                           </button>
                         )}
                       </For>
-                      <For each={WIDGETS}>
+                      <For each={SIMPLE_WIDGET_KINDS}>
                         {(type) => (
                           <button type="button" class="library-item capitalize" onClick={() => add(type)}>
                             {type}

@@ -83,8 +83,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   `startInspecting`/`stopInspecting` over `editor.inspecting`, during
   which every zoom holds), chart, widget (`SIMPLE_WIDGET_KINDS`, the one
   list of the kinds `createWidget` builds whole, its type
-  `SimpleWidgetKind` and guard `isSimpleWidgetKind`, from its index),
-  artboard.
+  `SimpleWidgetKind` and guard `isSimpleWidgetKind`, from its index; the
+  artboard factory and the library's widget keys read it), artboard.
 - `shared/fonts/` — the display face: `michroma-latin.woff2` (the Latin
   subset, self-hosted), its license `OFL.txt` (keep them together) and
   `display.css` (its `@font-face`, `font-display: swap`; the mono and
