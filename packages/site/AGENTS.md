@@ -194,6 +194,8 @@ are from the repository's.
   and the video export are checked in a browser.
 - A spec that crosses packages lives here, the highest package it touches
   (`tests/bridge.spec.ts`, `tests/focus-ring.spec.ts`,
+  `tests/observer-entries.spec.ts`: every visibility observer in the kit
+  and the site reads its newest entry, never only the first,
   `tests/site/stylex-layer.spec.tsx`, `tests/site/paint-law.spec.tsx`: the
   kit's paint law over every component row of the registry, each input
   changed in place against a fresh mount at one directed moment, a

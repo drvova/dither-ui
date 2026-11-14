@@ -50,6 +50,7 @@ import WorksWith from "./WorksWith"
 import { useDrive } from "./drive"
 import { DitherShader } from "./parts"
 import "./LandingPage.css"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 // The five biggest families, biggest first (the footer keeps the docs' order).
 const BIGGEST = [...DOCS_FAMILIES].sort((a, b) => b.count - a.count)
@@ -248,7 +249,8 @@ export default function LandingPage() {
     if (typeof IntersectionObserver === "undefined") return
     if (boardCard) {
       boardSeen = new IntersectionObserver(
-        ([entry]) => {
+        (entries) => {
+          const entry = latestEntry(entries)
           const was = boardInView
           boardInView = !!entry?.isIntersecting
           if (boardInView && !was) board.drive(BOARD_DANCE)
@@ -259,7 +261,8 @@ export default function LandingPage() {
     }
     if (closeBand) {
       closeSeen = new IntersectionObserver(
-        ([entry]) => {
+        (entries) => {
+          const entry = latestEntry(entries)
           if (!entry?.isIntersecting) return
           heat.drive(CLOSE.drift)
           closeSeen?.disconnect()
@@ -270,9 +273,10 @@ export default function LandingPage() {
     }
     if (!road) return
     seen = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = latestEntry(entries)
         roadNear = !!entry?.isIntersecting
-        inView = roadNear && entry.intersectionRatio >= 0.5
+        inView = roadNear && (entry?.intersectionRatio ?? 0) >= 0.5
         if (inView) dance()
         else danced = false
       },

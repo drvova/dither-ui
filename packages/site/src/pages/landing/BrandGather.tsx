@@ -15,6 +15,7 @@
 import { For, type JSX, onCleanup, onMount } from "solid-js"
 import { choreograph, LOCKUP, LOCKUP_SIZE, MOMENT, type Staging, type Waypoint } from "@/pages/landing/brand"
 import "./BrandGather.css"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 export type BrandGatherProps = {
   scene: Staging
@@ -86,7 +87,8 @@ export default function BrandGather(props: BrandGatherProps) {
     for (const move of moves) move.pause()
     home()
     io = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = latestEntry(entries)
         if (entry?.isIntersecting) play()
       },
       { threshold: 1, rootMargin: "0px 0px -10% 0px" },
@@ -117,7 +119,8 @@ export default function BrandGather(props: BrandGatherProps) {
     // a sixth of the landing's script at 4x CPU). Out there, unbuilt, its
     // cells stand home; nobody sees them until they are loose.
     near = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = latestEntry(entries)
         if (!entry?.isIntersecting) return
         near?.disconnect()
         near = null

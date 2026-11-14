@@ -3,6 +3,7 @@ import { DitherIcon, ditherTransition, type WipeDirection } from "@dither-ui/kit
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 import DocSection from "../DocSection"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 /* Three scenes on one stage. Every change between them is a dithered view
    transition of the stage alone; the transport steps, plays and picks at
@@ -109,7 +110,7 @@ export default function TransitionSection() {
       io?.disconnect()
     })
     if (typeof IntersectionObserver === "undefined" || !stage) return
-    io = new IntersectionObserver(([entry]) => entry?.isIntersecting || stop())
+    io = new IntersectionObserver((entries) => latestEntry(entries)?.isIntersecting || stop())
     io.observe(stage)
   })
 
