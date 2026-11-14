@@ -195,12 +195,20 @@ around this tree (entries, routes, the build, how Solid is written) is
   visible label of the `DitherField` the canvas (`widget-renderer/FieldWrap`)
   and the code export put it in, so the label is tied to the control;
   `boundProps` is the ONE way a registry component's props are bound
-  (mapped, the label left out), `fieldLabel` the label or null.
-  `tests/field-label.spec.ts`. Every key a row edits and every prop it
-  binds is a real prop of its component, by the type checker
-  (`tests/site/registry-props.spec.ts`, its exceptions listed with the
-  reason). A component with a two-way value (a field's
-  value, the chips' pick; the registry's `model` row) keeps it as `model`, which `sanitizeModel` takes
+  (mapped, the label left out), for the canvas, a screen's cells and the
+  code export alike, `fieldLabel` the label or null.
+  `tests/field-label.spec.ts`. A row's `mapProps` hands the component
+  what it takes: a setting that is not a prop is read into one (a
+  bracket's `teams` into `rounds`) or, for the toaster, into its demo's
+  `toast()` call (`demoToast`, the canvas's "Show toast" and the export's
+  key). Every prop a row binds is a real prop of its component, every
+  setting reaches it or its demo, and the code a frame of each row
+  exports, as it comes and edited, type-checks against the kit
+  (`tests/site/registry-props.spec.ts`). A component with a two-way value (a field's
+  value, the chips' pick; the registry's `model` row, its prop where the
+  component names it, `value` for the list pickers) keeps it as `model`;
+  a demo's own state (the drawer a swipe area opens) is a `model` with
+  `demo: true`, which no component and no export binds. `sanitizeModel` takes
   from untrusted input (a file, `component.add`'s or a screen cell's
   `value`, `artboard.update`'s `widget.value`) only in the kind of the
   entry's default and under `MODEL_MAX`, else the default;

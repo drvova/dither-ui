@@ -1,9 +1,9 @@
 // A frame's widget as a Solid component file (`.tsx`), on the kit's Solid
 // layer (props camelCase, a model as its prop and `on<Event>` callback, the
 // slot as children, state as a signal).
-import { boundProps, componentEntry, fieldLabel } from "@/entities/widget/model/registry"
+import { boundProps, componentEntry, demoToast, fieldLabel } from "@/entities/widget/model/registry"
 import type { PixelBloomInput, WidgetModel } from "@/entities/widget/model/types"
-import { comment, componentFile, js, prop, px, text } from "../../../shared/lib/sfc"
+import { comment, componentFile, js, objectLiteral, prop, px, text } from "../../../shared/lib/sfc"
 import { modelOf, SCOPED_CHILDREN } from "./model"
 
 // Every document value reaches the file through `shared/lib/sfc`: as a JSX
@@ -11,15 +11,19 @@ import { modelOf, SCOPED_CHILDREN } from "./model"
 
 const bloomAttr = (bloom: PixelBloomInput): string => (bloom === "off" ? "" : prop("bloom", bloom))
 
-/** A component's non-default props as attributes (compared against the
- * registry's defaults), bound as the canvas binds them. */
+/** A component's props as attributes, bound as the canvas binds them
+ * (`boundProps`: after its row's mapping, so what the mapping makes is
+ * written and a setting it reads in its place is not). A setting at its
+ * registry default is left out only where it is off or empty, which the
+ * kit reads as unset; every other value is written, the props a component
+ * cannot do without among them. */
 function propAttrs(is: string, props: Record<string, unknown>): string[] {
-  const entry = componentEntry(is)
-  const bound = boundProps(is, props)
-  return (entry?.props ?? [])
-    .filter((spec) => !(entry?.field && spec.key === "label"))
-    .filter((spec) => JSON.stringify(props[spec.key]) !== JSON.stringify(spec.def))
-    .map((spec) => prop(spec.key, bound[spec.key]))
+  const defs = new Map((componentEntry(is)?.props ?? []).map((spec) => [spec.key, spec.def]))
+  const unset = (key: string, v: unknown) =>
+    v === undefined || ((v === false || v === "") && JSON.stringify(props[key]) === JSON.stringify(defs.get(key)))
+  return Object.entries(boundProps(is, props))
+    .filter(([key, v]) => !unset(key, v))
+    .map(([key, v]) => prop(key, v))
 }
 
 /** A model's signal and the attributes that bind a control to it. `n` tells
@@ -48,7 +52,18 @@ function inField(label: string | null, tag: string, pad: string, cls = ""): stri
   return label ? `<DitherField ${prop("label", label)}${cls}>\n${pad}  ${tag}\n${pad}</DitherField>` : tag
 }
 
+/** The toaster as its demo plays it: the stack, and a key whose press
+ * calls `toast()` with the row's settings (`demoToast`). */
+function toasterCode(props: Record<string, unknown>): string {
+  const { message, color } = demoToast(props)
+  return componentFile({
+    kit: ["DitherButton", "DitherToaster", "toast"],
+    view: `<>\n  <DitherToaster />\n  <DitherButton onClick={() => toast(${js(message)}, ${objectLiteral({ color })})}>Show toast</DitherButton>\n</>`,
+  })
+}
+
 function componentCode(w: Extract<WidgetModel, { kind: "component" }>): string {
+  if (componentEntry(w.is)?.demo === "toaster") return toasterCode(w.props)
   // Studio-only demo wrappers provide required parent context; exported code keeps
   // the public component and its editable props as the portable starting point.
   const model = modelBinding(w.is, w.model, "")

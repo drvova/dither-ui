@@ -4,7 +4,7 @@ import { boundProps, componentEntry, fieldLabel, type ScreenCell, type ScreenMod
 import * as kit from "@dither-ui/kit"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { editor, selectLayer } from "@/entities/editor"
-import { slotChildren } from "../../entities/widget/model/model"
+import { modelOf, slotChildren } from "../../entities/widget/model/model"
 import { FieldWrap } from "./FieldWrap"
 
 const JUSTIFY: Record<string, string> = {
@@ -21,7 +21,12 @@ const ALIGN: Record<string, string> = {
 }
 
 const resolve = (is: string) => (kit as Record<string, unknown>)[is] as Component<Record<string, unknown>>
-const hasModel = (cell: ScreenCell) => !!componentEntry(cell.is)?.model
+/** A cell's model bound as the code export binds it (`modelOf`). */
+function modelProps(cell: ScreenCell): Record<string, unknown> {
+  const m = modelOf(componentEntry(cell.is))
+  if (!m) return {}
+  return { [m.prop]: cell.model, [m.on]: (value: unknown) => (cell.model = m.carries ? value : false) }
+}
 
 export default function ScreenRenderer(props: { screen: ScreenModel; artboardId: string }) {
   const cellId = (cell: ScreenCell) => `${props.artboardId}:cell:${cell.id}`
@@ -66,9 +71,7 @@ export default function ScreenRenderer(props: { screen: ScreenModel; artboardId:
                     <Dynamic
                       component={resolve(cell.is)}
                       {...boundProps(cell.is, cell.props)}
-                      {...(hasModel(cell)
-                        ? { modelValue: cell.model, onUpdateModelValue: (value: unknown) => (cell.model = value) }
-                        : {})}
+                      {...modelProps(cell)}
                       {...(cell.slotText != null ? { children: slotChildren(cell.is, cell.slotText) } : {})}
                       class={cell.grow ? "w-full" : ""}
                     />

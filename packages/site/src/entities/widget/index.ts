@@ -13,6 +13,7 @@ export {
   COMPONENT_REGISTRY,
   boundProps,
   componentEntry,
+  demoToast,
   fieldLabel,
   type ComponentEntry,
   type ComponentGroup,

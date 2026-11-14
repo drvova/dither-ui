@@ -1,6 +1,13 @@
 import { type Component, createMemo, For, type JSX, Match, Show, Switch } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import { boundProps, type ComponentEntry, componentEntry, fieldLabel, type WidgetModel } from "@/entities/widget"
+import {
+  boundProps,
+  type ComponentEntry,
+  componentEntry,
+  demoToast,
+  fieldLabel,
+  type WidgetModel,
+} from "@/entities/widget"
 import * as kit from "@dither-ui/kit"
 import { DitherAvatar, DitherButton, DitherGradient, DitherImage, toast } from "@dither-ui/kit"
 import { editor } from "@/entities/editor"
@@ -51,7 +58,9 @@ export default function WidgetRenderer(props: { widget: WidgetModel; artboardId:
   }
   const triggerToast = () => {
     const w = component()
-    if (w) toast(String(w.props.message), { color: w.props.color as never })
+    if (!w) return
+    const { message, color } = demoToast(w.props)
+    toast(message, { color })
   }
   /** The slot's text as children, when the widget has any. */
   const slot = () => {

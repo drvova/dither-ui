@@ -26,9 +26,11 @@ export type ModelBinding = {
   carries: boolean
 }
 
+/** The component's own model, or null where it binds none (its demo's
+ * state, kept as the row's `model`, is not the component's). */
 export function modelOf(entry: ComponentEntry | undefined): ModelBinding | null {
   const m = entry?.model
-  if (!m) return null
+  if (!m || "demo" in m) return null
   const event = m.event ?? "update:modelValue"
   return { default: m.def, prop: m.prop ?? "modelValue", on: listenerOf(event), carries: event.startsWith("update:") }
 }

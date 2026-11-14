@@ -40,8 +40,11 @@ export type ComponentEntry = {
   slotText?: string
   /** The value it binds two ways (a field's text, a switch's state): its
    * default, and the prop and the event that carry it where they are not
-   * `modelValue` and `update:modelValue`. */
-  model?: { def: unknown; prop?: string; event?: string }
+   * `modelValue` and `update:modelValue`. Or the state its demo keeps (`demo:
+   * true`: the drawer a swipe opens), which the component does not take. */
+  model?: { def: unknown; prop?: string; event?: string } | { def: unknown; demo: true }
+  /** Its edited props as the component takes them: the canvas binds them
+   * and the code export writes them (`boundProps`). */
   mapProps?: (p: Record<string, unknown>) => Record<string, unknown>
   demo?: ComponentDemo
   /** A text field: its `label` prop is not the component's but the
@@ -270,11 +273,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     model: { def: "first" },
     mapProps: (p) => ({
       ...p,
-      items: strList(p.items).map((title) => ({
-        value: title.toLowerCase().replace(/\s+/g, "-"),
-        title,
-        content: `${title} content`,
-      })),
+      items: strList(p.items).map((title) => ({ value: title.toLowerCase().replace(/\s+/g, "-"), title })),
     }),
   },
   {
@@ -636,6 +635,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "display",
     frame: { w: 300, h: 120 },
     props: [select("lines", "3", ["1", "2", "3", "4", "5", "6"]), select("as", "p", ["p", "span", "div"])],
+    mapProps: (p) => ({ ...p, lines: Number(p.lines) }),
     slotText: "Body copy that stops after N lines with an ellipsis…",
   },
   {
@@ -839,7 +839,6 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 320, h: 90 },
     props: [],
     slotText: "value",
-    model: { def: "" },
   },
   {
     is: "DitherInlineEdit",
@@ -908,7 +907,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 260, h: 160 },
     props: [list("options", ["Kyoto", "Seoul", "Taipei"]), bool("disabled")],
-    model: { def: "Seoul" },
+    model: { def: "Seoul", prop: "value" },
   },
   {
     is: "DitherMultiSelect",
@@ -916,7 +915,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 300, h: 220 },
     props: [list("options", ["solid", "dither", "canvas", "tokens"]), text("placeholder", "Search…"), bool("disabled")],
-    model: { def: ["solid"] },
+    model: { def: ["solid"], prop: "value" },
   },
   {
     is: "DitherCascadeSelect",
@@ -924,7 +923,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 360, h: 90 },
     props: [bool("disabled")],
-    model: { def: ["Japan", "Kansai"] },
+    model: { def: ["Japan", "Kansai"], prop: "value" },
     mapProps: (p) => ({
       ...p,
       tree: [{ value: "Japan", children: [{ value: "Kansai", children: [{ value: "Kyoto" }, { value: "Osaka" }] }] }],
@@ -936,7 +935,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 420, h: 190 },
     props: [text("sourceLabel", "Available"), text("targetLabel", "Selected"), bool("disabled")],
-    model: { def: ["admin"] },
+    model: { def: ["admin"], prop: "value" },
     mapProps: (p) => ({ ...p, source: ["admin", "editor", "viewer", "billing", "support"] }),
   },
   {
@@ -1028,7 +1027,6 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     group: "inputs",
     frame: { w: 440, h: 230 },
     props: [number("width", 420, 200, 800), number("height", 160, 80, 400), bool("disabled")],
-    model: { def: "" },
   },
   {
     is: "DitherSpinner",
@@ -2075,7 +2073,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("threshold", 24, 8, 100),
       bool("disabled"),
     ],
-    model: { def: false },
+    model: { def: false, demo: true },
     demo: "swipe-area",
   },
   {
@@ -2083,7 +2081,9 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "Toaster",
     group: "overlays",
     frame: { w: 260, h: 130 },
+    // the demo's toast() call's (`demoToast`), not the toaster's
     props: [color(), text("message", "Saved to project")],
+    mapProps: () => ({}),
     demo: "toaster",
   },
 
@@ -2213,7 +2213,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 320, h: 180 },
     props: [],
     slotText: "Indented application surface",
-    model: { def: false },
+    model: { def: false, demo: true },
     demo: "drawer-indent",
   },
 
@@ -3172,6 +3172,13 @@ export function boundProps(is: string, props: Record<string, unknown>): Record<s
   delete rest.label
   return rest
 }
+
+/** What the toaster's demo hands `toast()` from its row's settings: the
+ * canvas's "Show toast" and the code export's call. */
+export const demoToast = (props: Record<string, unknown>): { message: string; color: PixelColor } => ({
+  message: String(props.message ?? ""),
+  color: props.color as PixelColor,
+})
 
 export function defaultComponentProps(entry: ComponentEntry): Record<string, unknown> {
   return Object.fromEntries(entry.props.map((p) => [p.key, p.def]))

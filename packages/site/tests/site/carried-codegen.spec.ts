@@ -37,12 +37,13 @@ describe("screen codegen", () => {
 })
 
 describe("component codegen", () => {
-  it("defaults emit a minimal tag", () => {
+  it("defaults are written as the canvas binds them, off and empty ones left out", () => {
     const code = widgetCode(createComponent(entry("DitherSwitch")), frame)
     expect(code).toContain('import { DitherSwitch } from "@dither-kit"')
     expect(code).toContain("modelValue={value()} onUpdateModelValue={setValue}")
     expect(code).toContain("const [value, setValue] = createSignal(true)")
-    expect(code).not.toContain("color=") // a default stays silent
+    expect(code).toContain('color="blue" label="Notifications"')
+    expect(code).not.toContain("disabled") // off at its default: the kit reads it unset
   })
 
   it("non-defaults emit typed attributes", () => {

@@ -196,6 +196,20 @@ describe("the screen renderer", () => {
     expect(screen.rows[0].cells[0].model).toBe(false)
   })
 
+  it("binds a cell's model by the prop its component names, as a frame of it does", () => {
+    editor.artboards = [{ ...createArtboard("button"), widget: createScreen() }]
+    const a = editor.artboards[0]
+    if (a.widget?.kind !== "screen") throw new Error("unreachable")
+    const screen = a.widget
+    addCell(screen.rows[0], componentEntry("DitherListBox")!).model = "Taipei"
+    const cell = render(() => <ScreenRenderer screen={screen} artboardId={a.id} />)
+    expect(cell.getByRole("option", { selected: true }).textContent).toContain("Taipei")
+    cell.unmount()
+    const widget = { ...createComponent(componentEntry("DitherListBox")!), model: "Kyoto" }
+    const frame = render(() => <WidgetRenderer widget={widget} artboardId="a" />)
+    expect(frame.getByRole("option", { selected: true }).textContent).toContain("Kyoto")
+  })
+
   it("says an empty row is empty", () => {
     const { getByText } = render(() => <ScreenRenderer screen={createScreen()} artboardId="a" />)
     expect(getByText("Empty row. Add a component in the inspector.")).toBeTruthy()

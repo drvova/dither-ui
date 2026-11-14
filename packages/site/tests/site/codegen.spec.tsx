@@ -12,7 +12,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard"
 import { createChart } from "@/entities/chart/model/factory"
 import { createComponent, createReel, createWidget } from "@/entities/widget/model/factory"
-import { COMPONENT_REGISTRY, componentEntry } from "@/entities/widget/model/registry"
+import { boundProps, COMPONENT_REGISTRY, componentEntry, defaultComponentProps } from "@/entities/widget/model/registry"
 import { addCell, createScreen } from "@/entities/widget/model/screen"
 import { CHART_TYPES } from "@/shared/config"
 import { restyle, STYLINGS } from "@dither-ui/restyle"
@@ -145,7 +145,8 @@ describe("generated components keep document values as data", () => {
     const scoped = createComponent(componentEntry("DitherInView")!)
     scoped.slotText = HOSTILE
     const inView = run(widgetCode(scoped, FRAME))
-    noInjection(inView)
+    // its `once` is a setting, written as the canvas binds it
+    noInjection(inView, ["once"])
     expect(got(inView, "DitherInView").children).toBe(HOSTILE)
   })
 
@@ -257,7 +258,7 @@ describe("widgetCode", () => {
     const input = widgetCode(createComponent(componentEntry("DitherInput")!), frame)
     expect(input).toContain('import { createSignal } from "solid-js"')
     expect(input).toContain('const [value, setValue] = createSignal("")')
-    expect(input).toContain("<DitherInput modelValue={value()} onUpdateModelValue={setValue} />")
+    expect(input).toContain("<DitherInput modelValue={value()} onUpdateModelValue={setValue} ")
     // a model on its own prop and event: an update carries the next value...
     const page = widgetCode(createComponent(componentEntry("DitherPagination")!), frame)
     expect(page).toContain("page={value()} onUpdatePage={setValue}")
@@ -439,12 +440,13 @@ describe("every frame the Studio can place", () => {
     expect(bad).toEqual([])
   }, 120_000)
 
-  it("mounts, handing each component only what its registry row names", () => {
+  it("mounts, handing each component only what its registry row binds", () => {
     const bad: string[] = []
     for (const e of COMPONENT_REGISTRY) {
       const out = run(widgetCode(createComponent(e), { w: 480, h: 320 }))
       const model = modelOf(e)
-      const known = new Set([...e.props.map((p) => p.key), "children", ...(model ? [model.prop, model.on] : [])])
+      const bound = Object.keys(boundProps(e.is, defaultComponentProps(e)))
+      const known = new Set([...bound, "children", ...(model ? [model.prop, model.on] : [])])
       const props = out.seen.find((s) => s.is === e.is)?.props
       if (!props) bad.push(`${e.is}: not rendered`)
       else
@@ -483,9 +485,11 @@ describe("the registry's model rows, for Solid", () => {
     expect(row("DitherDialog")).toEqual({ default: false, prop: "open", on: "onClose" })
     expect(row("DitherAlertDialog")).toEqual({ default: false, prop: "open", on: "onCancel" })
     expect(row("DitherBadge")).toBeNull()
+    // the state a demo keeps (the drawer a swipe opens) is not the component's
+    expect(row("DitherSwipeArea")).toBeNull()
     for (const e of COMPONENT_REGISTRY)
       expect(row(e.is), e.is).toEqual(
-        e.model
+        e.model && !("demo" in e.model)
           ? {
               default: e.model.def,
               prop: e.model.prop ?? "modelValue",

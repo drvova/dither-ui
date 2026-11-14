@@ -116,7 +116,11 @@ are from the repository's.
 - The Studio exports a frame as a Solid component: `entities/widget/model/codegen.ts`
   and `entities/chart/model/codegen.ts`, through `entities/artboard/code.ts`
   (`frameCode`: the `.tsx`, and its stylesheet where the styling system has
-  one), used by the export dialog and `code.get` alike. `shared/lib/sfc.ts`
+  one), used by the export dialog and `code.get` alike. A component's
+  props are written as the canvas binds them (`boundProps`, after its
+  row's mapping; a setting off or empty at its default left out), so the
+  file says what the Studio renders and type-checks against the kit
+  (`tests/site/registry-props.spec.ts`, every row). `shared/lib/sfc.ts`
   is the ONE path a document value takes into generated code (a hostile
   string stays data; `tests/site/codegen.spec.tsx` proves it against the
   real compiler). `entities/widget/model/model.ts` is the one reading of
