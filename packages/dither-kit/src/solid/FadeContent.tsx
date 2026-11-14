@@ -2,6 +2,7 @@ import { createSignal, type JSX, mergeProps, onCleanup, onMount } from "solid-js
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 import "./FadeContent.css"
+import { latestEntry } from "../engine/visibility"
 
 export type FadeContentProps = {
   duration?: number
@@ -22,7 +23,8 @@ export default function FadeContent(raw: FadeContentProps) {
       setShown(true)
       return
     }
-    const io = new IntersectionObserver(([entry]) => {
+    const io = new IntersectionObserver((entries) => {
+      const entry = latestEntry(entries)
       if (entry?.isIntersecting) {
         setShown(true)
         io.disconnect()

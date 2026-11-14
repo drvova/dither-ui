@@ -15,6 +15,16 @@ export type Visibility = {
   dispose: () => void
 }
 
+/** Where an observed element stands now: the NEWEST of the entries an
+ * IntersectionObserver hands its callback. One call can carry several for
+ * one element, oldest first: Chromium queues an entry for each change it
+ * sees before the callback runs, so a canvas observed at 0x0 and sized a
+ * moment later arrives as [out of view, in view]. Read the first and the
+ * element stays "out" for good (the docs' Run of a sparkline in its
+ * stylesheet printed nothing). */
+export const latestEntry = (entries: readonly IntersectionObserverEntry[]): IntersectionObserverEntry | undefined =>
+  entries[entries.length - 1]
+
 /** Watch `el`; `onWake` fires as it comes into view or a cover over it
  * lifts. The loop it wakes resumes its SAME closure, so preserved timing
  * means no entrance replay and no state loss. */
@@ -36,8 +46,8 @@ export function watchVisibility(el: () => Element | null | undefined, onWake?: (
       })
       const node = el()
       if (typeof IntersectionObserver === "undefined" || !node || io) return
-      io = new IntersectionObserver(([entry]) => {
-        const v = entry?.isIntersecting ?? true
+      io = new IntersectionObserver((entries) => {
+        const v = latestEntry(entries)?.isIntersecting ?? true
         visible = v
         if (v && !isCovered(el())) onWake?.() // now visible: resume the paused loop
       })

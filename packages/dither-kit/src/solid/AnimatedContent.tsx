@@ -2,6 +2,7 @@ import { createMemo, createSignal, type JSX, mergeProps, onCleanup, onMount } fr
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 import "./AnimatedContent.css"
+import { latestEntry } from "../engine/visibility"
 
 export type AnimatedContentProps = {
   /** px (number) or any CSS length — `"4cqw"` measures the nearest query
@@ -45,7 +46,8 @@ export default function AnimatedContent(raw: AnimatedContentProps) {
       setShown(true)
       return
     }
-    let io: IntersectionObserver | null = new IntersectionObserver(([entry]) => {
+    let io: IntersectionObserver | null = new IntersectionObserver((entries) => {
+      const entry = latestEntry(entries)
       if (entry?.isIntersecting) {
         setShown(true)
         io?.disconnect()

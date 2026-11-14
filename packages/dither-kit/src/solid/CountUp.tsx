@@ -3,6 +3,7 @@ import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { formatFixed } from "../engine/format-number"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
+import { latestEntry } from "../engine/visibility"
 
 export type CountUpProps = {
   to: number
@@ -58,7 +59,8 @@ export default function CountUp(raw: CountUpProps) {
     let io: IntersectionObserver | null = null
     if (typeof IntersectionObserver === "undefined") run()
     else {
-      io = new IntersectionObserver(([entry]) => {
+      io = new IntersectionObserver((entries) => {
+        const entry = latestEntry(entries)
         if (entry?.isIntersecting) run()
       })
       if (el) io.observe(el)

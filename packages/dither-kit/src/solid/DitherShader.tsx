@@ -26,6 +26,7 @@ import {
 import { cn } from "../tailwind/lib"
 import { useDitherMatrix } from "./runtime/screen"
 import { createDitherBackground, type DitherSurface } from "./runtime/surface"
+import { latestEntry } from "../engine/visibility"
 
 export type { ShaderDither, ShaderProgram }
 export { ditherShaderPixels, sampleShader, wrapShader }
@@ -382,7 +383,8 @@ export default function DitherShader(raw: DitherShaderProps) {
     const el = wrap
     if (!el || typeof IntersectionObserver === "undefined") return
     near = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = latestEntry(entries)
         if (!entry?.isIntersecting) return
         near?.disconnect()
         near = null

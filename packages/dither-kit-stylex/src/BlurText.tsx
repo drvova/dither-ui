@@ -4,6 +4,7 @@ import { createMemo, createSignal, Index, mergeProps, onCleanup, onMount } from 
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import "@dither-ui/kit/solid/BlurText.css"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -31,7 +32,8 @@ export default function BlurText(raw: BlurTextProps) {
       setShown(true)
       return
     }
-    const io = new IntersectionObserver(([entry]) => {
+    const io = new IntersectionObserver((entries) => {
+      const entry = latestEntry(entries)
       if (entry?.isIntersecting) {
         setShown(true)
         io.disconnect()

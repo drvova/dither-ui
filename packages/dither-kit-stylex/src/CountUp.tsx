@@ -5,6 +5,7 @@ import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts
 import { formatFixed } from "@dither-ui/kit/engine/format-number.ts"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -66,7 +67,8 @@ export default function CountUp(raw: CountUpProps) {
     let io: IntersectionObserver | null = null
     if (typeof IntersectionObserver === "undefined") run()
     else {
-      io = new IntersectionObserver(([entry]) => {
+      io = new IntersectionObserver((entries) => {
+        const entry = latestEntry(entries)
         if (entry?.isIntersecting) run()
       })
       if (el) io.observe(el)

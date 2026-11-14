@@ -4,6 +4,7 @@ import { createSignal, type JSX, mergeProps, onCleanup, onMount } from "solid-js
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import "@dither-ui/kit/solid/FadeContent.css"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 export type FadeContentProps = {
   duration?: number
@@ -25,7 +26,8 @@ export default function FadeContent(raw: FadeContentProps) {
       setShown(true)
       return
     }
-    const io = new IntersectionObserver(([entry]) => {
+    const io = new IntersectionObserver((entries) => {
+      const entry = latestEntry(entries)
       if (entry?.isIntersecting) {
         setShown(true)
         io.disconnect()

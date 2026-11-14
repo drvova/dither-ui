@@ -4,6 +4,7 @@ import { createMemo, createSignal, mergeProps, onCleanup, onMount } from "solid-
 import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -102,7 +103,8 @@ export default function DecryptedText(raw: DecryptedTextProps) {
       scramble()
       return
     }
-    io = new IntersectionObserver(([entry]) => {
+    io = new IntersectionObserver((entries) => {
+      const entry = latestEntry(entries)
       if (entry?.isIntersecting) {
         scramble()
         io?.disconnect()

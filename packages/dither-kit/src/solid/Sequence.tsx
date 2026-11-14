@@ -5,6 +5,7 @@ import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { planSequence, sampleSequence, type SequencePlan, type StaggerFrom } from "../engine/sequence"
 import { frameIndex, linear, type Easing } from "../engine/timing"
 import { cn } from "../tailwind/lib"
+import { latestEntry } from "../engine/visibility"
 
 export type SequenceProps = {
   /** Seconds between neighbouring children's starts. */
@@ -208,7 +209,8 @@ export default function Sequence(raw: SequenceProps) {
       // The observer doubles as start trigger AND visibility gate (loop-visibility
       // contract: no offscreen rAF). Leaving mid-play pauses the clock; re-entry
       // wakes with lastDt=-1, so no time jumps across the pause.
-      io = new IntersectionObserver(([entry]) => {
+      io = new IntersectionObserver((entries) => {
+        const entry = latestEntry(entries)
         const visible = entry?.isIntersecting ?? true
         if (visible) {
           if (!started || props.restartOnView) start()

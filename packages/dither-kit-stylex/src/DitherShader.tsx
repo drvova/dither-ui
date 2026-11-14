@@ -28,6 +28,7 @@ import {
 import { cn, type StyleProp } from "./lib"
 import { useDitherMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import { createDitherBackground, type DitherSurface } from "@dither-ui/kit/solid/runtime/surface.ts"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -402,7 +403,8 @@ export default function DitherShader(raw: DitherShaderProps) {
     const el = wrap
     if (!el || typeof IntersectionObserver === "undefined") return
     near = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = latestEntry(entries)
         if (!entry?.isIntersecting) return
         near?.disconnect()
         near = null

@@ -2,6 +2,7 @@ import { createMemo, createSignal, mergeProps, onCleanup, onMount } from "solid-
 import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
+import { latestEntry } from "../engine/visibility"
 
 export type DecryptedTextProps = {
   text?: string
@@ -94,7 +95,8 @@ export default function DecryptedText(raw: DecryptedTextProps) {
       scramble()
       return
     }
-    io = new IntersectionObserver(([entry]) => {
+    io = new IntersectionObserver((entries) => {
+      const entry = latestEntry(entries)
       if (entry?.isIntersecting) {
         scramble()
         io?.disconnect()

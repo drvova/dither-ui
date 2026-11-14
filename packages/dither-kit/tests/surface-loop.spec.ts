@@ -321,6 +321,39 @@ describe("watching an element's visibility", () => {
     v.dispose()
   })
 
+  it("reads the newest of the entries one callback carries", () => {
+    // Chromium queues an entry per change before the callback runs: a canvas
+    // observed at 0x0 and sized a moment later arrives as [out, in].
+    let deliver = (_entries: boolean[]) => {}
+    rs.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          deliver = (entries) =>
+            callback(
+              entries.map((isIntersecting) => ({ isIntersecting }) as IntersectionObserverEntry),
+              this as never,
+            )
+        }
+        observe() {}
+        disconnect() {}
+      },
+    )
+    const el = document.createElement("div")
+    let woke = 0
+    const v = watchVisibility(
+      () => el,
+      () => woke++,
+    )
+    v.mount()
+    deliver([false, true])
+    expect(v.visible()).toBe(true)
+    expect(woke).toBe(1)
+    deliver([true, false])
+    expect(v.visible()).toBe(false)
+    v.dispose()
+  })
+
   it("wakes as a cover lifts, one it was mounted under included", () => {
     const w = world()
     const el = document.createElement("div")

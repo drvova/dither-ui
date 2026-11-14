@@ -4,6 +4,7 @@ import { createMemo, createSignal, type JSX, mergeProps, onCleanup, onMount } fr
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import "@dither-ui/kit/solid/AnimatedContent.css"
+import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
 export type AnimatedContentProps = {
   /** px (number) or any CSS length — `"4cqw"` measures the nearest query
@@ -48,7 +49,8 @@ export default function AnimatedContent(raw: AnimatedContentProps) {
       setShown(true)
       return
     }
-    let io: IntersectionObserver | null = new IntersectionObserver(([entry]) => {
+    let io: IntersectionObserver | null = new IntersectionObserver((entries) => {
+      const entry = latestEntry(entries)
       if (entry?.isIntersecting) {
         setShown(true)
         io?.disconnect()

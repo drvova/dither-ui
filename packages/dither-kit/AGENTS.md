@@ -1093,7 +1093,12 @@ generated twin. Inside the kit every import is relative
 - Canvas visibility defaults to paused until IntersectionObserver reports the
   element visible; do not start chart animation loops optimistically before the
   first visibility observation. The IO callback must record the element as
-  visible before calling `onWake` so `schedule()` sees the correct state.
+  visible before calling `onWake` so `schedule()` sees the correct state,
+  and reads the NEWEST entry it is handed (`latestEntry`,
+  `engine/visibility.ts`; every observer of one element in the kit does):
+  Chromium hands one callback an entry per change, oldest first, so a
+  canvas observed at 0x0 and sized a moment later arrives as [out, in]
+  (`tests/surface-loop.spec.ts`).
 - A chart loop that skips a frame with nothing new to paint still asks for
   the next one while its entrance is under way (a delay, or two frames on
   one timestamp), in the engine's cartesian loop; else it stops
