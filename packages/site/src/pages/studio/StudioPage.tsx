@@ -306,8 +306,6 @@ export default function StudioPage() {
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => void onDrop(e)}
       >
-        {/* The page's name, for a reader: the title bar shows the project's. */}
-        <h1 class="sr-only">Studio</h1>
         {/* The title bar first: Tab reads it before the sidebar and the canvas. */}
         <Toolbar
           ref={(api) => (toolbar = api)}
@@ -322,6 +320,8 @@ export default function StudioPage() {
           agentState={agentState()}
           onGuide={showAround}
         />
+        {/* The page's name, for a reader: the title bar shows the project's. */}
+        <h1 class="sr-only">Studio</h1>
         <StudioSidebar
           ref={(el) => (sidebar = el)}
           show={sidebarOpen()}

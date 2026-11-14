@@ -286,7 +286,6 @@ const API: Record<string, PropRow[]> = {
     { prop: "options", type: "string[]", default: "[]" },
     { prop: "value", type: "string (with onUpdateModelValue)", default: '""' },
     { prop: "onSelect", type: "(value) on commit", default: "" },
-    { prop: "aria-label", type: "string (its name)", default: "" },
   ],
   multiSelect: [
     { prop: "options", type: "string[]", default: "[]" },
