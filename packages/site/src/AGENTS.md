@@ -237,24 +237,43 @@ around this tree (entries, routes, the build, how Solid is written) is
   the source's spot) beside the originals, moved as one onto free canvas,
   selected. The placement cases of `tests/site/state.spec.tsx`.
 - The Studio is agent-addressable through `features/agent`:
-  - `protocol.ts` is ONE command vocabulary (`runCommand`) behind three doors:
+  - `protocol.ts` puts ONE command vocabulary (`runCommand`, from
+    `commands.ts`) behind three doors:
     `window.ditherStudio.run()` (main world), `dither-studio:command` /
     `dither-studio:result` DOM events on `document` with JSON-STRING details
     (any script world — browser-extension agents cannot see page globals;
     strings cross worlds, objects do not), and the `<script
     type="application/json" id="dither-studio-document">` mirror in <head>
-    (live document, refreshed on the autosave cadence). Every command is
-    untrusted input and lands only through the same validators the inspector
-    and file imports use (`applyDocument`, `sanitizeComponentProps`,
-    `normalizeArtboard`); nothing evaluates anything. A command answers
-    "ok" only for what it did: `artboard.update` refuses a patch key it
-    does not know (`PATCH_KEYS`; a screen's rows sent beside `widget`, as
-    an agent did in a live run) before changing anything, saying where it
-    goes. New commands are cases
-    in `runCommand` + a row in `registrySchema().commands` + the SKILL table
-    + an action in `tools.ts` (`STUDIO_TOOLS`, whose commands
-    `tests/site/state.spec.tsx` holds to the registry's list) with its
-    row in the composer's `STEPS` (`widgets/agent/model/steps.ts`).
+    (live document, refreshed on the autosave cadence).
+  - `commands.ts` is the ONE command table, `COMMANDS`, keyed by `type`
+    and held to the `StudioCommand` union (`satisfies`: a missing or extra
+    command is a type error). A row is `parse` (the untrusted input read
+    once into the command, or the reason it is none; nothing past it
+    re-checks and nothing changes before it succeeds), `run`, `doc` (the
+    registry's words), `skill` (its row in `public/agent/SKILL.md`'s
+    table) and, for an action a harness has, `tool` (its definition,
+    `preset`, and the composer's `step`). `runCommand`,
+    `registrySchema().commands`, `STUDIO_TOOLS`, `STEPS`
+    (`widgets/agent/model/steps.ts`) and the SKILL table are read off it,
+    in its order (the actions' order, which `find`'s ties and `ditherDef`
+    follow). Adding a command is one row; the SKILL table is then
+    rewritten by `WRITE_SKILL=1 npx vitest run
+    tests/site/agent-commands.spec.ts` (run in `packages/site`), which
+    fails while the committed table differs. `fields.ts` holds the shapes
+    a row's fields parse into (frame sizes, chart data, screen rows, clip
+    specs, a score) and `summarize`. Documents, props, screens and charts
+    land only through the validators the inspector and file imports use
+    (`applyDocument`, `sanitizeComponentProps`, `normalizeArtboard`);
+    nothing evaluates anything. A command answers "ok" only for what it
+    did: `artboard.update` refuses a patch key it does not know
+    (`PATCH_KEYS`; a screen's rows sent beside `widget`, as an agent did
+    in a live run), a field of the wrong type, `chart` on a widget frame
+    or `widget` on a chart, a `widget` key its kind does not take
+    (`WIDGET_TAKES`; a bespoke widget takes its model's fields) and a
+    `kind` or `is` other than the frame's own; it patches a copy,
+    normalizes it whole and only then reconciles the frame in place.
+    `tests/site/agent-commands.spec.ts` gives every command its malformed
+    inputs (each refused with the store as it was).
   - `registrySchema()` is the machine-readable registry (every component's
     prop specs, chart/widget kinds, document shape, commands); the
     post-build (`build/postbuild.mjs`) reads it off the
@@ -268,7 +287,7 @@ around this tree (entries, routes, the build, how Solid is written) is
     one row centred on the viewport and selects it — the one multi-frame
     placement, a batch insert whose midpoint is where a lone frame lands.
   - `tools.ts`: the Studio's actions — `STUDIO_TOOLS` (one action
-    per protocol command, run through the one `dither` tool, with JSON-schema parameters and arguments it
+    per command table row with a `tool`, run through the one `dither` tool, with JSON-schema parameters and arguments it
     always sends, `preset`: `get_registry` asks `registry.get` for the
     brief registry, names, labels and groups, which a harness reads in one
     answer where the full prop specs run past 100 kB, and `is` for one

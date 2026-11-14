@@ -6,7 +6,7 @@
 // its time the frame goes, and the worker with it. The one way out is a
 // message port to the page, which answers `studio.run(action, args)` with
 // the Studio's own actions and nothing else.
-import type { CommandResult } from "./protocol"
+import type { CommandResult } from "./commands"
 
 /** How long a built tool may run. */
 export const SANDBOX_MS = 10_000

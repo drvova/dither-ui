@@ -3,6 +3,7 @@
 // gathers per turn so the user keeps them or puts the canvas back. Tools
 // that only read change nothing.
 import type { IconName } from "@dither-ui/kit"
+import { commandRows, type ToolStep } from "@/features/agent/commands"
 import { parseDither } from "@/features/agent/dither"
 import { STUDIO_SERVER } from "@/features/agent/tools"
 
@@ -10,33 +11,12 @@ type Result = { ok: true; data: unknown } | { ok: false; error: string }
 export type Changed = { id: string; name: string }
 export type Step = { icon: IconName; title: string; changed: Changed[]; mutates: boolean }
 
-/** Every Studio tool: its verb once done, the words when the harness asks
- * to run it, its glyph, and whether it edits the canvas. */
-export const STEPS: Record<string, { verb: string; ask: string; icon: IconName; mutates: boolean }> = {
-  list_artboards: { verb: "Listed the frames", ask: "List the frames on the canvas", icon: "Layers", mutates: false },
-  get_registry: { verb: "Read the registry", ask: "Read the component registry", icon: "Book", mutates: false },
-  get_document: { verb: "Read the document", ask: "Read the document", icon: "File", mutates: false },
-  get_code: { verb: "Read the code of", ask: "Read the code of a frame", icon: "Code", mutates: false },
-  select: { verb: "Selected", ask: "Select frames on the canvas", icon: "Crosshair", mutates: false },
-  seek_clock: { verb: "Held the clock", ask: "Hold the clock at a moment", icon: "Clock", mutates: false },
-  export_video: { verb: "Exported a video of", ask: "Export a frame as a video", icon: "Video", mutates: false },
-  add_screen: { verb: "Added the screen", ask: "Add a screen to the canvas", icon: "Layout", mutates: true },
-  add_component: { verb: "Added", ask: "Add a component to the canvas", icon: "Box", mutates: true },
-  add_chart: { verb: "Added the chart", ask: "Add a chart to the canvas", icon: "ChartLine", mutates: true },
-  add_widget: { verb: "Added", ask: "Add a widget to the canvas", icon: "Sparkles", mutates: true },
-  add_reel: { verb: "Cut the reel", ask: "Cut a reel on the canvas", icon: "Film", mutates: true },
-  update_artboard: { verb: "Updated", ask: "Change a frame", icon: "Edit", mutates: true },
-  remove_artboard: { verb: "Removed a frame", ask: "Remove a frame", icon: "Trash", mutates: true },
+/** Every Studio tool's step (the command table's), and the one tool's own
+ * `find` and `build`. */
+export const STEPS: Record<string, ToolStep> = {
+  ...Object.fromEntries(commandRows().flatMap(([, { tool }]) => (tool ? [[tool.def.name, tool.step]] : []))),
   find: { verb: "Looked for what fits", ask: "Look for the actions that fit the job", icon: "Search", mutates: false },
   build: { verb: "Built the tool", ask: "Build a tool for the job", icon: "Sparkles", mutates: false },
-  evolve: { verb: "Evolved", ask: "Evolve a frame into variants", icon: "Dice", mutates: true },
-  duplicate: { verb: "Duplicated", ask: "Duplicate frames", icon: "Copy", mutates: true },
-  group: { verb: "Grouped", ask: "Group frames", icon: "Group", mutates: true },
-  ungroup: { verb: "Ungrouped", ask: "Ungroup frames", icon: "Group", mutates: true },
-  replay: { verb: "Replayed the animations", ask: "Replay the animations", icon: "Refresh", mutates: false },
-  set_view: { verb: "Moved the view", ask: "Move the canvas view", icon: "Maximize", mutates: false },
-  inspect: { verb: "Inspected", ask: "Inspect a frame", icon: "Inspect", mutates: false },
-  export_png: { verb: "Saved a picture of", ask: "Save a frame as a PNG", icon: "Image", mutates: false },
 }
 
 const frame = (d: unknown): Changed | null =>

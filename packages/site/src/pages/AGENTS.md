@@ -1260,7 +1260,7 @@ in the page's folder.
   into blocks, `Prose.tsx` renders them as elements, never as HTML, a
   caret while it streams) with a copy key under it; each Studio tool call
   one step in words with a kit glyph (`widgets/agent/model/steps.ts` `STEPS`,
-  one row per Studio tool, held to `STUDIO_TOOLS` by the test), its args
+  each Studio tool's `step` in the command table, `features/agent/commands.ts`), its args
   and result folded under it, destructive ink when the Studio rejected
   it; the harness's own tool calls as steps with a spinner or a check;
   a run of three or more steps in a row folded under what it did in

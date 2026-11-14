@@ -102,7 +102,7 @@ import {
   wordsOf,
 } from "../../src/features/agent/dither"
 import { askAgent, handoff, takeAsk, togglePicked } from "../../src/features/agent/handoff"
-import { type CommandResult } from "../../src/features/agent/protocol"
+import { type CommandResult } from "../../src/features/agent/commands"
 import {
   callStudioTool,
   loadAgentConfig,

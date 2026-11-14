@@ -14,8 +14,7 @@
 // the running agent or null — sent on connect and after every start/stop),
 // `bridge/start` / `bridge/stop` (ours), `bridge/tools` (ours, on open),
 // `bridge/exit` (the agent died), `studio/call` (a Studio tool call).
-import type { CommandResult } from "./protocol"
-import { runCommand } from "./protocol"
+import { type CommandResult, runCommand } from "./commands"
 import { type Built, callDither, DITHER_TOOL, ditherDef } from "./dither"
 import { bridgeKnows } from "@/features/agent/bridge-file"
 import { runSandboxed } from "./sandbox"

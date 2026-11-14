@@ -7,8 +7,8 @@
 // found first the next time. Every run of a built tool waits for the user.
 import { createMutable } from "solid-js/store"
 import { readJson, writeJson } from "@/shared/lib/storage"
-import { type CommandResult, registrySchema } from "./protocol"
-import { callStudioTool, finishStudioTool, STUDIO_TOOLS, type ToolDef } from "./tools"
+import { type CommandResult, registrySchema, type ToolDef } from "./commands"
+import { callStudioTool, finishStudioTool, STUDIO_TOOLS } from "./tools"
 
 /** The tool's name, as the harness calls it (`mcp__dither-studio__dither`). */
 export const DITHER_TOOL = "dither"

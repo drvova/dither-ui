@@ -146,17 +146,16 @@ Commands (`type` and fields):
 
 | type | fields |
 | --- | --- |
-| `document.get` | — |
-| `document.set` | `document` (validated like a file import; undoable) |
 | `artboard.list` | — |
-| `artboard.select` | `id` or `ids` |
-| `artboard.remove` | `id` |
-| `artboard.update` | `id`, `patch` (name/x/y/w/h/hidden/locked, `chart` fields, `widget.props`, `widget.value`, `widget.rows` or `widget.clips`; a key it does not know fails the call, nothing changed) |
+| `registry.get` | `is?`, `brief?` — the registry (`brief`: names, labels and groups only), or one component |
+| `screen.add` | `name?`, `rows`, `gap?`, `padding?`, `frame?` |
+| `component.add` | `is`, `name?`, `props?`, `slotText?`, `value?`, `frame?` — `value` is what a control holds (a field's text, the chips' pick), in the kind its `registry.get` row gives; `""` clears a field |
 | `chart.add` | `chart`, `name?`, `data?: { labels, series: [{ key, label?, color?, values }] }`, `frame?` |
 | `widget.add` | `widget` (avatar/button/gradient/image), `name?`, `props?` |
-| `component.add` | `is`, `name?`, `props?`, `slotText?`, `value?`, `frame?` — `value` is what a control holds (a field's text, the chips' pick), in the kind its `registry.get` row gives; `""` clears a field |
-| `screen.add` | `name?`, `rows`, `gap?`, `padding?`, `frame?` |
 | `reel.add` | `name?`, `clips` (ids, or `{ id, seconds?, transition?: { kind, seconds?, cell?, seed? }, camera?, callouts?, chapter? }` — kinds `cut`, `dissolve`, `wipe-right`, `wipe-left`, `wipe-down`, `wipe-up`; 3s clips in over a 0.6s dissolve by default), `score?` (`true` or `{ seed }`), `frame?` — frames played in order with ordered-dither transitions; a film with camera moves, callouts, chapters and a score (see below) |
+| `artboard.update` | `id`, `patch` (name/x/y/w/h/hidden/locked, `chart` fields, `widget.props`, `widget.value`, `widget.rows` or `widget.clips`; a key it does not know fails the call, nothing changed) |
+| `artboard.remove` | `id` |
+| `artboard.select` | `id` or `ids` |
 | `evolve` | `id?`, `count?` (1–12), `seed?`, `strength?` (0–1) — seeded variants placed as a row |
 | `artboard.duplicate` | `id?` or `ids?` (the selection by default) — copies, selected |
 | `group` | `id?` or `ids?` (the selection by default), `name?` — each frame's summary carries its `group` |
@@ -166,9 +165,11 @@ Commands (`type` and fields):
 | `inspect` | `id?` — the frame as drawn: its controls in Tab order (role, name, states, box in the frame's px) and what the accessibility floor finds (missing names, fields named only by their placeholder, targets under 24px, text under AA contrast, images without alt, positive tabindex); check a screen with it before calling it done. A text field (`DitherInput`, `DitherTextarea`, `DitherSelect`, `DitherEmailInput`, `DitherPasswordInput`, `DitherSearchInput`, `DitherPhoneInput`, `DitherCurrencyInput`) takes a `label` prop: its visible label, tied to it (the field inside a `DitherField`), which is what fixes a placeholder-only name |
 | `image.export` | `id?`, `scale?` (1–4, default 2) — names the PNG's place, `image/<name>.png`; the `export_png` action writes it under your project through the bridge |
 | `code.get` | `id`, `styling?` — the frame as a Solid component, `{ file, code, sheet }`: a `.tsx` file on the kit's Solid layer; `tailwind` (default) keeps the utility classes, `css` (a stylesheet), `modules` (CSS Modules) or `stylex` write the same look in that system while the kit components keep their own styles; `sheet` is the stylesheet the file then imports, `{ file, text }` (null otherwise) |
-| `registry.get` | `is?`, `brief?` — the registry (`brief`: names, labels and groups only), or one component |
-| `video.export` | `id?`, `seconds?` (1–600; a reel's default is its length), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it; a reel with a score adds `score: { path: "score.wav", base64 }` for the index's audio track |
+| `document.get` | — |
+| `document.set` | `document` (validated like a file import; undoable) |
 | `clock.seek` | `seconds?` — hold every animation on the canvas at that moment, so a screenshot is stable from any driver in any browser; without `seconds` time runs again (`clock.release` does the same) |
+| `clock.release` | let time run again |
+| `video.export` | `id?`, `seconds?` (1–600; a reel's default is its length), `fps?` (24/30/60), `theme?` — the frame as a HyperFrames composition: `index` (HTML referencing `./player.js` + `./player.css`) and the `assets` URLs to fetch beside it; a reel with a score adds `score: { path: "score.wav", base64 }` for the index's audio track |
 
 ## 4. Work like the Studio does
 

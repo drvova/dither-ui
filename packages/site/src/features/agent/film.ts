@@ -4,7 +4,7 @@
 // `#new/film` link builds it: the film feature's own demo, and a starting
 // point to recut. Frames are 960x540, so the video renders at 1080p with
 // `--resolution landscape`.
-import { runCommand, type StudioCommand } from "./protocol"
+import { runCommand, type StudioCommand } from "./commands"
 
 const FRAME = { w: 960, h: 540 }
 const GAP = 80
