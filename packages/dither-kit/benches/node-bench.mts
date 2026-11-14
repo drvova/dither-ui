@@ -6,6 +6,9 @@
  *   2. renderDitherGradient with blendRasterPixel vs setOrBlendRasterPixel
  *   3. paintColumn into RasterBuffer
  *   4. JSON.stringify paintSig (per-frame overhead)
+ *   9. the engine profile: one frame of each path in `engine-cases.mts`
+ *      (the poster, the world, the fbm fields, the heat, the wipe, the
+ *      chart fill, the gradient compiler)
  *
  * Run: npm run bench -w @dither-ui/kit
  *      (node --import ./benches/resolve-ts.mts benches/node-bench.mts)
@@ -235,6 +238,21 @@ console.log("--- 8. rgb() string allocation (sparkle per-pixel) ---")
   const stats = measure(rgbFn, WARMUPS, BATCHES * 10)
   console.log(`  rgb() x100:              mean=${fmt(stats.mean)}  median=${fmt(stats.median)}  p95=${fmt(stats.p95)}`)
   console.log(`  100 string allocations per sparkle tick (typical: 20-40 stars × 3-5 glyph points)`)
+}
+
+console.log()
+
+// --- 9. The engine paths the landing and the docs lean on (engine-cases.mts) ---
+console.log("--- 9. Engine profile: one frame each, warmed 300ms, median of 40 ---")
+{
+  const { ENGINE_CASES } = await import("./engine-cases.mts")
+  let frame = 0
+  for (const c of ENGINE_CASES) {
+    const until = performance.now() + 300
+    while (performance.now() < until) c.run(frame++)
+    const stats = measure(() => c.run(frame++), 0, 40)
+    console.log(`  ${fmt(stats.median).padStart(8)}  ${c.name}`)
+  }
 }
 
 console.log()
