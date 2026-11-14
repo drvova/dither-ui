@@ -3,7 +3,7 @@ import { mount, StartClient } from "@solidjs/start/client"
 import { ditherViewTransition } from "@dither-ui/kit/engine/transition.ts"
 import { pageTransitionOptions, takePageTransition } from "@/app/page-reveal"
 import { sheetsReady } from "@/app/sheets-ready"
-import { appPathname, isLanding, routePath } from "@/shared/lib/routes"
+import { appPathname, isLanding, renderedAt, routePath } from "@/shared/lib/routes"
 import { legacyAddress } from "@/shared/lib/legacy"
 import { installPress } from "@/shared/lib/press"
 
@@ -14,6 +14,12 @@ takePageTransition((arrival) => void ditherViewTransition(arrival, pageTransitio
 // What the reader presses gives under the hand and springs back: one
 // listener for every page.
 installPress()
+
+// The page's bytes are taken over in place at the address they were
+// rendered at, which SolidStart reads off its entry's script: a static
+// host's trailing slash is the same address (`renderedAt`).
+const entry = document.querySelector<HTMLScriptElement>("script[data-start-url]")
+if (entry) entry.dataset.startUrl = renderedAt(entry.dataset.startUrl ?? "", location.pathname, location.search)
 
 // An old hash link (`/#/docs/<id>`, `/#/studio/...`) leaves for the page it
 // names, in place of the entry it came by; any other address mounts, once

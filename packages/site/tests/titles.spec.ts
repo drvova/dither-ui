@@ -11,6 +11,20 @@ describe("route titles", () => {
   })
 })
 
+describe("the address a page was rendered at", () => {
+  it("is the reader's under a static host's trailing slash, and only then", async () => {
+    const { renderedAt } = await import("../src/shared/lib/routes")
+    // the host serves the section's folder: the same page, taken over in place
+    expect(renderedAt("/docs/area", "/docs/area/", "")).toBe("/docs/area/")
+    expect(renderedAt("/docs/area?x=1", "/docs/area/", "?x=1")).toBe("/docs/area/?x=1")
+    expect(renderedAt("/", "/", "")).toBe("/")
+    expect(renderedAt("/docs/area", "/docs/area", "")).toBe("/docs/area")
+    // another page's bytes (the missing page's file) stay another page's
+    expect(renderedAt("/404.html", "/docs/nope/", "")).toBe("/404.html")
+    expect(renderedAt("/docs/area", "/docs/bar/", "")).toBe("/docs/area")
+  })
+})
+
 describe("the landing's address", () => {
   it("is the root or its entry file, and nothing else", async () => {
     const { isLanding } = await import("../src/shared/lib/routes")
