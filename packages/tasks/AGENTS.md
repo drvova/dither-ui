@@ -61,7 +61,9 @@ by the site's post-build. Paths here are from this package's root.
   off a screenshot (`measureContrast`: the pixels under its text less the
   glyphs' own, read as their mean in linear light, so an ordered-dither
   fill counts as the raster it is, as the kit inks its labels for it),
-  held to 4.5:1, 3:1 for large text; text in motion (an animation, or an
+  held to 4.5:1, 3:1 for large text, a finding only when a second look a
+  moment later finds it short too (`foundTwice`: a busy machine can stall a
+  fade between its frames); text in motion (an animation, or an
   opacity a script changes while it is read), disabled, hidden from
   assistive technology, covered (by an element, or by a cover that lets
   the pointer through) or drawn through transparent glyphs is not
@@ -119,13 +121,18 @@ by the site's post-build. Paths here are from this package's root.
 - The walk is run by hand, never by a build or the gate. Its checks are
   scripts run in the page, so they hold over WebDriver; it installs no
   browser: `--executable` and `--driver` name the ones a machine has.
-  What a machine without a GPU says (`ENVIRONMENT`), a media file the
+  What a machine without a GPU or the walk's own hand brings about
+  (`ENVIRONMENT`: its scripted pointer, its unfocused windows, where Gecko
+  refuses fullscreen), a media file the
   build holds that the engine cannot play, the refusals a
   page makes by design (`KNOWN_REFUSALS`), a request the page or the
   engine gave up (`GIVEN_UP`) and an engine's own notes on what a page
-  does by design (`ADVISORIES`: Gecko's on a scroll-linked effect; and
-  its "context lost" once for each GL context the page released, which
-  the recorder counts) are named in `walk.mjs` and counted apart;
+  does by design (`ADVISORIES`: Gecko's on a scroll-linked effect; its
+  "context lost" once for each GL context the page released, which
+  the recorder counts; and its unused preload of a face the session's
+  pages preloaded, set and loaded, which it then lays out from its own
+  font cache on every page after the first: `HELD_FACES`, `heldPreload`
+  in `walk-checks.mjs`) are named in `walk.mjs` and counted apart;
   anything else is a finding and the exit code is 1. Every session parks
   the pointer at the window's top left corner before its first page (on
   a display of its own the pointer stands at the screen's centre, and a
@@ -140,7 +147,8 @@ by the site's post-build. Paths here are from this package's root.
 - `tests/kit-css.spec.ts` (`npx rs test` at the root): the compiled
   stylesheet's tokens, scoped base and utilities.
 - `tests/walk-checks.spec.ts` (jsdom): the walk's accessibility rules, each
-  on a page of its own, and every page script compiling as the drivers run
+  on a page of its own, the contrast measured off a shot and looked at
+  twice, and every page script compiling as the drivers run
   it. The site holds the static rules over its built pages
   (`packages/site/tests/site/page-reading.spec.tsx`).
 - The drawing code's pure parts are held where they run, by the site

@@ -49,6 +49,9 @@ import {
   FOCUS_ARRIVED,
   FOCUS_BEFORE,
   FOCUS_OFF,
+  foundTwice,
+  HELD_FACES,
+  heldPreload,
   KEYS_DONE,
   KEYS_END,
   KEYS_READ,
@@ -132,6 +135,9 @@ const ENVIRONMENT = [
   /GL Driver Message .*GPU stall due to ReadPixels/,
   // the walk's pointer is a script's: Gecko holds no active pointer of its id for a surface to capture
   /setPointerCapture: Invalid pointer id/,
+  // the walk's windows each stand on a display of their own, none the focused one: Gecko refuses
+  // fullscreen there (the player stays as it stands), where a reader's key is pressed in the focused window
+  /Request for fullscreen was denied because requesting element is not in the currently focused tab/,
 ]
 
 /** What an engine's own console says of a page doing what it means to:
@@ -713,15 +719,23 @@ async function judgeRun(s, ready, page, n, run, text, label, issue) {
 
 /** The text in the window, its contrast measured off a screenshot. */
 async function sampleContrast(s, rec, ready, issue, at) {
-  const samples = await s.run(CONTRAST, { limit: 160 })
-  if (!samples?.length) return
-  const png = decodePng(await s.shot())
-  const { measured, found } = measureContrast(png, samples, png.width / ready.w || ready.ratio)
-  rec.contrast.samples += measured
+  const look = async () => {
+    const samples = await s.run(CONTRAST, { limit: 160 })
+    if (!samples?.length) return { measured: 0, found: [] }
+    const png = decodePng(await s.shot())
+    return measureContrast(png, samples, png.width / ready.w || ready.ratio)
+  }
+  const first = await look()
+  rec.contrast.samples += first.measured
+  let found = first.found.filter((f) => !rec.contrast.seen.has(f.text))
+  // looked at twice before it is a finding: a busy machine can stall a fade between its frames
+  if (found.length) {
+    await s.run("await window.__walk.sleep(1000)", null)
+    found = foundTwice(found, (await look()).found)
+  }
   for (const f of found) {
-    if (rec.contrast.seen.has(f)) continue
-    rec.contrast.seen.add(f)
-    issue("contrast", `${at}: ${f}`)
+    rec.contrast.seen.add(f.text)
+    issue("contrast", `${at}: ${f.detail}`)
   }
 }
 
@@ -1045,6 +1059,9 @@ async function walkPage(session, server, page) {
     for (const sp of p.spills) issue("phone-spill", sp)
   }
 
+  // the faces this page preloads, sets and holds: Gecko's note on their preload is its own font cache's
+  session.held ??= new Set()
+  for (const file of (await s.run(HELD_FACES, null)) ?? []) session.held.add(file)
   const seen = await s.run(RECORD, null)
   const known = KNOWN_REFUSALS[page.kind] ?? []
   const isKnown = (text) => known.some((k) => k.test(text.split(" ").pop().split(/[?#]/)[0]))
@@ -1063,7 +1080,7 @@ async function walkPage(session, server, page) {
   let released = seen.released ?? 0
   for (const n of [...held.native, ...s.drain()]) {
     const text = strip(n.text)
-    if (ADVISORIES.some((a) => a.test(text))) rec.engine.push(text)
+    if (ADVISORIES.some((a) => a.test(text)) || heldPreload(text, session.held)) rec.engine.push(text)
     else if (RELEASED.test(text) && released > 0) {
       released--
       rec.engine.push(text)
@@ -1326,7 +1343,7 @@ const md = [
   `- steps that took over 8s: ${slow.length ? slow.join(", ") : "none"}`,
   `- pages walked twice, the first walk having stalled and shown an empty canvas: ${again.length ? again.join(", ") : "none"}`,
   `- sections without a demo card: ${totals.bare.length ? totals.bare.join(", ") : "none"}`,
-  `- known refusals: ${totals.known}; the engine's notes on what a page does by design (a context it released, a scroll-linked effect): ${totals.engine}; messages of this machine or of the walk's own pointer, not the page: ${totals.environment}`,
+  `- known refusals: ${totals.known}; the engine's notes on what a page does by design (a context it released, a scroll-linked effect, a preload of a face it already holds): ${totals.engine}; messages of this machine or of the walk's own pointer, not the page: ${totals.environment}`,
   `- findings: ${
     Object.keys(kinds).length
       ? Object.entries(kinds)

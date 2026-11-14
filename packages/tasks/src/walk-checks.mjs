@@ -323,12 +323,58 @@ export function measureContrast(png, samples, scale) {
     const need = s.large ? 3 : 4.5
     if (worst.r < need - 0.05) {
       const hex = (c) => `#${c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`
-      found.push(
-        `${s.where} ${JSON.stringify(s.text)} ${worst.r.toFixed(2)}:1 (${hex(over(s.ink, alpha, worst.ground))} on ${hex(worst.ground)}${worst.raster ? ", a raster's mean" : ""}, ${s.size}px${s.large ? ", large" : ""}; needs ${need}:1)`,
-      )
+      const text = `${s.where} ${JSON.stringify(s.text)}`
+      found.push({
+        text,
+        detail: `${text} ${worst.r.toFixed(2)}:1 (${hex(over(s.ink, alpha, worst.ground))} on ${hex(worst.ground)}${worst.raster ? ", a raster's mean" : ""}, ${s.size}px${s.large ? ", large" : ""}; needs ${need}:1)`,
+      })
     }
   }
   return { measured, found }
+}
+
+/** The text a first look found short of contrast that a second look, a
+ * moment later, finds short again (`measureContrast`'s `found`, named by
+ * where it stands and what it says): a fade a busy machine stalled between
+ * its frames reads on one look as text that never cleared. */
+export function foundTwice(first, again) {
+  const still = new Set(again.map((f) => f.text))
+  return first.filter((f) => still.has(f.text))
+}
+
+// ---------------------------------------------------------------- a face the engine holds
+
+/** The fonts the page preloads that it set and has loaded: each preload
+ * link's file, where an `@font-face` of the page's sheets names it and
+ * that face's family stands loaded in `document.fonts`. */
+export const HELD_FACES = `
+const held = []
+const faces = []
+const read = (rules) => { for (const r of rules) { if (r.type === 5) faces.push(r); else if (r.cssRules) read(r.cssRules) } }
+for (const sheet of document.styleSheets) { try { read(sheet.cssRules) } catch (e) {} }
+const loaded = new Set([...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family.replace(/["']/g, "")))
+for (const link of document.querySelectorAll("link[rel=preload][as=font]")) {
+  const file = new URL(link.href).pathname
+  const name = file.split("/").pop()
+  if (faces.some((r) => r.style.getPropertyValue("src").includes(name) && loaded.has(r.style.getPropertyValue("font-family").replace(/["']/g, "").trim())))
+    held.push(file)
+}
+return held
+`
+
+/** Gecko's note on a font preload: "The resource at “<url>” preloaded
+ * with link preload was not used within a few seconds". Gecko keeps a face
+ * it has loaded across the pages of a visit and lays text out from that,
+ * fetching nothing, so the preload of a face the page does set goes unused
+ * on every page after the first (a plain walk from one docs page to the
+ * next shows it). Such a note is the engine's, when the file is one of
+ * `held`: preloaded, set and loaded (`HELD_FACES`, on any page of the
+ * session, since the note can come after the page has gone). A preload of
+ * a face no page set stays a finding. */
+export function heldPreload(text, held) {
+  const url = /The resource at “([^”]+)” preloaded with link preload was not used/.exec(text)?.[1]
+  if (!url) return false
+  return held.has(new URL(url, "http://x").pathname)
 }
 
 // ---------------------------------------------------------------- what assistive technology meets

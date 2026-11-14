@@ -20,12 +20,16 @@ import {
   FOCUS_BEFORE,
   FOCUS_OFF,
   focusMarks,
+  foundTwice,
+  HELD_FACES,
+  heldPreload,
   hiddenFocus,
   indicated,
   KEYS_DONE,
   KEYS_END,
   KEYS_READ,
   KEYS_START,
+  measureContrast,
   unreached,
 } from "../src/walk-checks.mjs"
 
@@ -227,6 +231,56 @@ describe("focus as a keyboard meets it", () => {
   })
 })
 
+describe("the contrast of text as painted", () => {
+  // a 4x4 shot of one ground, a run of text over all of it
+  const shot = (rgb: number[]) => ({
+    width: 4,
+    height: 4,
+    data: Uint8Array.from({ length: 64 }, (_, i) => (i % 4 === 3 ? 255 : rgb[i % 4])),
+  })
+  const sample = (ink: number[], opacity = 1) => ({
+    rects: [[0, 0, 4, 4]] as [number, number, number, number][],
+    ink,
+    opacity,
+    large: false,
+    size: 12,
+    text: "6",
+    where: "card 1: <div>",
+  })
+
+  it("finds text short of its ground, named by where it stands and what it says", () => {
+    const ground = shot([10, 10, 11])
+    expect(measureContrast(ground, [sample([228, 225, 216, 1])], 1).found).toEqual([])
+    const faded = measureContrast(ground, [sample([228, 225, 216, 1], 0.05)], 1).found
+    expect(faded.map((f) => f.text)).toEqual(['card 1: <div> "6"'])
+    expect(faded[0].detail).toMatch(/^card 1: <div> "6" 1\.\d\d:1 .*needs 4\.5:1\)$/)
+  })
+
+  it("is a finding only when a second look finds it too: a fade a busy machine stalled clears by then", () => {
+    const stalled = measureContrast(shot([10, 10, 11]), [sample([228, 225, 216, 1], 0.05)], 1).found
+    const cleared = measureContrast(shot([10, 10, 11]), [sample([228, 225, 216, 1])], 1).found
+    expect(foundTwice(stalled, cleared)).toEqual([])
+    expect(foundTwice(stalled, stalled)).toEqual(stalled)
+  })
+})
+
+describe("an engine's note on a preloaded face", () => {
+  const note = (url: string) =>
+    `[JavaScript Warning: "The resource at “${url}” preloaded with link preload was not used within a few seconds. Make sure all attributes of the preload tag are set correctly." {file: "/docs/pie/" line: 0}]`
+  const face = "/_build/assets/michroma-latin-4gS0VCia.woff2"
+
+  it("is the engine's when the face was preloaded, set and loaded on a page of the session: Gecko lays it out from its own cache", () => {
+    expect(heldPreload(note(face), new Set([face]))).toBe(true)
+    expect(heldPreload(note(`http://127.0.0.1:4000${face}`), new Set([face]))).toBe(true)
+  })
+
+  it("stays a finding for a face no page set, and for any other note", () => {
+    expect(heldPreload(note(face), new Set())).toBe(false)
+    expect(heldPreload(note("/_build/assets/other.woff2"), new Set([face]))).toBe(false)
+    expect(heldPreload("Request for fullscreen was denied", new Set([face]))).toBe(false)
+  })
+})
+
 describe("the page scripts", () => {
   it("compile as the drivers run them: the body of an async function given arg", () => {
     for (const body of [
@@ -243,6 +297,7 @@ describe("the page scripts", () => {
       DIALOG_OPENED,
       DIALOG_TABBED,
       DIALOG_CLOSED,
+      HELD_FACES,
     ])
       expect(() => new Function("arg", `return (async()=>{${body}\n})()`)).not.toThrow()
   })

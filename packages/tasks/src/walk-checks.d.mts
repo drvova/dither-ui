@@ -50,7 +50,29 @@ export const DIALOG_CLOSED: string
 export const INTERACTIVE: string
 
 export function ratio(a: number[], b: number[]): number
-export function measureContrast(png: Png, samples: unknown[], scale: number): { measured: number; found: string[] }
+/** Text short of contrast: where it stands and what it says (`text`), and
+ * the finding as the report words it. */
+export type ContrastFound = { text: string; detail: string }
+
+/** A run of text as the page script `CONTRAST` hands it over. */
+export type ContrastSample = {
+  rects: [number, number, number, number][]
+  ink: number[]
+  opacity: number
+  large: boolean
+  size: number
+  text: string
+  where: string
+}
+
+export function measureContrast(
+  png: Png,
+  samples: ContrastSample[],
+  scale: number,
+): { measured: number; found: ContrastFound[] }
+export function foundTwice(first: ContrastFound[], again: ContrastFound[]): ContrastFound[]
+export const HELD_FACES: string
+export function heldPreload(text: string, held: Set<string>): boolean
 export function concealed(el: Element): boolean
 export function roleOf(el: Element): string
 export function accessibleName(el: Element): string
