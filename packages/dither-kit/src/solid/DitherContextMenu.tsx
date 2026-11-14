@@ -1,5 +1,6 @@
 import { createEffect, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
+import { inView } from "../engine/place"
 
 export type ContextMenuItem = {
   label?: string
@@ -27,13 +28,8 @@ export default function DitherContextMenu(props: DitherContextMenuProps) {
     queueMicrotask(() => {
       // Clamp inside the viewport — menus opened near an edge flip inward.
       const at = pos()
-      if (panel && at) {
-        const r = panel.getBoundingClientRect()
-        setPos({
-          x: Math.max(8, Math.min(at.x, window.innerWidth - r.width - 8)),
-          y: Math.max(8, Math.min(at.y, window.innerHeight - r.height - 8)),
-        })
-      }
+      if (panel && at)
+        setPos(inView(at, panel.getBoundingClientRect(), { width: window.innerWidth, height: window.innerHeight }))
       panel?.focus()
     })
   }

@@ -40,6 +40,7 @@ export {
   type Terms,
 } from "./keyframes"
 export { project, rubberband } from "./gesture"
+export { inView } from "./place"
 export type {
   BloomBlend,
   BloomConfig,

@@ -965,6 +965,10 @@ generated twin. Inside the kit every import is relative
   uses these, never re-derives them. Gesture rules: 1:1 tracking with
   setPointerCapture, rubber-band against the dismiss direction, velocity sign
   decides a flick, projection decides a slow drag.
+- `place.ts` owns where a floating panel opened at a point stands
+  (`inView`: moved in to stay 8px inside the view, never off it);
+  `DitherContextMenu` and the site's own context menu use it
+  (`tests/place.spec.ts`).
 - All primary canvas contexts must be created with `{ willReadFrequently: true }`
   because the kit uses `putImageData` for bulk pixel writes. Bloom canvases omit
   the flag (they only use `drawImage`).

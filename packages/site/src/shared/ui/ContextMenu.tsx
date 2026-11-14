@@ -1,5 +1,6 @@
-import { For, onCleanup, onMount, Show } from "solid-js"
+import { createEffect, createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
+import { inView } from "@dither-ui/kit/engine"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { focusFirstMenuItem, menuKeydown } from "@/shared/lib/menu"
 
@@ -24,6 +25,13 @@ export default function ContextMenu(props: ContextMenuProps) {
   }
   const close = () => props.onClose?.()
   let root: HTMLDivElement | undefined
+  // Opened at the pointer, then moved in once measured: a long press on a
+  // row at the window's right edge must not open a menu half off it.
+  const [at, setAt] = createSignal({ x: props.x, y: props.y })
+  createEffect(() => {
+    const point = { x: props.x, y: props.y }
+    setAt(root ? inView(point, root.getBoundingClientRect(), { width: innerWidth, height: innerHeight }) : point)
+  })
 
   onMount(() => {
     queueMicrotask(() => focusFirstMenuItem(root ?? null))
@@ -49,7 +57,7 @@ export default function ContextMenu(props: ContextMenuProps) {
         aria-orientation="vertical"
         on:keydown={menuKeydown}
         class="fixed z-[100] min-w-[172px] rim rounded-2xl bg-card p-1 font-mono text-foreground shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)]"
-        style={{ left: `${props.x}px`, top: `${props.y}px` }}
+        style={{ left: `${at().x}px`, top: `${at().y}px` }}
         on:pointerdown={(e) => e.stopPropagation()}
         on:contextmenu={(e) => e.preventDefault()}
       >
