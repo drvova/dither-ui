@@ -10,8 +10,6 @@
 import { createEffect, createMemo, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import {
-  Area,
-  AreaChart,
   DitherButton,
   DitherDecryptedText,
   DitherGauge,
@@ -23,12 +21,8 @@ import {
   DitherScreen,
   DitherSilk,
   DitherSlideAction,
-  DitherWorld,
   SCREEN_KINDS,
-  Sparkline,
-  XAxis,
   cssColor,
-  sampleWorld,
   type ButtonVariant,
   type DitherColor,
   type ScreenKind,
@@ -41,14 +35,15 @@ import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "@/pages/landing/stat"
 import { lazyPart, rise, routePath } from "@/shared/lib"
 import { railIndex, railStarts } from "./rail"
 import { scene } from "@/shared/lib/scroll-scene-ref"
+import { Area, AreaChart, Sparkline, XAxis } from "@/shared/ui/charts"
 import PauseChip from "./PauseChip"
+import { DitherShader, SampleWorld } from "./parts"
 import RiseWords from "./RiseWords"
 import "./Examples.css"
 
 // The heavy cards are their own chunks, fetched as the card nears the
-// viewport: the shader's WebGL engine, the translator's utility map, the
-// fluid's canvas engine.
-const DitherShader = lazyPart(() => import("@dither-ui/kit/solid/DitherShader.tsx"))
+// viewport: the shader's WebGL engine (`parts.tsx`), the translator's
+// utility map, the fluid's canvas engine.
 const ExportScene = lazyPart(() => import("./ExportScene"))
 const DitherFerrofluid = lazyPart(() => import("@dither-ui/kit/solid/Ferrofluid.tsx"))
 const LAZY = new Set(["shader", "styling", "ferrofluid"])
@@ -259,7 +254,6 @@ export default function Examples() {
 
   const [ramp, setRamp] = createSignal<Ramp>("blue")
   const [model, setModel] = createSignal(7)
-  const world = createMemo(() => sampleWorld(model()))
 
   // Rating.
   // The instrument: the knob sets the load, the dial's needle settles on it.
@@ -296,8 +290,8 @@ export default function Examples() {
       case "world":
         return (
           <>
-            <DitherWorld
-              source={world()}
+            <SampleWorld
+              model={model()}
               colors={RAMPS[ramp()]}
               autoRotate={playing("world") ? 14 : 0}
               grain={0.4}

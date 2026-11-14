@@ -51,15 +51,17 @@ export const HARNESSES = [
   { id: "auggie", name: "Auggie" },
 ] as const
 
-/** Every model format the kit reads, as the page names it: keyed by the
- * kit's own list, so a format it learns is a type error here until named. */
+/** Every model format the kit reads, as the page names it, in the kit's
+ * own order (`MODEL_FORMATS`): keyed by its list, so a format it learns is a
+ * type error here until named. The page lists these, never the kit's list,
+ * which would carry the model parsers into the landing's first load. */
 export const MODEL_NAMES: Record<ModelFormat, string> = {
   vrml: "VRML 1 and 97",
   x3d: "X3D",
-  gltf: "glTF and GLB",
   obj: "OBJ with MTL",
   stl: "STL",
   ply: "PLY",
   off: "OFF",
+  gltf: "glTF and GLB",
   splat: "Gaussian splats",
 }

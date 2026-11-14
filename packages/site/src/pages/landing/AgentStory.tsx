@@ -13,16 +13,9 @@
 // whole session and screen. Screen readers get the whole session as a
 // caption; the stage that plays it is decoration.
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js"
-import {
-  DitherIcon,
-  DitherNumberText,
-  DitherProgress,
-  DitherSpinner,
-  DitherSwitch,
-  DitherText,
-  Sparkline,
-} from "@dither-ui/kit"
+import { DitherIcon, DitherNumberText, DitherProgress, DitherSpinner, DitherSwitch, DitherText } from "@dither-ui/kit"
 import { ASK, DAYS, DEPLOYS, DOES, lineState, PARTS, RENDER, STEPS } from "@/pages/landing/story"
+import { Sparkline } from "@/shared/ui/charts"
 import "./AgentStory.css"
 
 const LAST = STEPS - 1

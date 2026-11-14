@@ -20,7 +20,8 @@ import { RISE } from "@/shared/lib/rise"
 import { RISE_LIVE } from "@/shared/lib/rise-wait"
 import { STYLING_LABELS } from "@dither-ui/restyle"
 import { rise } from "../../src/shared/lib"
-import { LandingPage, MissingPage } from "../../src/pages/landing"
+import LandingPage from "../../src/pages/landing/LandingPage"
+import MissingPage from "../../src/pages/landing/MissingPage"
 import AgentStory from "../../src/pages/landing/AgentStory"
 import BrandBuild from "../../src/pages/landing/BrandBuild"
 import BrandGather from "../../src/pages/landing/BrandGather"
@@ -37,6 +38,7 @@ import Showcase from "../../src/pages/landing/Showcase"
 import TrailerDialog from "../../src/pages/landing/TrailerDialog"
 import WorksWith from "../../src/pages/landing/WorksWith"
 import { useDrive } from "../../src/pages/landing/drive"
+import { DitherWorld } from "../../src/pages/landing/parts"
 import { world } from "@dither-ui/kit/testing/world.ts"
 
 // Every reveal the bento makes, as the props it was handed: its delay is
@@ -456,6 +458,8 @@ describe("the brand's moment", () => {
 // of the whole page in the middle of mounting it.
 describe("mounting reads no layout", () => {
   it("the build's stage takes its first reading in the frame, not as it mounts", async () => {
+    // the world engine is a chunk of its own (`parts.tsx`), loaded first
+    await DitherWorld.preload()
     const boxes = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect")
     const w = render(() => <BrandBuild />)
     expect(boxes).not.toHaveBeenCalled()
@@ -810,6 +814,8 @@ describe("what it works with", () => {
       HARNESSES.map((h) => h.name),
       MODEL_FORMATS.map((f) => MODEL_NAMES[f]),
     ])
+    // the page lists the names, in the kit's order
+    expect(Object.keys(MODEL_NAMES)).toEqual([...MODEL_FORMATS])
     expect(all(lists[2], "svg")).toHaveLength(0)
     expect(lists[2].className).toBe("files")
     expect(all(section, ".works-more").map(text)).toEqual([
