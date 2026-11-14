@@ -273,10 +273,36 @@ export type Channels = {
   dispose: () => void
 }
 
+/** Upload `data`, an RGBA raster with its rows top-down as the kit holds
+ * them, to the bound `TEXTURE_2D` with its rows bottom-up as GL reads a
+ * texture. Flipped here, never through `UNPACK_FLIP_Y_WEBGL`: Gecko
+ * deprecates that flag for array uploads and warns on every one (it stays
+ * for images, canvases and videos). `scratch` holds the flipped copy and
+ * is reused while its size fits; the copy is returned for the next call. */
+export function uploadRows(
+  gl: Gl,
+  width: number,
+  height: number,
+  data: Uint8Array | Uint8ClampedArray,
+  scratch?: Uint8Array,
+): Uint8Array {
+  const row = width * 4
+  const out = scratch && scratch.length === row * height ? scratch : new Uint8Array(row * height)
+  for (let y = 0; y < height; y++) out.set(data.subarray(y * row, (y + 1) * row), (height - 1 - y) * row)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, out)
+  return out
+}
+
 /** The four channel textures of one program, re-uploaded only when a surface painted. */
 export function createChannels(h: GlHandle): Channels {
   const gl = h.gl
-  const slots = [0, 1, 2, 3].map(() => ({ tex: null as WebGLTexture | null, version: -1, w: 0, h: 0 }))
+  const slots = [0, 1, 2, 3].map(() => ({
+    tex: null as WebGLTexture | null,
+    version: -1,
+    w: 0,
+    h: 0,
+    rows: undefined as Uint8Array | undefined,
+  }))
   return {
     upload(inputs, first, t, ms) {
       const res = new Float32Array(12)
@@ -298,27 +324,18 @@ export function createChannels(h: GlHandle): Channels {
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
           slot.version = -1
         } else gl.bindTexture(gl.TEXTURE_2D, slot.tex)
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
         if (surface) {
           const raster = surface.pull(ms)
           if (raster && (surface.version() !== slot.version || slot.w !== raster.width || slot.h !== raster.height)) {
-            gl.texImage2D(
-              gl.TEXTURE_2D,
-              0,
-              gl.RGBA,
-              raster.width,
-              raster.height,
-              0,
-              gl.RGBA,
-              gl.UNSIGNED_BYTE,
-              raster.data,
-            )
+            slot.rows = uploadRows(gl, raster.width, raster.height, raster.data, slot.rows)
             slot.version = surface.version()
             slot.w = raster.width
             slot.h = raster.height
           }
         } else if (element) {
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, element)
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
           slot.w = (element as HTMLCanvasElement).width ?? 0
           slot.h = (element as HTMLCanvasElement).height ?? 0
         }
@@ -327,7 +344,6 @@ export function createChannels(h: GlHandle): Channels {
         res[i * 3 + 2] = 1
         times[i] = t
       }
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
       return { res, times }
     },
     dispose() {

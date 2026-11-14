@@ -772,8 +772,12 @@ generated twin. Inside the kit every import is relative
   the channel binding: `ChannelInput` (a surface, what a component
   hands its `ref`, a kit canvas → its surface; any canvas, image or video),
   `bindChannel`, `createChannels` (the four textures of one program,
-  re-uploaded only when a surface painted, FLIP_Y upright,
-  `iChannelResolution` / `iChannelTime`) and `rasterOf` (the same input as
+  re-uploaded only when a surface painted, upright,
+  `iChannelResolution` / `iChannelTime`), `uploadRows` (a raster's rows
+  flipped bottom-up in a reused copy as it goes up: every array upload of
+  the kit's, the world's target and coordinates too; `UNPACK_FLIP_Y_WEBGL`
+  only for an image, canvas or video, since Gecko deprecates it for arrays
+  and warned on every frame; `tests/gl-upload.spec.ts`) and `rasterOf` (the same input as
   a raster for the CPU engines). The GPU is only ever an evaluator — every
   surface still dithers on the CPU.
 - `shader.ts` + `DitherShader.tsx` are the GLSL surface. The pure half:
