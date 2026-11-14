@@ -120,6 +120,17 @@ export function pageTags(page: RouteName, section = ""): HeadTag[] {
  * share cards' renderer carry none of the site's head. */
 const NOT_SITE = ["/play", "/og"]
 
+/** Whether a page sets type in the display face, so the shell fetches the
+ * face with its HTML: the landing, the docs and the missing page do; the
+ * Studio sets none, and a preload a page never uses is a fetch wasted on
+ * every load (the browser warns of it once the page has loaded). */
+export const DISPLAY_FACE: Record<RouteName, boolean> = {
+  landing: true,
+  docs: true,
+  missing: true,
+  studio: false,
+}
+
 /** The page an app path (`appPathname`) opens on, as the routes resolve
  * it: a docs address is the docs only when its section exists, and any
  * other address none of the pages own is the missing page. `null` for an

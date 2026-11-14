@@ -7,7 +7,7 @@ import { PAGE_END_ID, PAGE_REVEAL_SCRIPT, speculationRules } from "@/app/page-re
 import michroma from "@/shared/fonts/michroma-latin.woff2?url"
 import { appPathname, assetPath } from "@/shared/lib/routes"
 import { RISE_HEAD_SCRIPT } from "@/shared/lib/rise-wait"
-import { pageOf } from "@/pages/docs/heads"
+import { DISPLAY_FACE, pageOf } from "@/pages/docs/heads"
 
 // The shell every page is rendered into. The landing is printed in the
 // dark, always; a page that turns with the reader's theme sets it itself.
@@ -32,7 +32,9 @@ export default createHandler(() => (
               <script innerHTML={RISE_HEAD_SCRIPT} />
               <script type="speculationrules" innerHTML={speculationRules(import.meta.env.BASE_URL)} />
               <For each={ICON_HEAD}>{(t) => <link {...t.attrs} href={assetPath(t.attrs.href)} />}</For>
-              <link href={michroma} rel="preload" as="font" crossorigin="" />
+              <Show when={page && DISPLAY_FACE[page]}>
+                <link href={michroma} rel="preload" as="font" crossorigin="" />
+              </Show>
             </Show>
             {assets}
           </head>

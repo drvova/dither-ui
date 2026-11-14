@@ -22,7 +22,7 @@ import { ROUTE_TITLES } from "@/shared/config/titles"
 import { RISE_HEAD_SCRIPT } from "@/shared/lib/rise-wait"
 import { CAPTURE_PATH } from "@/shared/ui/mascot-capture"
 import { siteFileList, siteFiles } from "../../build/site-files"
-import { BREADCRUMB_ID, pageOf, pageTags, type SitePage } from "../../src/pages/docs/heads"
+import { BREADCRUMB_ID, DISPLAY_FACE, pageOf, pageTags, type SitePage } from "../../src/pages/docs/heads"
 import PageHead from "../../src/pages/docs/PageHead"
 import { legacyAddress } from "../../src/shared/lib/legacy"
 
@@ -385,10 +385,12 @@ describe.skipIf(!existsSync(join(OUT, "index.html")))("the built pages", () => {
         expect(existsSync(join(OUT, t.attrs.href))).toBe(true)
       }
       expect(doc.head.querySelectorAll("link[rel=manifest]")).toHaveLength(name === "studio" ? 1 : 0)
+      // the display face is fetched with the HTML only where the page sets it
       const face = doc.head.querySelector<HTMLLinkElement>(
         'link[rel=preload][as=font][crossorigin][href*="michroma-latin"]',
       )
-      expect(existsSync(join(OUT, face!.getAttribute("href")!))).toBe(true)
+      if (DISPLAY_FACE[name]) expect(existsSync(join(OUT, face!.getAttribute("href")!))).toBe(true)
+      else expect(face).toBeNull()
       expect(doc.body.lastElementChild?.id).toBe(PAGE_END_ID)
       expect(html.match(/name="robots" content="([^"]+)"/g)).toHaveLength(1)
       expect(html).toContain(name === "missing" ? 'name="robots" content="noindex"' : 'content="index, follow"')

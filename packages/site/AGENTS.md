@@ -82,7 +82,7 @@ are from the repository's.
   its own theme colour (the Studio also the app's tags, `APP_HEAD`, and
   the worker's registration). The shell (`entry-server.tsx`) carries what
   every site page shares: `data-page` on `<html>` from the request's
-  path, the icons, the display face's preload, the page-reveal and rise
+  path, the icons, the display face's preload on the pages that set it (`DISPLAY_FACE`), the page-reveal and rise
   scripts, the speculation rules and the `#page-end` marker.
   `entry-client.tsx` takes the page transition the head script parks,
   installs the press (`shared/lib/press.ts`, one listener for every page),
