@@ -154,7 +154,9 @@ export default function DitherSidebar(raw: DitherSidebarProps) {
             />
           </Show>
           {props.header}
-          <nav {...stylex.props(styles.nav)}>{props.children}</nav>
+          <nav aria-label={props.label} {...stylex.props(styles.nav)}>
+            {props.children}
+          </nav>
           {props.footer}
           <Show when={props.collapse === "rail" && props.toggle}>
             <button

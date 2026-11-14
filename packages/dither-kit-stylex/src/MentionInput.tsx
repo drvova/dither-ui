@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/MentionInput.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, createSignal, For, mergeProps, Show } from "solid-js"
+import { isTab } from "@dither-ui/kit/engine/keys.ts"
 import { cn, type StyleProp } from "./lib"
 import * as stylex from "@stylexjs/stylex"
 
@@ -72,7 +73,9 @@ const styles = stylex.create({
 /** @-mention autocomplete over a textarea: detection is a regex on the text
  * before the caret (`/@(\w*)$/`), the list anchors to the field (not the
  * caret — no mirror div), Arrow keys pick, Enter/Tab inserts, Escape closes.
- * Selection replaces the @query and leaves the caret after a space. */
+ * Selection replaces the @query and leaves the caret after a space. A key
+ * that moves no caret (Tab coming in, Escape) opens nothing, so Tab always
+ * leaves: once to insert, then on. */
 export type MentionInputProps = {
   modelValue?: string
   options?: string[]
@@ -84,6 +87,9 @@ export type MentionInputProps = {
   onUpdateModelValue?: (value: string) => void
   onMention?: (value: string) => void
 }
+
+/** Keys that move no caret: their keyup never opens the list. */
+const STILL_KEYS = new Set(["Escape", "Shift", "Control", "Alt", "Meta", "Enter"])
 
 export default function MentionInput(raw: MentionInputProps) {
   const props = mergeProps(
@@ -141,7 +147,7 @@ export default function MentionInput(raw: MentionInputProps) {
     } else if (e.key === "ArrowUp") {
       e.preventDefault()
       setActive((active() - 1 + matches().length) % matches().length)
-    } else if (e.key === "Enter" || e.key === "Tab") {
+    } else if (e.key === "Enter" || isTab(e)) {
       const pick = matches()[active()]
       if (pick) {
         e.preventDefault()
@@ -163,7 +169,7 @@ export default function MentionInput(raw: MentionInputProps) {
         disabled={props.disabled}
         class={cn(styles.textarea, props.xstyle, props.class)}
         onInput={(e) => props.onUpdateModelValue?.(e.currentTarget.value)}
-        onKeyUp={syncOpen}
+        onKeyUp={(e) => isTab(e) || STILL_KEYS.has(e.key) || syncOpen()}
         onClick={syncOpen}
         onKeyDown={onKeydown}
       />

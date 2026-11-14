@@ -28,8 +28,8 @@ import {
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
 
-const SNIPPET_HEADING = `<DitherHeading level="1">Page title</DitherHeading>
-<DitherHeading level="2">Section title</DitherHeading>
+const SNIPPET_HEADING = `<DitherHeading level="2">Section title</DitherHeading>
+<DitherHeading level="3">Part title</DitherHeading>
 <DitherHeading level="4" class="text-muted-foreground">Quiet subhead</DitherHeading>`
 
 const SNIPPET_LABEL = `<DitherLabel for="email" required>Email</DitherLabel>
@@ -112,7 +112,10 @@ const SNIPPET_EMOJI = `<DitherEmoji char="🚀" label="launch" />
 <DitherEmoji char="🔥" label="trending" class="text-lg" />`
 
 const API: Record<string, PropRow[]> = {
-  heading: [{ prop: "level", type: "1 | 2 | 3 | 4 | 5 | 6", default: "2" }],
+  heading: [
+    { prop: "level", type: "1 | 2 | 3 | 4 | 5 | 6", default: "2" },
+    { prop: "size", type: "1 | 2 | 3 | 4 | 5 | 6", default: "level" },
+  ],
   label: [{ prop: "required", type: "boolean", default: "false" }],
   caption: [{ prop: "tone", type: '"muted" | "faint"', default: '"muted"' }],
   overline: [{ prop: "tone", type: '"muted" | "faint"', default: '"muted"' }],
@@ -209,12 +212,14 @@ export default function TypographyDocs() {
         <h2 class="text-lg tracking-tight">Heading</h2>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Semantic h1–h6 on the site's scale: level picks the size and weight,{" "}
-          <code class="text-foreground/80">class</code> overrides anything below.
+          <code class="text-foreground/80">size</code> draws it at another step when the outline and the look part (a
+          card's title under a section: level 3, size 4), <code class="text-foreground/80">class</code> overrides
+          anything below.
         </p>
         <DemoCard code={SNIPPET_HEADING}>
           <div class="grid gap-2 text-left">
-            <DitherHeading level="1">Page title</DitherHeading>
             <DitherHeading level="2">Section title</DitherHeading>
+            <DitherHeading level="3">Part title</DitherHeading>
             <DitherHeading class="text-muted-foreground" level="4">
               Quiet subhead
             </DitherHeading>

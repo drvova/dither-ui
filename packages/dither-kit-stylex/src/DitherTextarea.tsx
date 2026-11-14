@@ -2,7 +2,7 @@
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, type JSX, mergeProps, splitProps } from "solid-js"
 import { cssColor } from "@dither-ui/kit/engine/palette.ts"
-import { CONTROL } from "./control"
+import { CONTROL, CONTROL_INVALID } from "./control"
 import { cn, type StyleProp } from "./lib"
 import { useField } from "@dither-ui/kit/solid/runtime/field.ts"
 import * as stylex from "@stylexjs/stylex"
@@ -78,7 +78,7 @@ export default function DitherTextarea(raw: DitherTextareaProps) {
       aria-invalid={invalid() || undefined}
       aria-describedby={rest["aria-describedby"] ?? field?.describedBy()}
       style={{ ...props.style, resize: props.resize, ...(invalid() ? { "border-color": cssColor("red") } : {}) }}
-      class={cn(CONTROL, styles.textarea, props.xstyle, props.class)}
+      class={cn(CONTROL, invalid() && CONTROL_INVALID, styles.textarea, props.xstyle, props.class)}
       onInput={onInput}
     />
   )

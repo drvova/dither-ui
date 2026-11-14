@@ -13,6 +13,7 @@ import Crosshair from "../../src/solid/Crosshair"
 import CurrencyInput from "../../src/solid/CurrencyInput"
 import DatePicker from "../../src/solid/DatePicker"
 import DitherBracket from "../../src/solid/DitherBracket"
+import DitherField from "../../src/solid/DitherField"
 import DitherInput from "../../src/solid/DitherInput"
 import DitherToaster from "../../src/solid/DitherToaster"
 import EmailInput from "../../src/solid/EmailInput"
@@ -42,6 +43,7 @@ import TagInput from "../../src/solid/TagInput"
 import Text from "../../src/solid/Text"
 import { FieldContextKey } from "../../src/solid/runtime/field"
 import { dismiss, toast, toasts } from "../../src/solid/runtime/toast"
+import { CONTROL_INVALID } from "../../src/tailwind/control"
 import { world } from "../support/world"
 
 let w: ReturnType<typeof world>
@@ -88,6 +90,8 @@ describe("DitherInput", () => {
     expect(input.id).toBe("f1")
     expect(input.getAttribute("aria-describedby")).toBe("f1-help")
     expect(input.getAttribute("aria-invalid")).toBe("true")
+    // its edge is the signal ink's, which no focus class outranks: focus rings it instead
+    for (const c of CONTROL_INVALID.split(" ")) expect(input.classList.contains(c)).toBe(true)
   })
 
   it("lets its own id win over the field's", () => {
@@ -191,6 +195,15 @@ describe("the input family", () => {
     expect(onUpdate).toHaveBeenLastCalledWith("")
   })
 
+  it("HotkeyInput lets Tab and Shift+Tab move focus on: a bare Tab is never a shortcut", () => {
+    const onUpdate = vi.fn()
+    render(() => <HotkeyInput aria-label="Shortcut" onUpdateModelValue={onUpdate} />)
+    const input = screen.getByRole("textbox", { name: "Shortcut" })
+    expect(fireEvent.keyDown(input, { key: "Tab" })).toBe(true)
+    expect(fireEvent.keyDown(input, { key: "Tab", shiftKey: true })).toBe(true)
+    expect(onUpdate).not.toHaveBeenCalled()
+  })
+
   it("ScrubInput is a slider the keyboard steps, clamped to its range", () => {
     const onUpdate = vi.fn()
     render(() => <ScrubInput modelValue={5} max={10} step={0.5} onUpdateModelValue={onUpdate} />)
@@ -221,6 +234,17 @@ describe("the input family", () => {
 })
 
 describe("InlineEdit", () => {
+  it("in a field, is what its label points at, named by the label and its value", () => {
+    render(() => (
+      <DitherField label="Display name" description="Click to edit">
+        <InlineEdit modelValue="Ada" />
+      </DitherField>
+    ))
+    const view = screen.getByRole("button", { name: "Display name Ada" })
+    expect(document.querySelector("label")!.htmlFor).toBe(view.id)
+    expect(document.getElementById(view.getAttribute("aria-describedby")!)!.textContent).toBe("Click to edit")
+  })
+
   it("opens an input on its text, and saves on Enter only what changed", async () => {
     const onSave = vi.fn()
     const onUpdate = vi.fn()
@@ -483,7 +507,7 @@ describe("DatePicker", () => {
     const onSelect = vi.fn()
     const onUpdate = vi.fn()
     render(() => <DatePicker onSelect={onSelect} onUpdateModelValue={onUpdate} modelValue="2026-03-15" />)
-    fireEvent.focus(screen.getByRole("button", { name: "Mar 15, 2026" }))
+    fireEvent.click(screen.getByRole("button", { name: "Mar 15, 2026" }))
     fireEvent.click(document.getElementById("dk-cal-2026-03-20")!)
     expect(onUpdate).toHaveBeenCalledWith("2026-03-20")
     expect(onSelect).toHaveBeenCalledWith("2026-03-20")
@@ -491,6 +515,24 @@ describe("DatePicker", () => {
     fireEvent.click(screen.getByRole("button", { name: "Mar 15, 2026" }))
     fireEvent.pointerDown(document.body)
     expect(screen.queryByRole("dialog")).toBeNull()
+  })
+
+  it("opens nothing on focus; opened, its day takes focus, and Escape or a pick hands it back to the field", async () => {
+    render(() => <DatePicker modelValue="2026-03-15" />)
+    const trigger = screen.getByRole("button", { name: "Mar 15, 2026" })
+    trigger.focus()
+    fireEvent.focus(trigger)
+    expect(screen.queryByRole("dialog")).toBeNull()
+    fireEvent.click(trigger)
+    await Promise.resolve()
+    expect(document.activeElement).toBe(document.getElementById("dk-cal-2026-03-15"))
+    fireEvent.keyDown(document.activeElement!, { key: "Escape" })
+    expect(screen.queryByRole("dialog")).toBeNull()
+    expect(document.activeElement).toBe(trigger)
+    fireEvent.click(trigger)
+    await Promise.resolve()
+    fireEvent.click(document.getElementById("dk-cal-2026-03-20")!)
+    expect(document.activeElement).toBe(trigger)
   })
 
   it("shows its placeholder without a date", () => {

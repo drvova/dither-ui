@@ -492,6 +492,19 @@ describe("DitherVideoPlayer", () => {
     expect(pause).toHaveBeenCalledTimes(1)
   })
 
+  it("stays paused, throwing nothing, when the browser refuses to play its source", async () => {
+    // what an open build's Chromium answers an H.264 film with
+    const refused = Promise.reject(new Error("The element has no supported sources."))
+    const handled = vi.spyOn(refused, "catch")
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockReturnValue(refused)
+    const { getByRole } = render(() => <DitherVideoPlayer src="/film.mp4" />)
+    fireEvent.click(getByRole("button", { name: "Play" }))
+    expect(play).toHaveBeenCalledTimes(1)
+    expect(handled).toHaveBeenCalledTimes(1)
+    await refused.catch(() => {})
+    expect(getByRole("button", { name: "Play" })).toBeTruthy()
+  })
+
   it("mutes, changes speed and seeks", () => {
     const { getByRole, container } = render(() => <DitherVideoPlayer src="/film.mp4" />)
     const host = getByRole("group", { name: "Video" })

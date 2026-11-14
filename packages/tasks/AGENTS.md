@@ -38,9 +38,10 @@ by the site's post-build. Paths here are from this package's root.
   Studio a frame added, selected, changed, undone, redone and search
   opened. Every section walks again in light (`--light all`, or a number
   for the first few of each family and one in eight of the rest). It
-  lists the registry's components no docs example renders. Flags:
-  `--jobs`, `--only`, `--run`, `--styles`, `--light`, `--phone`,
-  `--contrast`. Out: `<out>/<engine>.json`, `<engine>.md` and
+  lists the registry's components no docs example renders. Every page in
+  the dark has its keyboard and screen-reader pass (`--a11y`, below).
+  Flags: `--jobs`, `--only`, `--run`, `--styles`, `--light`, `--phone`,
+  `--contrast`, `--a11y`. Out: `<out>/<engine>.json`, `<engine>.md` and
   `shots/<engine>/`.
 - `src/walk-checks.mjs`: the walk's audits of what a reader sees. `PHONE`
   (`--phone on`: every page again in the dark at an iPhone's size, 390x844,
@@ -64,12 +65,36 @@ by the site's post-build. Paths here are from this package's root.
   opacity a script changes while it is read), disabled, hidden from
   assistive technology, covered (by an element, or by a cover that lets
   the pointer through) or drawn through transparent glyphs is not
-  sampled.
+  sampled. What assistive technology meets (`--a11y on`, every page in the
+  dark, desktop and phone), its rules functions the page scripts are
+  written from (`A11Y`, `KEYS_*`, `FOCUS_*`, `DIALOG_*`; types in
+  `walk-checks.d.mts`, exported as `@dither-ui/tasks/walk-checks`): the
+  page read (`auditA11y`: every operable element named by accname's rules,
+  a button's label included; ids once and every `aria-labelledby`,
+  `-describedby`, `-controls`, `-owns`, `-activedescendant` and `for` id
+  standing, a collapsed key's `aria-controls` excepted; one h1 and no level
+  skipped going down inside main; one main and each landmark of a kind
+  there are several of named, apart, save demos of one component on its
+  docs page; every image given a text or hidden); on the desktop Tab
+  pressed through the page until focus comes round (`press` on the
+  driver: the keyboard's own presses), every operable element that shows
+  reached (a composite widget's one stop, or the widget itself holding
+  focus, stands for the members it keeps out of the tab order), focus
+  never under aria-hidden, inert or unrendered, nor transparent once Tab's
+  smooth scroll and the page's reveal have settled, every stop showing a
+  mark of focus (its style or its nearest boxes' changed; else looked at
+  on screen, Tabbed to against unfocused), and Tab never held (a field
+  that keeps it is given Escape, then Tab); then every key that opens a
+  dialog (`aria-haspopup=dialog`, the page's named keys in `walk.mjs`, and
+  on a docs section every plain button of a demo, tried) pressed with
+  Enter: focus moves in, a modal keeps Tab and Shift+Tab inside, Escape
+  closes it and focus comes back to its key; at a phone's size the page is
+  read and its menu sheets walked.
 - `src/walk-drivers.mjs`: what the walk stands on: the static server (a
   recorder first in every page's head, the theme set and the docs' styling
   put back to Tailwind before the app reads them), the devices it looks
   through (`DEVICES`: the desktop and the phone; a session opens on one),
-  the one driver shape (`go`, `run`, `shot`, `drain`, `close`) over
+  the one driver shape (`go`, `run`, `shot`, `press`, `drain`, `close`) over
   Playwright for Chromium and plain W3C WebDriver for WebKit
   (`WebKitWebDriver` + `MiniBrowser`) and
   Firefox (`geckodriver`; with none on the machine, Playwright's own
@@ -114,6 +139,10 @@ by the site's post-build. Paths here are from this package's root.
 
 - `tests/kit-css.spec.ts` (`npx rs test` at the root): the compiled
   stylesheet's tokens, scoped base and utilities.
+- `tests/walk-checks.spec.ts` (jsdom): the walk's accessibility rules, each
+  on a page of its own, and every page script compiling as the drivers run
+  it. The site holds the static rules over its built pages
+  (`packages/site/tests/site/page-reading.spec.tsx`).
 - The drawing code's pure parts are held where they run, by the site
   (`packages/site/tests/site/cards.spec.ts`), and its browser parts by the
   site's build, which fails when a card or the registry does.

@@ -280,7 +280,7 @@ describe("NotificationsExamples", () => {
     const rows = () => [...card.querySelectorAll(".max-h-72 section > button")]
     const unread = () => rows().filter((r) => r.querySelector(".sr-only")?.textContent === "unread").length
     const markAll = key(card, "Mark all read") as HTMLButtonElement
-    expect(texts(card, "h4")).toEqual(["Today", "Earlier"])
+    expect(texts(card, "h3")).toEqual(["Today", "Earlier"])
     expect(rows()).toHaveLength(6)
     expect(unread()).toBe(3)
     expect(words(card.querySelector("span.flex")!.textContent)).toBe("Notifications 3")
@@ -295,7 +295,7 @@ describe("NotificationsExamples", () => {
     expect(markAll.disabled).toBe(false)
     fireEvent.click(markAll)
     expect(rows()).toHaveLength(0)
-    expect(texts(card, "h4")).toEqual([])
+    expect(texts(card, "h3")).toEqual([])
     expect(card.querySelector(".max-h-72 > p")?.textContent).toBe("All caught up.")
     expect(markAll.disabled).toBe(true)
     expect(words(card.querySelector("span.flex")!.textContent)).toBe("Notifications")
@@ -394,6 +394,14 @@ describe("TableExamples", () => {
   })
 })
 
+/** An app window's page, beside its sidebar: the window's last part (a
+ * plain block, inside the docs' own main). */
+const page = (card: Element) => {
+  let side: Element = card.querySelector("aside")!
+  while (side.parentElement && side.parentElement.children.length < 2) side = side.parentElement
+  return side.parentElement!.lastElementChild!
+}
+
 describe("SidebarExamples", () => {
   const current = (root: Element) => texts(root, 'button[aria-current="true"]')
 
@@ -411,7 +419,7 @@ describe("SidebarExamples", () => {
   it("folds the dashboard to its rail from the topbar and echoes the picked row", () => {
     const { container } = shown(SidebarExamples)
     const card = well(container, "sidebar-dashboard")
-    const toggle = card.querySelector('main button[aria-label="Collapse sidebar"]')!
+    const toggle = page(card).querySelector('button[aria-label="Collapse sidebar"]')!
     expect(toggle.getAttribute("aria-expanded")).toBe("true")
     expect(words(card.textContent)).toContain("Upgrade to pro")
     expect(card.querySelector('nav[aria-label="Breadcrumb"]')?.lastElementChild?.textContent).toBe("Dashboard")
@@ -430,7 +438,7 @@ describe("SidebarExamples", () => {
   it("counts the filters it holds and resets them", () => {
     const { container } = shown(SidebarExamples)
     const card = well(container, "sidebar-filters")
-    const count = () => card.querySelector("main .tabular-nums > span")!.textContent
+    const count = () => page(card).querySelector(".tabular-nums > span")!.textContent
     const boxes = [...card.querySelectorAll('[role="checkbox"]')]
     expect(boxes.map((b) => words(b.textContent))).toEqual([
       "Prints",
@@ -451,7 +459,7 @@ describe("SidebarExamples", () => {
     expect(count()).toBe("0 filters")
     expect(boxes.map((b) => b.getAttribute("aria-checked"))).toEqual(Array(7).fill("false"))
     expect(card.querySelector<HTMLInputElement>('input[placeholder="Search products…"]')!.value).toBe("")
-    expect(words(card.querySelector("main .tabular-nums")!.textContent)).toBe("0 filters$0–$500")
+    expect(words(page(card).querySelector(".tabular-nums")!.textContent)).toBe("0 filters$0–$500")
   })
 
   it("filters the docs tree by its search, opening what matches", () => {
@@ -471,7 +479,7 @@ describe("SidebarExamples", () => {
     type(search, "the")
     expect(subs().map((s) => [name(s), s.getAttribute("aria-expanded")])).toEqual([["Guides", "true"]])
     fireEvent.click(key(card, "Theming"))
-    expect(texts(card, "main > div").slice(0, 2)).toEqual(["Docs / Theming", "Theming"])
+    expect(texts(page(card), ":scope > div").slice(0, 2)).toEqual(["Docs / Theming", "Theming"])
     type(search, "zzz")
     expect(subs()).toHaveLength(0)
     expect(card.querySelector("p.px-2\\.5")?.textContent).toBe("No pages match “zzz”.")
@@ -490,7 +498,7 @@ describe("SidebarExamples", () => {
     fireEvent.click(rail[2])
     expect(rows()).toEqual(["Today", "Upcoming", "Someday", "Done"])
     expect(current(panel)[0]).toContain("Today")
-    expect(texts(card, "main div div")).toEqual(["Tasks", "Today"])
+    expect(texts(page(card), ":scope div div")).toEqual(["Tasks", "Today"])
   })
 
   it("follows the todo lists in the footer's count", () => {
@@ -536,7 +544,7 @@ describe("SidebarExamples", () => {
     expect(words(trigger.textContent)).toContain("Pixel LabsStartup")
     // the first row of the new workspace is the one picked
     expect(current(card)[0]).toContain("Experiments")
-    expect(texts(card, "main div div")).toEqual(["Pixel Labs", "Experiments"])
+    expect(texts(page(card), ":scope div div")).toEqual(["Pixel Labs", "Experiments"])
     expect(words(card.textContent)).not.toContain("Roadmap")
   })
 
@@ -557,7 +565,7 @@ describe("SidebarExamples", () => {
     expect(folders()).toEqual({ src: "true", components: "true", charts: "true", lib: "true", public: "true" })
     fireEvent.click(key(card, "pixel.ts"))
     expect(current(card)).toEqual(["pixel.ts"])
-    expect(card.querySelector("main span.text-foreground")?.textContent).toBe("pixel.ts")
+    expect(page(card).querySelector("span.text-foreground")?.textContent).toBe("pixel.ts")
   })
 
   it("closes the drawer on a pick and names it in the bar", () => {
@@ -576,9 +584,9 @@ describe("SidebarExamples", () => {
     const card = well(container, "sidebar-rail")
     const items = [...card.querySelectorAll('[aria-label="Rail nav"] button')]
     expect(items).toHaveLength(4)
-    expect(card.querySelector("main")?.textContent).toBe("Charts")
+    expect(page(card)?.textContent).toBe("Charts")
     fireEvent.click(items[3])
     expect(items[3].getAttribute("aria-current")).toBe("true")
-    expect(card.querySelector("main")?.textContent).toBe("Alerts")
+    expect(page(card)?.textContent).toBe("Alerts")
   })
 })

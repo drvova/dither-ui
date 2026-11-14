@@ -396,6 +396,20 @@ describe("DitherShell", () => {
     expect(screen.queryByRole("contentinfo")).toBeNull()
     expect(screen.getByRole("main").className).toContain("col-span-2")
   })
+
+  it("inside a page's own main is a plain block, its content the same nodes: a page holds one main", () => {
+    render(() => (
+      <main>
+        <DitherShell>
+          <button type="button">Kept</button>
+        </DitherShell>
+      </main>
+    ))
+    const kept = screen.getByRole("button", { name: "Kept" })
+    expect(screen.getAllByRole("main")).toHaveLength(1)
+    expect(kept.parentElement!.localName).toBe("div")
+    expect(kept.parentElement!.className).toContain("col-span-2")
+  })
 })
 
 describe("DitherSwitch", () => {

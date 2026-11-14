@@ -34,11 +34,13 @@ export type DitherNavMenuProps = {
   items: NavMenuItem[]
   modelValue: string
   color?: PixelColor
+  /** Its name as a landmark, apart from the page's other navigation. */
+  label?: string
   onUpdateModelValue?: (value: string) => void
 }
 
 export default function DitherNavMenu(raw: DitherNavMenuProps) {
-  const props = mergeProps({ color: "blue" as PixelColor }, raw)
+  const props = mergeProps({ color: "blue" as PixelColor, label: "Sections" }, raw)
 
   let list: HTMLDivElement | undefined
   let canvas: HTMLCanvasElement | undefined
@@ -72,7 +74,7 @@ export default function DitherNavMenu(raw: DitherNavMenuProps) {
   onCleanup(() => ro?.disconnect())
 
   return (
-    <nav class="relative">
+    <nav class="relative" aria-label={props.label}>
       <div ref={(el) => (list = el)} class="flex gap-4">
         <For each={props.items}>
           {(item, i) => (

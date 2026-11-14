@@ -93,7 +93,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     label: "Switch",
     group: "inputs",
     frame: { w: 160, h: 80 },
-    props: [color(), bool("disabled")],
+    // its name for a reader: the switch shows no text of its own
+    props: [color(), text("label", "Notifications"), bool("disabled")],
     model: { def: true },
   },
   {

@@ -335,6 +335,7 @@ const API: Record<string, PropRow[]> = {
     { prop: "items", type: "{ label: string; href?: string }[]", default: "" },
     { prop: "modelValue", type: "string", default: "" },
     { prop: "color", type: "PixelColor", default: '"blue"' },
+    { prop: "label", type: "string", default: '"Sections"' },
   ],
 }
 

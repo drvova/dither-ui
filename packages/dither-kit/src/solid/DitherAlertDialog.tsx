@@ -1,5 +1,6 @@
 import { createEffect, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
+import { isTab } from "../engine/keys"
 import { CONTROL_BUTTON } from "../tailwind/control"
 import { cn } from "../tailwind/lib"
 import DitherButton from "./DitherButton"
@@ -34,7 +35,7 @@ export default function DitherAlertDialog(raw: DitherAlertDialogProps) {
       props.onCancel?.()
       return
     }
-    if (e.key !== "Tab") return
+    if (!isTab(e)) return
     const items = focusable(),
       first = items[0],
       last = items[items.length - 1]

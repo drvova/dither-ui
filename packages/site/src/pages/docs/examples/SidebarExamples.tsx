@@ -556,7 +556,9 @@ const [active, setActive] = createSignal("Charts")
 </div>`
 
 /** An app's window at a desktop's width: a sidebar beside its page needs
- * the room. Centred while the card holds it; on a phone the card scrolls
+ * the room. It stands inside the docs' own main, so the page beside the
+ * sidebar is a plain block here (a page holds one main); the snippet the
+ * reader takes keeps its main. Centred while the card holds it; on a phone the card scrolls
  * to it, as the bracket does, rather than crushing the page beside the
  * sidebar. */
 function AppFrame(props: { class?: string; children: JSX.Element }) {
@@ -771,7 +773,7 @@ export default function SidebarExamples() {
                 />
               </DitherSidebarGroup>
             </DitherSidebar>
-            <main class="flex min-w-0 flex-1 flex-col">
+            <div class="flex min-w-0 flex-1 flex-col">
               <div class="flex h-10 items-center gap-2 border-b border-border/60 px-3">
                 <button
                   class="grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
@@ -809,7 +811,7 @@ export default function SidebarExamples() {
                 </For>
               </div>
               <div class="mx-4 mb-4 flex-1 rounded-md border border-dashed border-border/60" aria-hidden="true" />
-            </main>
+            </div>
           </AppFrame>
         </DemoCard>
       </section>
@@ -903,7 +905,7 @@ export default function SidebarExamples() {
                 />
               </DitherSidebarGroup>
             </DitherSidebar>
-            <main class="flex min-w-0 flex-1 flex-col">
+            <div class="flex min-w-0 flex-1 flex-col">
               <div class="flex h-10 items-center gap-3 border-b border-border/60 px-3">
                 <button
                   class="grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
@@ -931,7 +933,7 @@ export default function SidebarExamples() {
                   )}
                 </For>
               </div>
-            </main>
+            </div>
           </AppFrame>
         </DemoCard>
       </section>
@@ -1029,7 +1031,7 @@ export default function SidebarExamples() {
                 </For>
               </DitherSidebarGroup>
             </DitherSidebar>
-            <main class="flex min-w-0 flex-1 flex-col">
+            <div class="flex min-w-0 flex-1 flex-col">
               <div class="flex h-10 items-center justify-between border-b border-border/60 px-4">
                 <span class="text-[12px] text-foreground">Products</span>
                 <span class="flex gap-2 rounded border border-border/60 px-1.5 py-0.5 text-[10px] tabular-nums text-muted-foreground">
@@ -1050,7 +1052,7 @@ export default function SidebarExamples() {
                   )}
                 </For>
               </div>
-            </main>
+            </div>
           </AppFrame>
         </DemoCard>
       </section>
@@ -1122,7 +1124,7 @@ export default function SidebarExamples() {
                 <p class="px-2.5 py-4 text-[11px] text-muted-foreground">No pages match “{docsSearch()}”.</p>
               </Show>
             </DitherSidebar>
-            <main class="min-w-0 flex-1 overflow-hidden p-5">
+            <div class="min-w-0 flex-1 overflow-hidden p-5">
               <div class="text-[11px] text-muted-foreground">Docs / {docsActive()}</div>
               <div class="mt-2 text-[15px] tracking-tight text-foreground">{docsActive()}</div>
               <div class="mt-4 grid gap-2" aria-hidden="true">
@@ -1132,7 +1134,7 @@ export default function SidebarExamples() {
                 <div class="mt-3 h-20 rounded-md border border-border/60 bg-background/40" />
                 <div class="h-2 w-5/6 rounded-sm bg-border/50" />
               </div>
-            </main>
+            </div>
           </AppFrame>
         </DemoCard>
       </section>
@@ -1192,12 +1194,12 @@ export default function SidebarExamples() {
                 )}
               </For>
             </DitherSidebar>
-            <main class="grid min-w-0 flex-1 place-items-center">
+            <div class="grid min-w-0 flex-1 place-items-center">
               <div class="text-center">
                 <div class="text-[11px] text-muted-foreground">{railActive()}</div>
                 <div class="mt-1 text-[13px] text-foreground">{dualActive()}</div>
               </div>
-            </main>
+            </div>
           </AppFrame>
         </DemoCard>
       </section>
@@ -1309,9 +1311,9 @@ export default function SidebarExamples() {
                 </For>
               </DitherSidebarGroup>
             </DitherSidebar>
-            <main class="grid min-w-0 flex-1 place-items-center text-[12px] text-muted-foreground">
+            <div class="grid min-w-0 flex-1 place-items-center text-[12px] text-muted-foreground">
               Stay organized, stay focused
-            </main>
+            </div>
           </AppFrame>
         </DemoCard>
       </section>
@@ -1414,7 +1416,7 @@ export default function SidebarExamples() {
         </p>
         <DemoCard code={SNIPPET_RIGHT}>
           <AppFrame>
-            <main class="flex min-w-0 flex-1 flex-col">
+            <div class="flex min-w-0 flex-1 flex-col">
               <div class="flex h-10 items-center justify-between border-b border-border/60 px-3">
                 <span class="text-[12px] text-foreground">July 2026</span>
                 <span class="rounded border border-border/60 px-1.5 py-0.5 text-[10px] text-muted-foreground">
@@ -1424,7 +1426,7 @@ export default function SidebarExamples() {
               <div class="grid flex-1 grid-cols-7 gap-px bg-border/40 p-px" aria-hidden="true">
                 <For each={Array.from({ length: 35 }, (_, k) => k + 1)}>{() => <div class="bg-background/80" />}</For>
               </div>
-            </main>
+            </div>
             <DitherSidebar
               class="w-56 border-l border-border/60 bg-card/20"
               label="Calendar panel"
@@ -1546,12 +1548,12 @@ export default function SidebarExamples() {
                 )}
               </For>
             </DitherSidebar>
-            <main class="grid min-w-0 flex-1 place-items-center">
+            <div class="grid min-w-0 flex-1 place-items-center">
               <div class="text-center">
                 <div class="text-[11px] text-muted-foreground">{team()}</div>
                 <div class="mt-1 text-[13px] text-foreground">{teamActive()}</div>
               </div>
-            </main>
+            </div>
           </AppFrame>
         </DemoCard>
       </section>
@@ -1667,7 +1669,7 @@ export default function SidebarExamples() {
                 />
               </DitherSidebarSub>
             </DitherSidebar>
-            <main class="flex min-w-0 flex-1 flex-col">
+            <div class="flex min-w-0 flex-1 flex-col">
               <div class="flex h-9 items-center border-b border-border/60 px-3 text-[11px] text-muted-foreground">
                 <span class="text-foreground">{treeActive()}</span>
               </div>
@@ -1680,7 +1682,7 @@ export default function SidebarExamples() {
                   )}
                 </For>
               </div>
-            </main>
+            </div>
           </AppFrame>
         </DemoCard>
       </section>
@@ -1774,7 +1776,7 @@ export default function SidebarExamples() {
                 )}
               </For>
             </DitherSidebar>
-            <main class="grid min-w-0 flex-1 place-items-center text-[12px] text-muted-foreground">{railOnly()}</main>
+            <div class="grid min-w-0 flex-1 place-items-center text-[12px] text-muted-foreground">{railOnly()}</div>
           </div>
         </DemoCard>
       </section>

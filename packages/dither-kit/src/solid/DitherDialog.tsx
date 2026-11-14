@@ -1,5 +1,6 @@
 import { createEffect, createUniqueId, type JSX, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
+import { isTab } from "../engine/keys"
 import { CONTROL_BUTTON } from "../tailwind/control"
 import { cn } from "../tailwind/lib"
 import { Presence } from "./runtime/presence"
@@ -40,7 +41,7 @@ export default function DitherDialog(raw: DitherDialogProps) {
       props.onClose?.()
       return
     }
-    if (e.key !== "Tab") return
+    if (!isTab(e)) return
     const items = focusable()
     if (!items.length) return e.preventDefault()
     const first = items[0],

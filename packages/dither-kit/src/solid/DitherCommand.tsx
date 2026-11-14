@@ -11,6 +11,7 @@ import {
   Show,
 } from "solid-js"
 import { Portal } from "solid-js/web"
+import { isTab } from "../engine/keys"
 import { CONTROL_BUTTON, POPOVER } from "../tailwind/control"
 import { cn } from "../tailwind/lib"
 
@@ -89,7 +90,7 @@ export default function DitherCommand(raw: DitherCommandProps) {
     }
     // Modal: Tab never leaves the palette — the input is its one field and
     // the list is driven by the arrow keys.
-    if (e.key === "Tab") {
+    if (isTab(e)) {
       e.preventDefault()
       input?.focus()
       return

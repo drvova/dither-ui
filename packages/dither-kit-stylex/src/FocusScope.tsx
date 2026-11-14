@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/FocusScope.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type JSX, mergeProps, onCleanup, onMount, splitProps } from "solid-js"
+import { isTab } from "@dither-ui/kit/engine/keys.ts"
 import { cn, type StyleProp } from "./lib"
 
 type Own = {
@@ -48,7 +49,7 @@ export default function FocusScope(raw: FocusScopeProps) {
   }
 
   function onKeyDown(event: KeyboardEvent) {
-    if (!props.trapped || event.key !== "Tab" || !root) return
+    if (!props.trapped || !isTab(event) || !root) return
     const items = focusables()
     if (items.length === 0) return
     const first = items[0]

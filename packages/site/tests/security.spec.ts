@@ -23,7 +23,7 @@ describe("sanitizeComponentProps (the v-bind whitelist)", () => {
       onVnodeMounted: "x",
       style: "position:fixed",
     })
-    expect(Object.keys(out).sort()).toEqual(["color", "disabled"])
+    expect(Object.keys(out).sort()).toEqual(["color", "disabled", "label"])
   })
   it("coerces wrong types to spec defaults and clamps numbers", () => {
     const slider = componentEntry("DitherSlider")!

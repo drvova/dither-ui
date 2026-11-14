@@ -29,14 +29,17 @@ export default function DitherField(props: DitherFieldProps) {
   const base = `dk-field-${createUniqueId()}`
   const controlId = createMemo(() => props.for ?? `${base}-control`)
   const helpId = `${base}-help`
+  const labelId = `${base}-label`
   const describedBy = createMemo(() => (props.error || props.description ? helpId : undefined))
   const invalid = createMemo(() => !!props.error)
 
   return (
-    <FieldContextKey.Provider value={{ controlId, describedBy, invalid }}>
+    <FieldContextKey.Provider
+      value={{ controlId, labelId: () => (props.label ? labelId : undefined), describedBy, invalid }}
+    >
       <div {...stylex.props(styles.grid)}>
         <Show when={props.label}>
-          <label for={controlId()} {...stylex.props(styles.label)}>
+          <label id={labelId} for={controlId()} {...stylex.props(styles.label)}>
             {props.label}
           </label>
         </Show>

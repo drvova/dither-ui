@@ -2,6 +2,7 @@
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
+import { isTab } from "@dither-ui/kit/engine/keys.ts"
 import { CONTROL_BUTTON } from "./control"
 import { cn } from "./lib"
 import DitherButton from "./DitherButton"
@@ -85,7 +86,7 @@ export default function DitherAlertDialog(raw: DitherAlertDialogProps) {
       props.onCancel?.()
       return
     }
-    if (e.key !== "Tab") return
+    if (!isTab(e)) return
     const items = focusable(),
       first = items[0],
       last = items[items.length - 1]

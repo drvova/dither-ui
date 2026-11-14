@@ -307,6 +307,9 @@ async function playwrightPage(context, done) {
     run: (body, arg) =>
       page.evaluate(([b, a]) => new Function("arg", `return (async()=>{${b}\n})()`)(a), [body, arg ?? null]),
     shot: () => page.screenshot(),
+    async press(key, times = 1) {
+      for (let i = 0; i < times; i++) await page.keyboard.press(key)
+    },
     drain: () => seen.splice(0),
     close: done,
   }
@@ -412,6 +415,10 @@ async function ownDisplay() {
   return { name: `:${number}`, close: () => proc.kill() }
 }
 
+/** The keys the walk presses, as WebDriver names them (Playwright takes
+ * the names themselves). */
+const WEBDRIVER_KEYS = { Tab: "", Enter: "", Escape: "", Shift: "" }
+
 /** A browser behind a W3C WebDriver server: one driver process a session
  * (WebKitWebDriver holds one session at a time). `capabilities` names the
  * browser, told whether it has a display of its own and the device it
@@ -487,6 +494,17 @@ export function webDriver({ name, command, capabilities }) {
           return r ? r.ok : null
         },
         shot: async () => Buffer.from(await call("GET", `/session/${id}/screenshot`), "base64"),
+        async press(key, times = 1) {
+          // the keyboard's own presses: what a script dispatches moves no focus
+          const keys = key.split("+").map((k) => WEBDRIVER_KEYS[k] ?? k)
+          const actions = []
+          for (let i = 0; i < times; i++) {
+            for (const k of keys) actions.push({ type: "keyDown", value: k })
+            for (const k of [...keys].reverse()) actions.push({ type: "keyUp", value: k })
+          }
+          await call("POST", `/session/${id}/actions`, { actions: [{ type: "key", id: "keyboard", actions }] })
+          await call("DELETE", `/session/${id}/actions`)
+        },
         drain: () => [],
         async close() {
           await call("DELETE", `/session/${id}`).catch(() => {})

@@ -30,6 +30,7 @@ import { FieldContextKey } from "../../src/solid/runtime/field"
 import Shuffle from "../../src/solid/Shuffle"
 import VariableProximity from "../../src/solid/VariableProximity"
 import WheelPicker from "../../src/solid/WheelPicker"
+import { CONTROL_INVALID } from "../../src/tailwind/control"
 import { world } from "../support/world"
 
 let w: ReturnType<typeof world>
@@ -205,6 +206,8 @@ describe("DitherTextarea", () => {
     expect(area.id).toBe("f1")
     expect(area.getAttribute("aria-describedby")).toBe("f1-help")
     expect(area.getAttribute("aria-invalid")).toBe("true")
+    // its edge is the signal ink's, which no focus class outranks: focus rings it instead
+    for (const c of CONTROL_INVALID.split(" ")) expect(area.classList.contains(c)).toBe(true)
   })
 })
 
@@ -219,6 +222,19 @@ describe("CodeInput", () => {
     expect(onUpdate).toHaveBeenLastCalledWith("  ab  ")
     fireEvent.keyDown(area, { key: "Tab", shiftKey: true })
     expect(onUpdate).toHaveBeenLastCalledWith("ab")
+  })
+
+  it("lets go of the keyboard on Escape: the Tab after it moves focus on, the one after that indents again", () => {
+    const onUpdate = vi.fn()
+    render(() => <CodeInput modelValue="ab" aria-label="Code" onUpdateModelValue={onUpdate} />)
+    const area = screen.getByRole("textbox", { name: "Code" })
+    fireEvent.keyDown(area, { key: "Escape" })
+    expect(fireEvent.keyDown(area, { key: "Tab" })).toBe(true)
+    fireEvent.keyDown(area, { key: "Escape" })
+    fireEvent.keyDown(area, { key: "Shift", shiftKey: true })
+    expect(fireEvent.keyDown(area, { key: "Tab", shiftKey: true })).toBe(true)
+    expect(onUpdate).not.toHaveBeenCalled()
+    expect(fireEvent.keyDown(area, { key: "Tab" })).toBe(false)
   })
 
   it("submits on Ctrl+Enter", () => {

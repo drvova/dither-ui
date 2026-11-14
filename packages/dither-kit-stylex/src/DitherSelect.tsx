@@ -12,9 +12,10 @@ import {
   Show,
   splitProps,
 } from "solid-js"
+import { isTab } from "@dither-ui/kit/engine/keys.ts"
 import { cssColor } from "@dither-ui/kit/engine/palette.ts"
 import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
-import { CONTROL, POPOVER } from "./control"
+import { CONTROL, CONTROL_INVALID, POPOVER } from "./control"
 import { cn, type StyleProp } from "./lib"
 import { useField } from "@dither-ui/kit/solid/runtime/field.ts"
 import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
@@ -171,7 +172,7 @@ export default function DitherSelect(raw: DitherSelectProps) {
       e.preventDefault()
       const option = props.options[highlighted()]
       if (option) pick(option)
-    } else if (e.key === "Escape" || e.key === "Tab") close()
+    } else if (e.key === "Escape" || isTab(e)) close()
   }
   function onOutside(e: PointerEvent) {
     if (open() && root && !root.contains(e.target as Node)) close()
@@ -194,7 +195,7 @@ export default function DitherSelect(raw: DitherSelectProps) {
         id={field?.controlId()}
         disabled={props.disabled}
         style={invalid() ? { "border-color": cssColor("red") } : undefined}
-        class={cn(CONTROL, styles.button)}
+        class={cn(CONTROL, invalid() && CONTROL_INVALID, styles.button)}
         {...rest}
         ref={(el) => (trigger = el)}
         // Its own listeners, beside any handed in with the rest.

@@ -491,9 +491,9 @@ ${dataCode("config", config)}
 
 <div class="grid grid-cols-[160px_1fr] overflow-hidden rounded-lg border">
   {/* sidebar */}
-  <aside class="flex min-h-[360px] flex-col border-r p-3">
+  <aside class="flex min-h-[360px] flex-col border-r p-3" aria-label="Sidebar">
     <span class="px-2 py-1.5 text-[12px]">dither-ui</span>
-    <nav class="mt-4 grid gap-0.5">
+    <nav class="mt-4 grid gap-0.5" aria-label="Pages">
       <For each={nav}>
         {(item) => (
           <button type="button" aria-pressed={page() === item}
@@ -1038,7 +1038,10 @@ export default function DocsPage(props: DocsPageProps) {
 
       <div class="mx-auto flex w-full max-w-6xl px-4 sm:px-6">
         {/* Sidebar */}
-        <aside class="sticky top-16 hidden h-[calc(100dvh-4rem)] w-52 shrink-0 overflow-y-auto pr-8 pb-10 lg:block">
+        <aside
+          class="sticky top-16 hidden h-[calc(100dvh-4rem)] w-52 shrink-0 overflow-y-auto pr-8 pb-10 lg:block"
+          aria-label="Sections"
+        >
           <nav aria-label="Docs sections">
             <DocsNav activeId={shown()} variant="rail" onGo={open} />
           </nav>
@@ -1373,12 +1376,15 @@ export default function DocsPage(props: DocsPageProps) {
               <DemoCard code={SNIPPETS.shell}>
                 <div class="grid grid-cols-[150px_1fr] overflow-hidden rounded-lg border border-border/60 text-left sm:grid-cols-[170px_1fr]">
                   {/* Sidebar */}
-                  <aside class="flex min-h-[360px] flex-col border-r border-border/60 bg-background/40 p-3">
+                  <aside
+                    class="flex min-h-[360px] flex-col border-r border-border/60 bg-background/40 p-3"
+                    aria-label="Sidebar"
+                  >
                     <div class="flex items-center gap-2 px-2 py-1.5">
                       <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
                       <span class="text-[12px] tracking-tight">dither-ui</span>
                     </div>
-                    <nav class="mt-4 grid gap-0.5">
+                    <nav class="mt-4 grid gap-0.5" aria-label="Pages">
                       <For each={SHELL_NAV}>
                         {(item) => (
                           <button
@@ -1412,7 +1418,8 @@ export default function DocsPage(props: DocsPageProps) {
                         Export
                       </DitherButton>
                     </header>
-                    <main class="grid flex-1 content-start gap-3 p-4">
+                    {/* The docs' own main holds the preview: its page is a plain block (the snippet keeps main). */}
+                    <div class="grid flex-1 content-start gap-3 p-4">
                       <div class="grid grid-cols-3 gap-3">
                         <For each={STATS}>
                           {(s) => (
@@ -1433,7 +1440,7 @@ export default function DocsPage(props: DocsPageProps) {
                           </AreaChart>
                         </div>
                       </div>
-                    </main>
+                    </div>
                   </div>
                 </div>
               </DemoCard>
@@ -2203,7 +2210,10 @@ export default function DocsPage(props: DocsPageProps) {
           </nav>
         </main>
 
-        <aside class="sticky top-16 hidden h-[calc(100dvh-4rem)] w-40 shrink-0 overflow-y-auto py-10 pl-6 xl:block">
+        <aside
+          class="sticky top-16 hidden h-[calc(100dvh-4rem)] w-40 shrink-0 overflow-y-auto py-10 pl-6 xl:block"
+          aria-label="This section"
+        >
           <Show when={onPage().length}>
             <OnThisPage parts={onPage()} onGo={goTo} />
           </Show>

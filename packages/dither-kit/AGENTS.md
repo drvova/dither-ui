@@ -60,7 +60,8 @@ generated twin. Inside the kit every import is relative
   it whole and never lists the engine again.
 - `tailwind/` — the Tailwind layer's framework-free modules, the `.ts`
   files that write Tailwind classes (`lib.ts`'s `cn`, `control.ts`'s
-  `CONTROL` / `CONTROL_BUTTON` / `POPOVER`), and `kit.css`, the standalone
+  `CONTROL` / `CONTROL_INVALID` / `CONTROL_BUTTON` / `POPOVER`), and
+  `kit.css`, the standalone
   stylesheet's entry. It holds no component.
 - `solid/` — the components: one `.tsx` per component, exported from
   `src/solid/index.ts` (the public API) with its own `<Name>Props` type, plus
@@ -173,7 +174,9 @@ generated twin. Inside the kit every import is relative
   wash) INSIDE the `relative` tablist, positioned from the selected tab's
   offsets: a list that scrolls (more tabs than width) carries the marker
   with its tab and clips it at its edges. Outside the list, it stayed put
-  while the tabs scrolled.
+  while the tabs scrolled. A tab names its panel in `aria-controls` only
+  while that `DitherTabPanel` stands (panels hold their value in the tabs'
+  context): tabs that switch content of their own name nothing.
 
 - Zero imports from any other package — the kit must stay copy-out
   portable (docs promise: "copy the folder, alias it"). Dependencies:
@@ -951,7 +954,11 @@ generated twin. Inside the kit every import is relative
   `DitherCanvas`, `DitherGrid`) is pure DOM/CSS — frames around their children for
   dashboards. `DitherRail` provides the sidebar's collapsed context so
   `DitherSidebarItem` children fold automatically; `DitherConsole` follow-mode
-  pins the newest line and its caret stills under reduced motion. Docs live in
+  pins the newest line and its caret stills under reduced motion. A page
+  holds one main: `DitherShell`'s content is the main, and a plain block
+  (the same nodes, moved) when the shell stands inside a page's own main;
+  `DitherSidebar`'s and `DitherRail`'s item lists are navigation landmarks
+  named by their `label`, as `DitherNavMenu` is by its own. Docs live in
   `packages/site/src/pages/docs/components/LayoutDocs.tsx`.
 - `gesture.ts` owns swipe math (Apple-style `project`, `rubberband`,
   `velocityFrom`) — any swipeable surface (drawer, sheet, future carousels)
@@ -993,6 +1000,23 @@ generated twin. Inside the kit every import is relative
   screen's button reads as one.
 - `DitherField` supplies generated control/help IDs and error state to compatible
   descendants. Explicit consumer `id`, `aria-describedby`, and invalid props win.
+  Its label carries an id of its own (`labelId` in the context), so a
+  control that is a button (`DitherInlineEdit`'s view) is named by the label
+  and its own text. An invalid field's edge is its style, which no focus
+  class outranks: it wears `CONTROL_INVALID` (a ring in the ring ink), so it
+  still shows focus.
+- The keyboard is never held: Tab moves on from every control, and every
+  trap and field reads Tab through `isTab` (`engine/keys.ts`: WebKitGTK
+  names Shift+Tab "Unidentified", its code still Tab). A field that
+  takes Tab for itself (`DitherCodeInput`'s indent) lets go on Escape, the
+  next Tab moving on; `DitherHotkeyInput` never records a bare Tab; a
+  suggestion list opens on what moves the caret, never on Tab arriving
+  (`DitherMentionInput`). A popup opens on a press, never on focus, takes
+  focus in, and hands it back to its key on Escape or a pick
+  (`DitherDatePicker`). `DitherHeading`'s `level` is its place in the
+  outline and `size` (default the level) the step it is drawn at, so the
+  outline never skips a level for a look. A refused `play()` (a source the
+  browser cannot play, autoplay rules) throws nothing.
 - Respect `prefers-reduced-motion` inside the kit (see
   `pixelPrefersReducedMotion` / `prefersReducedMotion`) — consumers must not
   need to opt in.

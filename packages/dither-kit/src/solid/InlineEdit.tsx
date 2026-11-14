@@ -1,9 +1,11 @@
 import { createSignal, mergeProps, Show } from "solid-js"
 import { cn } from "../tailwind/lib"
 import DitherInput from "./DitherInput"
+import { useField } from "./runtime/field"
 
-/** Click-to-edit text: view mode is a button (keyboard reachable), edit mode
- * is a focus-selected input. Enter or blur commits (only when the value
+/** Click-to-edit text: view mode is a button (keyboard reachable; in a
+ * DitherField it is what the label points at, named by the label and its
+ * value), edit mode is a focus-selected input. Enter or blur commits (only when the value
  * actually changed), Escape reverts — the revert flag suppresses the blur
  * commit that would otherwise fire as the input unmounts. */
 export type InlineEditProps = {
@@ -18,6 +20,11 @@ export type InlineEditProps = {
 
 export default function InlineEdit(raw: InlineEditProps) {
   const props = mergeProps({ placeholder: "—", disabled: false }, raw)
+  const field = useField()
+  const named = () => {
+    const label = field?.labelId?.()
+    return label && field ? `${label} ${field.controlId()}-value` : undefined
+  }
 
   const [editing, setEditing] = createSignal(false)
   const [draft, setDraft] = createSignal("")
@@ -76,6 +83,9 @@ export default function InlineEdit(raw: InlineEditProps) {
         fallback={
           <button
             type="button"
+            id={field?.controlId()}
+            aria-labelledby={named()}
+            aria-describedby={field?.describedBy()}
             disabled={props.disabled}
             class={cn(
               "max-w-full truncate rounded px-1.5 py-1 text-left transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40",
@@ -84,7 +94,7 @@ export default function InlineEdit(raw: InlineEditProps) {
             )}
             onClick={enterEdit}
           >
-            {props.modelValue || props.placeholder}
+            <span id={field ? `${field.controlId()}-value` : undefined}>{props.modelValue || props.placeholder}</span>
           </button>
         }
       >

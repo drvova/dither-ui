@@ -575,13 +575,19 @@ around this tree (entries, routes, the build, how Solid is written) is
   `DitherFocusScope` (ExportDialog with `autofocus=false`, its own close
   button taking focus as it opens, since it mounts lazily with
   `open` already true; ShortcutsHelp with autofocus), which also restores
-  focus on close; menus (toolbar project/library, ContextMenu `role="menu"`
+  focus on close (the toolbar's library, a popover dialog, closes on Escape
+  from anywhere in it and hands focus back to its key); menus (toolbar
+  project/library, ContextMenu `role="menu"`
   + `menuitem`) dismiss on Escape and on a pointer outside, focus their
   first item on open, and take ArrowUp/Down/Home/End through
   `shared/lib/menu.ts` (`menuKeydown`, `focusFirstMenuItem`); no
   `window.prompt`/`confirm` — the project menu names inline (Enter commits,
   Escape backs out) and deletes through `DitherAlertDialog`; global `:focus-visible` ring is in `app/styles.css` — do not
-  suppress. Interactive targets are at least 24px on their short side
+  suppress. Every page holds one h1 and one main (the Studio's h1 and the
+  player's are visually hidden); what a scene keeps unseen is inert (the
+  agent story's parts not laid out yet), and what the rise holds stands up
+  at once when focus comes into it (`shared/lib/rise.ts`), so Tab never
+  lands on what does not show. Interactive targets are at least 24px on their short side
   (`h-6` / `min-h-6` / `size-6` on dense chrome). Pressed and selected
   chrome is `.ring-on` and every toggle carries `aria-pressed` (state is
   never colour alone); the accent blue is the CANVAS's selection colour

@@ -36,7 +36,26 @@
 // Exit code 1 when an unexplained finding remains.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
-import { CONTRAST, measureContrast, PHONE } from "./walk-checks.mjs"
+import {
+  A11Y,
+  changedPixels,
+  CONTRAST,
+  DIALOG_CLOSED,
+  DIALOG_FOCUS,
+  DIALOG_KEYS,
+  DIALOG_OPENED,
+  DIALOG_TABBED,
+  dialogFindings,
+  FOCUS_ARRIVED,
+  FOCUS_BEFORE,
+  FOCUS_OFF,
+  KEYS_DONE,
+  KEYS_END,
+  KEYS_READ,
+  KEYS_START,
+  measureContrast,
+  PHONE,
+} from "./walk-checks.mjs"
 import { coloursIn, decodePng, firefoxDriver, playwrightDriver, serve, sleep, webkitDriver } from "./walk-drivers.mjs"
 
 const args = process.argv.slice(2)
@@ -60,6 +79,7 @@ const lightFlag = flag("light", "all")
 const lightEach = lightFlag === "all" ? Infinity : Number(lightFlag) || 0
 const phone = flag("phone", "on") !== "off"
 const contrast = flag("contrast", "on") !== "off"
+const a11y = flag("a11y", "on") !== "off"
 /** The docs' styling systems each example is Run in, by the switch's labels. */
 const STYLE_LABELS = { tailwind: "Tailwind", css: "CSS", modules: "Modules", stylex: "StyleX" }
 const styles = flag("styles", Object.keys(STYLE_LABELS).join(",")).split(",").filter(Boolean)
@@ -132,7 +152,7 @@ const GIVEN_UP = /ERR_ABORTED|NS_BINDING_ABORTED|NS_ERROR_PARSED_DATA_CACHED/
 function unplayable(failed) {
   const [tag, url = ""] = failed.split(" ")
   const path = url.replace(/^https?:\/\/[^/]+/, "").split(/[?#]/)[0]
-  return /^(video|audio)$/.test(tag) && path !== "" && existsSync(join(root, decodeURI(path)))
+  return /^(video|audio|source)$/.test(tag) && path !== "" && existsSync(join(root, decodeURI(path)))
 }
 
 const sections = JSON.parse(readFileSync(join(root, "og/sections.json"), "utf8"))
@@ -705,6 +725,125 @@ async function sampleContrast(s, rec, ready, issue, at) {
   }
 }
 
+/** The keys a page opens a dialog with that do not say so themselves
+ * (`aria-haspopup`), by their names. */
+const DIALOG_LABELS = {
+  landing: ["Watch the film"],
+  studio: [],
+}
+
+/** What a screen reader and a keyboard meet on the page (walk-checks.mjs):
+ * the page read as assistive technology reads it; on the desktop Tab
+ * pressed through it, round to where it began, every stop it reaches
+ * showing a mark of focus (a stop whose style focus leaves alone is looked
+ * at on screen, focused against unfocused); then each dialog opened by
+ * its key from the keyboard, Tabbed through and closed with Escape. At a
+ * phone's size the page is read and its menus' dialogs walked. */
+async function walkA11y(s, rec, ready, page, issue, url) {
+  const read = await s.run(A11Y, null)
+  rec.a11y = { counts: read.counts }
+  for (const rule of ["names", "ids", "refs", "headings", "landmarks", "images"])
+    for (const f of read[rule]) issue(`a11y-${rule}`, f)
+  const phoneSized = page.device === "phone"
+  if (!phoneSized) {
+    const start = await s.run(KEYS_START, null)
+    const limit = Math.min(2000, start.stops * 2 + 40)
+    let at = { tabs: 0 }
+    while (at.tabs < limit) {
+      await s.press("Tab", 20)
+      at = await s.run(KEYS_READ, null)
+      if (at.wrapped) break
+      if (at.held) {
+        // a field that keeps Tab for itself (a code field's indent) lets go on Escape, as a code editor's does
+        await s.press("Escape")
+        await s.press("Tab")
+        const after = await s.run(KEYS_READ, null)
+        if (after.held) {
+          issue("a11y-keyboard", `Tab is held by ${at.held}: it never moves on, Escape or not`)
+          break
+        }
+        ;(rec.a11y.released ??= []).push(at.held)
+        at = after
+      }
+    }
+    const end = await s.run(KEYS_END, null)
+    rec.a11y.keys = { stops: end.stops, reached: end.reached, tabs: at.tabs, round: !!at.wrapped }
+    for (const m of end.missed) issue("a11y-reach", `Tab never reaches ${m}`)
+    // a stop looked at again as a reader meets it: Tab pressed to it from the stop before, the page settled
+    const arrive = async (key) => {
+      await s.run(FOCUS_BEFORE, { key })
+      await s.press("Tab")
+      return s.run(FOCUS_ARRIVED, { key })
+    }
+    for (const h of end.hidden) {
+      // transparent as focus arrived: a scene fading in as Tab scrolls to it shows once it settles
+      if (h.why === "transparent") {
+        const there = await arrive(h.key)
+        if (!there.arrived) continue
+        h.why = there.hidden || (there.inView ? "" : "outside the window")
+        if (!h.why) continue
+      }
+      issue("a11y-hidden-focus", `focus lands on ${h.where} (${h.why})`)
+    }
+    // a stop whose style focus left alone: on screen, focused against unfocused
+    // (looked at twice before it is a finding: a busy machine can shoot before a mark is drawn)
+    for (const u of end.unmarked.slice(0, 40)) {
+      let seen = false
+      let looked = false
+      for (let attempt = 0; attempt < 2 && !seen; attempt++) {
+        const there = await arrive(u.key)
+        if (!there.arrived || !there.inView || there.hidden) break
+        looked = true
+        const on = decodePng(await s.shot())
+        await s.run(FOCUS_OFF, null)
+        const off = decodePng(await s.shot())
+        seen = changedPixels(on, off, there.box, on.width / ready.w || ready.ratio) >= 6
+      }
+      if (looked && !seen) issue("a11y-focus-mark", `${u.where} shows no mark of focus`)
+    }
+    if (end.unmarked.length > 40)
+      issue("a11y-focus-mark", `${end.unmarked.length - 40} more stops whose style focus leaves alone, not looked at`)
+    await s.run(KEYS_DONE, null)
+  }
+  const arg = {
+    labels: phoneSized ? [] : (DIALOG_LABELS[page.kind] ?? []),
+    wells: !phoneSized && page.kind === "section",
+  }
+  let keys = await s.run(DIALOG_KEYS, arg)
+  rec.a11y.dialogs = []
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    try {
+      if (!(await s.run(DIALOG_FOCUS, { i }))) continue
+      await s.press("Enter")
+      const opened = await s.run(DIALOG_OPENED, { wait: key.why === "tried" ? 450 : 2000 })
+      if (!opened.opened) {
+        if (key.why !== "tried") issue("a11y-dialog", dialogFindings({ opener: key.where, opened: false })[0])
+        // a menu or a popover it opened instead
+        await s.press("Escape")
+        continue
+      }
+      if (opened.modal && opened.stops) {
+        await s.press("Tab", opened.stops + 2)
+        await s.press("Shift+Tab", opened.stops + 2)
+      }
+      const escaped = await s.run(DIALOG_TABBED, null)
+      await s.press("Escape")
+      const closed = await s.run(DIALOG_CLOSED, { i })
+      const r = { opener: key.where, ...opened, escaped, ...closed }
+      rec.a11y.dialogs.push(r)
+      for (const f of dialogFindings(r)) issue("a11y-dialog", f)
+      if (!closed.closed) throw new Error("the dialog stayed open")
+    } catch (e) {
+      // the page as it loaded, to try the next key on
+      if (!/stayed open/.test(String(e))) issue("a11y-dialog", `${key.where}: ${String(e?.message ?? e).slice(0, 200)}`)
+      await s.go(url)
+      await s.run(READY, { settle: 600 })
+      keys = await s.run(DIALOG_KEYS, arg)
+    }
+  }
+}
+
 async function walkPage(session, server, page) {
   const started = Date.now()
   const rec = {
@@ -889,6 +1028,8 @@ async function walkPage(session, server, page) {
     writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
   }
 
+  if (a11y && page.theme === "dark") await walkA11y(s, rec, ready, page, issue, url)
+
   if (onPhone) {
     // the page at a phone's size, every card revealed above
     const p = await s.run(PHONE, null)
@@ -989,6 +1130,10 @@ for (const [name, body] of Object.entries({
   PLAY,
   PHONE,
   CONTRAST,
+  A11Y,
+  KEYS_START,
+  KEYS_END,
+  DIALOG_KEYS,
 }))
   STEPS.set(body, name.toLowerCase())
 

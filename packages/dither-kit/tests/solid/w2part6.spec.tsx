@@ -345,6 +345,8 @@ describe("DitherNavMenu", () => {
   it("marks the current link, and reports a pick without leaving the page", () => {
     const picked = vi.fn()
     const { getByRole } = render(() => <DitherNavMenu items={items} modelValue="Docs" onUpdateModelValue={picked} />)
+    // a named landmark, apart from the page's other navigation
+    expect(getByRole("navigation", { name: "Sections" })).toBeTruthy()
     const docs = getByRole("link", { name: "Docs" })
     const studio = getByRole("link", { name: "Studio" })
     expect(docs.getAttribute("aria-current")).toBe("page")
@@ -431,6 +433,14 @@ describe("DitherTabs", () => {
     expect(panel.textContent).toBe("The preview")
     expect(preview.getAttribute("aria-controls")).toBe(panel.id)
     expect(getAllByRole("tabpanel").length).toBe(1)
+  })
+
+  it("names in aria-controls only a panel that stands: tabs that switch content of their own name none", () => {
+    const { getByRole } = render(() => <Tabs />)
+    expect(getByRole("tab", { name: "Notes" }).hasAttribute("aria-controls")).toBe(false)
+    cleanup()
+    const bare = render(() => <DitherTabs tabs={["One", "Two"]} modelValue="One" />)
+    for (const tab of bare.getAllByRole("tab")) expect(tab.hasAttribute("aria-controls")).toBe(false)
   })
 
   it("reports a click, and shows that tab's panel while the other stays mounted", () => {

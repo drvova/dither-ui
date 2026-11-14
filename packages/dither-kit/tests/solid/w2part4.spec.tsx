@@ -284,6 +284,9 @@ describe("DitherDialog", () => {
     done.focus()
     fireEvent.keyDown(done, { key: "Tab" })
     expect(document.activeElement).toBe(close)
+    // Shift+Tab as WebKitGTK names it (GTK's ISO_Left_Tab): its code is still Tab
+    fireEvent.keyDown(close, { key: "Unidentified", code: "Tab", shiftKey: true })
+    expect(document.activeElement).toBe(done)
     fireEvent.pointerDown(dialog)
     expect(screen.queryByRole("dialog")).not.toBeNull()
     fireEvent.pointerDown(dialog.parentElement!)
@@ -491,6 +494,22 @@ describe("DitherMentionInput", () => {
     expect(queryByRole("listbox")).not.toBeNull()
     fireEvent.keyDown(field, { key: "Escape" })
     expect(queryByRole("listbox")).toBeNull()
+  })
+
+  it("opens nothing as Tab comes in, so Tab always leaves: once to insert, then on", () => {
+    const { field, type, value, queryByRole } = setup()
+    type("cc @al")
+    fireEvent.keyDown(field, { key: "Escape" })
+    // Tab arriving: its keyup lands on the field with the caret after an @
+    fireEvent.keyUp(field, { key: "Tab" })
+    expect(queryByRole("listbox")).toBeNull()
+    expect(fireEvent.keyDown(field, { key: "Tab" })).toBe(true)
+    type("cc @al")
+    expect(fireEvent.keyDown(field, { key: "Tab" })).toBe(false)
+    expect(value()).toBe("cc @alice ")
+    fireEvent.keyUp(field, { key: "Tab" })
+    expect(queryByRole("listbox")).toBeNull()
+    expect(fireEvent.keyDown(field, { key: "Tab" })).toBe(true)
   })
 })
 
