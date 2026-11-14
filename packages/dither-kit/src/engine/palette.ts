@@ -89,6 +89,20 @@ const hx = (n: number) =>
     .padStart(2, "0")
 export const rgbToHex = ([r, g, b]: Rgb): string => `#${hx(r)}${hx(g)}${hx(b)}`
 
+// --- WCAG 2 contrast: the one reading the kit, the site and the walk share --
+/** An sRGB channel in 0–1 in linear light (the sRGB transfer, undone). */
+export const toLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+/** Linear light in 0–1 back to an sRGB channel in 0–1 (the sRGB transfer). */
+export const toGamma = (c: number) => (c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055)
+
+/** WCAG 2 relative luminance of an opaque sRGB colour, channels 0–255
+ * (fractions allowed: a blend or a raster's mean). */
+export const luminance = ([r, g, b]: readonly [number, number, number]): number =>
+  0.2126 * toLinear(r / 255) + 0.7152 * toLinear(g / 255) + 0.0722 * toLinear(b / 255)
+
+/** WCAG 2 contrast ratio of two relative luminances, in either order (1–21). */
+export const contrast = (a: number, b: number): number => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+
 /** Sample a colour ramp at t in [0, 1] into `out` (no allocation per pixel).
  * A single colour fills `out` uniformly. Shared by the generative canvas
  * backgrounds (ferrofluid, aurora, ...) that tint by a position. */

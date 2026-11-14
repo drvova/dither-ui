@@ -173,7 +173,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   frames), import-free because the share-card renderer carries its source
   inline: the workbench's captures and the share cards both go through it);
   `inspect/` — what the live DOM reads as (`color.ts`: parse, print, WCAG
-  contrast; `geometry.ts`: boxes and segments; `measure.ts`: boxes, box model,
+  contrast of a colour over its ground, by the kit's `luminance`; `geometry.ts`: boxes and segments; `measure.ts`: boxes, box model,
   type, role/name/states, Tab order and the accessibility audit, boxes at a
   `scale` for a zoomed canvas), read by the workbench and by the agent's
   `inspect`, imported by path).

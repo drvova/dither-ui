@@ -1,6 +1,6 @@
 import { describe, expect, it } from "rstack/test"
 import { labelFill, renderLabelFill, type LabelVariant } from "../src/engine/label-fill"
-import { type DitherColor, PALETTE, type Rgb } from "../src/engine/palette"
+import { contrast, type DitherColor, luminance, PALETTE, type Rgb } from "../src/engine/palette"
 import { screenMatrix } from "../src/engine/pixel"
 import { renderDitherButton } from "../src/engine/precompile"
 import type { RasterBuffer } from "../src/engine/raster"
@@ -9,13 +9,6 @@ import type { RasterBuffer } from "../src/engine/raster"
 // measures the page: the cells under the label's line box, laid over the
 // page as a canvas shows them (the stored colour at its alpha), read as
 // their mean in linear light, against the ink the component picks.
-
-const channel = (v: number) => {
-  const c = v / 255
-  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-}
-const luminance = (c: Rgb) => 0.2126 * channel(c[0]) + 0.7152 * channel(c[1]) + 0.0722 * channel(c[2])
-const ratio = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
 
 /** Each theme's grounds a demo sits on and the ink a label takes there. */
 const THEMES: { name: string; grounds: Rgb[]; ink: (darkInk: boolean) => Rgb[] }[] = [
@@ -153,7 +146,7 @@ describe("a label on a dithered fill reads at AA", () => {
                 const raster = fill.raster(color, variant, rows, seed)
                 for (const page of theme.grounds)
                   for (const ink of theme.ink(fill.darkInk(color, variant, seed))) {
-                    const r = ratio(luminance(ink), ground(raster, page, centred(rows, text)))
+                    const r = contrast(luminance(ink), ground(raster, page, centred(rows, text)))
                     if (r < 4.5) below.push(`${color} ${variant} seed ${seed} ${rows} rows: ${r.toFixed(2)}:1`)
                   }
               }

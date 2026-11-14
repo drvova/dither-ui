@@ -109,7 +109,9 @@ by the site's post-build. Paths here are from this package's root.
 ## Local Contracts
 
 - Depends on `@dither-ui/kit` only, for the stylesheet's entry, found through
-  the kit's `exports`. It never imports the site: the site's post-build
+  the kit's `exports`, and for WCAG's contrast, which the walk measures by
+  the kit's own reading (`@dither-ui/kit/engine/palette.ts`, a file Node
+  loads as it is). It never imports the site: the site's post-build
   imports this package and hands it the folder and the browser to work in
   (`tests/workspace.spec.ts` at the root).
 - `cards.ts` and `index.ts` are loaded by Node as they are (type

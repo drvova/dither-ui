@@ -49,7 +49,6 @@ export const DIALOG_TABBED: string
 export const DIALOG_CLOSED: string
 export const INTERACTIVE: string
 
-export function ratio(a: number[], b: number[]): number
 /** Text short of contrast: where it stands and what it says (`text`), and
  * the finding as the report words it. */
 export type ContrastFound = { text: string; detail: string }

@@ -6,6 +6,10 @@ import {
   hexToRgb,
   hsvToHex,
   hsvToRgb,
+  contrast,
+  luminance,
+  toGamma,
+  toLinear,
   PALETTE,
   rgbToHex,
   rgbToHsv,
@@ -90,5 +94,21 @@ describe("colour names", () => {
       expect(isDitherColor(name)).toBe(false)
       expect(Array.isArray(fillOf(name))).toBe(true)
     }
+  })
+})
+
+describe("WCAG contrast", () => {
+  it("reads luminance and the ratio as WCAG 2 states them, in either order", () => {
+    expect(luminance([255, 255, 255])).toBe(1)
+    expect(luminance([0, 0, 0])).toBe(0)
+    // the sRGB transfer's linear foot and its curve
+    expect(toLinear(0.04)).toBeCloseTo(0.04 / 12.92, 12)
+    for (const c of [0, 0.002, 0.04, 0.5, 1]) expect(toGamma(toLinear(c))).toBeCloseTo(c, 12)
+    expect(luminance([128, 128, 128])).toBeCloseTo(0.2158605, 6)
+    expect(contrast(luminance([0, 0, 0]), luminance([255, 255, 255]))).toBe(21)
+    expect(contrast(1, 0)).toBe(contrast(0, 1))
+    // #767676 on white is the grey that just passes AA, #777777 the one that does not
+    expect(contrast(luminance([0x76, 0x76, 0x76]), 1)).toBeCloseTo(4.54, 2)
+    expect(contrast(luminance([0x77, 0x77, 0x77]), 1)).toBeLessThan(4.5)
   })
 })

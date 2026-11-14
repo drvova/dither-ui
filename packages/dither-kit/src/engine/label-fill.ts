@@ -4,7 +4,7 @@
 // leave both inks under 4.5:1 is printed at the tone where one of them
 // reaches it, on a dark page and a light one alike.
 
-import type { Rgb } from "./palette"
+import { contrast, luminance, type Rgb } from "./palette"
 import { BAYER4 } from "./pixel"
 import { createRasterBuffer, type RasterBuffer } from "./raster"
 
@@ -93,13 +93,6 @@ export function renderLabelFill(
   }
   return buffer
 }
-
-const lin = (c: number) => {
-  const v = c / 255
-  return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
-}
-const luminance = (c: Rgb) => 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2])
-const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
 
 /** The kit's labelled fills as they stand, in cells (2px each): a fill's
  * height and its label's line box across its middle. A badge's 9-10px type

@@ -3,7 +3,8 @@
 // card) and the contrast of text on the page as it is painted. Each page
 // script runs in the page as the body of an async function given `arg`,
 // over the recorder's helpers (`__walk`, walk-drivers.mjs); the contrast is
-// measured here, from a screenshot.
+// measured here, from a screenshot, in the kit's reading of WCAG's contrast.
+import { contrast, luminance, toGamma, toLinear } from "@dither-ui/kit/engine/palette.ts"
 
 /** Where an element stands, in words a finding can carry. */
 const WHERE = `
@@ -259,16 +260,6 @@ for (const e of parents.values()) {
 return samples
 `
 
-const channel = (v) => {
-  const c = v / 255
-  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-}
-const luminance = ([r, g, b]) => 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
-/** WCAG's contrast ratio of two opaque colours. */
-export const ratio = (a, b) => {
-  const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p)
-  return (x + 0.05) / (y + 0.05)
-}
 const over = (ink, alpha, ground) => ink.slice(0, 3).map((v, i) => v * alpha + ground[i] * (1 - alpha))
 
 /** Each sample's contrast, measured: its ground is what the screenshot shows
@@ -311,15 +302,16 @@ export function measureContrast(png, samples, scale) {
     for (const [k, c] of ranked) {
       const g = rgb(k)
       if (Math.abs(luminance(g) - ink) < reach) continue
-      for (let i = 0; i < 3; i++) sum[i] += channel(g[i]) * c
+      for (let i = 0; i < 3; i++) sum[i] += toLinear(g[i] / 255) * c
       n += c
       top = Math.max(top, c)
     }
-    const ground = sum.map((v) => {
-      const lin = v / n
-      return 255 * (lin <= 0.0031308 ? lin * 12.92 : 1.055 * lin ** (1 / 2.4) - 0.055)
-    })
-    const worst = { r: ratio(over(s.ink, alpha, ground), ground), ground, raster: top < n * 0.9 }
+    const ground = sum.map((v) => 255 * toGamma(v / n))
+    const worst = {
+      r: contrast(luminance(over(s.ink, alpha, ground)), luminance(ground)),
+      ground,
+      raster: top < n * 0.9,
+    }
     const need = s.large ? 3 : 4.5
     if (worst.r < need - 0.05) {
       const hex = (c) => `#${c.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")}`

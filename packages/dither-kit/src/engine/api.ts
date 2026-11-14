@@ -73,7 +73,19 @@ export {
 export { cubicBezier, EASINGS, resolveEasing } from "./dither-paint"
 export type { DotVariant } from "./dot-paint"
 export type { DitherColor } from "./palette"
-export { colorToHex, cssColor, hexToHsv, hsvToHex, rgbToHex, seedFromColor, seedFromHue } from "./palette"
+export {
+  colorToHex,
+  contrast,
+  cssColor,
+  hexToHsv,
+  hsvToHex,
+  luminance,
+  rgbToHex,
+  seedFromColor,
+  seedFromHue,
+  toGamma,
+  toLinear,
+} from "./palette"
 export type { PixelBloom, PixelBloomConfig, PixelBloomInput, PixelColor } from "./pixel"
 export type { StackType } from "./scales"
 export {

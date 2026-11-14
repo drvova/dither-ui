@@ -5,12 +5,12 @@
 // names the spec that holds its claim in depth.
 import { resolveSample, sampleKeyframes, type KeyframeTrack } from "@dither-ui/kit/engine/keyframes.ts"
 import { MODEL_FORMATS, type ModelFormat, parseWorld } from "@dither-ui/kit/engine/models.ts"
+import { contrast, hexToRgb, luminance } from "@dither-ui/kit/engine/palette.ts"
 import { BAYER4, fnv1a, SCREEN_KINDS, SCREENS } from "@dither-ui/kit/engine/pixel.ts"
 import { paintPoster, posterLayout, type PosterParams } from "@dither-ui/kit/engine/poster.ts"
 import { createRasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import { BAYER8, wipeStyle } from "@dither-ui/kit/engine/wipe.ts"
 import { paintWorld, type WorldStyle, type WorldView } from "@dither-ui/kit/engine/world.ts"
-import { luminance, parseColor } from "@/shared/lib/inspect/color"
 
 export type Reading = { holds: boolean; figure: string }
 
@@ -84,8 +84,7 @@ export const LANDING = {
   ground: "#101214",
   inks: { bone: "#e4e1d8", "muted bone": "#9c998f", ember: "#ff9632" },
 } as const
-const lum = (css: string) => luminance(parseColor(css)!)
-const ratio = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+const lum = (hex: string) => luminance(hexToRgb(hex))
 /** An ink printed through the Bayer matrix at `tone` on the ground, its
  * contrast taken from the patch's pixels in linear light. */
 const printed = (ink: string, tone: number) => {
@@ -93,7 +92,7 @@ const printed = (ink: string, tone: number) => {
   let sum = 0
   for (let y = 0; y < side; y++)
     for (let x = 0; x < side; x++) sum += lum(tone > BAYER4[y & 3][x & 3] ? ink : LANDING.ground)
-  return ratio(sum / (side * side), lum(LANDING.ground))
+  return contrast(sum / (side * side), lum(LANDING.ground))
 }
 
 const steps = BAYER8.length * BAYER8[0].length

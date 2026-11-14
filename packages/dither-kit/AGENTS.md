@@ -184,7 +184,11 @@ generated twin. Inside the kit every import is relative
   only (peer dependencies; `@stylexjs/stylex` is the StyleX package's).
 - `palette.ts` is the single source of color truth: 7 seeds, each resolving
   fill/line/star hues. Swatch CSS vars in `packages/site/src/app/styles.css`
-  mirror it.
+  mirror it. It is also the ONE reading of WCAG 2 contrast (`toLinear`,
+  `toGamma`, `luminance` of an sRGB triple, `contrast` of two
+  luminances; in `api.ts`): `label-fill.ts` inks by it, and the site's
+  workbench, its lab and the tasks' walk measure with it
+  (`tests/palette.spec.ts`).
 - `pixel.ts` owns BAYER4, the print screens and bloom presets. `SCREENS`
   (`bayer`, `line`, `diagonal`, `dot`, `cross`; `SCREEN_KINDS`) are 4x4
   rank matrices, each a permutation of the sixteen ranks, so every
