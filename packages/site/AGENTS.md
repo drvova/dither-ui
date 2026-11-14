@@ -86,7 +86,8 @@ are from the repository's.
   pages that turn with it (`TURNS_WITH_THEME`), the page-reveal and rise
   scripts, the speculation rules and the `#page-end` marker.
   `entry-client.tsx` takes the page transition the head script parks,
-  installs the press (`shared/lib/press.ts`, one listener for every page),
+  installs the press (`shared/lib/press.ts`, one listener for every page)
+  and the hand (`shared/lib/hand.ts`: what the reader last reached with),
   sends a legacy hash address (`/#/docs/<id>`, `/#/studio…`;
   `shared/lib/legacy.ts`) to its page, and mounts once the page's
   stylesheets stand (`app/sheets-ready.ts`: SolidStart's entry script is

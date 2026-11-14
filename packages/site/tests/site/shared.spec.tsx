@@ -7,6 +7,7 @@ import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { COLORS } from "@/shared/config"
+import { installHand } from "@/shared/lib/hand"
 import { RISE_LIVE, RISE_WAIT } from "@/shared/lib/rise-wait"
 import { MARK_CELLS } from "@/shared/ui/brand-mark"
 import { drivenCells, toRuns } from "@/shared/ui/car"
@@ -571,6 +572,20 @@ describe("the context menu", () => {
     expect(text(document.activeElement!)).toBe("Delete")
     fireEvent.keyDown(document.activeElement!, { key: "ArrowDown" })
     expect(text(document.activeElement!)).toBe("Rename")
+  })
+
+  it("opened by a long press, takes focus on the menu itself: no item ringed under the finger", async () => {
+    const uninstall = installHand(document)
+    fireEvent.pointerDown(document.body, { pointerType: "touch" })
+    render(() => <ContextMenu x={40} y={60} items={items()} />)
+    await Promise.resolve()
+    const menu = document.body.querySelector<HTMLElement>("[role=menu]")!
+    expect(document.activeElement).toBe(menu)
+    // an arrow still reaches the first item
+    fireEvent.keyDown(menu, { key: "ArrowDown" })
+    expect(text(document.activeElement!)).toBe("Rename")
+    fireEvent.pointerDown(document.body, { pointerType: "mouse" })
+    uninstall()
   })
 
   it("moves in from the window's edge, where a long press on the right column's rows opens it", async () => {

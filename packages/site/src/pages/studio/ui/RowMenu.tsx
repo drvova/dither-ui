@@ -3,7 +3,7 @@
 // focus back to the key). The row's own actions are its items.
 import { createEffect, createSignal, For, on, onCleanup, Show } from "solid-js"
 import { DitherIcon } from "@dither-ui/kit"
-import { focusFirstMenuItem, menuKeydown } from "@/shared/lib"
+import { focusBack, focusFirstMenuItem, menuKeydown } from "@/shared/lib"
 import "./RowMenu.css"
 
 /** One item of a row's menu. */
@@ -16,7 +16,7 @@ export default function RowMenu(props: { label: string; actions: RowAction[] }) 
 
   function close(refocus = true) {
     setOpen(false)
-    if (refocus) queueMicrotask(() => key?.focus())
+    if (refocus) queueMicrotask(() => focusBack(key))
   }
   function run(a: RowAction) {
     close(false)
@@ -62,6 +62,7 @@ export default function RowMenu(props: { label: string; actions: RowAction[] }) 
         <div
           ref={(el) => (menu = el)}
           role="menu"
+          tabIndex={-1}
           aria-label={props.label}
           class="menu rim"
           on:keydown={(e) => {

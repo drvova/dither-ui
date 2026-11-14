@@ -1,3 +1,5 @@
+import { focusOnOpen } from "@/shared/lib/hand"
+
 /** Roving keyboard navigation for a `role="menu"`: ArrowUp/ArrowDown move
  * focus between its enabled `menuitem`s (wrapping), Home/End jump. Attach
  * to the menu element's keydown. */
@@ -23,7 +25,13 @@ export function menuKeydown(e: KeyboardEvent) {
   items[next].focus()
 }
 
-/** Focus a menu's first enabled item (call after it mounts). */
+/** Focus a menu's first enabled item (call after it mounts), when the
+ * keyboard or a mouse opened it. Opened by a finger (a tap, a long press)
+ * focus goes to the menu itself (`tabindex="-1"`): a screen reader is in
+ * the menu, no item stands ringed under the finger, and an arrow key still
+ * reaches the first item (`menuKeydown`). */
 export function focusFirstMenuItem(menu: HTMLElement | null) {
-  menu?.querySelector<HTMLElement>("[role=menuitem]:not([disabled])")?.focus()
+  if (!menu) return
+  if (!focusOnOpen()) return menu.focus()
+  menu.querySelector<HTMLElement>("[role=menuitem]:not([disabled])")?.focus()
 }

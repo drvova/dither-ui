@@ -21,7 +21,7 @@ import {
   switchProject,
 } from "@/features/persistence"
 import { addArtboardFromPreset, presets } from "@/features/presets"
-import { focusFirstMenuItem, menuKeydown, useTheme } from "@/shared/lib"
+import { focusBack, focusFirstMenuItem, focusOnOpen, menuKeydown, useTheme } from "@/shared/lib"
 import Mascot from "@/shared/ui/Mascot"
 import "@/widgets/toolbar/tool.css"
 import "./Toolbar.css"
@@ -91,20 +91,22 @@ export default function Toolbar(props: ToolbarProps) {
     })).filter((group) => group.items.length),
   )
 
-  // The library is a dialog: its search focused on open, focus back on its
-  // key when it closes with focus inside it (or nowhere), Escape anywhere in it.
+  // The library is a dialog: its search focused on open (the panel itself
+  // when a finger opened it, so no on-screen keyboard covers it), focus back
+  // on its key when it closes with focus inside it (or nowhere; unringed
+  // after a touch), Escape anywhere in it.
   let libraryKey: HTMLButtonElement | undefined
   let libraryPanel: HTMLDivElement | undefined
   createEffect(
     on(
       libraryOpen,
       (open) => {
-        if (open) queueMicrotask(() => searchRef?.focus())
+        if (open) queueMicrotask(() => (focusOnOpen() ? searchRef : libraryPanel)?.focus())
         else {
           setQuery("")
           queueMicrotask(() => {
             const a = document.activeElement
-            if (!a || a === document.body || libraryPanel?.contains(a)) libraryKey?.focus()
+            if (!a || a === document.body || libraryPanel?.contains(a)) focusBack(libraryKey)
           })
         }
       },
@@ -136,7 +138,7 @@ export default function Toolbar(props: ToolbarProps) {
         else
           queueMicrotask(() => {
             const a = document.activeElement
-            if (!a || a === document.body || a.closest("[role=menu]")) projectTrigger?.focus()
+            if (!a || a === document.body || a.closest("[role=menu]")) focusBack(projectTrigger)
           })
       },
       { defer: true },
@@ -252,6 +254,7 @@ export default function Toolbar(props: ToolbarProps) {
           <div
             ref={(el) => (projectMenu = el)}
             role="menu"
+            tabIndex={-1}
             class="rim absolute left-1/2 top-full z-40 mt-1 w-56 -translate-x-1/2 rounded-2xl bg-card p-1 shadow-[0_8px_24px_rgba(0,0,0,0.32)]"
             on:keydown={menuKeydown}
           >
@@ -364,6 +367,7 @@ export default function Toolbar(props: ToolbarProps) {
             <div
               ref={(el) => (libraryPanel = el)}
               role="dialog"
+              tabIndex={-1}
               aria-label="Component library"
               onKeyDown={(e) => e.key === "Escape" && setLibraryOpen(false)}
               class="absolute right-0 top-full z-40 mt-2 flex max-h-[min(72dvh,640px)] w-[420px] flex-col overflow-hidden rim rounded-2xl bg-card shadow-[0_12px_36px_rgba(0,0,0,0.38)]"

@@ -36,6 +36,7 @@ import { STUDIO_TOOLS } from "../../src/features/agent/tools"
 import { history, resetHistory, stopHistory } from "../../src/features/history"
 import { activeProjectId, projects, stopAutosave } from "../../src/features/persistence"
 import { presets } from "../../src/features/presets"
+import { installHand } from "../../src/shared/lib/hand"
 import { LAYER_PANELS, WIDGET_PANELS } from "../../src/widgets/inspector/panels"
 import ReelPanel from "../../src/widgets/inspector/panels/ReelPanel"
 import AvatarDrawGrid from "../../src/widgets/inspector/ui/AvatarDrawGrid"
@@ -941,6 +942,33 @@ describe("the title bar", () => {
     expect(library()).toBe(false)
     await tick()
     expect(document.activeElement).toBe(open)
+  })
+
+  it("opened by a finger, takes focus on the panel, not its search, and hands it back unringed", async () => {
+    const uninstall = installHand(document)
+    const finger = (el: Element) => fireEvent.pointerDown(el, { pointerType: "touch" })
+    const { container, library } = bar()
+    const open = button(container, "Library")
+    finger(open)
+    fireEvent.click(open)
+    const dialog = container.querySelector<HTMLElement>('[role="dialog"]')!
+    await tick()
+    // no field focused, so no on-screen keyboard over half the screen; a screen reader is in the dialog
+    expect(document.activeElement).toBe(dialog)
+    const focus = vi.spyOn(open, "focus")
+    finger(button(dialog, "area chart"))
+    fireEvent.click(button(dialog, "area chart"))
+    expect(library()).toBe(false)
+    await tick()
+    expect(document.activeElement).toBe(open)
+    expect(focus).toHaveBeenLastCalledWith({ focusVisible: false })
+    // the keyboard opens it on its search, as ever
+    fireEvent.keyDown(open, { key: "Enter" })
+    fireEvent.click(open)
+    await tick()
+    expect(document.activeElement).toBe(input(container.querySelector('[role="dialog"]')!, "component-search"))
+    fireEvent.pointerDown(open, { pointerType: "mouse" })
+    uninstall()
   })
 
   it("lists the saved presets in the library", () => {

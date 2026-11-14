@@ -629,7 +629,13 @@ around this tree (entries, routes, the build, how Solid is written) is
   project/library, ContextMenu `role="menu"`
   + `menuitem`) dismiss on Escape and on a pointer outside, focus their
   first item on open, and take ArrowUp/Down/Home/End through
-  `shared/lib/menu.ts` (`menuKeydown`, `focusFirstMenuItem`); no
+  `shared/lib/menu.ts` (`menuKeydown`, `focusFirstMenuItem`); opened by a
+  finger (a tap, a long press) a menu or the library takes focus on
+  itself (`tabindex="-1"`), never on an item or a field, so no on-screen
+  keyboard rises and nothing stands ringed under the finger, and focus
+  handed back to a key after a touch comes back unringed
+  (`shared/lib/hand.ts`: `focusOnOpen`, `focusBack`; the hand is the last
+  pointer or key down, `installHand` in the entry); no
   `window.prompt`/`confirm` — the project menu names inline (Enter commits,
   Escape backs out) and deletes through `DitherAlertDialog`; global `:focus-visible` ring is in `app/styles.css` — do not
   suppress. Every page holds one h1 and one main (the Studio's h1 and the

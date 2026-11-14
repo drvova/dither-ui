@@ -54,6 +54,7 @@ export default function ContextMenu(props: ContextMenuProps) {
       <div
         ref={(el) => (root = el)}
         role="menu"
+        tabIndex={-1}
         aria-orientation="vertical"
         on:keydown={menuKeydown}
         class="fixed z-[100] min-w-[172px] rim rounded-2xl bg-card p-1 font-mono text-foreground shadow-[0_12px_40px_-12px_rgba(0,0,0,0.7)]"
