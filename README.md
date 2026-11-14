@@ -335,20 +335,29 @@ device-independent latency promises. Re-run on target devices before choosing
 ### Benchmark
 
 The kit carries two benchmarks, both run by hand and neither part of a build.
-The figures below were measured 2026-11-13 on the same cloud container (4
-cores of an Intel Xeon at 2.30 GHz), Node 24.22.3.
+The figures below were measured 2026-11-14 on the same cloud container (4
+cores of an Intel Xeon at 2.30 GHz), Node 24.22.3, while other builds shared
+its cores (a load average of 9 to 25), so they read high against a quiet
+machine.
 
 `npm run bench -w @dither-ui/kit` times the engine's hot paths in Node, 3 warmups
 then 20 batches a path. The median batch, as the median of seven runs:
 
 | Hot path | Median |
 | --- | ---: |
-| `renderDitherGradient`, 960×600 at 2 px cells (144,000 pixels) | 1.80 ms |
-| `renderDitherGradient`, capped at 320×200 (64,000 pixels) | 0.83 ms |
-| `renderDitherButton`, 240×56 at 2 px cells, fresh buffer | 0.061 ms |
-| `renderDitherButton`, the same into a reused buffer | 0.056 ms |
-| `paintColumn` × 520 columns, a 520×200 chart frame | 1.24 ms |
-| `setOrBlendRasterPixel` × 64,000 (`blendRasterPixel`: 0.91 ms) | 0.86 ms |
+| `renderDitherGradient`, 960×600 at 2 px cells (144,000 pixels) | 0.30 ms |
+| `renderDitherGradient`, capped at 320×200 (64,000 pixels) | 0.16 ms |
+| `renderDitherButton`, 240×56 at 2 px cells, fresh buffer | 0.076 ms |
+| `renderDitherButton`, the same into a reused buffer | 0.060 ms |
+| `paintColumn` × 520 columns, a 520×200 chart frame | 1.07 ms |
+| `setOrBlendRasterPixel` × 64,000 (`blendRasterPixel`: 0.97 ms) | 0.89 ms |
+
+The gradient lays a row's first four cells and copies them along (up or
+down; left or right, the first four rows down the surface): the matrix
+repeats every four cells, so the rest is the same bytes. The same run's
+last section is the engine profile (`benches/engine-cases.mts`): one frame
+of the poster, the world, the fbm fields, the heat, the wipe and the chart
+fill, the paths the landing and the docs lean on.
 
 `npm run bench:browser -w @dither-ui/kit` runs the painters in headless Chromium
 141 (software rendering, SwiftShader): 3 warmups, then 6 measured batches × 2
@@ -357,16 +366,17 @@ compare the legacy per-cell `fillRect` painter with RGBA generation plus one
 `putImageData` upload. Button samples run at 240×56 CSS px and compare fresh
 RGBA allocation against a reused target buffer. The table reports mean,
 median, p95, canvas calls, and RGBA allocation count, each timing the median
-of five independent runs (a fresh page each):
+of five independent runs (a fresh page each), measured 2026-11-14 under the
+same shared load:
 
 | Painter | Mean | Median | p95 | Canvas calls | RGBA allocations |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Gradient legacy fillRect | 60.03 ms | 58.26 ms | 71.12 ms | 144,000 | 0 |
-| Gradient RGBA + putImageData | 2.21 ms | 2.21 ms | 2.89 ms | 1 | 13 |
-| Button fresh RGBA buffer | 0.13 ms | 0.12 ms | 0.17 ms | 1 | 24 |
-| Button reused RGBA buffer | 0.07 ms | 0.07 ms | 0.11 ms | 1 | 2 |
+| Gradient legacy fillRect | 80.39 ms | 72.90 ms | 124.52 ms | 144,000 | 0 |
+| Gradient RGBA + putImageData | 0.65 ms | 0.56 ms | 1.27 ms | 1 | 13 |
+| Button fresh RGBA buffer | 0.15 ms | 0.13 ms | 0.30 ms | 1 | 24 |
+| Button reused RGBA buffer | 0.07 ms | 0.06 ms | 0.12 ms | 1 | 2 |
 
-The gradient rows show a **27.1× speedup** and **96.3% lower measured paint
+The gradient rows show a **124× speedup** and **99.2% lower measured paint
 latency**. The button rows are intentionally small in wall-clock terms; their
 useful signal is allocation behavior, where reuse keeps the repeated RGBA
 buffer allocation count bounded at two reusable objects.
@@ -375,11 +385,11 @@ The five runs behind those medians:
 
 | Run | Legacy mean | Legacy median | Legacy p95 | Raster mean | Raster median | Raster p95 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 | 66.45 ms | 66.80 ms | 79.11 ms | 2.57 ms | 2.31 ms | 3.58 ms |
-| 2 | 66.20 ms | 60.40 ms | 92.17 ms | 2.49 ms | 2.43 ms | 3.71 ms |
-| 3 | 58.33 ms | 56.61 ms | 68.05 ms | 2.21 ms | 2.21 ms | 2.58 ms |
-| 4 | 60.03 ms | 58.26 ms | 70.00 ms | 1.93 ms | 1.75 ms | 2.89 ms |
-| 5 | 58.74 ms | 56.51 ms | 71.12 ms | 1.89 ms | 1.76 ms | 2.88 ms |
+| 1 | 93.15 ms | 99.85 ms | 162.73 ms | 0.80 ms | 0.56 ms | 2.12 ms |
+| 2 | 66.32 ms | 69.54 ms | 86.17 ms | 0.57 ms | 0.57 ms | 0.71 ms |
+| 3 | 62.42 ms | 60.77 ms | 76.83 ms | 0.75 ms | 0.52 ms | 2.14 ms |
+| 4 | 80.39 ms | 72.90 ms | 124.52 ms | 0.65 ms | 0.63 ms | 1.02 ms |
+| 5 | 82.41 ms | 81.37 ms | 128.92 ms | 0.62 ms | 0.55 ms | 1.27 ms |
 
 Each legacy gradient sample made 144,000 `fillRect` calls; each raster
 gradient sample made one `putImageData` upload. These are directional

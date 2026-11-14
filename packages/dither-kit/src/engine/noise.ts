@@ -10,44 +10,52 @@ export function hash21(x: number, y: number): number {
 
 const smooth = (t: number) => t * t * (3 - 2 * t)
 
-/** Lattice value noise with smoothstep interpolation, output in [0, 1]. */
-export function valueNoise(x: number, y: number): number {
-  const xi = Math.floor(x)
-  const yi = Math.floor(y)
-  const xf = x - xi
-  const yf = y - yi
-  const a = hash21(xi, yi)
-  const b = hash21(xi + 1, yi)
-  const c = hash21(xi, yi + 1)
-  const d = hash21(xi + 1, yi + 1)
-  const u = smooth(xf)
-  const v = smooth(yf)
-  return a * (1 - u) * (1 - v) + b * u * (1 - v) + c * (1 - u) * v + d * u * v
+/* Value noise keeps the last lattice cells it sampled (`SLOTS` of them) and
+ * each cell's four corner hashes (a sine each), in a bank of its own and one
+ * per octave of fbm: the cells of a raster are sampled in order and
+ * neighbours share a lattice cell, so the corners are reused instead of
+ * recomputed. Several slots because a painter often samples two fields a
+ * cell (a curtain's edge and its rays, two fluid layers, a warp and the
+ * field it warps): with one slot each call evicted the other's cell and
+ * every sample paid all its sines again. The slot last hit is tried first;
+ * a miss takes the slot after it in turn. A cache only, never a result: the
+ * hashes and the arithmetic are the plain lattice noise's, so `valueNoise`
+ * and `fbm` are bit-identical to it, whatever the call order. */
+const OCTAVES = 3
+const VALUE_BANK = OCTAVES
+const BANKS = OCTAVES + 1
+const SLOTS = 4
+const cellX = new Float64Array(BANKS * SLOTS).fill(Number.NaN)
+const cellY = new Float64Array(BANKS * SLOTS).fill(Number.NaN)
+const cellCorners = new Float64Array(BANKS * SLOTS * 4)
+const lastSlot = new Int32Array(BANKS)
+const nextSlot = new Int32Array(BANKS)
+
+/** The slot of bank `o` holding lattice cell (xi, yi), hashing its corners
+ * into the next slot in turn when none does. */
+function slotOf(o: number, xi: number, yi: number): number {
+  const base = o * SLOTS
+  for (let j = 0; j < SLOTS; j++) if (cellX[base + j] === xi && cellY[base + j] === yi) return (lastSlot[o] = j)
+  const s = nextSlot[o]
+  nextSlot[o] = (s + 1) % SLOTS
+  const c = (base + s) * 4
+  cellX[base + s] = xi
+  cellY[base + s] = yi
+  cellCorners[c] = hash21(xi, yi)
+  cellCorners[c + 1] = hash21(xi + 1, yi)
+  cellCorners[c + 2] = hash21(xi, yi + 1)
+  cellCorners[c + 3] = hash21(xi + 1, yi + 1)
+  return (lastSlot[o] = s)
 }
 
-/* Each octave of fbm keeps the lattice cell it sampled last and that cell's
- * four corner hashes (a sine each): the cells of a raster are sampled in
- * order and neighbours share a lattice cell in every octave, so the corners
- * are reused instead of recomputed. A cache only, never a result: the values
- * and the arithmetic are valueNoise's, so fbm is bit-identical to summing
- * valueNoise, whatever the call order. */
-const OCTAVES = 3
-const cellX = new Float64Array(OCTAVES).fill(Number.NaN)
-const cellY = new Float64Array(OCTAVES).fill(Number.NaN)
-const cellCorners = new Float64Array(OCTAVES * 4)
-
-function octaveNoise(o: number, x: number, y: number): number {
+/** Lattice value noise with smoothstep interpolation through bank `o`. */
+function latticeNoise(o: number, x: number, y: number): number {
   const xi = Math.floor(x)
   const yi = Math.floor(y)
-  const k = o * 4
-  if (cellX[o] !== xi || cellY[o] !== yi) {
-    cellX[o] = xi
-    cellY[o] = yi
-    cellCorners[k] = hash21(xi, yi)
-    cellCorners[k + 1] = hash21(xi + 1, yi)
-    cellCorners[k + 2] = hash21(xi, yi + 1)
-    cellCorners[k + 3] = hash21(xi + 1, yi + 1)
-  }
+  const base = o * SLOTS
+  let s = lastSlot[o]
+  if (cellX[base + s] !== xi || cellY[base + s] !== yi) s = slotOf(o, xi, yi)
+  const k = (base + s) * 4
   const u = smooth(x - xi)
   const v = smooth(y - yi)
   const a = cellCorners[k]
@@ -55,6 +63,11 @@ function octaveNoise(o: number, x: number, y: number): number {
   const c = cellCorners[k + 2]
   const d = cellCorners[k + 3]
   return a * (1 - u) * (1 - v) + b * u * (1 - v) + c * (1 - u) * v + d * u * v
+}
+
+/** Lattice value noise with smoothstep interpolation, output in [0, 1]. */
+export function valueNoise(x: number, y: number): number {
+  return latticeNoise(VALUE_BANK, x, y)
 }
 
 /** Three-octave fbm, drifted by time. */
@@ -65,7 +78,7 @@ export function fbm(x: number, y: number, t: number): number {
   let fy = y
   let ft = t
   for (let o = 0; o < OCTAVES; o++) {
-    sum += amp * octaveNoise(o, fx + ft, fy - ft * 0.5)
+    sum += amp * latticeNoise(o, fx + ft, fy - ft * 0.5)
     fx *= 2
     fy *= 2
     ft *= 1.7

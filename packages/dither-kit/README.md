@@ -107,8 +107,9 @@ Keep `animate`, `sparkles`, and bloom off for static content, and use the
 precompiled path for content whose data and dimensions are known on the server.
 
 The package's benchmarks are run by hand: `npm run bench` times the engine's
-hot paths in Node (the per-pixel writes, the gradient compiler and a chart
-column), and `npm run bench:browser` mounts the Solid components in headless
+hot paths in Node (the per-pixel writes, the gradient compiler, a chart
+column and one frame of each paint path the pages lean on), and `npm run
+bench:browser` mounts the Solid components in headless
 Chromium and compares the gradient's `fillRect` and `putImageData` painters
 and button fresh-buffer versus reused-buffer rendering. See the root README
 for the figures and the machine they were measured on.

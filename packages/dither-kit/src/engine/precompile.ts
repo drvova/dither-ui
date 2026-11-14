@@ -63,32 +63,37 @@ export function renderDitherGradient(options: GradientRasterOptions): RasterBuff
   const matrix = screenMatrix(options.screen ?? "bayer", options.seed)
   const buffer = createRasterBuffer(cols, rows)
   const data = buffer.data
-  const w = cols
+  const span = cols * 4
 
-  // Inline pixel write — no function call per pixel, no blend (buffer is zeroed).
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const t =
-        direction === "up"
-          ? 1 - (y + 0.5) / rows
-          : direction === "down"
-            ? (y + 0.5) / rows
-            : direction === "left"
-              ? 1 - (x + 0.5) / cols
-              : (x + 0.5) / cols
-      const density = 1 - t
-      const lit = density > matrix[y & 3][x & 3]
-      const useFrom = lit || !to
-      const c = useFrom ? from : (to as [number, number, number])
-      const alpha = to ? opacity : (lit ? 0.35 + 0.65 * density : 0.12 * density) * opacity
-      if (alpha <= 0) continue
-      const a = alpha > 1 ? 1 : alpha
-      const i = (y * w + x) * 4
-      data[i] = (c[0] * a + 0.5) | 0
-      data[i + 1] = (c[1] * a + 0.5) | 0
-      data[i + 2] = (c[2] * a + 0.5) | 0
-      data[i + 3] = (a * 255 + 0.5) | 0
+  // One cell at `i` for the ramp's `t` under threshold `th` (the buffer is zeroed).
+  const lay = (i: number, t: number, th: number) => {
+    const density = 1 - t
+    const lit = density > th
+    const c = lit || !to ? from : to
+    const alpha = to ? opacity : (lit ? 0.35 + 0.65 * density : 0.12 * density) * opacity
+    if (alpha <= 0) return
+    const a = alpha > 1 ? 1 : alpha
+    data[i] = (c[0] * a + 0.5) | 0
+    data[i + 1] = (c[1] * a + 0.5) | 0
+    data[i + 2] = (c[2] * a + 0.5) | 0
+    data[i + 3] = (a * 255 + 0.5) | 0
+  }
+  // A cell is a function of its ramp position and its threshold, and the
+  // matrix repeats every four cells: up or down, a row is its first four
+  // cells repeated; left or right, every row is one of the first four.
+  if (direction === "up" || direction === "down") {
+    for (let y = 0; y < rows; y++) {
+      const t = direction === "up" ? 1 - (y + 0.5) / rows : (y + 0.5) / rows
+      const row = matrix[y & 3]
+      const at = y * span
+      for (let x = 0; x < 4; x++) lay(at + x * 4, t, row[x])
+      for (let n = 16; n < span; n *= 2) data.copyWithin(at + n, at, at + Math.min(n, span - n))
     }
+  } else {
+    for (let y = 0; y < 4; y++)
+      for (let x = 0; x < cols; x++)
+        lay(y * span + x * 4, direction === "left" ? 1 - (x + 0.5) / cols : (x + 0.5) / cols, matrix[y][x & 3])
+    for (let y = 4; y < rows; y++) data.copyWithin(y * span, (y & 3) * span, ((y & 3) + 1) * span)
   }
   return buffer
 }
