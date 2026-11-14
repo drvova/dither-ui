@@ -43,14 +43,12 @@ import pressableProps from "virtual:dither-props/DitherPressable"
 import inViewProps from "virtual:dither-props/DitherInView"
 import focusRingProps from "virtual:dither-props/DitherFocusRing"
 import DocSection from "../DocSection"
+import TextExample from "./examples/text"
+import textCode from "./examples/text.tsx?raw"
 
 const SNIPPET_BOX = `<DitherBox as="section" class="rounded-lg border border-border/60 bg-card/40 p-5">
   <span class="text-[13px]">Content lands in a typed container.</span>
 </DitherBox>`
-
-const SNIPPET_TEXT = `<DitherText tone="muted" size="sm">Default paragraph tone.</DitherText>
-<DitherText as="span" tone="faint" size="xs">Caption-weight aside.</DitherText>
-<DitherText as="h3" size="lg">A heading in the native scale.</DitherText>`
 
 const SNIPPET_DIVIDER = `<p>Charts render on canvas.</p>
 <DitherDivider class="my-4" />
@@ -250,17 +248,9 @@ export default function PrimitivesDocs() {
           <code class="text-foreground/80">as</code> for the element. Leading, tracking and weight stay yours in{" "}
           <code class="text-foreground/80">class</code>.
         </p>
-        <DemoCard code={SNIPPET_TEXT}>
+        <DemoCard code={textCode}>
           <div class="grid gap-3 text-left">
-            <DitherText tone="muted" size="sm">
-              Default paragraph tone.
-            </DitherText>
-            <DitherText as="span" tone="faint" size="xs">
-              Caption-weight aside.
-            </DitherText>
-            <DitherText as="h3" size="lg">
-              A heading in the native scale.
-            </DitherText>
+            <TextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.text} />

@@ -1,36 +1,14 @@
 import {
-  DitherCalendar,
-  DitherCascadeSelect,
-  DitherChoiceChips,
   DitherCheckboxCard,
   DitherCodeInput,
-  DitherColorPicker,
   DitherColorSwatch,
-  DitherCurrencyInput,
-  DitherDatePicker,
-  DitherEmailInput,
-  DitherFileInput,
-  DitherFontPicker,
-  DitherHotkeyInput,
-  DitherIconPicker,
-  DitherInlineEdit,
   DitherInputGroup,
-  DitherKeyValueInput,
   DitherKnob,
   DitherLanguageSelect,
-  DitherListBox,
-  DitherMentionInput,
-  DitherMonthPicker,
-  DitherMultiSelect,
-  DitherPasswordInput,
-  DitherPhoneInput,
-  DitherScrubInput,
   DitherSearchInput,
   DitherSignaturePad,
-  DitherTagInput,
-  DitherTransferList,
 } from "@dither-ui/kit"
-import { DitherField, DitherInput } from "@dither-ui/kit"
+import { DitherInput } from "@dither-ui/kit"
 import { createSignal } from "solid-js"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
@@ -64,41 +42,59 @@ import colorPickerProps from "virtual:dither-props/DitherColorPicker"
 import knobProps from "virtual:dither-props/DitherKnob"
 import signaturePadProps from "virtual:dither-props/DitherSignaturePad"
 import DocSection from "../DocSection"
-
-const SNIPPET_PASSWORD_INPUT = `const [pw, setPw] = createSignal("correct-horse-battery")
-
-<DitherField label="Password">
-  <DitherPasswordInput modelValue={pw()} onUpdateModelValue={setPw} placeholder="At least 12 characters" />
-</DitherField>`
+import PasswordInputExample from "./examples/password-input"
+import passwordInputCode from "./examples/password-input.tsx?raw"
+import EmailInputExample from "./examples/email-input"
+import emailInputCode from "./examples/email-input.tsx?raw"
+import PhoneInputExample from "./examples/phone-input"
+import phoneInputCode from "./examples/phone-input.tsx?raw"
+import CurrencyInputExample from "./examples/currency-input"
+import currencyInputCode from "./examples/currency-input.tsx?raw"
+import ScrubInputExample from "./examples/scrub-input"
+import scrubInputCode from "./examples/scrub-input.tsx?raw"
+import HotkeyInputExample from "./examples/hotkey-input"
+import hotkeyInputCode from "./examples/hotkey-input.tsx?raw"
+import InlineEditExample from "./examples/inline-edit"
+import inlineEditCode from "./examples/inline-edit.tsx?raw"
+import TagInputExample from "./examples/tag-input"
+import tagInputCode from "./examples/tag-input.tsx?raw"
+import ChoiceChipsExample from "./examples/choice-chips"
+import choiceChipsCode from "./examples/choice-chips.tsx?raw"
+import CheckboxCardExample from "./examples/checkbox-card"
+import checkboxCardCode from "./examples/checkbox-card.tsx?raw"
+import KeyValueInputExample from "./examples/key-value-input"
+import keyValueInputCode from "./examples/key-value-input.tsx?raw"
+import MentionInputExample from "./examples/mention-input"
+import mentionInputCode from "./examples/mention-input.tsx?raw"
+import FileInputExample from "./examples/file-input"
+import fileInputCode from "./examples/file-input.tsx?raw"
+import ListBoxExample from "./examples/list-box"
+import listBoxCode from "./examples/list-box.tsx?raw"
+import MultiSelectExample from "./examples/multi-select"
+import multiSelectCode from "./examples/multi-select.tsx?raw"
+import CascadeSelectExample from "./examples/cascade-select"
+import cascadeSelectCode from "./examples/cascade-select.tsx?raw"
+import TransferListExample from "./examples/transfer-list"
+import transferListCode from "./examples/transfer-list.tsx?raw"
+import IconPickerExample from "./examples/icon-picker"
+import iconPickerCode from "./examples/icon-picker.tsx?raw"
+import FontPickerExample from "./examples/font-picker"
+import fontPickerCode from "./examples/font-picker.tsx?raw"
+import CalendarExample from "./examples/calendar"
+import calendarCode from "./examples/calendar.tsx?raw"
+import DatePickerExample from "./examples/date-picker"
+import datePickerCode from "./examples/date-picker.tsx?raw"
+import MonthPickerExample from "./examples/month-picker"
+import monthPickerCode from "./examples/month-picker.tsx?raw"
+import ColorPickerExample from "./examples/color-picker"
+import colorPickerCode from "./examples/color-picker.tsx?raw"
+import KnobExample from "./examples/knob"
+import knobCode from "./examples/knob.tsx?raw"
 
 const SNIPPET_SEARCH_INPUT = `const [q, setQ] = createSignal("dither")
 const [results, setResults] = createSignal<string[]>(["DitherButton", "DitherImage"])
 
 <DitherSearchInput modelValue={q()} onUpdateModelValue={setQ} onClear={() => setResults([])} />`
-
-const SNIPPET_EMAIL_INPUT = `const [email, setEmail] = createSignal("")
-
-<DitherEmailInput modelValue={email()} onUpdateModelValue={setEmail} />`
-
-const SNIPPET_PHONE_INPUT = `const [phone, setPhone] = createSignal("(415) 555-2671")
-
-<DitherPhoneInput modelValue={phone()} onUpdateModelValue={setPhone} />`
-
-const SNIPPET_CURRENCY_INPUT = `const [amount, setAmount] = createSignal("1234567.5")
-
-<DitherCurrencyInput modelValue={amount()} onUpdateModelValue={setAmount} prefix="$" />`
-
-const SNIPPET_SCRUB_INPUT = `const [opacity, setOpacity] = createSignal(64)
-
-<DitherField label="Opacity" description="Drag the grip, or focus it and use the arrows">
-  <DitherScrubInput modelValue={opacity()} onUpdateModelValue={setOpacity} min={0} max={100} step={1} />
-</DitherField>`
-
-const SNIPPET_HOTKEY_INPUT = `const [binding, setBinding] = createSignal("Ctrl+Shift+K")
-
-<DitherField label="Command palette" description="Click the field, then press the combo">
-  <DitherHotkeyInput modelValue={binding()} onUpdateModelValue={setBinding} />
-</DitherField>`
 
 const SNIPPET_CODE_INPUT = `const [snippet, setSnippet] = createSignal("const dither = bayer(4)")
 const [submitted, setSubmitted] = createSignal("")
@@ -114,104 +110,9 @@ const SNIPPET_INPUT_GROUP = `const [host, setHost] = createSignal("dither-ui.com
   <DitherInput modelValue={host()} onUpdateModelValue={setHost} aria-label="Site address" class="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" />
 </DitherInputGroup>`
 
-const SNIPPET_INLINE_EDIT = `const [name, setName] = createSignal("bogdan")
-
-function persist(next: string) {
-  localStorage.setItem("display-name", next)
-}
-
-<DitherField label="Display name" description="Click the value to edit it">
-  <DitherInlineEdit modelValue={name()} onUpdateModelValue={setName} onSave={persist} />
-</DitherField>`
-
-const SNIPPET_TAG_INPUT = `const [tags, setTags] = createSignal(["solid", "dither"])
-
-<DitherTagInput modelValue={tags()} onUpdateModelValue={setTags} max={8} placeholder="Add tag…" />`
-
-const SNIPPET_CHOICE_CHIPS = `const [size, setSize] = createSignal("M")
-const [labels, setLabels] = createSignal(["bug"])
-
-<DitherChoiceChips modelValue={size()} onUpdateModelValue={setSize} label="Size" options={['S', 'M', 'L', 'XL']} />
-<DitherChoiceChips modelValue={labels()} onUpdateModelValue={setLabels} multiple options={['bug', 'feat', 'docs']} />`
-
-const SNIPPET_CHECKBOX_CARD = `const [telemetry, setTelemetry] = createSignal(true)
-
-<DitherCheckboxCard modelValue={telemetry()} onUpdateModelValue={setTelemetry}
-  label="Telemetry"
-  description="Anonymous usage stats help pick the next components" />`
-
-const SNIPPET_KEY_VALUE_INPUT = `const [headers, setHeaders] = createSignal([
-  { key: "Content-Type", value: "application/json" },
-  { key: "X-Client", value: "dither-ui" },
-])
-
-<DitherKeyValueInput modelValue={headers()} onUpdateModelValue={setHeaders} />`
-
-const SNIPPET_MENTION_INPUT = `const [body, setBody] = createSignal("cc @da")
-const handles = ["dana", "darius", "daniela", "sam"]
-const [notified, setNotified] = createSignal<string[]>([])
-
-<DitherMentionInput modelValue={body()} onUpdateModelValue={setBody} options={handles} rows={3}
-  onMention={(handle) => (setNotified([...notified(), handle]))} />`
-
-const SNIPPET_FILE_INPUT = `const [picked, setPicked] = createSignal<File[]>([])
-
-<DitherFileInput modelValue={picked()} onUpdateModelValue={setPicked} multiple accept="image/*" />`
-
-const SNIPPET_LIST_BOX = `const [city, setCity] = createSignal("Seoul")
-
-<DitherListBox value={city()} onUpdateModelValue={(next) => (setCity(next))}
-  options={['Kyoto', 'Seoul', 'Taipei', 'Osaka', 'Busan']} aria-label="City" />`
-
-const SNIPPET_MULTI_SELECT = `const ALL_TAGS = ["solid", "dither", "canvas", "tokens", "ssr"]
-const [tags, setTags] = createSignal(["solid", "dither"])
-
-<DitherMultiSelect value={tags()} onUpdateModelValue={(next) => (setTags(next))} options={ALL_TAGS} />`
-
-const SNIPPET_CASCADE_SELECT = `const TREE = [
-  {
-    value: "Japan",
-    children: [
-      { value: "Kansai", children: [{ value: "Kyoto" }, { value: "Osaka" }] },
-      { value: "Kanto", children: [{ value: "Tokyo" }, { value: "Yokohama" }] },
-    ],
-  },
-  { value: "Korea", children: [{ value: "Seoul Region", children: [{ value: "Seoul" }, { value: "Incheon" }] }] },
-]
-const [region, setRegion] = createSignal(["Japan", "Kansai"])
-
-<DitherCascadeSelect value={region()} onUpdateModelValue={(next) => (setRegion(next))} tree={TREE}
-  placeholders={['Country', 'Region', 'City']} />`
-
-const SNIPPET_TRANSFER_LIST = `const ALL_ROLES = ["admin", "editor", "viewer", "billing", "support"]
-const [roles, setRoles] = createSignal(["admin"])
-
-<DitherTransferList value={roles()} onUpdateModelValue={(next) => (setRoles(next))} source={ALL_ROLES}
-  sourceLabel="Roles" targetLabel="Assigned" />`
-
 const SNIPPET_LANGUAGE_SELECT = `const [locale, setLocale] = createSignal("ja")
 
 <DitherLanguageSelect modelValue={locale()} onUpdateModelValue={setLocale} includeDefault />`
-
-const SNIPPET_ICON_PICKER = `const [glyph, setGlyph] = createSignal("Check")
-
-<DitherIconPicker modelValue={glyph()} onUpdateModelValue={setGlyph} />`
-
-const SNIPPET_FONT_PICKER = `const [font, setFont] = createSignal("'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace")
-
-<DitherFontPicker modelValue={font()} onUpdateModelValue={setFont} />`
-
-const SNIPPET_CALENDAR = `const [day, setDay] = createSignal("2026-10-07")
-
-<DitherCalendar modelValue={day()} onUpdateModelValue={setDay} max="2026-12-31" />`
-
-const SNIPPET_DATE_PICKER = `const [due, setDue] = createSignal("2026-10-07")
-
-<DitherDatePicker modelValue={due()} onUpdateModelValue={setDue} min="2026-01-01" />`
-
-const SNIPPET_MONTH_PICKER = `const [month, setMonth] = createSignal("2026-10")
-
-<DitherMonthPicker modelValue={month()} onUpdateModelValue={setMonth} />`
 
 const SNIPPET_COLOR_SWATCH = `const palette = [
   { color: "#5227FF", label: "Iris" },
@@ -230,14 +131,6 @@ const [active, setActive] = createSignal("#5227FF")
     )}
   </For>
 </div>`
-
-const SNIPPET_COLOR_PICKER = `const [tint, setTint] = createSignal("#5227FF")
-
-<DitherColorPicker modelValue={tint()} onUpdateModelValue={setTint} />`
-
-const SNIPPET_KNOB = `const [gain, setGain] = createSignal(64)
-
-<DitherKnob modelValue={gain()} onUpdateModelValue={setGain} min={0} max={100} step={1} />`
 
 const SNIPPET_SIGNATURE_PAD = `const [sig, setSig] = createSignal("")
 
@@ -276,8 +169,6 @@ export const API: Record<string, PropRow[]> = {
 }
 
 export default function FormsDocs() {
-  // The checkbox cards' demo answers clicks: each card is its own toggle.
-  const [telemetry, setTelemetry] = createSignal(true)
   const [beta, setBeta] = createSignal(false)
 
   return (
@@ -288,11 +179,9 @@ export default function FormsDocs() {
           Password field with a reveal toggle: the type flips text/password, the button carries its own accessible name
           and never submits (<code class="text-foreground/80">type="button"</code>).
         </p>
-        <DemoCard code={SNIPPET_PASSWORD_INPUT}>
+        <DemoCard code={passwordInputCode}>
           <div class="mx-auto w-full max-w-xs">
-            <DitherField label="Password">
-              <DitherPasswordInput modelValue="correct-horse-battery" placeholder="At least 12 characters" />
-            </DitherField>
+            <PasswordInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.passwordInput} />
@@ -317,9 +206,9 @@ export default function FormsDocs() {
           <code class="text-foreground/80">type=email</code>, <code class="text-foreground/80">inputmode=email</code>,{" "}
           <code class="text-foreground/80">autocomplete=email</code>.
         </p>
-        <DemoCard code={SNIPPET_EMAIL_INPUT}>
+        <DemoCard code={emailInputCode}>
           <div class="mx-auto w-full max-w-xs">
-            <DitherEmailInput modelValue="" />
+            <EmailInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.emailInput} />
@@ -331,9 +220,9 @@ export default function FormsDocs() {
           (10-digit NANP), tel keyboard on mobile. The model is always the formatted string; the caret is end-anchored
           by design.
         </p>
-        <DemoCard code={SNIPPET_PHONE_INPUT}>
+        <DemoCard code={phoneInputCode}>
           <div class="mx-auto w-full max-w-xs">
-            <DitherPhoneInput modelValue="(415) 555-2671" />
+            <PhoneInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.phoneInput} />
@@ -345,9 +234,9 @@ export default function FormsDocs() {
           <code class="text-foreground/80">"1234.56"</code>), the display groups thousands while blurred and shows raw
           digits while focused so typing and the caret stay sane. Digits and one dot only.
         </p>
-        <DemoCard code={SNIPPET_CURRENCY_INPUT}>
+        <DemoCard code={currencyInputCode}>
           <div class="mx-auto w-full max-w-xs">
-            <DitherCurrencyInput modelValue="1234567.5" />
+            <CurrencyInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.currencyInput} />
@@ -360,11 +249,9 @@ export default function FormsDocs() {
           pointer), and the read-only input stays selectable for copying. Values snap to{" "}
           <code class="text-foreground/80">step</code>.
         </p>
-        <DemoCard code={SNIPPET_SCRUB_INPUT}>
+        <DemoCard code={scrubInputCode}>
           <div class="mx-auto w-full max-w-xs">
-            <DitherField label="Opacity" description="Drag the grip, or focus it and use the arrows">
-              <DitherScrubInput modelValue={64} min={0} max={100} step={1} />
-            </DitherField>
+            <ScrubInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.scrubInput} />
@@ -376,11 +263,9 @@ export default function FormsDocs() {
           on as anywhere. Value shape: <code class="text-foreground/80">Ctrl+Shift+K</code> (order Ctrl, Alt, Shift,
           Meta, then the key).
         </p>
-        <DemoCard code={SNIPPET_HOTKEY_INPUT}>
+        <DemoCard code={hotkeyInputCode}>
           <div class="mx-auto w-full max-w-xs">
-            <DitherField label="Command palette" description="Click the field, then press the combo">
-              <DitherHotkeyInput modelValue="Ctrl+Shift+K" />
-            </DitherField>
+            <HotkeyInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.hotkeyInput} />
@@ -424,11 +309,9 @@ export default function FormsDocs() {
           Click-to-edit text: view mode is a real button (keyboard reachable), edit mode focus-selects. Enter or blur
           commits (only when the value actually changed). Escape reverts.
         </p>
-        <DemoCard code={SNIPPET_INLINE_EDIT}>
+        <DemoCard code={inlineEditCode}>
           <div class="mx-auto w-full max-w-xs">
-            <DitherField label="Display name" description="Click the value to edit it">
-              <DitherInlineEdit modelValue="bogdan" />
-            </DitherField>
+            <InlineEditExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.inlineEdit} />
@@ -439,9 +322,9 @@ export default function FormsDocs() {
           Tags as chips in one field: Enter or comma commits, Backspace on an empty input pulls the last chip back in,
           per-chip × removes. Trimmed, case-deduped, <code class="text-foreground/80">max</code>-capped.
         </p>
-        <DemoCard code={SNIPPET_TAG_INPUT}>
+        <DemoCard code={tagInputCode}>
           <div class="mx-auto w-full max-w-sm">
-            <DitherTagInput modelValue={["solid", "dither"]} placeholder="Add tag…" />
+            <TagInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.tagInput} />
@@ -453,10 +336,9 @@ export default function FormsDocs() {
           <code class="text-foreground/80">multiple</code>). Native keyboard semantics and focus come for free: no
           roving tabindex to get wrong.
         </p>
-        <DemoCard code={SNIPPET_CHOICE_CHIPS}>
+        <DemoCard code={choiceChipsCode}>
           <div class="mx-auto grid max-w-sm gap-4">
-            <DitherChoiceChips modelValue={"M"} label="Size" options={["S", "M", "L", "XL"]} />
-            <DitherChoiceChips modelValue={["bug"]} multiple options={["bug", "feat", "docs"]} />
+            <ChoiceChipsExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.choiceChips} />
@@ -467,14 +349,9 @@ export default function FormsDocs() {
           The whole card is the checkbox's label: title and description ride along, one click anywhere toggles, the
           focus ring shows keyboard focus. The checkbox stays the source of truth.
         </p>
-        <DemoCard code={SNIPPET_CHECKBOX_CARD}>
+        <DemoCard code={checkboxCardCode}>
           <div class="mx-auto grid max-w-sm gap-2">
-            <DitherCheckboxCard
-              modelValue={telemetry()}
-              onUpdateModelValue={setTelemetry}
-              label="Telemetry"
-              description="Anonymous usage stats help pick the next components"
-            />
+            <CheckboxCardExample />
             <DitherCheckboxCard
               modelValue={beta()}
               onUpdateModelValue={setBeta}
@@ -491,14 +368,9 @@ export default function FormsDocs() {
           Repeatable key/value rows: headers, metadata, query params. Every edit hands back the whole array (the parent
           owns the truth), rows are added and removed from the bottom.
         </p>
-        <DemoCard code={SNIPPET_KEY_VALUE_INPUT}>
+        <DemoCard code={keyValueInputCode}>
           <div class="mx-auto w-full max-w-md">
-            <DitherKeyValueInput
-              modelValue={[
-                { key: "Content-Type", value: "application/json" },
-                { key: "X-Client", value: "dither-ui" },
-              ]}
-            />
+            <KeyValueInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.keyValueInput} />
@@ -510,9 +382,9 @@ export default function FormsDocs() {
           before the caret, the list anchors to the field, Arrow keys pick, Enter/Tab inserts, Escape closes. The caret
           lands after the inserted handle.
         </p>
-        <DemoCard code={SNIPPET_MENTION_INPUT}>
+        <DemoCard code={mentionInputCode}>
           <div class="mx-auto w-full max-w-md">
-            <DitherMentionInput modelValue="cc @da" options={["dana", "darius", "daniela", "sam"]} rows={3} />
+            <MentionInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.mentionInput} />
@@ -524,9 +396,9 @@ export default function FormsDocs() {
           listed with sizes, per-file remove, clear-all, and drop-zone drag styling. The model is{" "}
           <code class="text-foreground/80">File[]</code>, owned by the parent.
         </p>
-        <DemoCard code={SNIPPET_FILE_INPUT}>
+        <DemoCard code={fileInputCode}>
           <div class="mx-auto w-full max-w-sm">
-            <DitherFileInput modelValue={[]} multiple accept="image/*" />
+            <FileInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.fileInput} />
@@ -538,9 +410,9 @@ export default function FormsDocs() {
           Enter/Space selects, and the active row carries <code class="text-foreground/80">aria-activedescendant</code>{" "}
           so focus never leaves the listbox itself.
         </p>
-        <DemoCard code={SNIPPET_LIST_BOX}>
+        <DemoCard code={listBoxCode}>
           <div class="mx-auto w-full max-w-[16rem]">
-            <DitherListBox value={"Seoul"} options={["Kyoto", "Seoul", "Taipei", "Osaka", "Busan"]} aria-label="City" />
+            <ListBoxExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.listBox} />
@@ -551,9 +423,9 @@ export default function FormsDocs() {
           Chips for what's picked, native checkboxes for what's pickable, a filter box over the pool. Keyboard semantics
           come from the checkboxes, and the selected set stays visible and individually removable.
         </p>
-        <DemoCard code={SNIPPET_MULTI_SELECT}>
+        <DemoCard code={multiSelectCode}>
           <div class="mx-auto w-full max-w-sm">
-            <DitherMultiSelect value={["solid", "dither"]} options={["solid", "dither", "canvas", "tokens", "ssr"]} />
+            <MultiSelectExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.multiSelect} />
@@ -564,25 +436,9 @@ export default function FormsDocs() {
           Dependent pickers: each level's options come from the tree under the current path, and changing a parent
           truncates the deeper segments (the classic cascade rule, in one component). The model is the chosen path.
         </p>
-        <DemoCard code={SNIPPET_CASCADE_SELECT}>
+        <DemoCard code={cascadeSelectCode}>
           <div class="mx-auto w-full max-w-md">
-            <DitherCascadeSelect
-              value={["Japan", "Kansai"]}
-              tree={[
-                {
-                  value: "Japan",
-                  children: [
-                    { value: "Kansai", children: [{ value: "Kyoto" }, { value: "Osaka" }] },
-                    { value: "Kanto", children: [{ value: "Tokyo" }, { value: "Yokohama" }] },
-                  ],
-                },
-                {
-                  value: "Korea",
-                  children: [{ value: "Seoul Region", children: [{ value: "Seoul" }, { value: "Incheon" }] }],
-                },
-              ]}
-              placeholders={["Country", "Region", "City"]}
-            />
+            <CascadeSelectExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.cascadeSelect} />
@@ -593,14 +449,9 @@ export default function FormsDocs() {
           Two-panel shuttle: the source pool stays put, the destination IS the model. Checkboxes select in either
           direction, Add/Remove move the selection, Add all/Remove all flush. Every control is a real button.
         </p>
-        <DemoCard code={SNIPPET_TRANSFER_LIST}>
+        <DemoCard code={transferListCode}>
           <div class="mx-auto w-full max-w-xl">
-            <DitherTransferList
-              value={["admin"]}
-              source={["admin", "editor", "viewer", "billing", "support"]}
-              sourceLabel="Roles"
-              targetLabel="Assigned"
-            />
+            <TransferListExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.transferList} />
@@ -624,9 +475,9 @@ export default function FormsDocs() {
           The kit's own glyphs behind a name filter: a radio grid, so arrow keys roam the whole grid as one tab stop.
           Value = the icon name, ready for <code class="text-foreground/80">&lt;DitherIcon&gt;</code>.
         </p>
-        <DemoCard code={SNIPPET_ICON_PICKER}>
+        <DemoCard code={iconPickerCode}>
           <div class="mx-auto w-full max-w-sm">
-            <DitherIconPicker modelValue="Check" />
+            <IconPickerExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.iconPicker} />
@@ -637,9 +488,9 @@ export default function FormsDocs() {
           Each option renders its own name in its own family. The preview IS the choice, so no swatch can drift from the
           value. Value = the CSS font stack string.
         </p>
-        <DemoCard code={SNIPPET_FONT_PICKER}>
+        <DemoCard code={fontPickerCode}>
           <div class="mx-auto w-full max-w-sm">
-            <DitherFontPicker modelValue="'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace" />
+            <FontPickerExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.fontPicker} />
@@ -651,9 +502,9 @@ export default function FormsDocs() {
           edges, and the model is ISO <code class="text-foreground/80">YYYY-MM-DD</code> so timezone math never enters
           the picture. Today gets a ring, the selected day the fill.
         </p>
-        <DemoCard code={SNIPPET_CALENDAR}>
+        <DemoCard code={calendarCode}>
           <div class="flex justify-center">
-            <DitherCalendar modelValue="2026-10-07" />
+            <CalendarExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.calendar} />
@@ -665,9 +516,9 @@ export default function FormsDocs() {
           day focused, select closes, Escape and outside-click dismiss, a pick or Escape hands focus back to the field.
           The model stays ISO.
         </p>
-        <DemoCard code={SNIPPET_DATE_PICKER}>
+        <DemoCard code={datePickerCode}>
           <div class="mx-auto w-full max-w-xs">
-            <DitherDatePicker modelValue="2026-10-07" />
+            <DatePickerExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.datePicker} />
@@ -678,9 +529,9 @@ export default function FormsDocs() {
           Year + twelve-month grid: model is <code class="text-foreground/80">YYYY-MM</code>, arrows roam the grid
           (three columns), PageUp/PageDown shift the year, the current month keeps a ring.
         </p>
-        <DemoCard code={SNIPPET_MONTH_PICKER}>
+        <DemoCard code={monthPickerCode}>
           <div class="flex justify-center">
-            <DitherMonthPicker modelValue="2026-10" />
+            <MonthPickerExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.monthPicker} />
@@ -708,9 +559,9 @@ export default function FormsDocs() {
           HSV field + hue strip + hex readout: the plane is pointer-driven (arrows nudge S/V, Shift for coarse), the hue
           strip is a slider of its own, and the hex input accepts what you type. Model = hex string.
         </p>
-        <DemoCard code={SNIPPET_COLOR_PICKER}>
+        <DemoCard code={colorPickerCode}>
           <div class="flex justify-center">
-            <DitherColorPicker modelValue="#5227FF" />
+            <ColorPickerExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.colorPicker} />
@@ -722,9 +573,9 @@ export default function FormsDocs() {
           the detent), arrows / PageUp-Down / Home-End on the keyboard, full slider semantics. The indicator sweeps
           270°.
         </p>
-        <DemoCard code={SNIPPET_KNOB}>
+        <DemoCard code={knobCode}>
           <div class="flex justify-center gap-6">
-            <DitherKnob modelValue={64} />
+            <KnobExample />
             <DitherKnob modelValue={25} size={56} />
             <DitherKnob modelValue={90} size={88} disabled />
           </div>

@@ -1,8 +1,6 @@
 import {
   DitherBlockquote,
-  DitherCaption,
   DitherCode,
-  DitherCopyableText,
   DitherCurrencyText,
   DitherDateTimeText,
   DitherDurationText,
@@ -12,7 +10,6 @@ import {
   DitherFileSizeText,
   DitherHeading,
   DitherHighlight,
-  DitherKbdCombo,
   DitherLabel,
   DitherLineClamp,
   DitherLink,
@@ -50,25 +47,25 @@ import dateTimeTextProps from "virtual:dither-props/DitherDateTimeText"
 import pluralTextProps from "virtual:dither-props/DitherPluralText"
 import emojiProps from "virtual:dither-props/DitherEmoji"
 import DocSection from "../DocSection"
-
-const SNIPPET_HEADING = `<DitherHeading level="2">Section title</DitherHeading>
-<DitherHeading level="3">Part title</DitherHeading>
-<DitherHeading level="4" class="text-muted-foreground">Quiet subhead</DitherHeading>`
+import HeadingExample from "./examples/heading"
+import headingCode from "./examples/heading.tsx?raw"
+import CaptionExample from "./examples/caption"
+import captionCode from "./examples/caption.tsx?raw"
+import KbdComboExample from "./examples/kbd-combo"
+import kbdComboCode from "./examples/kbd-combo.tsx?raw"
+import ExternalLinkExample from "./examples/external-link"
+import externalLinkCode from "./examples/external-link.tsx?raw"
+import CopyableTextExample from "./examples/copyable-text"
+import copyableTextCode from "./examples/copyable-text.tsx?raw"
 
 const SNIPPET_LABEL = `<DitherLabel for="email" required>Email</DitherLabel>
 <DitherInput id="email" placeholder="you@example.com" />`
-
-const SNIPPET_CAPTION = `<DitherCaption>Uploaded 3 minutes ago</DitherCaption>
-<DitherCaption tone="faint">auto-saved</DitherCaption>`
 
 const SNIPPET_OVERLINE = `<DitherOverline>Chapter 02</DitherOverline>
 <DitherHeading level="2">The renderer</DitherHeading>`
 
 const SNIPPET_CODE = `Run <DitherCode>npm run build</DitherCode> before shipping:
 the <DitherCode>dist/</DitherCode> folder is the artifact.`
-
-const SNIPPET_KBD_COMBO = `<DitherKbdCombo keys={['⌘', 'K']} />
-<DitherKbdCombo keys={['Ctrl', 'Shift', 'P']} separator="›" />`
 
 const SNIPPET_BLOCKQUOTE = `<DitherBlockquote>
   Dithering trades smooth gradients for a fixed threshold,
@@ -94,13 +91,7 @@ const SNIPPET_ELLIPSIS_TOOLTIP = `<DitherEllipsisTooltip>Full sentence that only
 
 const SNIPPET_LINK = `<DitherLink href="/docs">Docs home</DitherLink>`
 
-const SNIPPET_EXTERNAL_LINK = `<DitherExternalLink href="https://docs.solidjs.com">Solid docs</DitherExternalLink>`
-
 const SNIPPET_SELECTABLE_TEXT = `<DitherSelectableText>sk_live_51Nq…f9X</DitherSelectableText>`
-
-const SNIPPET_COPYABLE_TEXT = `<DitherCopyableText value="npm i d3-scale d3-shape clsx tailwind-merge">
-  copy install
-</DitherCopyableText>`
 
 const SNIPPET_NUMBER_TEXT = `<DitherNumberText value={1234567.5} decimals={2} />
 <DitherNumberText value={1234567.5} locale="de-DE" />`
@@ -170,13 +161,9 @@ export default function TypographyDocs() {
           card's title under a section: level 3, size 4), <code class="text-foreground/80">class</code> overrides
           anything below.
         </p>
-        <DemoCard code={SNIPPET_HEADING}>
+        <DemoCard code={headingCode}>
           <div class="grid gap-2 text-left">
-            <DitherHeading level="2">Section title</DitherHeading>
-            <DitherHeading level="3">Part title</DitherHeading>
-            <DitherHeading class="text-muted-foreground" level="4">
-              Quiet subhead
-            </DitherHeading>
+            <HeadingExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.heading} />
@@ -203,11 +190,10 @@ export default function TypographyDocs() {
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Supporting text in the caption register: 11px and muted, at AA contrast in either tone.
         </p>
-        <DemoCard code={SNIPPET_CAPTION}>
+        <DemoCard code={captionCode}>
           <div class="grid gap-1">
             <span class="text-[13px] text-foreground">release-2.4.0.tar.zst</span>
-            <DitherCaption>Uploaded 3 minutes ago</DitherCaption>
-            <DitherCaption tone="faint">auto-saved</DitherCaption>
+            <CaptionExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.caption} />
@@ -248,10 +234,9 @@ export default function TypographyDocs() {
           A shortcut as one readable unit: keys in Kbd chips with the separator between them. Single keys go through
           DitherKbd directly.
         </p>
-        <DemoCard code={SNIPPET_KBD_COMBO}>
+        <DemoCard code={kbdComboCode}>
           <div class="flex flex-wrap items-center justify-center gap-4">
-            <DitherKbdCombo keys={["⌘", "K"]} />
-            <DitherKbdCombo keys={["Ctrl", "Shift", "P"]} separator="›" />
+            <KbdComboExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.kbdCombo} />
@@ -374,9 +359,9 @@ export default function TypographyDocs() {
           New-tab semantics done right: <code class="text-foreground/80">_blank</code> with{" "}
           <code class="text-foreground/80">rel=noreferrer</code>, plus the ExternalLink glyph after the label.
         </p>
-        <DemoCard code={SNIPPET_EXTERNAL_LINK}>
+        <DemoCard code={externalLinkCode}>
           <p class="text-[13px]">
-            <DitherExternalLink href="https://docs.solidjs.com">Solid docs</DitherExternalLink> and{" "}
+            <ExternalLinkExample /> and{" "}
             <DitherExternalLink href="https://tailwindcss.com">Tailwind docs</DitherExternalLink> ship the runtime this
             kit leans on.
           </p>
@@ -403,9 +388,9 @@ export default function TypographyDocs() {
           One-tap copy around a piece of text. The value goes through the shared Clipboard primitive (live region
           included); the trigger flips from Copy to Check.
         </p>
-        <DemoCard code={SNIPPET_COPYABLE_TEXT}>
+        <DemoCard code={copyableTextCode}>
           <div class="flex justify-center">
-            <DitherCopyableText value="npm i d3-scale d3-shape clsx tailwind-merge">copy install</DitherCopyableText>
+            <CopyableTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.copyableText} />

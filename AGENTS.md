@@ -161,7 +161,11 @@ Default section order:
   for the framework-free specs: change them together). Every other import
   between packages is a package name. `@dither-kit` is what a reader
   aliases to their copy of the kit and what every snippet the site writes
-  for a reader imports from; no code here imports it.
+  for a reader imports from; the one place code here imports it is the
+  docs' examples (`packages/site/src/pages/docs/<pack>/examples/*.tsx`,
+  the files a reader copies), where the site's alias table and the
+  `tsconfig.json` `paths` make it `@dither-ui/kit`
+  (`tests/workspace.spec.ts` allows it there and nowhere else).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links; any other address shows the
   missing page (noindex, the landing's print). GitHub Pages deploys through

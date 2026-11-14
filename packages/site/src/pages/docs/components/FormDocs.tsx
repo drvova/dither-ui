@@ -1,6 +1,6 @@
 import { createSignal, For } from "solid-js"
 import { createStore } from "solid-js/store"
-import { DitherCheckbox, DitherProgress, DitherSlider, DitherSwitch } from "@dither-ui/kit"
+import { DitherCheckbox, DitherProgress, DitherSlider } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
 import switchProps from "virtual:dither-props/DitherSwitch"
@@ -8,22 +8,10 @@ import checkboxProps from "virtual:dither-props/DitherCheckbox"
 import sliderProps from "virtual:dither-props/DitherSlider"
 import progressProps from "virtual:dither-props/DitherProgress"
 import DocSection from "../DocSection"
+import SwitchExample from "./examples/switch"
+import switchCode from "./examples/switch.tsx?raw"
 
 const SLIDER_VARIANTS = ["gradient", "dotted", "hatched", "solid"] as const
-
-const SNIPPET_SWITCH = `import { createSignal } from "solid-js"
-import { DitherSwitch } from "@dither-kit"
-
-export default function Example() {
-  const [bloom, setBloom] = createSignal(true)
-
-  return (
-    <label class="flex items-center justify-between gap-4">
-      <span class="text-[13px]">Bloom on hover</span>
-      <DitherSwitch modelValue={bloom()} onUpdateModelValue={setBloom} label="Bloom on hover" color="blue" />
-    </label>
-  )
-}`
 
 const SNIPPET_CHECKBOX = `import { createStore } from "solid-js/store"
 import { DitherCheckbox } from "@dither-kit"
@@ -76,8 +64,6 @@ export const API: Record<string, PropRow[]> = {
 }
 
 export default function FormDocs() {
-  const [bloom, setBloom] = createSignal(true)
-
   const [opts, setOpts] = createStore({ grid: true, snap: false, rulers: true })
 
   const [level, setLevel] = createSignal(40)
@@ -97,12 +83,9 @@ export default function FormDocs() {
           A toggle whose track is a dithered canvas: the accent gradient fills in when on, fades to a muted wash when
           off.
         </p>
-        <DemoCard code={SNIPPET_SWITCH}>
+        <DemoCard code={switchCode}>
           <div class="mx-auto max-w-sm">
-            <label class="flex items-center justify-between gap-4">
-              <span class="text-[13px]">Bloom on hover</span>
-              <DitherSwitch modelValue={bloom()} onUpdateModelValue={setBloom} label="Bloom on hover" color="blue" />
-            </label>
+            <SwitchExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.switch} />

@@ -1,5 +1,5 @@
 import { createSignal, Index } from "solid-js"
-import { DitherBreadcrumb, DitherPagination, DitherRating, DitherStepper, DitherTimeline } from "@dither-ui/kit"
+import { DitherPagination, DitherRating, DitherTimeline } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
 import breadcrumbProps from "virtual:dither-props/DitherBreadcrumb"
@@ -8,14 +8,10 @@ import ratingProps from "virtual:dither-props/DitherRating"
 import stepperProps from "virtual:dither-props/DitherStepper"
 import timelineProps from "virtual:dither-props/DitherTimeline"
 import DocSection from "../DocSection"
-
-const SNIPPET_BREADCRUMB = `<DitherBreadcrumb
-  items={[
-    { label: 'Home', href: '#/' },
-    { label: 'Components', href: '#/docs' },
-    { label: 'Breadcrumb' },
-  ]}
-/>`
+import BreadcrumbExample from "./examples/breadcrumb"
+import breadcrumbCode from "./examples/breadcrumb.tsx?raw"
+import StepperExample from "./examples/stepper"
+import stepperCode from "./examples/stepper.tsx?raw"
 
 const SNIPPET_PAGINATION = `const [page, setPage] = createSignal(3)
 
@@ -31,16 +27,6 @@ const SNIPPET_RATING = `const [rating, setRating] = createSignal(3)
 
 {/* seed varies the star tilt + dither scatter */}
 <DitherRating modelValue={4} seed={88} color="pink" />`
-
-const SNIPPET_STEPPER = `<DitherStepper
-  current={1}
-  steps={[
-    { label: 'Cart' },
-    { label: 'Shipping' },
-    { label: 'Payment' },
-    { label: 'Done' },
-  ]}
-/>`
 
 const SNIPPET_TIMELINE = `<DitherTimeline
   items={[
@@ -79,11 +65,9 @@ export default function NavigationDocs() {
           <code class="text-foreground/80">aria-current="page"</code>, inside a labelled{" "}
           <code class="text-foreground/80">nav</code>.
         </p>
-        <DemoCard code={SNIPPET_BREADCRUMB}>
+        <DemoCard code={breadcrumbCode}>
           <div class="flex justify-center">
-            <DitherBreadcrumb
-              items={[{ label: "Home", href: "#/" }, { label: "Components", href: "#/docs" }, { label: "Breadcrumb" }]}
-            />
+            <BreadcrumbExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.breadcrumb} />
@@ -154,12 +138,9 @@ export default function NavigationDocs() {
           Progress through a multi-step flow. Completed steps carry a check, the current step an outlined node, and the
           connectors are the kit's dithered rule, dissolving toward steps not yet reached.
         </p>
-        <DemoCard code={SNIPPET_STEPPER}>
+        <DemoCard code={stepperCode}>
           <div class="mx-auto max-w-md">
-            <DitherStepper
-              current={1}
-              steps={[{ label: "Cart" }, { label: "Shipping" }, { label: "Payment" }, { label: "Done" }]}
-            />
+            <StepperExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.stepper} />

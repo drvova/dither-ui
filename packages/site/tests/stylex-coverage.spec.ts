@@ -43,7 +43,13 @@ describe("StyleX coverage", () => {
     const left: string[] = []
     let snippets = 0
     // The docs: the pages and their framework-free data.
-    for (const f of files("packages/site/src/pages/docs"))
+    for (const f of files("packages/site/src/pages/docs")) {
+      // an example module is a snippet whole, as the reader takes it
+      if (/\/docs\/[\w-]+\/examples\/[\w-]+\.tsx$/.test(f)) {
+        snippets++
+        left.push(...leftovers(readFileSync(f, "utf8")).map((c) => `${f}: ${c}`))
+        continue
+      }
       for (const m of readFileSync(f, "utf8").matchAll(/`((?:[^`\\]|\\.)*)`/g)) {
         if (!/<[A-Za-z]/.test(m[1]) || !/class=/.test(m[1])) continue
         snippets++
@@ -51,6 +57,7 @@ describe("StyleX coverage", () => {
         const code = m[1].replace(/(?<!\\)\$\{[^}]*\}/g, "x").replace(/\\([`$\\])/g, "$1")
         left.push(...leftovers(code).map((c) => `${f}: ${c}`))
       }
+    }
     expect(snippets).toBeGreaterThan(100)
     expect(left).toEqual([])
   })

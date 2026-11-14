@@ -881,6 +881,20 @@ in the page's folder.
   and Handbook block goes through it, so a snippet idiom the rewriter mangles
   gets a rule in `packages/restyle/src/index.ts` + a
   `packages/restyle/tests/restyle.spec.ts` case.
+- An example is written once where it can be: `docs/<pack>/examples/<id>.tsx`
+  (`<section id>.tsx`, `-<n>` for a section's later cards) is the whole
+  module a reader copies, importing the kit as `@dither-kit`; the pack
+  renders it as the demo (`<IdExample />`, inside whatever frame the
+  page lays around it) and hands its text (`./examples/<id>.tsx?raw`) to
+  the card as `code`. It holds its own state, so a demo whose state the
+  page reads (a readout beside it, a picker or a key that drives it, a
+  reset), whose value differs from what its code shows, or that asks for
+  the site's base path (`assetPath`) keeps its code as a string. Such a
+  string is held to its demo by `tests/site/docs-drift.spec.tsx`: run as
+  Run runs it, its DOM must stand inside the demo's, and where the two
+  say different things the difference is pinned in
+  `tests/site/docs-drift.ts` (regenerated with `WRITE_DRIFT=1`), so a
+  change to either side shows. Moving a card to an example drops its entry.
 - `SNIPPETS`/derived code must match what the demo renders — it now
   RUNS in the source panel, so a snippet that leaves out what the demo
   has (a chart's height: the chart snippets carry `class="h-64"`) renders
@@ -1076,7 +1090,8 @@ in the page's folder.
 - Chart sections link to `/studio#new/<type>` — keep in sync with `CHART_TYPES`;
   Studio also accepts legacy `#/studio/new/<type>` links.
 - Section packs live in subfolders as self-contained components (sections +
-  snippets + local state) with a sibling `*-nav.ts` exporting nav items,
+  snippets + local state, the examples written once in the subfolder's
+  `examples/`) with a sibling `*-nav.ts` exporting nav items,
   both named in `DOCS`; DocsPage is the shell and renders the packs from
   the table (`PACK_NAMES`). Data several packs' demos print (the
   dashboard rows, the stat cards, the palette's colours) is

@@ -8,7 +8,6 @@ import {
   DitherContainer,
   DitherLayer,
   DitherStage,
-  DitherElectricBorder,
   DitherFadeContent,
   DitherGhostCursor,
   DitherGlareHover,
@@ -17,7 +16,6 @@ import {
   DitherMagnet,
   DitherPixelTrail,
   DitherSplashCursor,
-  DitherStarBorder,
   DitherTargetCursor,
   DitherMetaBalls,
   DitherMetallicPaint,
@@ -29,14 +27,11 @@ import {
   DitherStrands,
   DitherLaserFlow,
   DitherAntigravity,
-  DitherLogoLoop,
   DitherMagicRings,
   DitherMagnetLines,
-  DitherOrbitImages,
   DitherPixelTransition,
   DitherReveal,
   DitherStickerPeel,
-  DitherExpandTabs,
   DitherIsland,
   DitherCardStack,
   DitherDock,
@@ -45,7 +40,6 @@ import {
   DitherSnapButton,
   DitherGooeyMenu,
   DitherBouncyAccordion,
-  DitherExpandingArrow,
   DitherSlideAction,
   DitherHoldAction,
   DitherWalletCard,
@@ -107,6 +101,18 @@ import revealProps from "virtual:dither-props/DitherReveal"
 import stickerPeelProps from "virtual:dither-props/DitherStickerPeel"
 import DocSection from "../DocSection"
 import "./AnimationsDocs.css"
+import StarBorderExample from "./examples/star-border"
+import starBorderCode from "./examples/star-border.tsx?raw"
+import ElectricBorderExample from "./examples/electric-border"
+import electricBorderCode from "./examples/electric-border.tsx?raw"
+import LogoLoopExample from "./examples/logo-loop"
+import logoLoopCode from "./examples/logo-loop.tsx?raw"
+import OrbitImagesExample from "./examples/orbit-images"
+import orbitImagesCode from "./examples/orbit-images.tsx?raw"
+import ExpandTabsExample from "./examples/expand-tabs"
+import expandTabsCode from "./examples/expand-tabs.tsx?raw"
+import ExpandingArrowExample from "./examples/expanding-arrow"
+import expandingArrowCode from "./examples/expanding-arrow.tsx?raw"
 
 export const API: Record<string, PropRow[]> = {
   stepTiming: [
@@ -369,8 +375,6 @@ const [waves, setWaves] = createSignal(0)
     <For each={Array.from({ length: 6 }, (_, k) => k + 1)}>{(n) => <p>Row {n}: content scrolls under the blur band.</p>}</For>
   </div>
 </DitherGradualBlur>`,
-  starBorder: `<DitherStarBorder color="#7CFF67">Star border</DitherStarBorder>`,
-  electricBorder: `<DitherElectricBorder color="#5227FF">Electric border</DitherElectricBorder>`,
   glareHover: `<DitherGlareHover>
   <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Hover me</div>
 </DitherGlareHover>`,
@@ -408,12 +412,10 @@ const [waves, setWaves] = createSignal(0)
   strands: `<DitherStrands class="h-64" />`,
   laserFlow: `<DitherLaserFlow class="h-64" />`,
   antigravity: `<DitherAntigravity class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">Antigravity</DitherAntigravity>`,
-  logoLoop: `<DitherLogoLoop items={['DITHER', 'BAYER', 'CANVAS', 'SOLID', 'PIXELS']} />`,
   magicRings: `<DitherMagicRings class="h-52 w-full">
   <span class="grid size-12 place-items-center rounded-full border bg-card text-xs">core</span>
 </DitherMagicRings>`,
   magnetLines: `<DitherMagnetLines class="h-52" />`,
-  orbitImages: `<DitherOrbitImages items={['A', 'B', 'C', 'D', 'E']} />`,
   pixelTransition: `<DitherPixelTransition color="#181b22" class="grid h-32 w-56 place-items-center rounded-lg border">
   <span class="text-lg">Revealed</span>
 </DitherPixelTransition>`,
@@ -429,13 +431,6 @@ const [waves, setWaves] = createSignal(0)
   stickerPeel: `<DitherStickerPeel>
   <div class="grid h-24 w-40 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Peel me</div>
 </DitherStickerPeel>`,
-  expandTabs: `const [tab, setTab] = createSignal("home")
-
-<DitherExpandTabs modelValue={tab()} onUpdateModelValue={setTab} tabs={[
-  { value: 'home', label: 'Home' },
-  { value: 'library', label: 'Library', color: 'purple' },
-  { value: 'alerts', label: 'Alerts', color: 'red' },
-]} />  {/* only the active tab unfolds its label */}`,
   island: `const [expanded, setExpanded] = createSignal(false)
 
 <DitherIsland modelValue={expanded()} onUpdateModelValue={setExpanded} label="Deploy running" color="green" live>
@@ -507,8 +502,6 @@ const [picked, setPicked] = createSignal("none")
   { value: 'alerts', label: 'Alerts', hint: 'One flapping check', icon: '◈', color: 'orange',
     content: 'p95 latency wobbled at 04:00 and snapped back on its own.' },
 ]} />`,
-  expandingArrow: `{/* a dotted trail unrolls on hover or focus */}
-<DitherExpandingArrow color="blue">Explore the kit</DitherExpandingArrow>`,
   slideAction: `const [deploys, setDeploys] = createSignal(0)
 
 {/* a 1:1 thumb drag where flick momentum counts; an early release springs
@@ -576,8 +569,6 @@ const WALLET_ACCOUNTS = [
 const count = (n: number) => Array.from({ length: n }, (_, i) => i + 1)
 
 export default function AnimationsDocs() {
-  /* Skiper-adjacent widgets: working demo state. */
-  const [expandTab, setExpandTab] = createSignal("home")
   const [revealDirection, setRevealDirection] = createSignal<"none" | "right" | "down" | "iris">("none")
   const [revealNonce, setRevealNonce] = createSignal(0)
   const replayReveal = (direction: "none" | "right" | "down" | "iris") => {
@@ -693,8 +684,8 @@ const [last, setLast] = createSignal("none")
           A rounded frame with two bright glints traveling its top and bottom edges: a subtle animated outline for a CTA
           or badge.
         </p>
-        <DemoCard code={SNIPPETS.starBorder}>
-          <DitherStarBorder color="#7CFF67">Star border</DitherStarBorder>
+        <DemoCard code={starBorderCode}>
+          <StarBorderExample />
         </DemoCard>
         <PropsTable rows={API.starBorder} />
       </DocSection>
@@ -705,8 +696,8 @@ const [last, setLast] = createSignal("none")
           An SVG turbulence filter jitters the frame edge into a crackling electric outline. Reduced motion drops the
           displacement.
         </p>
-        <DemoCard code={SNIPPETS.electricBorder}>
-          <DitherElectricBorder color="#5227FF">Electric border</DitherElectricBorder>
+        <DemoCard code={electricBorderCode}>
+          <ElectricBorderExample />
         </DemoCard>
         <PropsTable rows={API.electricBorder} />
       </DocSection>
@@ -969,9 +960,9 @@ const [last, setLast] = createSignal("none")
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A seamless infinite marquee of items. Pass logos or wordmarks and it loops forever with a measured wrap.
         </p>
-        <DemoCard code={SNIPPETS.logoLoop}>
+        <DemoCard code={logoLoopCode}>
           <div class="w-full text-xl font-medium tracking-tight text-muted-foreground">
-            <DitherLogoLoop items={["DITHER", "BAYER", "CANVAS", "SOLID", "PIXELS"]} />
+            <LogoLoopExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.logoLoop} />
@@ -1010,9 +1001,9 @@ const [last, setLast] = createSignal("none")
           Items ride a circular orbit around a center point. Pass avatars, logos or labels. Counter-rotated so they stay
           upright.
         </p>
-        <DemoCard code={SNIPPETS.orbitImages}>
+        <DemoCard code={orbitImagesCode}>
           <div class="grid min-h-56 place-items-center">
-            <DitherOrbitImages items={["A", "B", "C", "D", "E"]} />
+            <OrbitImagesExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.orbitImages} />
@@ -1118,17 +1109,9 @@ const [last, setLast] = createSignal("none")
           An icon bar where only the active tab unfolds its label. The rest stay square glyphs. The label slides through
           the house 0fr grid trick.
         </p>
-        <DemoCard code={SNIPPETS.expandTabs}>
+        <DemoCard code={expandTabsCode}>
           <div class="grid min-h-24 place-items-center">
-            <DitherExpandTabs
-              modelValue={expandTab()}
-              onUpdateModelValue={setExpandTab}
-              tabs={[
-                { value: "home", label: "Home" },
-                { value: "library", label: "Library", color: "purple" },
-                { value: "alerts", label: "Alerts", color: "red" },
-              ]}
-            />
+            <ExpandTabsExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.expandTabs} />
@@ -1338,9 +1321,9 @@ const [last, setLast] = createSignal("none")
           An accent tile that expands into a dotted-arrow trail on hover or focus. The trail is stamped from the same
           accent hue. Reduced motion reveals it instantly.
         </p>
-        <DemoCard code={SNIPPETS.expandingArrow}>
+        <DemoCard code={expandingArrowCode}>
           <div class="flex min-h-24 items-center justify-center">
-            <DitherExpandingArrow color="blue">Explore the kit</DitherExpandingArrow>
+            <ExpandingArrowExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.expandingArrow} />

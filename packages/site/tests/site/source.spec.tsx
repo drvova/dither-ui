@@ -62,17 +62,26 @@ const read = (list: typeof SOLID, file: string) => readFileSync(list.find((f) =>
 const SOLID_INDEX = await loadKitIndex(async (f) => read(SOLID, f), solidFiles, "solid/index.ts")
 const KIT_NAMES = new Set(SOLID_INDEX.keys())
 
+/** The docs' example modules (`<pack>/examples/<id>.tsx`): each a snippet
+ * whole, the very file a reader takes. */
+const EXAMPLE_FILE = /\/docs\/[\w-]+\/examples\/[\w-]+\.tsx$/
+
 /** Every template literal of the docs' modules that holds markup, as its
- * source writes it (its holes `${…}`); HTML (a void tag left open: an embed
- * code, a page that links the kit's stylesheet) is not a component. */
-function docsLiterals(): { file: string; text: string }[] {
+ * source writes it (its holes `${…}`), and every example module whole
+ * (`whole`); HTML (a void tag left open: an embed code, a page that links
+ * the kit's stylesheet) is not a component. */
+function docsLiterals(): { file: string; text: string; whole?: boolean }[] {
   const files = (dir: string): string[] =>
     readdirSync(dir).flatMap((n) => {
       const p = join(dir, n)
       return statSync(p).isDirectory() ? files(p) : /\.tsx?$/.test(n) ? [p] : []
     })
-  const out: { file: string; text: string }[] = []
+  const out: { file: string; text: string; whole?: boolean }[] = []
   for (const file of files(join(process.cwd(), "src/pages/docs"))) {
+    if (EXAMPLE_FILE.test(file)) {
+      out.push({ file, text: readFileSync(file, "utf8"), whole: true })
+      continue
+    }
     const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.ESNext, true)
     const visit = (node: ts.Node): void => {
       if (ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node)) {
@@ -91,7 +100,11 @@ function docsLiterals(): { file: string; text: string }[] {
  * what it interpolates as a stand-in. */
 function docsSnippets(): { file: string; where: string; code: string }[] {
   const out: { file: string; where: string; code: string }[] = []
-  for (const { file, text } of docsLiterals()) {
+  for (const { file, text, whole } of docsLiterals()) {
+    if (whole) {
+      out.push({ file, where: file.slice(process.cwd().length + 1), code: text })
+      continue
+    }
     // a hole on a line of its own declares the snippet's data; one inside a line is a name
     let filled = ""
     let hole = 0

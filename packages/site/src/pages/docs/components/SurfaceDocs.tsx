@@ -10,10 +10,8 @@ import {
   DitherDrawer,
   DitherGauge,
   DitherMeter,
-  DitherNavMenu,
   DitherScope,
   DitherScrollArea,
-  DitherSeparator,
   DitherSidebar,
   DitherSidebarGroup,
   DitherSidebarItem,
@@ -21,10 +19,7 @@ import {
   DitherSlider,
   DitherSwipeArea,
   DitherSwitch,
-  DitherToaster,
   DitherToggleGroup,
-  DitherToolbar,
-  toast,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
@@ -42,6 +37,14 @@ import scrollAreaProps from "virtual:dither-props/DitherScrollArea"
 import toolbarProps from "virtual:dither-props/DitherToolbar"
 import navMenuProps from "virtual:dither-props/DitherNavMenu"
 import DocSection from "../DocSection"
+import ToastExample from "./examples/toast"
+import toastCode from "./examples/toast.tsx?raw"
+import GaugeExample from "./examples/gauge"
+import gaugeCode from "./examples/gauge.tsx?raw"
+import ToolbarExample from "./examples/toolbar"
+import toolbarCode from "./examples/toolbar.tsx?raw"
+import NavMenuExample from "./examples/nav-menu"
+import navMenuCode from "./examples/nav-menu.tsx?raw"
 
 const FAQ = [
   { value: "what", title: "What is dithering?" },
@@ -53,8 +56,6 @@ const SNAPS = [0.35, 0.75]
 const ACTIONS = ["Duplicate", "Rename", "Export PNG", "Move to group"]
 
 const SIDEBAR_VARIANTS = ["default", "floating", "inset", "washed"] as const
-
-const NAV_ITEMS = [{ label: "Overview" }, { label: "Components" }, { label: "Pricing" }, { label: "Docs" }]
 
 const METERS = [
   { label: "Disk", value: 35 },
@@ -69,15 +70,6 @@ const WAVES: { value: ScopeWave; label: string }[] = ["sine", "square", "triangl
 }))
 
 const LOG_LINES = Array.from({ length: 15 }, (_, i) => i + 1)
-
-const SNIPPET_GAUGE = `const [pressure, setPressure] = createSignal(62)
-
-<div class="grid grid-cols-3 gap-4">
-  <DitherGauge value={pressure()} label="kPa" />
-  <DitherGauge value={84} label="load" warn={0.75} />
-  <DitherGauge value={1.6} min={0} max={4} ticks={8} decimals={1} label="bar" warn={null} />
-</div>
-<DitherSlider modelValue={pressure()} onUpdateModelValue={setPressure} label="Pressure" />`
 
 const SNIPPET_GAUGE_LIVE = `// this page's frames a second and its worst frame, read every half second
 const [fps, setFps] = createSignal(0)
@@ -209,16 +201,6 @@ const [components, setComponents] = createSignal(true)
      collapse: rail, hide or none; side: left or right;
      density: default or compact; toggle={false} keeps a permanent rail */}`
 
-const SNIPPET_TOAST = `import { DitherToaster, toast } from "@dither-kit"
-
-<DitherToaster />
-<DitherButton color="green" onClick={() => toast('Saved', { color: 'green' })}>
-  Save
-</DitherButton>
-<DitherButton color="red" onClick={() => toast('Export failed', { color: 'red' })}>
-  Export
-</DitherButton>`
-
 const SNIPPET_METER = `<div class="grid gap-3">
   <div>
     <div class="mb-1 flex justify-between text-[11px] text-muted-foreground">
@@ -249,27 +231,6 @@ const SNIPPET_SCROLL_AREA = `<DitherScrollArea class="h-40 rounded-lg border bor
     )}
   </For>
 </DitherScrollArea>`
-
-const SNIPPET_TOOLBAR = `<DitherToolbar label="Formatting">
-  <DitherButton class="px-2.5 py-1" aria-label="Bold">B</DitherButton>
-  <DitherButton class="px-2.5 py-1" aria-label="Italic">I</DitherButton>
-  <DitherButton class="px-2.5 py-1" aria-label="Underline">U</DitherButton>
-  <DitherSeparator orientation="vertical" class="mx-1 h-5" />
-  <DitherButton class="px-2.5 py-1" aria-label="Align left">⇤</DitherButton>
-  <DitherButton class="px-2.5 py-1" aria-label="Align center">⇹</DitherButton>
-  <DitherButton class="px-2.5 py-1" aria-label="Align right">⇥</DitherButton>
-</DitherToolbar>`
-
-const SNIPPET_NAV_MENU = `const [active, setActive] = createSignal("Overview")
-const items = [
-  { label: "Overview" },
-  { label: "Components" },
-  { label: "Pricing" },
-  { label: "Docs" },
-]
-
-<DitherNavMenu modelValue={active()} onUpdateModelValue={setActive} items={items} color="blue" />
-<p class="mt-4 text-[12px] text-muted-foreground">Viewing: {active()}</p>`
 
 export const API: Record<string, PropRow[]> = {
   accordion: kitTable(accordionProps),
@@ -318,11 +279,6 @@ export default function SurfaceDocs() {
   const [sidebarSubOpen, setSidebarSubOpen] = createSignal(true)
   const [variantActive, setVariantActive] = createSignal("Overview")
   const [modeActive, setModeActive] = createSignal("Overview")
-
-  const [navActive, setNavActive] = createSignal("Overview")
-
-  // An instrument panel: the first dial follows the slider under it.
-  const [pressure, setPressure] = createSignal(62)
 
   const [wave, setWave] = createSignal<string>("sine")
   const waveSignal = createMemo(() => wave() as ScopeWave)
@@ -709,15 +665,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           A module-level toast() call feeds a portalled bottom-right stack; each toast carries a 3px dithered rail in
           its color and dismisses itself after its duration. API table below documents the toast() function.
         </p>
-        <DemoCard code={SNIPPET_TOAST}>
+        <DemoCard code={toastCode}>
           <div class="flex justify-center gap-3">
-            <DitherToaster />
-            <DitherButton color="green" onClick={() => toast("Saved", { color: "green" })}>
-              Save
-            </DitherButton>
-            <DitherButton color="red" onClick={() => toast("Export failed", { color: "red" })}>
-              Export
-            </DitherButton>
+            <ToastExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.toast} />
@@ -752,18 +702,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           warn mark the zone is in the warning ink. A changed value settles on the spring, and under reduced motion the
           needle simply stands on it.
         </p>
-        <DemoCard code={SNIPPET_GAUGE}>
+        <DemoCard code={gaugeCode}>
           <div class="mx-auto grid max-w-md gap-5">
-            <div class="grid grid-cols-3 gap-4">
-              <DitherGauge value={pressure()} label="kPa" />
-              <DitherGauge value={84} label="load" warn={0.75} />
-              <DitherGauge value={1.6} min={0} max={4} ticks={8} decimals={1} label="bar" warn={null} />
-            </div>
-            <DitherSlider
-              modelValue={pressure()}
-              onUpdateModelValue={(v) => setPressure(v as number)}
-              label="Pressure"
-            />
+            <GaugeExample />
           </div>
         </DemoCard>
         <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
@@ -821,29 +762,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           A roving-tabindex strip: one Tab stop for the whole bar, arrow keys walk the buttons, Home and End jump to the
           edges.
         </p>
-        <DemoCard code={SNIPPET_TOOLBAR}>
+        <DemoCard code={toolbarCode}>
           <div class="flex justify-center">
-            <DitherToolbar label="Formatting">
-              <DitherButton class="px-2.5 py-1" aria-label="Bold">
-                B
-              </DitherButton>
-              <DitherButton class="px-2.5 py-1" aria-label="Italic">
-                I
-              </DitherButton>
-              <DitherButton class="px-2.5 py-1" aria-label="Underline">
-                U
-              </DitherButton>
-              <DitherSeparator orientation="vertical" class="mx-1 h-5" />
-              <DitherButton class="px-2.5 py-1" aria-label="Align left">
-                ⇤
-              </DitherButton>
-              <DitherButton class="px-2.5 py-1" aria-label="Align center">
-                ⇹
-              </DitherButton>
-              <DitherButton class="px-2.5 py-1" aria-label="Align right">
-                ⇥
-              </DitherButton>
-            </DitherToolbar>
+            <ToolbarExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.toolbar} />
@@ -854,10 +775,9 @@ const waves = ["sine", "square", "triangle", "saw"].map((w) => ({ value: w, labe
           DitherTabs' sliding dithered underline with nav semantics: anchors instead of tabs, aria-current on the active
           page.
         </p>
-        <DemoCard code={SNIPPET_NAV_MENU}>
+        <DemoCard code={navMenuCode}>
           <div class="mx-auto max-w-sm">
-            <DitherNavMenu modelValue={navActive()} onUpdateModelValue={setNavActive} items={NAV_ITEMS} color="blue" />
-            <p class="mt-4 text-[12px] text-muted-foreground">Viewing: {navActive()}</p>
+            <NavMenuExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.navMenu} />

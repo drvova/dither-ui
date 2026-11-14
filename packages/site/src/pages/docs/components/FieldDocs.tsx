@@ -1,15 +1,5 @@
 import { createSignal, Show } from "solid-js"
-import {
-  cssColor,
-  DitherButton,
-  DitherField,
-  DitherFieldset,
-  DitherForm,
-  DitherInput,
-  DitherTextarea,
-  DitherNumberField,
-  DitherOtpField,
-} from "@dither-ui/kit"
+import { cssColor, DitherField, DitherInput, DitherTextarea, DitherNumberField, DitherOtpField } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
 import inputProps from "virtual:dither-props/DitherInput"
@@ -20,6 +10,10 @@ import fieldsetProps from "virtual:dither-props/DitherFieldset"
 import numberFieldProps from "virtual:dither-props/DitherNumberField"
 import otpFieldProps from "virtual:dither-props/DitherOtpField"
 import DocSection from "../DocSection"
+import FieldsetExample from "./examples/fieldset"
+import fieldsetCode from "./examples/fieldset.tsx?raw"
+import FormExample from "./examples/form"
+import formCode from "./examples/form.tsx?raw"
 
 const SNIPPET_INPUT = `import { createSignal } from "solid-js"
 import { DitherInput } from "@dither-kit"
@@ -68,45 +62,6 @@ export default function Example() {
   )
 }`
 
-const SNIPPET_FIELDSET = `import { createSignal } from "solid-js"
-import { DitherField, DitherFieldset, DitherInput } from "@dither-kit"
-
-export default function Example() {
-  const [name, setName] = createSignal("Ada Byte")
-  const [handle, setHandle] = createSignal("ada")
-
-  return (
-    <DitherFieldset legend="Profile">
-      <DitherField label="Name" for="profile-name">
-        <DitherInput id="profile-name" modelValue={name()} onUpdateModelValue={setName} />
-      </DitherField>
-      <DitherField label="Handle" for="profile-handle">
-        <DitherInput id="profile-handle" modelValue={handle()} onUpdateModelValue={setHandle} />
-      </DitherField>
-    </DitherFieldset>
-  )
-}`
-
-const SNIPPET_FORM = `import { createSignal } from "solid-js"
-import { DitherButton, DitherField, DitherForm, DitherInput } from "@dither-kit"
-
-export default function Example() {
-  const [email, setEmail] = createSignal("")
-  const [submitted, setSubmitted] = createSignal(0)
-
-  return (
-    <DitherForm onSubmit={() => setSubmitted(submitted() + 1)}>
-      <div class="grid gap-4">
-        <DitherField label="Email" for="form-email">
-          <DitherInput id="form-email" modelValue={email()} onUpdateModelValue={setEmail} type="email" placeholder="you@dither-ui.com" />
-        </DitherField>
-        <DitherButton type="submit" color="blue" class="w-full">Subscribe</DitherButton>
-        <p class="text-[11px] text-muted-foreground">submitted {submitted()} times</p>
-      </div>
-    </DitherForm>
-  )
-}`
-
 const SNIPPET_NUMBER = `import { createSignal } from "solid-js"
 import { DitherNumberField } from "@dither-kit"
 
@@ -152,10 +107,6 @@ export default function FieldDocs() {
   const [handle, setHandle] = createSignal("")
   const [bio, setBio] = createSignal("Dithered interfaces, composed with Solid.")
   const [website, setWebsite] = createSignal("")
-  const [profileName, setProfileName] = createSignal("Ada Byte")
-  const [profileHandle, setProfileHandle] = createSignal("ada")
-  const [formEmail, setFormEmail] = createSignal("")
-  const [submitted, setSubmitted] = createSignal(0)
   const [qty, setQty] = createSignal(3)
   const [otp, setOtp] = createSignal("")
   const [otpComplete, setOtpComplete] = createSignal(false)
@@ -221,16 +172,9 @@ export default function FieldDocs() {
           Groups related fields inside a bordered box with a tracking-spaced legend. Native{" "}
           <code class="text-foreground/80">&lt;fieldset&gt;</code> semantics, kit skin.
         </p>
-        <DemoCard code={SNIPPET_FIELDSET}>
+        <DemoCard code={fieldsetCode}>
           <div class="mx-auto max-w-sm">
-            <DitherFieldset legend="Profile">
-              <DitherField label="Name" for="profile-name">
-                <DitherInput id="profile-name" modelValue={profileName()} onUpdateModelValue={setProfileName} />
-              </DitherField>
-              <DitherField label="Handle" for="profile-handle">
-                <DitherInput id="profile-handle" modelValue={profileHandle()} onUpdateModelValue={setProfileHandle} />
-              </DitherField>
-            </DitherFieldset>
+            <FieldsetExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.fieldset} />
@@ -242,25 +186,9 @@ export default function FieldDocs() {
           validation bubbles and submit is prevented and handed on as a clean{" "}
           <code class="text-foreground/80">onSubmit</code> call.
         </p>
-        <DemoCard code={SNIPPET_FORM}>
+        <DemoCard code={formCode}>
           <div class="mx-auto max-w-sm">
-            <DitherForm onSubmit={() => setSubmitted(submitted() + 1)}>
-              <div class="grid gap-4">
-                <DitherField label="Email" for="form-email">
-                  <DitherInput
-                    id="form-email"
-                    modelValue={formEmail()}
-                    onUpdateModelValue={setFormEmail}
-                    type="email"
-                    placeholder="you@dither-ui.com"
-                  />
-                </DitherField>
-                <DitherButton type="submit" color="blue" class="w-full">
-                  Subscribe
-                </DitherButton>
-                <p class="text-[11px] text-muted-foreground">submitted {submitted()} times</p>
-              </div>
-            </DitherForm>
+            <FormExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.form} />

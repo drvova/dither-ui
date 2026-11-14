@@ -7,7 +7,6 @@ import {
   DitherSchedule,
   DitherShader,
   DitherThumbnail,
-  DitherVideoPlayer,
   DitherWorld,
   sampleShader,
   sampleWorld,
@@ -27,10 +26,8 @@ import scheduleProps from "virtual:dither-props/DitherSchedule"
 import worldProps from "virtual:dither-props/DitherWorld"
 import shaderProps from "virtual:dither-props/DitherShader"
 import DocSection from "../DocSection"
-
-/* The site's own film, as the landing plays it. */
-const TRAILER = assetPath("/trailer/dither-ui.mp4")
-const TRAILER_POSTER = assetPath("/trailer/poster.webp")
+import VideoPlayerExample from "./examples/video-player"
+import videoPlayerCode from "./examples/video-player.tsx?raw"
 
 /* World: the seeded sample is real VRML97 text (with its own TimeSensor →
    ROUTE animation), so the code tab shows the file. */
@@ -116,15 +113,6 @@ const SNIPPET_THUMBNAIL = `{/* a picture that is a link: it rests under a Bayer 
     veilCell={3}
   />
 </div>`
-
-const SNIPPET_VIDEO = `{/* a native <video> under dither chrome: play, a dithered scrubber,
-     tabular time, mute and fullscreen; no src is an honest empty face */}
-<DitherVideoPlayer
-  src="/trailer/dither-ui.mp4"
-  poster="/trailer/poster.webp"
-  label="The dither-ui film"
-  color="blue"
-/>`
 
 const SNIPPET_BRACKET = `type Pairing = { a: string; b: string; winner?: "a" | "b" }
 
@@ -348,9 +336,9 @@ export default function MediaDocs() {
           speed, mute, fullscreen, and player keyboard (Space, arrows, M, F). Without a source it shows an honest empty
           face instead of a broken box.
         </p>
-        <DemoCard code={SNIPPET_VIDEO}>
+        <DemoCard code={videoPlayerCode}>
           <div class="mx-auto max-w-md">
-            <DitherVideoPlayer src={TRAILER} poster={TRAILER_POSTER} label="The dither-ui film" color="blue" />
+            <VideoPlayerExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.video} />

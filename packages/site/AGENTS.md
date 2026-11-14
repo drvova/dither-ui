@@ -33,7 +33,8 @@ are from the repository's.
 - One alias, `@/` for this package's `src/` (`build/aliases.ts`, for the
   build and the component specs; the root `tsconfig.json` `paths` says the
   same to the type checker and `rstack.config.ts` to the framework-free
-  specs). Every other package is imported by name: `@dither-ui/kit` (the Solid
+  specs), and the reader's `@dither-kit`, which only the docs' examples
+  import (`build/aliases.ts` and `tsconfig.json` make it `@dither-ui/kit`). Every other package is imported by name: `@dither-ui/kit` (the Solid
   layer), `@dither-ui/kit/engine` (the engine's API, what a framework-free
   module takes values from; a type may come from `@dither-ui/kit`),
   `@dither-ui/kit/<layer>/<file>` with its extension, `@dither-ui/kit-stylex`,
@@ -105,9 +106,16 @@ are from the repository's.
   never in its own `onMount`.
 - A component's scoped styles are `<Name>.css` beside it, nested under a
   root hook class `<kebab-name>-scope`.
-- Docs tooling: each demo's snippet is written once, in Solid with
-  Tailwind's classes (a fragment: JSX with the script it needs as loose
-  lines over or under it, or a whole `.tsx` module), and the
+- Docs tooling: each demo's example is written once, in Solid with
+  Tailwind's classes: a module of its own,
+  `src/pages/docs/<pack>/examples/<id>.tsx` (a default-exported component
+  importing the kit as `@dither-kit`), which the page imports twice, as
+  the demo's component and as its text (`./examples/<id>.tsx?raw`) for the
+  card's code; or, where the demo is wired to the page (pickers, readouts,
+  state the page shares) or says more than its code, a string beside the
+  demo (a fragment: JSX with the script it needs as loose lines over or
+  under it, or a whole `.tsx` module), held to the demo by
+  `tests/site/docs-drift.spec.tsx`. Either way the
   `@dither-ui/restyle` package writes it in the reader's styling system
   (`pages/docs/snippet.ts`: `docsCode`, `docsFiles`; `dataCode` prints an
   example's data from the demo's own values). `widgets/source` completes

@@ -1,13 +1,5 @@
 import { createSignal, For } from "solid-js"
-import {
-  DitherButton,
-  DitherCenterMorphModal,
-  DitherCollapsible,
-  DitherDialog,
-  DitherKbd,
-  DitherTabPanel,
-  DitherTabs,
-} from "@dither-ui/kit"
+import { DitherKbd, DitherTabPanel, DitherTabs } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
 import tabsProps from "virtual:dither-props/DitherTabs"
@@ -17,6 +9,12 @@ import dialogProps from "virtual:dither-props/DitherDialog"
 import centerMorphModalProps from "virtual:dither-props/DitherCenterMorphModal"
 import kbdProps from "virtual:dither-props/DitherKbd"
 import DocSection from "../DocSection"
+import CollapsibleExample from "./examples/collapsible"
+import collapsibleCode from "./examples/collapsible.tsx?raw"
+import DialogExample from "./examples/dialog"
+import dialogCode from "./examples/dialog.tsx?raw"
+import CenterMorphModalExample from "./examples/center-morph-modal"
+import centerMorphModalCode from "./examples/center-morph-modal.tsx?raw"
 
 const TABS = ["Overview", "Metrics", "Logs"]
 const PANEL: Record<string, string> = {
@@ -59,42 +57,6 @@ const [folder, setFolder] = createSignal("Inbox")
 <DitherTabs modelValue={folder()} onUpdateModelValue={setFolder} orientation="vertical" variant="washed" class="mt-6"
   tabs={[{ value: 'Inbox', badge: 12 }, { value: 'Drafts', badge: 2 }, { value: 'Spam', disabled: true }]} />`
 
-const SNIPPET_COLLAPSIBLE = `const [openA, setOpenA] = createSignal(true)
-const [openB, setOpenB] = createSignal(false)
-
-<DitherCollapsible modelValue={openA()} onUpdateModelValue={setOpenA} title="What is dithering?" color="blue">
-  Ordered dithering trades smooth gradients for a fixed threshold
-  matrix: the same Bayer 4x4 behind every fill in this kit.
-</DitherCollapsible>
-<DitherCollapsible modelValue={openB()} onUpdateModelValue={setOpenB} title="Why canvas?" color="purple">
-  One engine paints every fill, so components stay coherent.
-</DitherCollapsible>`
-
-const SNIPPET_DIALOG = `const [open, setOpen] = createSignal(false)
-
-<DitherButton onClick={() => setOpen(true)}>Open dialog</DitherButton>
-<DitherDialog open={open()} title="Confirm"
-  description="Ship the dithered build to production?" onClose={() => setOpen(false)}
-  footer={
-    <DitherButton color="green" onClick={() => setOpen(false)}>Confirm</DitherButton>
-  }
->
-  <p class="text-[13px] text-muted-foreground">Review the release before continuing.</p>
-</DitherDialog>`
-
-const SNIPPET_MORPH = `const [open, setOpen] = createSignal(false)
-
-<DitherButton onClick={() => setOpen(true)}>Open modal</DitherButton>
-<DitherCenterMorphModal open={open()} label="Release notes" onClose={() => setOpen(false)}>
-  <div class="flex h-full flex-col justify-end gap-2">
-    <h3 class="text-sm font-medium text-foreground">v2.4: dithered everything</h3>
-    <p class="max-w-md text-[13px] leading-relaxed text-muted-foreground">
-      This full-size surface unfolded from its exact center. Press Escape,
-      the backdrop, or the inset control to fold it back.
-    </p>
-  </div>
-</DitherCenterMorphModal>`
-
 const SNIPPET_KBD = `<div class="flex items-center gap-6 text-xs">
   <div class="flex items-center gap-2">
     <span class="text-muted-foreground">Command menu</span>
@@ -119,12 +81,6 @@ export default function StructureDocs() {
   const [tab, setTab] = createSignal("Overview")
   const [variantTab, setVariantTab] = createSignal("Overview")
   const [vertTab, setVertTab] = createSignal("Inbox")
-
-  const [openA, setOpenA] = createSignal(true)
-  const [openB, setOpenB] = createSignal(false)
-
-  const [dialogOpen, setDialogOpen] = createSignal(false)
-  const [morphOpen, setMorphOpen] = createSignal(false)
 
   return (
     <>
@@ -197,20 +153,9 @@ export default function StructureDocs() {
           A disclosure row animated through grid-template-rows; when open, a 2px dithered rail runs down the left edge
           of the content.
         </p>
-        <DemoCard code={SNIPPET_COLLAPSIBLE}>
+        <DemoCard code={collapsibleCode}>
           <div class="mx-auto max-w-sm divide-y divide-border/60">
-            <DitherCollapsible
-              modelValue={openA()}
-              onUpdateModelValue={setOpenA}
-              title="What is dithering?"
-              color="blue"
-            >
-              Ordered dithering trades smooth gradients for a fixed threshold matrix: the same Bayer 4x4 behind every
-              fill in this kit.
-            </DitherCollapsible>
-            <DitherCollapsible modelValue={openB()} onUpdateModelValue={setOpenB} title="Why canvas?" color="purple">
-              One engine paints every fill, so components stay coherent.
-            </DitherCollapsible>
+            <CollapsibleExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.collapsible} />
@@ -221,22 +166,9 @@ export default function StructureDocs() {
           A portalled modal with labelled title and description, trapped focus, Escape/backdrop dismissal, focus
           restoration, and an optional action footer.
         </p>
-        <DemoCard code={SNIPPET_DIALOG}>
+        <DemoCard code={dialogCode}>
           <div class="flex justify-center">
-            <DitherButton onClick={() => setDialogOpen(true)}>Open dialog</DitherButton>
-            <DitherDialog
-              open={dialogOpen()}
-              title="Confirm"
-              description="Ship the dithered build to production?"
-              onClose={() => setDialogOpen(false)}
-              footer={
-                <DitherButton color="green" onClick={() => setDialogOpen(false)}>
-                  Confirm
-                </DitherButton>
-              }
-            >
-              <p class="text-[13px] leading-relaxed text-muted-foreground">Review the release before continuing.</p>
-            </DitherDialog>
+            <DialogExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.dialog} />
@@ -247,18 +179,9 @@ export default function StructureDocs() {
           A composable modal whose full-size surface unfolds from its exact center toward every edge, then folds back
           the same way with an inset close control. Same focus trap, Escape, and backdrop contract as Dialog.
         </p>
-        <DemoCard code={SNIPPET_MORPH}>
+        <DemoCard code={centerMorphModalCode}>
           <div class="flex justify-center">
-            <DitherButton onClick={() => setMorphOpen(true)}>Open modal</DitherButton>
-            <DitherCenterMorphModal open={morphOpen()} label="Release notes" onClose={() => setMorphOpen(false)}>
-              <div class="flex h-full flex-col justify-end gap-2">
-                <h3 class="text-sm font-medium text-foreground">v2.4: dithered everything</h3>
-                <p class="max-w-md text-[13px] leading-relaxed text-muted-foreground">
-                  This full-size surface unfolded from its exact center. Press Escape, the backdrop, or the inset
-                  control to fold it back.
-                </p>
-              </div>
-            </DitherCenterMorphModal>
+            <CenterMorphModalExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.centerMorphModal} />

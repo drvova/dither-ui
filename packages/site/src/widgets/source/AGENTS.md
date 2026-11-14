@@ -25,7 +25,10 @@ the Solid-bound modules beside what is framework free (see
 - `RunView.tsx` — a run's component inside an error boundary: what it
   throws shows in the preview, not as a broken page.
 - `model/snippet.ts` — pure, framework free: a snippet's
-  kind (`snippetKind`: a whole module, a fragment, `ts`, `css`, `sh`) and
+  kind (`snippetKind`: a whole module, its component returning markup in
+  parentheses or bare, as the formatter leaves a docs example; a fragment,
+  `ts`, `css`, `sh`; a module comes back without the newline its file
+  ends with) and
   a Solid fragment completed into the whole `.tsx` module a reader takes
   (`asTsx`: the Solid APIs and kit exports it uses imported after what it
   imports itself is kept, its script the component's body, its markup what

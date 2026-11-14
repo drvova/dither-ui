@@ -1,29 +1,13 @@
 import { createSignal, onCleanup, onMount } from "solid-js"
 import {
-  DitherBlurText,
   DitherCountUp,
   DitherNumberFlow,
-  DitherDecryptedText,
   DitherFallingText,
-  DitherGlitchText,
-  DitherGradientText,
   DitherRotatingText,
-  DitherScrambleText,
-  DitherScrollFloat,
-  DitherScrollReveal,
-  DitherShinyText,
   DitherShuffle,
   DitherSplitText,
-  DitherTextType,
-  DitherScrollVelocity,
   DitherTextCursor,
-  DitherTextPressure,
   DitherVariableProximity,
-  DitherTrueFocus,
-  DitherCircularText,
-  DitherCurvedLoop,
-  DitherFuzzyText,
-  DitherAsciiText,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
@@ -52,6 +36,38 @@ import curvedLoopProps from "virtual:dither-props/DitherCurvedLoop"
 import fuzzyTextProps from "virtual:dither-props/DitherFuzzyText"
 import asciiTextProps from "virtual:dither-props/DitherAsciiText"
 import DocSection from "../DocSection"
+import GradientTextExample from "./examples/gradient-text"
+import gradientTextCode from "./examples/gradient-text.tsx?raw"
+import ShinyTextExample from "./examples/shiny-text"
+import shinyTextCode from "./examples/shiny-text.tsx?raw"
+import GlitchTextExample from "./examples/glitch-text"
+import glitchTextCode from "./examples/glitch-text.tsx?raw"
+import TextTypeExample from "./examples/text-type"
+import textTypeCode from "./examples/text-type.tsx?raw"
+import BlurTextExample from "./examples/blur-text"
+import blurTextCode from "./examples/blur-text.tsx?raw"
+import DecryptedTextExample from "./examples/decrypted-text"
+import decryptedTextCode from "./examples/decrypted-text.tsx?raw"
+import ScrambleTextExample from "./examples/scramble-text"
+import scrambleTextCode from "./examples/scramble-text.tsx?raw"
+import ScrollRevealExample from "./examples/scroll-reveal"
+import scrollRevealCode from "./examples/scroll-reveal.tsx?raw"
+import ScrollFloatExample from "./examples/scroll-float"
+import scrollFloatCode from "./examples/scroll-float.tsx?raw"
+import ScrollVelocityExample from "./examples/scroll-velocity"
+import scrollVelocityCode from "./examples/scroll-velocity.tsx?raw"
+import TextPressureExample from "./examples/text-pressure"
+import textPressureCode from "./examples/text-pressure.tsx?raw"
+import TrueFocusExample from "./examples/true-focus"
+import trueFocusCode from "./examples/true-focus.tsx?raw"
+import CircularTextExample from "./examples/circular-text"
+import circularTextCode from "./examples/circular-text.tsx?raw"
+import CurvedLoopExample from "./examples/curved-loop"
+import curvedLoopCode from "./examples/curved-loop.tsx?raw"
+import FuzzyTextExample from "./examples/fuzzy-text"
+import fuzzyTextCode from "./examples/fuzzy-text.tsx?raw"
+import AsciiTextExample from "./examples/ascii-text"
+import asciiTextCode from "./examples/ascii-text.tsx?raw"
 
 export const API: Record<string, PropRow[]> = {
   gradientText: kitTable(gradientTextProps),
@@ -81,11 +97,6 @@ export const API: Record<string, PropRow[]> = {
 }
 
 const SNIPPETS = {
-  gradientText: `<DitherGradientText colors={['#358ff3', '#7CFF67', '#358ff3']}>
-  Beautifully dithered
-</DitherGradientText>`,
-  shinyText: `<DitherShinyText>Shimmering headline</DitherShinyText>`,
-  glitchText: `<DitherGlitchText text="MALFUNCTION" />`,
   splitText: `const [token, setToken] = createSignal(0)
 
 <div class="grid place-items-center gap-4">
@@ -105,10 +116,6 @@ onMount(() => {
 onCleanup(() => clearInterval(timer))
 
 <div class="text-4xl">$<DitherNumberFlow value={metric()} /></div>`,
-  textType: `<DitherTextType texts={['Charts, dithered.', 'Buttons, dithered.', 'Everything, dithered.']} />`,
-  blurText: `<DitherBlurText text="Blur into focus" by="words" />`,
-  decryptedText: `<DitherDecryptedText text="ACCESS GRANTED" />`,
-  scrambleText: `<DitherScrambleText text="Hover to scramble" />`,
   shuffle: `const [token, setToken] = createSignal(0)
 
 <div class="grid place-items-center gap-4">
@@ -121,17 +128,8 @@ onCleanup(() => clearInterval(timer))
   <DitherFallingText text="Falling into place" replayToken={token()} class="text-3xl" />
   <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
 </div>`,
-  scrollReveal: `<DitherScrollReveal text="These words reveal as you scroll them into view" />`,
-  scrollFloat: `<DitherScrollFloat text="Floating up on scroll" />`,
-  scrollVelocity: `<DitherScrollVelocity text="DITHER · UI · TOOLKIT · " />`,
   textCursor: `<div class="h-40"><DitherTextCursor text="dither" /></div>`,
-  textPressure: `<DitherTextPressure text="Pressure" />`,
   variableProximity: `<DitherVariableProximity text="Move the cursor across this line" />`,
-  trueFocus: `<DitherTrueFocus text="True focus mode" />`,
-  circularText: `<DitherCircularText text="DITHER · UI · TOOLKIT · " />`,
-  curvedLoop: `<DitherCurvedLoop text="DITHER UI · CANVAS + BAYER · " />`,
-  fuzzyText: `<DitherFuzzyText text="FUZZY" />`,
-  asciiText: `<DitherAsciiText text="DITHER" />`,
 }
 
 export default function TextDocs() {
@@ -156,9 +154,9 @@ export default function TextDocs() {
           An animated gradient clipped to the text. The colour band drifts across the glyphs forever. Respects reduced
           motion.
         </p>
-        <DemoCard code={SNIPPETS.gradientText}>
+        <DemoCard code={gradientTextCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <DitherGradientText>Beautifully dithered</DitherGradientText>
+            <GradientTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.gradientText} />
@@ -168,9 +166,9 @@ export default function TextDocs() {
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A bright highlight sweeps across dim text on a loop: a subtle sheen for headlines and labels.
         </p>
-        <DemoCard code={SNIPPETS.shinyText}>
+        <DemoCard code={shinyTextCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <DitherShinyText>Shimmering headline</DitherShinyText>
+            <ShinyTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.shinyText} />
@@ -181,9 +179,9 @@ export default function TextDocs() {
           Two RGB-split copies jitter and clip over the base text for a broken-signal effect. The base stays readable;
           the glitch layers hide under reduced motion.
         </p>
-        <DemoCard code={SNIPPETS.glitchText}>
+        <DemoCard code={glitchTextCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl font-medium tracking-tight">
-            <DitherGlitchText text="MALFUNCTION" />
+            <GlitchTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.glitchText} />
@@ -260,9 +258,9 @@ export default function TextDocs() {
           A typewriter with a blinking caret: it types each string, pauses, deletes and moves to the next. Reduced
           motion shows the first line, no typing.
         </p>
-        <DemoCard code={SNIPPETS.textType}>
+        <DemoCard code={textTypeCode}>
           <div class="flex min-h-24 items-center justify-center text-2xl tracking-tight">
-            <DitherTextType texts={["Charts, dithered.", "Buttons, dithered.", "Everything, dithered."]} />
+            <TextTypeExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.textType} />
@@ -273,9 +271,9 @@ export default function TextDocs() {
           Words (or characters) blur into focus on a stagger the first time they enter the viewport. Still one labelled
           node for screen readers.
         </p>
-        <DemoCard code={SNIPPETS.blurText}>
+        <DemoCard code={blurTextCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <DitherBlurText text="Blur into focus" />
+            <BlurTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.blurText} />
@@ -286,9 +284,9 @@ export default function TextDocs() {
           Scrambled cipher characters resolve left-to-right into the real text when it scrolls into view. Monospace
           keeps the width steady.
         </p>
-        <DemoCard code={SNIPPETS.decryptedText}>
+        <DemoCard code={decryptedTextCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl font-medium tracking-tight">
-            <DitherDecryptedText text="ACCESS GRANTED" />
+            <DecryptedTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.decryptedText} />
@@ -298,9 +296,9 @@ export default function TextDocs() {
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Hover to burst-scramble the characters, which then settle back to the real text. Repeatable on every hover.
         </p>
-        <DemoCard code={SNIPPETS.scrambleText}>
+        <DemoCard code={scrambleTextCode}>
           <div class="flex min-h-24 items-center justify-center text-2xl tracking-tight sm:text-3xl">
-            <DitherScrambleText text="Hover to scramble" />
+            <ScrambleTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.scrambleText} />
@@ -354,9 +352,9 @@ export default function TextDocs() {
           The words fade and de-blur word-by-word as the block travels up through the viewport. The reveal is tied to
           scroll position, not a one-shot. Scroll the page.
         </p>
-        <DemoCard code={SNIPPETS.scrollReveal}>
+        <DemoCard code={scrollRevealCode}>
           <div class="flex min-h-24 max-w-md items-center justify-center text-center text-xl leading-relaxed tracking-tight">
-            <DitherScrollReveal text="These words reveal as you scroll them into view" />
+            <ScrollRevealExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.scrollReveal} />
@@ -367,9 +365,9 @@ export default function TextDocs() {
           Characters float up from an offset as the scroll progress reaches each one: a gentle parallax settle. Scroll
           the page.
         </p>
-        <DemoCard code={SNIPPETS.scrollFloat}>
+        <DemoCard code={scrollFloatCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <DitherScrollFloat text="Floating up on scroll" />
+            <ScrollFloatExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.scrollFloat} />
@@ -380,9 +378,9 @@ export default function TextDocs() {
           A seamless marquee band that drifts on its own and speeds up (or reverses) with your scroll velocity, easing
           back to base speed. Scroll the page.
         </p>
-        <DemoCard code={SNIPPETS.scrollVelocity}>
+        <DemoCard code={scrollVelocityCode}>
           <div class="w-full text-2xl font-medium tracking-tight text-muted-foreground">
-            <DitherScrollVelocity text="DITHER · UI · TOOLKIT · " />
+            <ScrollVelocityExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.scrollVelocity} />
@@ -406,9 +404,9 @@ export default function TextDocs() {
           Characters bulge (scaling up and gaining weight) near the cursor, like the word is being pressed. Move your
           cursor near the text.
         </p>
-        <DemoCard code={SNIPPETS.textPressure}>
+        <DemoCard code={textPressureCode}>
           <div class="flex min-h-24 items-center justify-center text-4xl tracking-tight">
-            <DitherTextPressure text="Pressure" />
+            <TextPressureExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.textPressure} />
@@ -432,9 +430,9 @@ export default function TextDocs() {
           One word stays sharp while the rest blur, and the focus steps through the phrase on a timer, pulling the eye
           word by word.
         </p>
-        <DemoCard code={SNIPPETS.trueFocus}>
+        <DemoCard code={trueFocusCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <DitherTrueFocus text="True focus mode" />
+            <TrueFocusExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.trueFocus} />
@@ -445,9 +443,9 @@ export default function TextDocs() {
           Text set around a full circle on an SVG path, rotating forever: a badge or seal. Uses{" "}
           <code class="text-foreground/80">currentColor</code> so it inherits type colour.
         </p>
-        <DemoCard code={SNIPPETS.circularText}>
+        <DemoCard code={circularTextCode}>
           <div class="flex min-h-48 items-center justify-center text-foreground">
-            <DitherCircularText text="DITHER · UI · TOOLKIT · " />
+            <CircularTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.circularText} />
@@ -458,9 +456,9 @@ export default function TextDocs() {
           Text flows along a wavy SVG path as a seamless loop. The copy length is measured so the scroll wraps without a
           visible seam.
         </p>
-        <DemoCard code={SNIPPETS.curvedLoop}>
+        <DemoCard code={curvedLoopCode}>
           <div class="flex min-h-24 w-full items-center justify-center text-foreground">
-            <DitherCurvedLoop text="DITHER UI · CANVAS + BAYER · " />
+            <CurvedLoopExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.curvedLoop} />
@@ -471,9 +469,9 @@ export default function TextDocs() {
           An SVG turbulence + displacement filter wobbles the glyph edges into an analog fuzz. Native filters, no
           canvas. Reduced motion drops the filter.
         </p>
-        <DemoCard code={SNIPPETS.fuzzyText}>
+        <DemoCard code={fuzzyTextCode}>
           <div class="flex min-h-24 items-center justify-center text-5xl font-bold tracking-tight">
-            <DitherFuzzyText text="FUZZY" />
+            <FuzzyTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.fuzzyText} />
@@ -484,11 +482,11 @@ export default function TextDocs() {
           The word is rasterised to an offscreen canvas and mapped onto an ASCII density ramp: an on-brand ASCII render
           of any string.
         </p>
-        <DemoCard code={SNIPPETS.asciiText}>
+        <DemoCard code={asciiTextCode}>
           {/* Centred while it fits; on the narrowest phones it scrolls. */}
           <div class="flex min-h-24 items-center overflow-x-auto text-foreground">
             <div class="mx-auto w-max">
-              <DitherAsciiText text="DITHER" />
+              <AsciiTextExample />
             </div>
           </div>
         </DemoCard>

@@ -1,15 +1,12 @@
 import { createSignal, onCleanup, onMount } from "solid-js"
 import {
   DitherAvatar,
-  DitherBadge,
   DitherButton,
   DitherCommand,
   DitherContextMenu,
   DitherMenu,
   DitherMenubar,
-  DitherPopover,
   DitherPreviewCard,
-  DitherTooltip,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
@@ -21,6 +18,10 @@ import tooltipProps from "virtual:dither-props/DitherTooltip"
 import previewCardProps from "virtual:dither-props/DitherPreviewCard"
 import commandProps from "virtual:dither-props/DitherCommand"
 import DocSection from "../DocSection"
+import PopoverExample from "./examples/popover"
+import popoverCode from "./examples/popover.tsx?raw"
+import TooltipExample from "./examples/tooltip"
+import tooltipCode from "./examples/tooltip.tsx?raw"
 
 const COMMAND_ITEMS = [
   { value: "new-artboard", label: "New artboard", group: "Studio", kbd: "N" },
@@ -54,18 +55,6 @@ const MENUBAR = [
     items: [{ label: "Zoom in" }, { label: "Zoom out" }],
   },
 ]
-
-const SNIPPET_POPOVER = `const [open, setOpen] = createSignal(false)
-
-<DitherPopover open={open()} align="center" onClose={() => setOpen(false)}
-  trigger={
-    <DitherButton onClick={() => setOpen(!open())}>Open popover</DitherButton>
-  }
->
-  <p class="text-[12px] leading-relaxed text-muted-foreground">
-    Anchored to its trigger. Escape or an outside press closes it.
-  </p>
-</DitherPopover>`
 
 const SNIPPET_MENU = `const items = [
   { label: "New" },
@@ -105,10 +94,6 @@ const [last, setLast] = createSignal("none")
 
 <DitherMenubar menus={menus} onSelect={(m, i) => (setLast(\`\${m} → \${i}\`))} />
 <p class="mt-3 text-[12px] text-muted-foreground">last action: {last()}</p>`
-
-const SNIPPET_TOOLTIP = `<DitherTooltip text="Deploys are frozen until Monday">
-  <DitherBadge color="orange">frozen</DitherBadge>
-</DitherTooltip>`
 
 const SNIPPET_COMMAND = `const [open, setOpen] = createSignal(false)
 const [ran, setRan] = createSignal("nothing yet")
@@ -159,8 +144,6 @@ export const API: Record<string, PropRow[]> = {
 }
 
 export default function OverlayDocs() {
-  const [popoverOpen, setPopoverOpen] = createSignal(false)
-
   /* Command palette: open state, catalog, last run, and a real hotkey. */
   const [commandOpen, setCommandOpen] = createSignal(false)
   const [commandRan, setCommandRan] = createSignal("none")
@@ -186,18 +169,9 @@ export default function OverlayDocs() {
           An anchored panel below its trigger. Bring your own trigger and content. Escape or an outside press calls
           onClose.
         </p>
-        <DemoCard code={SNIPPET_POPOVER}>
+        <DemoCard code={popoverCode}>
           <div class="flex justify-center">
-            <DitherPopover
-              open={popoverOpen()}
-              align="center"
-              onClose={() => setPopoverOpen(false)}
-              trigger={<DitherButton onClick={() => setPopoverOpen(!popoverOpen())}>Open popover</DitherButton>}
-            >
-              <p class="text-[12px] leading-relaxed text-muted-foreground">
-                Anchored to its trigger. Escape or an outside press closes it.
-              </p>
-            </DitherPopover>
+            <PopoverExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.popover} />
@@ -256,11 +230,9 @@ export default function OverlayDocs() {
           A delayed hover tip above its target. It also shows on focus and hides on leave, blur, or Escape. No
           transition under reduced motion.
         </p>
-        <DemoCard code={SNIPPET_TOOLTIP}>
+        <DemoCard code={tooltipCode}>
           <div class="flex justify-center">
-            <DitherTooltip text="Deploys are frozen until Monday">
-              <DitherBadge color="orange">frozen</DitherBadge>
-            </DitherTooltip>
+            <TooltipExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.tooltip} />
