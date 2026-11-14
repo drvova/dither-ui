@@ -19,7 +19,10 @@ Paths here are from this package's root.
 
 - One file, no build step, no import of another package of this workspace
   (`tests/workspace.spec.ts` at the root). `playwright-core` is loaded
-  only when a card is drawn.
+  only when a card is drawn, in the first Chromium that stands of
+  `chromiumCandidates`, a copy of the tasks package's list
+  (`packages/tasks/src/chromium.ts`: `CHROME_PATH` first), held to it by
+  the workspace's `tests/chromium.spec.ts`; none is an error.
 - Reads a built site from `DIST` (default: this repository's
   `packages/site/.output/public`): the section manifest, the renderer page
   and its assets, served as built. A plain link to the site needs no

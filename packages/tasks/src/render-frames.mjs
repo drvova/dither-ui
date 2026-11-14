@@ -18,6 +18,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 import { chromium, firefox, webkit } from "playwright-core"
+import { chromiumPath } from "./chromium.ts"
 
 const args = process.argv.slice(2)
 const flag = (name, fallback) => {
@@ -54,24 +55,13 @@ const width = contract.width || 480
 const height = contract.height || 320
 const frames = Math.max(1, Math.round(seconds * fps))
 
-function findChromium() {
-  const candidates = [
-    process.env.CHROME_PATH,
-    "/usr/bin/google-chrome",
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
-  ].filter(Boolean)
-  return candidates.find((p) => existsSync(p))
-}
-
 const launchers = { chromium, webkit, firefox }
 const type = launchers[engine]
 if (!type) {
   console.error(`unknown browser ${engine}: chromium, webkit or firefox`)
   process.exit(1)
 }
-const executablePath = flag("executable", engine === "chromium" ? findChromium() : undefined)
+const executablePath = flag("executable", engine === "chromium" ? chromiumPath() : undefined)
 const browser = await type.launch(
   executablePath ? { executablePath, args: engine === "chromium" ? ["--no-sandbox"] : [] } : {},
 )

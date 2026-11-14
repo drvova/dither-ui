@@ -46,34 +46,6 @@ export const MIME: Record<string, string> = {
   ".ico": "image/x-icon",
 }
 
-/** The Chromium a build draws with: `CHROME_PATH`, else a standard install.
- * A build with none fails here rather than ship without its cards. */
-export function findChromium(
-  env: Record<string, string | undefined> = process.env,
-  exists: (path: string) => boolean = existsSync,
-): string {
-  const programFiles = env["ProgramFiles"] ?? "C:\\Program Files"
-  const programFilesX86 = env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)"
-  const localAppData = env.LOCALAPPDATA ?? ""
-  const candidates = [
-    env.CHROME_PATH,
-    "/usr/bin/google-chrome",
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
-    // Windows install paths (chrome stable, then Edge — both are chromium)
-    `${programFiles}\\Google\\Chrome\\Application\\chrome.exe`,
-    `${programFilesX86}\\Google\\Chrome\\Application\\chrome.exe`,
-    localAppData ? `${localAppData}\\Google\\Chrome\\Application\\chrome.exe` : "",
-    `${programFilesX86}\\Microsoft\\Edge\\Application\\msedge.exe`,
-    `${programFiles}\\Microsoft\\Edge\\Application\\msedge.exe`,
-  ].filter((p): p is string => Boolean(p))
-  const found = candidates.find((p) => exists(p))
-  if (!found)
-    throw new Error("prerender: no chromium found. Set CHROME_PATH or install one of: google-chrome, chromium.")
-  return found
-}
-
 /** The file under `dir` an address names (a folder is its index.html), with
  * the deploy's `base` taken off its front; null for an address outside it. */
 export function servedFile(dir: string, url: string, base = "/"): string | null {

@@ -13,12 +13,20 @@ by the site's post-build. Paths here are from this package's root.
   Tailwind's compiler and scanner, the kit's folders the only sources. Run
   alone it writes the file it is given (`npm run build:css` at the root
   writes `kit/dither-kit.css` into the site's build).
+- `src/chromium.ts`: the ONE list of where a Chromium stands
+  (`chromiumCandidates`: `CHROME_PATH`, the standard installs on Linux,
+  macOS and Windows, Chrome before Edge, then Playwright's
+  `/opt/pw-browsers/chromium`), the first that stands (`chromiumPath`) and
+  the build's, which throws without one (`findChromium`): the post-build,
+  the walk, the frame renderer, the agent demo (the last three after their
+  `--executable`) and the site's browser specs read it. The Discord
+  service keeps a copy (`packages/discord/AGENTS.md`), held to it by the
+  workspace's `tests/chromium.spec.ts`.
 - `src/cards.ts`: what the site's post-build does in a browser once the
-  pages stand: the Chromium it draws with (`findChromium`), the server it
-  draws from (`listen`), every share card (`renderOgCards`), each
+  pages stand: the server it draws from (`listen`), every share card (`renderOgCards`), each
   section's embed with its own lede (`refineEmbed`) and the agent registry
   (`writeAgentRegistry`).
-- `src/index.ts`: the package's entry, those two modules' exports.
+- `src/index.ts`: the package's entry, those three modules' exports.
 - `src/render-frames.mjs` (`npm run frames`): a composition as PNG frames
   or an MP4, in Chromium, WebKit or Firefox, without CDP.
 - `src/agent-demo.mjs` (`npm run demo:agent`): records the Studio's agent
@@ -114,8 +122,9 @@ by the site's post-build. Paths here are from this package's root.
   loads as it is). It never imports the site: the site's post-build
   imports this package and hands it the folder and the browser to work in
   (`tests/workspace.spec.ts` at the root).
-- `cards.ts` and `index.ts` are loaded by Node as they are (type
-  stripping): erasable syntax only, relative imports with their extension.
+- `cards.ts`, `chromium.ts` and `index.ts` are loaded by Node as they are
+  (type stripping): erasable syntax only, relative imports with their
+  extension.
 - The recorders take a URL or a file and write where they are told; the
   agent demo runs where the harness is signed in, never with borrowed
   credentials.
@@ -148,6 +157,8 @@ by the site's post-build. Paths here are from this package's root.
 
 - `tests/kit-css.spec.ts` (`npx rs test` at the root): the compiled
   stylesheet's tokens, scoped base and utilities.
+- The root's `tests/chromium.spec.ts`: the Chromium list's order and the
+  Discord service's copy run against it.
 - `tests/walk-checks.spec.ts` (jsdom): the walk's accessibility rules, each
   on a page of its own, the contrast measured off a shot and looked at
   twice, and every page script compiling as the drivers run

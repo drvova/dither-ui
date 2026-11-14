@@ -59,6 +59,7 @@ import {
   measureContrast,
   PHONE,
 } from "./walk-checks.mjs"
+import { chromiumPath } from "./chromium.ts"
 import { coloursIn, decodePng, firefoxDriver, playwrightDriver, serve, sleep, webkitDriver } from "./walk-drivers.mjs"
 
 const args = process.argv.slice(2)
@@ -93,20 +94,9 @@ if (!existsSync(join(root, "og/sections.json"))) {
   process.exit(1)
 }
 
-function findChromium() {
-  return [
-    flag("executable", ""),
-    process.env.CHROME_PATH,
-    "/usr/bin/google-chrome",
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
-  ].find((p) => p && existsSync(p))
-}
-
 async function openEngine() {
   if (engine === "chromium") {
-    const executablePath = findChromium()
+    const executablePath = flag("executable", "") || chromiumPath()
     if (!executablePath) throw new Error("no Chromium: set CHROME_PATH or pass --executable")
     return playwrightDriver({ executablePath })
   }

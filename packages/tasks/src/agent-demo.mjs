@@ -19,10 +19,11 @@
 // `--harness` is one of the bridge's presets (claude, codex, gemini, ...);
 // `--agent` runs any command that speaks the Agent Client Protocol instead.
 import { spawn, spawnSync } from "node:child_process"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { basename, extname, join, resolve } from "node:path"
 import { chromium } from "playwright-core"
+import { chromiumPath } from "./chromium.ts"
 
 const args = process.argv.slice(2)
 const flag = (name, fallback) => {
@@ -57,18 +58,6 @@ const PORT = 8791
 const W = 1440
 const H = 900
 
-function findChromium() {
-  return [
-    flag("executable", ""),
-    process.env.CHROME_PATH,
-    "/usr/bin/google-chrome",
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  ].find((p) => p && existsSync(p) && statSync(p).isFile())
-}
-
 const pause = (ms) => new Promise((r) => setTimeout(r, ms))
 
 // The bridge, in a scratch folder: the harness works there, never in a repo.
@@ -80,7 +69,7 @@ const said = []
 for (const s of [bridge.stdout, bridge.stderr]) s.on("data", (d) => said.push(String(d)))
 await pause(800)
 
-const executablePath = findChromium()
+const executablePath = flag("executable", "") || chromiumPath()
 const browser = await chromium.launch(executablePath ? { executablePath, args: ["--no-sandbox"] } : {})
 mkdirSync(out, { recursive: true })
 const context = await browser.newContext({

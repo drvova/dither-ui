@@ -3,26 +3,12 @@
 // through `studio.run` only, reaches no network (a local server counts the
 // requests that get through: none may), sees no page and no storage, and a
 // tool that never ends is stopped while the page stays responsive.
-import { existsSync } from "node:fs"
 import { createServer, type Server } from "node:http"
 import type { AddressInfo } from "node:net"
 import { chromium, type Browser, type Page } from "playwright-core"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { findChromium } from "@dither-ui/tasks"
 import { runSandboxed, SANDBOX_CALLS, SANDBOX_MS, sandboxDocument, workerSource } from "@/features/agent/sandbox"
-
-function findChromium(): string {
-  const found = [
-    process.env.CHROME_PATH,
-    "/opt/pw-browsers/chromium",
-    "/usr/bin/google-chrome",
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  ].find((p) => p && existsSync(p))
-  if (!found) throw new Error("sandbox spec: no chromium found. Set CHROME_PATH.")
-  return found
-}
 
 let server: Server
 let hits = 0
