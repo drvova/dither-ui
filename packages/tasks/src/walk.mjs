@@ -9,7 +9,8 @@
 //
 // Chromium is `CHROME_PATH` or a standard install, through Playwright.
 // WebKit is WebKitGTK (`WebKitWebDriver` and `MiniBrowser`), Firefox a
-// `firefox` with `geckodriver`, both over WebDriver; the walk installs no
+// `firefox` with `geckodriver`, both over WebDriver (with no `geckodriver`
+// on the machine, Playwright's own Firefox build); the walk installs no
 // browser, `--executable` and `--driver` name the ones this machine has.
 //
 // It serves `--root` (default `packages/site/.output/public`) itself and
@@ -113,6 +114,18 @@ const ENVIRONMENT = [
   /setPointerCapture: Invalid pointer id/,
 ]
 
+/** What an engine's own console says of a page doing what it means to:
+ * Gecko calls every scroll-linked effect a risk under its async panning,
+ * and a wheel turned by its scroll or a word floated by the page's scroll
+ * is one by nature. Counted apart, as the engine's notes. */
+const ADVISORIES = [/This site appears to use a scroll-linked positioning effect/]
+/** Gecko's note on a lost GL context: the page's own when it released
+ * that many (the recorder counts `loseContext` calls, the kit's unmount). */
+const RELEASED = /WebGL context was lost\./
+/** A request the page or the engine gave up, no refusal: one the page
+ * navigated away from, or a video Gecko answered from its media cache. */
+const GIVEN_UP = /ERR_ABORTED|NS_BINDING_ABORTED|NS_ERROR_PARSED_DATA_CACHED/
+
 /** A media element that failed on a file the build holds: a format this
  * engine does not play (an open Chromium has no H.264), the machine's,
  * not the page's. `failed` is the recorder's `<tag> <url>`. */
@@ -173,7 +186,7 @@ return { title: document.title, w: innerWidth, h: innerHeight, ratio: devicePixe
 
 const RECORD_FAILED = `return window.__walk.failed.splice(0)`
 
-const RECORD = `const W = window.__walk; return { errors: W.errors.splice(0), logs: W.logs.splice(0), failed: W.failed.splice(0) }`
+const RECORD = `const W = window.__walk; const released = W.released; W.released = 0; return { errors: W.errors.splice(0), logs: W.logs.splice(0), failed: W.failed.splice(0), released }`
 
 /** The docs section's cards, counted once the section's own pack has loaded. */
 const CARDS = `
@@ -698,6 +711,7 @@ async function walkPage(session, server, page) {
     ...page,
     issues: [],
     known: [],
+    engine: [],
     environment: [],
     outside: [],
     slow: [],
@@ -905,9 +919,14 @@ async function walkPage(session, server, page) {
   for (const f of [...held.failed, ...seen.failed])
     if (unplayable(f)) rec.environment.push(`this engine does not play ${strip(f)}`)
     else refused.add(`failed ${strip(f)}`)
+  let released = seen.released ?? 0
   for (const n of [...held.native, ...s.drain()]) {
     const text = strip(n.text)
-    if (n.kind === "pageerror") {
+    if (ADVISORIES.some((a) => a.test(text))) rec.engine.push(text)
+    else if (RELEASED.test(text) && released > 0) {
+      released--
+      rec.engine.push(text)
+    } else if (n.kind === "pageerror") {
       if (
         !seen.errors.some((e) =>
           e.includes(
@@ -920,8 +939,7 @@ async function walkPage(session, server, page) {
       )
         issue("error", text)
     } else if (n.kind === "requestfailed") {
-      // a request the page itself gave up (a preload it navigated away from) is no failure
-      if (!/ERR_ABORTED/.test(text)) refused.add(`failed ${text}`)
+      if (!GIVEN_UP.test(text)) refused.add(`failed ${text}`)
     } else if (n.kind === "response") refused.add(text)
     else if (/Failed to load resource/.test(text)) continue
     else if (!seen.logs.some((l) => l.slice(l.indexOf(": ") + 2, 80) === text.slice(0, 80 - l.indexOf(": ") - 2)))
@@ -1004,6 +1022,7 @@ async function worker() {
             ...page,
             issues: [{ kind: "walk", detail: String(e?.stack ?? e).slice(0, 600) }],
             known: [],
+            engine: [],
             environment: [],
             outside: [],
             slow: [],
@@ -1127,6 +1146,7 @@ const totals = {
   bare: [...new Set(records.filter((r) => r.bare).map((r) => r.id))],
   findings: kinds,
   known: records.reduce((n, r) => n + r.known.length, 0),
+  engine: records.reduce((n, r) => n + r.engine.length, 0),
   environment: records.reduce((n, r) => n + r.environment.length, 0),
   outside: [...new Set(records.flatMap((r) => r.outside.map((o) => `${o.split(" ").pop()} (${r.id ?? r.kind})`)))],
   minutes: Math.round((Date.now() - started) / 6000) / 10,
@@ -1161,7 +1181,7 @@ const md = [
   `- steps that took over 8s: ${slow.length ? slow.join(", ") : "none"}`,
   `- pages walked twice, the first walk having stalled and shown an empty canvas: ${again.length ? again.join(", ") : "none"}`,
   `- sections without a demo card: ${totals.bare.length ? totals.bare.join(", ") : "none"}`,
-  `- known refusals: ${totals.known}; messages of this machine or of the walk's own pointer, not the page: ${totals.environment}`,
+  `- known refusals: ${totals.known}; the engine's notes on what a page does by design (a context it released, a scroll-linked effect): ${totals.engine}; messages of this machine or of the walk's own pointer, not the page: ${totals.environment}`,
   `- findings: ${
     Object.keys(kinds).length
       ? Object.entries(kinds)

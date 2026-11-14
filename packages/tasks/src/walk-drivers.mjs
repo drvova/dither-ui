@@ -4,7 +4,8 @@
 // One driver shape for every engine, `{ go, run, shot, drain, close }`, so the
 // walk is written once: Chromium through Playwright (its CDP), WebKit
 // (WebKitGTK's `WebKitWebDriver` + `MiniBrowser`) and Firefox (`geckodriver`)
-// through plain W3C WebDriver over HTTP. Every check is a script run in the
+// through plain W3C WebDriver over HTTP; with no `geckodriver` on the machine,
+// Playwright's own Firefox. Every check is a script run in the
 // page, which is all WebDriver gives; what the page threw is kept by a
 // recorder the server puts first in every HTML page's head.
 import { spawn } from "node:child_process"
@@ -45,7 +46,9 @@ const TYPES = {
  * Tailwind, which a walk's runs switch) before the app reads it, and
  * carries the helpers the walk's page scripts share. */
 const recorder = (theme) => `<script>(function(){
-var W=window.__walk={errors:[],logs:[],failed:[]};
+var W=window.__walk={errors:[],logs:[],failed:[],released:0};
+// a GL context the page lets go of on purpose (the kit loses one on unmount), which Gecko's console names as lost
+;[window.WebGLRenderingContext,window.WebGL2RenderingContext].forEach(function(C){if(!C)return;var get=C.prototype.getExtension;C.prototype.getExtension=function(n){var x=get.call(this,n);if(x&&n==="WEBGL_lose_context"&&!x.__walk){var lose=x.loseContext;x.loseContext=function(){W.released++;return lose.call(this)};x.__walk=1}return x}})
 try{localStorage.setItem("dither-theme",${JSON.stringify(theme)});localStorage.setItem("dither-sounds","off");localStorage.setItem("dither-styling","tailwind")}catch(e){}
 function text(v){try{return v&&v.stack?String(v.stack).split("\\n").slice(0,4).join(" | "):typeof v==="object"?JSON.stringify(v):String(v)}catch(e){return String(v)}}
 addEventListener("error",function(e){
@@ -275,8 +278,41 @@ export const DEVICES = {
   },
 }
 
-/** Chromium through Playwright. The browser's own reports (page errors, the
- * console, failed requests) are kept beside the recorder's: `drain()`. */
+/** A window on a display of its own has the display's pointer standing at
+ * the screen's centre, over whatever the page puts there (a button lit by
+ * its hover, then read for contrast lit): every session parks it at the
+ * window's top left corner, on the bare ground, before its first page. */
+const PARK = { x: 0, y: 0 }
+
+/** One Playwright page in the driver shape, the browser's own reports
+ * (page errors, the console, failed requests) kept beside the recorder's:
+ * `drain()`. `done` closes what the page stands on. */
+async function playwrightPage(context, done) {
+  const page = await context.newPage()
+  await page.mouse.move(PARK.x, PARK.y)
+  let seen = []
+  page.on("pageerror", (e) => seen.push({ kind: "pageerror", text: String(e.stack || e.message).slice(0, 600) }))
+  page.on("console", (m) => {
+    if (m.type() === "error" || m.type() === "warning")
+      seen.push({ kind: `console.${m.type()}`, text: m.text().slice(0, 500), url: m.location()?.url })
+  })
+  page.on("requestfailed", (r) =>
+    seen.push({ kind: "requestfailed", text: `${r.failure()?.errorText ?? "failed"} ${r.url()}` }),
+  )
+  page.on("response", (r) => {
+    if (r.status() >= 400) seen.push({ kind: "response", text: `${r.status()} ${r.url()}` })
+  })
+  return {
+    go: (url) => page.goto(url, { waitUntil: "load", timeout: 60000 }),
+    run: (body, arg) =>
+      page.evaluate(([b, a]) => new Function("arg", `return (async()=>{${b}\n})()`)(a), [body, arg ?? null]),
+    shot: () => page.screenshot(),
+    drain: () => seen.splice(0),
+    close: done,
+  }
+}
+
+/** Chromium through Playwright: one headless browser, a context a session. */
 export async function playwrightDriver({ executablePath }) {
   const { chromium } = await import("playwright-core")
   const browser = await chromium.launch({ executablePath, args: ["--no-sandbox"] })
@@ -288,30 +324,54 @@ export async function playwrightDriver({ executablePath }) {
         viewport: { width: d.width, height: d.height },
         ...(d.touch ? { deviceScaleFactor: d.ratio, isMobile: true, hasTouch: true, userAgent: d.agent } : {}),
       })
-      const page = await context.newPage()
-      let seen = []
-      page.on("pageerror", (e) => seen.push({ kind: "pageerror", text: String(e.stack || e.message).slice(0, 600) }))
-      page.on("console", (m) => {
-        if (m.type() === "error" || m.type() === "warning")
-          seen.push({ kind: `console.${m.type()}`, text: m.text().slice(0, 500), url: m.location()?.url })
-      })
-      page.on("requestfailed", (r) =>
-        seen.push({ kind: "requestfailed", text: `${r.failure()?.errorText ?? "failed"} ${r.url()}` }),
-      )
-      page.on("response", (r) => {
-        if (r.status() >= 400) seen.push({ kind: "response", text: `${r.status()} ${r.url()}` })
-      })
-      return {
-        go: (url) => page.goto(url, { waitUntil: "load", timeout: 60000 }),
-        run: (body, arg) =>
-          page.evaluate(([b, a]) => new Function("arg", `return (async()=>{${b}\n})()`)(a), [body, arg ?? null]),
-        shot: () => page.screenshot(),
-        drain: () => seen.splice(0),
-        close: () => context.close(),
-      }
+      return playwrightPage(context, () => context.close())
     },
     close: () => browser.close(),
   }
+}
+
+/** Playwright's own Firefox build (Gecko, driven over its own protocol) for
+ * a machine with no `geckodriver`: one browser a session, each windowed on
+ * an Xvfb display of its own where there is one (headless Firefox has no
+ * GL without a GPU). A phone is its viewport, ratio, touch and user agent;
+ * Gecko has no mobile mode. */
+export async function playwrightFirefoxDriver({ executablePath } = {}) {
+  const { firefox } = await import("playwright-core")
+  const running = new Set()
+  const driver = {
+    version: "Firefox",
+    async session(device = "desktop") {
+      const d = DEVICES[device]
+      const screen = XVFB ? await ownDisplay() : null
+      const env = { ...process.env }
+      if (screen) {
+        env.DISPLAY = screen.name
+        delete env.WAYLAND_DISPLAY
+      }
+      const browser = await firefox
+        .launch({ ...(executablePath ? { executablePath } : {}), headless: !screen && !process.env.DISPLAY, env })
+        .catch((e) => {
+          screen?.close()
+          throw e
+        })
+      driver.version = `Firefox ${browser.version()}`
+      const stop = async () => {
+        running.delete(stop)
+        await browser.close().catch(() => {})
+        screen?.close()
+      }
+      running.add(stop)
+      const context = await browser.newContext({
+        viewport: { width: d.width, height: d.height },
+        ...(d.touch ? { deviceScaleFactor: d.ratio, hasTouch: true, userAgent: d.agent } : {}),
+      })
+      return playwrightPage(context, stop)
+    },
+    async close() {
+      for (const stop of [...running]) await stop()
+    },
+  }
+  return driver
 }
 
 async function freePort() {
@@ -321,6 +381,14 @@ async function freePort() {
   await new Promise((r) => s.close(r))
   return port
 }
+
+/** The first `name` on the PATH, or undefined. */
+const onPath = (name) =>
+  (process.env.PATH ?? "")
+    .split(":")
+    .filter(Boolean)
+    .map((dir) => join(dir, name))
+    .find((p) => existsSync(p))
 
 const XVFB = ["/usr/bin/Xvfb", "/usr/local/bin/Xvfb", "/opt/X11/bin/Xvfb"].find((p) => existsSync(p))
 
@@ -398,6 +466,16 @@ export function webDriver({ name, command, capabilities }) {
       this.version = `${caps.browserName ?? name} ${caps.browserVersion ?? ""}`.trim()
       await call("POST", `/session/${id}/window/rect`, { width: view.width, height: view.height + 100 })
       await call("POST", `/session/${id}/timeouts`, { script: 120000, pageLoad: 120000 })
+      await call("POST", `/session/${id}/actions`, {
+        actions: [
+          {
+            type: "pointer",
+            id: "park",
+            parameters: { pointerType: "mouse" },
+            actions: [{ type: "pointerMove", origin: "viewport", ...PARK }],
+          },
+        ],
+      })
       return {
         go: (url) => call("POST", `/session/${id}/url`, { url }),
         async run(body, arg) {
@@ -446,10 +524,15 @@ export function webkitDriver({ driver = "/usr/bin/WebKitWebDriver", binary } = {
   })
 }
 
-export function firefoxDriver({ driver = "geckodriver", binary } = {}) {
+/** Firefox: a `firefox` behind `geckodriver` where the machine has the
+ * driver (`--driver`, or one on the PATH), else Playwright's own Firefox
+ * (`--executable` its binary, by default the one Playwright installed). */
+export function firefoxDriver({ driver, binary } = {}) {
+  const gecko = driver ?? onPath("geckodriver")
+  if (!gecko) return playwrightFirefoxDriver({ executablePath: binary })
   return webDriver({
     name: "Firefox",
-    command: (port) => [driver, "--port", String(port), "--log", "fatal"],
+    command: (port) => [gecko, "--port", String(port), "--log", "fatal"],
     // Headless Firefox has no GL on a machine without a GPU; on a display
     // Mesa gives it one, so it runs headless only where there is none.
     capabilities: (screen, view) => ({

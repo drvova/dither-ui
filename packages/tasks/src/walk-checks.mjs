@@ -243,9 +243,12 @@ for (let node = walker.nextNode(); node; node = walker.nextNode()) {
   }
   entry.text = (entry.text + " " + node.textContent.replace(/\\s+/g, " ")).trim().slice(0, 60)
 }
-// text a script is fading (a stagger, a reveal) is in motion too: read again a moment later
-await W.sleep(300)
-for (const [p, e] of parents) if (e && Math.abs(opacityOf(p) - e.opacity) > 0.01) parents.set(p, null)
+// text a script is fading (a stagger, a reveal) is in motion too: read again twice, a moment apart
+// (a fade that turns back, a yoyo, stands at the same opacity either side of its turn)
+for (let i = 0; i < 2; i++) {
+  await W.sleep(150)
+  for (const [p, e] of parents) if (e && Math.abs(opacityOf(p) - e.opacity) > 0.01) parents.set(p, null)
+}
 const card = (el) => { const c = el.closest("[data-demo-card]"); return c ? "card " + ([...document.querySelectorAll("[data-demo-card]")].indexOf(c) + 1) : el.closest("header") ? "header" : el.closest("nav,aside") ? "rail" : "page" }
 const samples = []
 for (const e of parents.values()) {

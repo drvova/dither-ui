@@ -72,7 +72,9 @@ by the site's post-build. Paths here are from this package's root.
   the one driver shape (`go`, `run`, `shot`, `drain`, `close`) over
   Playwright for Chromium and plain W3C WebDriver for WebKit
   (`WebKitWebDriver` + `MiniBrowser`) and
-  Firefox (`geckodriver`), each window on an Xvfb display of its own where
+  Firefox (`geckodriver`; with none on the machine, Playwright's own
+  Firefox build, a browser a session, its phone the viewport, ratio,
+  touch and agent), each window on an Xvfb display of its own where
   the machine has one (a window under another stops its frames, and
   headless Firefox has no GL without a GPU), and the PNG reader for its
   screenshots.
@@ -93,9 +95,16 @@ by the site's post-build. Paths here are from this package's root.
   scripts run in the page, so they hold over WebDriver; it installs no
   browser: `--executable` and `--driver` name the ones a machine has.
   What a machine without a GPU says (`ENVIRONMENT`), a media file the
-  build holds that the engine cannot play, and the refusals a
-  page makes by design (`KNOWN_REFUSALS`) are named in `walk.mjs` and
-  counted apart; anything else is a finding and the exit code is 1. A step
+  build holds that the engine cannot play, the refusals a
+  page makes by design (`KNOWN_REFUSALS`), a request the page or the
+  engine gave up (`GIVEN_UP`) and an engine's own notes on what a page
+  does by design (`ADVISORIES`: Gecko's on a scroll-linked effect; and
+  its "context lost" once for each GL context the page released, which
+  the recorder counts) are named in `walk.mjs` and counted apart;
+  anything else is a finding and the exit code is 1. Every session parks
+  the pointer at the window's top left corner before its first page (on
+  a display of its own the pointer stands at the screen's centre, and a
+  hovered fill reads lit). A step
   over 8s is kept with its page, and a page that stalled and then showed
   an empty canvas is walked once more, its first walk kept in the record.
 
