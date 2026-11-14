@@ -209,6 +209,27 @@ describe("the page as it mounts", () => {
     await tick()
     expect(container.querySelector(".studio")).not.toBeNull()
   })
+  it("tells a tablet held upright to turn, since the same screen on its side opens the editor", async () => {
+    const hint = async (coarse: boolean, screen: { width: number; height: number }) => {
+      at(834)
+      vi.stubGlobal("screen", screen)
+      const narrow = window.matchMedia
+      vi.stubGlobal("matchMedia", (q: string) =>
+        q === "(pointer: coarse)" ? { ...narrow(q), matches: coarse } : narrow(q),
+      )
+      const { container, unmount } = render(() => <StudioPage />)
+      await tick()
+      const line = get(container, "main p").textContent
+      unmount()
+      return line
+    }
+    // an iPad upright: 834 wide, 1194 on its side
+    expect(await hint(true, { width: 834, height: 1194 })).toContain("Turn the screen on its side to open it here.")
+    // a phone: on its side it is still too narrow
+    expect(await hint(true, { width: 390, height: 844 })).toContain("pick it up on a laptop")
+    // a narrow window on a desktop: turning helps nothing
+    expect(await hint(false, { width: 1920, height: 1080 })).toContain("pick it up on a laptop")
+  })
   it("opens search on ⌘K and folds the sidebar on ⌘B", async () => {
     const { container } = await page(1440)
     fireEvent.keyDown(window, { key: "k", ctrlKey: true })

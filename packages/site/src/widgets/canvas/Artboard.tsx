@@ -200,7 +200,7 @@ export default function Artboard(props: { artboard: ArtboardModel }) {
     >
       <div
         class={cn(
-          "absolute -top-6 left-0 flex max-w-full select-none items-center gap-1.5 truncate text-[11px]",
+          "absolute -top-6 left-0 z-20 flex max-w-full select-none items-center gap-1.5 truncate text-[11px]",
           selected() ? "text-foreground" : "text-muted-foreground",
           props.artboard.locked ? "cursor-default" : "cursor-move",
         )}
@@ -255,7 +255,8 @@ export default function Artboard(props: { artboard: ArtboardModel }) {
         <For each={HANDLES}>
           {(hd) => (
             <div
-              class={cn("absolute z-10 size-3 rounded-[2px] border border-accent bg-background", hd.class)}
+              data-handle={hd.dir}
+              class={cn("handle absolute z-10 size-3 rounded-[2px] border border-accent bg-background", hd.class)}
               onPointerDown={(e) => onResizeDown(hd.dir, e)}
             />
           )}

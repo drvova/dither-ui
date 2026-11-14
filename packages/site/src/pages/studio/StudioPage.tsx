@@ -35,6 +35,8 @@ const VideoDialog = lazyPart(() => import("@/features/export-video").then((m) =>
 // other neighbour, open at first where the window is wide enough for all
 // four (1600px), then as the reader last left it.
 const PANEL_KEY = "dither-studio-panel-open"
+/** The narrowest window the editor opens in (an iPad on its side). */
+const EDITOR_WIDTH = 1024
 
 // The Studio is a client application on a server-rendered page: the server
 // (and the first client render over its bytes) draws the window's shell
@@ -209,6 +211,13 @@ export default function StudioPage() {
   // (a server render knows no width: it draws the window, and a narrow
   // screen swaps it for the hint as it mounts).
   const [isDesktop, setIsDesktop] = createSignal(true)
+  // A tablet held upright: the same screen on its side is wide enough, so
+  // the hint says to turn it, not to find a laptop.
+  const [turnable, setTurnable] = createSignal(false)
+  const measure = () => {
+    setIsDesktop(window.innerWidth >= EDITOR_WIDTH)
+    setTurnable(window.matchMedia("(pointer: coarse)").matches && Math.max(screen.width, screen.height) >= EDITOR_WIDTH)
+  }
 
   onMount(() => {
     const keptPanel = readJson(PANEL_KEY)
@@ -236,9 +245,8 @@ export default function StudioPage() {
       window.history.replaceState(null, "", routePath("/studio"))
     }
 
-    setIsDesktop(window.innerWidth >= 1024)
-    const onResize = () => setIsDesktop(window.innerWidth >= 1024)
-    window.addEventListener("resize", onResize)
+    measure()
+    window.addEventListener("resize", measure)
 
     // A fresh document's frame was placed before the canvas measured itself:
     // once it has (the canvas mounts after this page, within this turn),
@@ -256,7 +264,7 @@ export default function StudioPage() {
       closeLongPress()
       stopAutosave()
       stopHistory()
-      window.removeEventListener("resize", onResize)
+      window.removeEventListener("resize", measure)
     })
   })
 
@@ -275,7 +283,10 @@ export default function StudioPage() {
           <h1 class="text-xl tracking-tight">The Studio is best on a desktop</h1>
           <p class="max-w-xs text-[13px] leading-relaxed text-muted-foreground [text-wrap:pretty]">
             It is an infinite canvas with a layer rail, an inspector and keyboard shortcuts, made for a wide screen and
-            a pointer. Send yourself the link and pick it up on a laptop.
+            a pointer.{" "}
+            {turnable()
+              ? "Turn the screen on its side to open it here."
+              : "Send yourself the link and pick it up on a laptop."}
           </p>
           <div class="mt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-[12px]">
             <DitherClipboard value={studioUrl()}>

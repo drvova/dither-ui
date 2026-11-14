@@ -1,4 +1,14 @@
 .canvas-scope {
+  /* A held finger on the canvas is a gesture (a drag, the long press), never
+     iOS's text selection or its callout on an image; a field in a frame
+     keeps its own. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  & :is(input, textarea, [contenteditable]) {
+    -webkit-user-select: text;
+    user-select: text;
+  }
   /* Picking for the agent: a crosshair over everything on the canvas. */
   &.is-picking,
   &.is-picking * {

@@ -1,6 +1,8 @@
 // What the Studio draws with: the chart, widget, screen and reel renderers,
 // the canvas with its frames and the ask at the selection, the data editor,
 // and the player page with its mount.
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard/model/factory"
@@ -284,6 +286,33 @@ describe("a frame on the canvas", () => {
     expect([a.x + a.w, a.y + a.h]).toEqual([400, 300])
     window.dispatchEvent(press("pointerup"))
     expect(container.textContent).not.toContain(`${a.x}, ${a.y}`)
+  })
+
+  it("gives each handle a finger's reach on the screen, whatever the zoom", () => {
+    const a = frame("button")
+    selectArtboard(a.id)
+    editor.viewport.zoom = 0.5
+    const { container } = render(() => <Canvas />)
+    // the layer the frames stand in tells their chrome the zoom
+    const layer = container.querySelector<HTMLElement>(".dk-canvas > div")!
+    expect(layer.style.getPropertyValue("--zoom")).toBe("0.5")
+    const handles = [...container.querySelectorAll<HTMLElement>("[data-handle]")]
+    expect(handles.map((h) => h.dataset.handle)).toEqual(["nw", "n", "ne", "e", "se", "s", "sw", "w"])
+    for (const h of handles) expect(h.classList.contains("handle")).toBe(true)
+    // The frame's name, its grip, stands over the corner's reach: a finger
+    // on it moves the frame, never resizes it.
+    const grip = container.querySelector<HTMLElement>(".cursor-move")!
+    expect(grip.textContent).toContain(a.name)
+    const z = (el: HTMLElement) => Number(/(?:^|\s)z-(\d+)/.exec(el.className)?.[1] ?? 0)
+    expect(z(grip)).toBeGreaterThan(z(handles[0]))
+    // The reach (the handle's ::before; jsdom lays nothing out, so read from
+    // its rule): 24px under a cursor, 40px under a finger, divided by the
+    // zoom, so a 12px handle that shows 6px at 50% still reaches 40px; past
+    // it, the handle drawn is its own reach.
+    const css = readFileSync(join(process.cwd(), "src/widgets/canvas/Artboard.css"), "utf8")
+    expect(css).toMatch(/--handle-reach: 24px;\s*@media \(pointer: coarse\) \{\s*--handle-reach: 40px;/)
+    const inset = css.match(/\.handle::before \{[^}]*inset: ([^;]+);/)?.[1]
+    expect(inset).toBe("min(0px, calc((12px - var(--handle-reach) / var(--zoom, 1)) / 2))")
   })
 
   it("shows no handles on a locked frame, and its label does not move it", () => {

@@ -1,8 +1,17 @@
+/* An app window, not a page: a finger that reaches a column's end never
+   drags the window after it (iOS's rubber band, Chrome's pull to refresh). */
+:root[data-page="studio"] {
+  overscroll-behavior: none;
+}
+
 .studio-page-scope {
   /* The window: the bar across the top; under it the sidebar, the chat, the
      canvas and the panel. Each side column folds to nothing when it is
      hidden; the canvas takes what is left. */
   &.studio {
+    /* Keys pressed in quick succession (zoom in, undo) never zoom the
+       window on a double tap; a pinch still does, outside the canvas. */
+    touch-action: manipulation;
     --sidebar: 15rem;
     --chat: 23rem;
     --right: 18.5rem;

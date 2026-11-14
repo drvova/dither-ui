@@ -107,6 +107,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   never as code — `sound.ts` — Kobra's interface sounds as WebAudio voices
   behind one remembered switch (`sounds`, localStorage `dither-sounds`; a
   context WebKit left suspended or interrupted resumes on the next cue) —
+  `follow.ts` — `followPointer`, the one way a drag follows its pointer
+  (Touch and iOS, below) —
   `long-press.ts` — `installLongPress`, the Studio's polyfill for the
   contextmenu iOS never fires: a touch held still 500ms dispatches one at the
   finger, and when a menu took it (its handler prevented the default) swallows
@@ -605,7 +607,21 @@ around this tree (entries, routes, the build, how Solid is written) is
   (the Studio, the docs rails, dialogs and menus capped in height), never
   `vh`, which hides their foot under Safari's toolbar. The Studio's canvas
   is `touch-none` and the Studio installs the long press for its menus;
-  keys shown on hover show on a screen without hover
+  the Studio is an app window, not a page: its root has
+  `overscroll-behavior: none` (no rubber band, no pull to refresh), its
+  window `touch-action: manipulation` (a quick second tap on a key never
+  zooms), and its canvas takes no text selection or iOS callout under a
+  held finger (a field in a frame keeps its own). Every drag follows ONE
+  pointer through `shared/lib/follow.ts` (`followPointer`: the pressing
+  pointer's moves only, ended by its release or its cancel, so a touch the
+  browser took for a scroll leaves nothing steering; `tests/follow.spec.ts`),
+  and a surface a finger drags in (the colour square, the curve, the
+  canvas) is `touch-none`. A frame's resize handle reaches 24px on the
+  screen under a cursor and 40px under a finger whatever the zoom
+  (`--zoom` on the frames' layer, `widgets/canvas/Artboard.css`), the
+  frame's name (its move grip) standing over that reach. A menu
+  opened at a point moves in from the window's edge (`inView`, the kit's
+  engine). Keys shown on hover show on a screen without hover
   (`[@media(hover:none)]`). A press gives under a finger as under a mouse
   (`shared/lib/press.ts`, pointer events, so WebKit's missing `:active`
   on a tap never matters), and the site's menu under lg is a bottom sheet
