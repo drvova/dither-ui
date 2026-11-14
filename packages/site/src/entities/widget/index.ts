@@ -4,7 +4,9 @@ export {
   createComponent,
   createReel,
   createWidget,
+  isSimpleWidgetKind,
   REEL_TRANSITIONS,
+  SIMPLE_WIDGET_KINDS,
   type SimpleWidgetKind,
 } from "./model/factory"
 export {

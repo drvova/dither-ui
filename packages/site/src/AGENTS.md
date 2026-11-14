@@ -39,7 +39,12 @@ around this tree (entries, routes, the build, how Solid is written) is
   preview's files, edited and run in the page; see
   `widgets/source/AGENTS.md`) and the studio
   panels: toolbar (the title bar and the canvas bar), layer-tree,
-  inspector, canvas,
+  inspector (`Inspector.tsx` is only the frame around a panel: the
+  selection's name and kind, the lock; `panels/` holds one panel a file,
+  picked through `LAYER_PANELS` by the layer's kind and, for the frame
+  itself, `WIDGET_PANELS` by its widget's kind, both exhaustive records so
+  a kind without a panel is a type error, held by `tests/site/panels.spec.tsx`;
+  `ui/` the rows, keys and editors the panels share), canvas,
   chart-renderer, widget-renderer, reel-renderer (a reel's clips on the kit
   clock; a film's camera, callouts and chapter band), data-editor, agent
   (the composer / harness control plane: `AgentPanel.tsx` holds the
@@ -76,7 +81,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   centre or a point, `zoomIn`/`zoomOut` by `ZOOM_STEP`, `actualSize`,
   `frame`/`fitAll`/`fitSelection` (never past 100%), and
   `startInspecting`/`stopInspecting` over `editor.inspecting`, during
-  which every zoom holds), chart, widget, artboard.
+  which every zoom holds), chart, widget (`SIMPLE_WIDGET_KINDS`, the one
+  list of the kinds `createWidget` builds whole, its type
+  `SimpleWidgetKind` and guard `isSimpleWidgetKind`, from its index),
+  artboard.
 - `shared/fonts/` — the display face: `michroma-latin.woff2` (the Latin
   subset, self-hosted), its license `OFL.txt` (keep them together) and
   `display.css` (its `@font-face`, `font-display: swap`; the mono and

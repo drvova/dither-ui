@@ -1,5 +1,5 @@
 import { createChart } from "@/entities/chart"
-import { createWidget, type SimpleWidgetKind } from "@/entities/widget"
+import { createWidget, isSimpleWidgetKind, type SimpleWidgetKind } from "@/entities/widget"
 import type { ChartType } from "@/shared/config"
 import type { Artboard } from "./types"
 
@@ -19,11 +19,9 @@ const TITLE: Record<ArtboardKind, string> = {
   gradient: "Gradient",
   image: "Image",
 }
-const WIDGET_KINDS: SimpleWidgetKind[] = ["avatar", "button", "gradient", "image"]
-const isWidgetKind = (k: ArtboardKind): k is SimpleWidgetKind => (WIDGET_KINDS as string[]).includes(k)
 
 export function createArtboard(kind: ArtboardKind, x = 0, y = 0): Artboard {
-  const widget = isWidgetKind(kind) ? createWidget(kind) : undefined
+  const widget = isSimpleWidgetKind(kind) ? createWidget(kind) : undefined
   const size = widget
     ? widget.kind === "button"
       ? { w: 220, h: 96 }

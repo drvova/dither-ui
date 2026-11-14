@@ -5,42 +5,41 @@
 // from the cut, previewed here with the reel replayed from its start. The
 // timeline itself is features/reel; this panel only edits the model.
 import { createMemo, createSignal, For, onCleanup, Show } from "solid-js"
-import { createClip, REEL_TRANSITIONS, type ReelClip, type ReelModel, type ReelTransitionKind } from "@/entities/widget"
+import { createClip, REEL_TRANSITIONS, type ReelClip, type ReelTransitionKind } from "@/entities/widget"
 import { CAMERA_MOVES, cameraMoveOf, openScoreAudio, playScore, reelDuration } from "@/features/reel"
 import { editor, replay } from "@/entities/editor"
 import { NumberField, Toggle } from "@/shared/ui"
+import { ROW } from "../ui/fields"
+import type { WidgetPanelProps } from "./types"
 import "./ReelPanel.css"
 
-export type ReelPanelProps = { reel: ReelModel; artboardId: string }
-
-const ROW = "flex items-center gap-2 text-[11px] text-muted-foreground"
 /** Three rows to fill; the model keeps the rows with words. */
 const SPEC_ROWS = [0, 1, 2]
 
-export default function ReelPanel(props: ReelPanelProps) {
+export default function ReelPanel(props: WidgetPanelProps<"reel">) {
   // The model is the editor's; this panel edits it in place like the Inspector does.
-  const total = createMemo(() => reelDuration(props.reel.clips))
+  const total = createMemo(() => reelDuration(props.widget.clips))
   const nameOf = (id: string) => editor.artboards.find((a) => a.id === id)?.name ?? "missing frame"
   /** Any frame but a reel can be a clip. */
   const candidates = createMemo(() =>
-    editor.artboards.filter((a) => a.id !== props.artboardId && a.widget?.kind !== "reel"),
+    editor.artboards.filter((a) => a.id !== props.artboard.id && a.widget?.kind !== "reel"),
   )
   const fmt = (s: number) => `${Math.round(s * 100) / 100}s`
 
   function move(i: number, dir: -1 | 1) {
     const j = i + dir
-    const clips = props.reel.clips
+    const clips = props.widget.clips
     if (j < 0 || j >= clips.length) return
     ;[clips[i], clips[j]] = [clips[j], clips[i]]
   }
-  const remove = (i: number) => props.reel.clips.splice(i, 1)
+  const remove = (i: number) => props.widget.clips.splice(i, 1)
   function add(e: Event) {
     const select = e.target as HTMLSelectElement
-    if (select.value) props.reel.clips.push(createClip(select.value))
+    if (select.value) props.widget.clips.push(createClip(select.value))
     select.value = ""
   }
   const setKind = (i: number, e: Event) => {
-    props.reel.clips[i].transition.kind = (e.target as HTMLSelectElement).value as ReelTransitionKind
+    props.widget.clips[i].transition.kind = (e.target as HTMLSelectElement).value as ReelTransitionKind
   }
   const valueOf = (e: Event) => (e.target as HTMLInputElement | HTMLSelectElement).value
 
@@ -75,9 +74,9 @@ export default function ReelPanel(props: ReelPanelProps) {
       to: clip.seconds,
     })
 
-  const scored = createMemo(() => props.reel.score !== null)
+  const scored = createMemo(() => props.widget.score !== null)
   function setScore(on: boolean) {
-    props.reel.score = on ? { seed: props.reel.score?.seed ?? 1 } : null
+    props.widget.score = on ? { seed: props.widget.score?.seed ?? 1 } : null
   }
   // Previewing the score: synthesized from the cut, played with the reel
   // replayed from its start.
@@ -96,7 +95,7 @@ export default function ReelPanel(props: ReelPanelProps) {
     setPreviewing("making")
     // Let the panel paint its state before the synthesis holds the thread.
     await new Promise((r) => setTimeout(r, 30))
-    stopPreview = playScore(props.reel, audio, () => {
+    stopPreview = playScore(props.widget, audio, () => {
       setPreviewing("idle")
       stopPreview = null
     })
@@ -112,18 +111,18 @@ export default function ReelPanel(props: ReelPanelProps) {
       </p>
       <div class="flex flex-wrap items-center gap-2">
         <Toggle modelValue={scored()} label="score" onUpdateModelValue={setScore} />
-        <Show when={props.reel.score}>
+        <Show when={props.widget.score}>
           <NumberField
             class="w-24"
-            modelValue={props.reel.score?.seed ?? 1}
+            modelValue={props.widget.score?.seed ?? 1}
             label="seed"
             min={0}
             max={99999}
             step={1}
-            onUpdateModelValue={(v) => (props.reel.score!.seed = Math.round(v))}
+            onUpdateModelValue={(v) => (props.widget.score!.seed = Math.round(v))}
           />
         </Show>
-        <Show when={props.reel.score && props.reel.clips.length}>
+        <Show when={props.widget.score && props.widget.clips.length}>
           <button
             type="button"
             class="clip-tool ml-auto px-2 text-[11px]"
@@ -134,12 +133,12 @@ export default function ReelPanel(props: ReelPanelProps) {
           </button>
         </Show>
       </div>
-      <Show when={!props.reel.clips.length}>
+      <Show when={!props.widget.clips.length}>
         <p class="text-[11px] leading-relaxed text-muted-foreground">
           No clips yet: add frames below, or select frames on the canvas and press Reel.
         </p>
       </Show>
-      <For each={props.reel.clips}>
+      <For each={props.widget.clips}>
         {(clip, i) => (
           <article class="flex flex-col gap-2 rounded-md border border-border/60 p-2" data-reel-clip={clip.id}>
             <div class="flex items-center gap-1 text-[11px]">
@@ -158,7 +157,7 @@ export default function ReelPanel(props: ReelPanelProps) {
               <button
                 type="button"
                 class="clip-tool"
-                disabled={i() === props.reel.clips.length - 1}
+                disabled={i() === props.widget.clips.length - 1}
                 aria-label="Move clip later"
                 title="Later"
                 onClick={() => move(i(), 1)}

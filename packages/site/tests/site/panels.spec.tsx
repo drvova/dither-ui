@@ -8,7 +8,18 @@ import { createSignal } from "solid-js"
 import { createMutable } from "solid-js/store"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { createArtboard } from "@/entities/artboard/model/factory"
-import { type AvatarModel, componentEntry, createCell, createReel, createRow, createScreen } from "@/entities/widget"
+import { layersOf } from "@/entities/chart"
+import {
+  type AvatarModel,
+  componentEntry,
+  createCell,
+  createComponent,
+  createReel,
+  createRow,
+  createScreen,
+  SIMPLE_WIDGET_KINDS,
+} from "@/entities/widget"
+import { CHART_TYPES } from "@/shared/config"
 import { createWidget } from "@/entities/widget/model/factory"
 import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import {
@@ -25,9 +36,10 @@ import { STUDIO_TOOLS } from "../../src/features/agent/tools"
 import { history, resetHistory, stopHistory } from "../../src/features/history"
 import { activeProjectId, projects, stopAutosave } from "../../src/features/persistence"
 import { presets } from "../../src/features/presets"
-import AvatarDrawGrid from "../../src/widgets/inspector/AvatarDrawGrid"
-import ComponentPropsPanel from "../../src/widgets/inspector/ComponentPropsPanel"
-import ReelPanel from "../../src/widgets/inspector/ReelPanel"
+import { LAYER_PANELS, WIDGET_PANELS } from "../../src/widgets/inspector/panels"
+import ReelPanel from "../../src/widgets/inspector/panels/ReelPanel"
+import AvatarDrawGrid from "../../src/widgets/inspector/ui/AvatarDrawGrid"
+import ComponentPropsPanel from "../../src/widgets/inspector/ui/ComponentPropsPanel"
 import { Inspector } from "../../src/widgets/inspector"
 import { LayerTree } from "../../src/widgets/layer-tree"
 import { CanvasBar, Toolbar, type ToolbarApi } from "../../src/widgets/toolbar"
@@ -178,10 +190,10 @@ describe("the canvas bar", () => {
 describe("the inspector's name column", () => {
   it("is the one name width: no row keeps a fixed width of its own beside a control", () => {
     const dir = "packages/site/src/widgets/inspector"
-    const files = readdirSync(join(root, dir))
+    const files = readdirSync(join(root, dir), { recursive: true, encoding: "utf8" })
       .filter((f) => f.endsWith(".tsx"))
       .map((f) => join(dir, f))
-    expect(files.length).toBe(4)
+    expect(files.length).toBe(23)
     // A fixed width that will not shrink, on anything but a readout of a value.
     const own = files.flatMap((f) =>
       [...read(f).matchAll(/<span\s+class="([^"]*)"\s*>([^<]+)<\/span>/g)]
@@ -305,7 +317,7 @@ describe("the reel's cut", () => {
     editor.artboards.push(frame)
     const held = editor.artboards[2]
     const reel = held.widget as ReturnType<typeof createReel>
-    const view = render(() => <ReelPanel reel={reel} artboardId={held.id} />)
+    const view = render(() => <ReelPanel widget={reel} artboard={held} />)
     const clips = () => [...view.container.querySelectorAll<HTMLElement>("[data-reel-clip]")]
     return { ...view, reel, chart, plain, clips }
   }
@@ -516,6 +528,33 @@ describe("the inspector", () => {
     frame.widget = createReel([editor.artboards[0].id])
     selectArtboard(frame.id)
     expect(container.querySelector("[data-reel-clip]")).not.toBeNull()
+  })
+
+  it("has a panel for every layer kind and every widget kind, and shows it", () => {
+    const charts = CHART_TYPES.map((t) => createArtboard(t))
+    const parts = [createComponent(componentEntry("DitherSwitch")!), createScreen(), createReel([charts[0].id])]
+    const widgets = [
+      ...SIMPLE_WIDGET_KINDS.map((k) => createArtboard(k)),
+      ...parts.map((widget) => ({ ...createArtboard("button"), widget })),
+    ]
+    editor.artboards = [...charts, ...widgets]
+    // Every kind a frame's layers come in has its panel, and every panel is reached.
+    const layers = charts.flatMap((a) => layersOf(a.chart, a.id))
+    expect([...new Set(layers.map((l) => l.kind))].sort()).toEqual(Object.keys(LAYER_PANELS).sort())
+    expect(widgets.map((a) => a.widget!.kind).sort()).toEqual(Object.keys(WIDGET_PANELS).sort())
+
+    const { container } = render(() => <Inspector />)
+    const panel = () => container.querySelector(".overflow-y-auto")!
+    for (const l of layers) {
+      selectArtboard(l.id.split(":")[0])
+      selectLayer(l.id)
+      expect(panel().childElementCount, l.id).toBeGreaterThan(0)
+    }
+    // A widget frame's panel stands under the frame's name and box.
+    for (const a of widgets) {
+      selectArtboard(a.id)
+      expect(panel().childElementCount, a.widget!.kind).toBeGreaterThan(2)
+    }
   })
 
   it("builds an avatar from a seed, a drawing or an image", () => {
