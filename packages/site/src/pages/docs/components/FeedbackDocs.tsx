@@ -135,6 +135,8 @@ export default function FeedbackDocs() {
               <DitherSpinner size={20} />
               <DitherSpinner size={28} />
               <span class="text-[11px] text-muted-foreground">default arc</span>
+              <DitherSpinner renderMode="static" />
+              <span class="text-[11px] text-muted-foreground">drawn once</span>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-6">
               {/* by place: a roll reseeds each spinner where it stands */}
