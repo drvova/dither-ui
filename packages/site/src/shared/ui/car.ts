@@ -131,24 +131,6 @@ export function drivenCells(turn = 0, pose: MascotPose = "idle"): (CarCell | (Ma
   return [...driver, ...car]
 }
 
-/** A row's run of cells of one paint, drawn as one rect. */
-type Run = { x: number; y: number; w: number; paint: string }
-
-/** Cells merged into runs: along each row, neighbours of the same `paintOf`
- * become one run, so the picture draws in a fraction of the rects and
- * prints the same pixels. */
-export function toRuns<T extends { x: number; y: number }>(cells: readonly T[], paintOf: (c: T) => string): Run[] {
-  const sorted = [...cells].sort((a, b) => a.y - b.y || a.x - b.x)
-  const runs: Run[] = []
-  for (const c of sorted) {
-    const paint = paintOf(c)
-    const last = runs[runs.length - 1]
-    if (last && last.y === c.y && last.x + last.w === c.x && last.paint === paint) last.w++
-    else runs.push({ x: c.x, y: c.y, w: 1, paint })
-  }
-  return runs
-}
-
 /** The picture's box in cells: the car's width, from the driver's top to the wheels. */
 export const DRIVEN_W = Math.max(CAR_W, SEAT.x + MASCOT_W)
 export const DRIVEN_TOP = SEAT.y

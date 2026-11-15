@@ -582,7 +582,12 @@ describe("IconSet", () => {
     expect(svg.style.display).toBe("none")
     const names = Object.keys(ICONS)
     expect([...svg.querySelectorAll("symbol")].map((s) => s.id)).toEqual(names.map((n) => `di-icon-${n}`))
-    expect(svg.querySelector("symbol path")?.getAttribute("stroke-linecap")).toBe("round")
+    // bare paths: the stroke comes from the svg that uses a symbol
+    expect(svg.querySelector("symbol")?.getAttribute("viewBox")).toBe("0 0 24 24")
+    expect([...svg.querySelectorAll("symbol")[0].querySelectorAll("path")].map((p) => p.getAttribute("d"))).toEqual([
+      ...ICONS[names[0] as keyof typeof ICONS],
+    ])
+    expect(svg.querySelector("symbol path")?.getAttribute("stroke")).toBeNull()
   })
 })
 

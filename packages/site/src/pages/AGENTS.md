@@ -118,7 +118,8 @@ in the page's folder.
   key word's, centred capsule included). Its head (`.menu-grab`, the
   sheet's first stop: a handle, "Menu", the close key, 44px, under the
   close mark, an X on the brand diamond's 7x7 grid, `CLOSE_CELLS` drawn
-  by `BrandMark`'s `cells`, the ember at its crossing; `SHEET_HEAD_FOOT`
+  by `BrandMark`'s `cells` (its runs inline, where the brand mark itself
+  is the site's sprite's), the ember at its crossing; `SHEET_HEAD_FOOT`
   under it so the first band's seam never bites into it) is where a
   finger, a pen or a mouse drags the sheet (`touch-action: none`; a drag
   only past `SHEET_DRAG.slop`, so a tap on the close key stays a tap):
@@ -635,8 +636,9 @@ in the page's folder.
 - Marks: tool logos (the package managers, Node, Solid, Tailwind,
   StyleX, CSS Modules, CSS, GitHub and the coding agents) come ONLY from
   `src/shared/ui/marks.ts` through
-  `ToolMark`, one-colour in `currentColor` beside the tool's name, never
-  restyled or dithered; everything else is a kit glyph (`DitherIcon`).
+  `ToolMark` (the site's sprite, `shared/ui/sprite.ts`), one-colour in
+  `currentColor` beside the tool's name, never restyled or dithered;
+  everything else is a kit glyph (`DitherIcon`).
 - No entrance choreography but the bento's art printing itself once as it
   nears and the brand's moment (the hero's sign-off as the page opens,
   each plate's and the footer's brand as it nears); the hero's print waits for it, and the type

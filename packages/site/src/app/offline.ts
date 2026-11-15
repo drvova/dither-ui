@@ -67,6 +67,8 @@ export function pageAssets(html: string, page: URL, site: URL): string[] {
   const found = new Set<string>()
   for (const m of html.matchAll(/\s(?:src|href)="([^"]+)"/g)) {
     const url = new URL(m[1].replace(/&amp;/g, "&"), page)
+    // a sprite's symbols are one file (`#id` names a part of it)
+    url.hash = ""
     if (url.origin === site.origin && url.pathname.startsWith(site.pathname)) {
       if (HASHED.test(url.pathname.slice(site.pathname.length))) found.add(url.href)
     }

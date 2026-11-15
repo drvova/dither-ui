@@ -25,6 +25,7 @@ import {
   type ProjectMeta,
 } from "@/features/persistence"
 import { modKey, routePath } from "@/shared/lib"
+import BrandMark from "@/shared/ui/BrandMark"
 import Mascot from "@/shared/ui/Mascot"
 import RowMenu, { type RowAction } from "./RowMenu"
 import "./StudioSidebar.css"
@@ -345,17 +346,7 @@ export default function StudioSidebar(props: StudioSidebarProps) {
 
       <div class="foot">
         <a href={routePath("/")} class="nav-row" title="dither-ui home">
-          <svg
-            viewBox="0 0 7 7"
-            width="14"
-            height="14"
-            aria-hidden="true"
-            {...{ focusable: "false" }}
-            shape-rendering="crispEdges"
-          >
-            <path d="M3 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1z" fill="currentColor" />
-            <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
-          </svg>
+          <BrandMark size={14} />
           <span class="row-label">dither-ui</span>
         </a>
         <a href={routePath("/docs")} class="nav-row">

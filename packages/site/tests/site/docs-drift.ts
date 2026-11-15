@@ -12,7 +12,7 @@ export const DIFFERS: Record<string, string> = {
   "hover-area:1": 'a67c8be9a0 <div><div class="rounded border p-4 border-border/60">Reveal on hover — ',
   "in-view:1": '3756ee3839 <div><div class="h-40 rounded border transition-opacity opacity-100">Rev',
   "icon:1": 'd092674dd3 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-lineca',
-  "icon-set:1": '9410c25aa1 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><use ',
+  "icon-set:1": '1dac6d6853 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><use ',
   "label:1": 'b3c18f9fe1 <label for="#" class="inline-flex items-center gap-1 text-[12px] text-fo',
   "line-clamp:1": 'e27a150d23 <p class="line-clamp-2">Long body copy that stops after two lines with a',
   "middle-ellipsis:1": 'e651d70dd4 <span title="packages/site/src/pages/docs/typography/TypographyDocs.tsx"',

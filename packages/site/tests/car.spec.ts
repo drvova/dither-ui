@@ -2,7 +2,8 @@
 // brand's diamond on the door and its lights; wheels that turn; the driver
 // showing only over the door line, the rest of it behind the body.
 import { describe, expect, it } from "rstack/test"
-import { CAR_H, CAR_W, carCells, drivenCells, SEAT, toRuns, WHEEL_STEPS } from "@/shared/ui/car"
+import { CAR_H, CAR_W, carCells, drivenCells, SEAT, WHEEL_STEPS } from "@/shared/ui/car"
+import { toRuns } from "@/shared/ui/cells"
 
 const key = (c: { x: number; y: number }) => `${c.x},${c.y}`
 

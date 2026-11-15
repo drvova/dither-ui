@@ -109,7 +109,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   ContextMenu, ...; `ToolMark` over `marks.ts` — the real one-colour marks of
   npm, pnpm, Bun, Node, Solid, Tailwind, StyleX, CSS Modules, CSS, GitHub and
   the coding agents the bridge starts (keyed by its harness ids), from Simple
-  Icons (CC0), LobeHub (MIT) and the tools' own site icons, paths verbatim;
+  Icons (CC0), LobeHub (MIT) and the tools' own site icons, paths verbatim,
+  drawn from the site's sprite (below), so no page or script carries them;
   their owners' trademarks, shown only beside the tool's name, never restyled,
   dithered or put in the kit; imported by path, never through the `shared/ui`
   barrel, which would pull every shared component into the landing's first
@@ -963,10 +964,34 @@ around this tree (entries, routes, the build, how Solid is written) is
   Bayer thresholds, an eye hole beside an ember optic that never shuts,
   the mark's ember heart and antenna tips;
   poses idle, blink, hop, wave and fly, where the antennae fold into a
-  rotor whose `turn` steps it round); `Mascot.tsx` draws it as a
-  decorative SVG in `currentColor`, blinks when `alive`, hops under a
-  pointer and spins the rotor while it flies, all held still under
-  reduced motion. Imported by path. Guarded by `tests/mascot.spec.ts`.
+  rotor whose `turn` steps it round; `mascotParts` hands its parts, a
+  row up off the ground, to the sprite); `Mascot.tsx` draws it as a
+  decorative SVG in `currentColor` of the sprite's parts (antennae or
+  each rotor turn, body, feet, a lid on the eye), posed by `data-pose`
+  and `data-alive` and moved by `Mascot.css` alone, no timer: standing a
+  row down, a blink every five seconds when `alive`, a hop under a
+  `:hover`, the rotor a quarter turn every 60ms while it flies, all held
+  still under reduced motion. Imported by path. Guarded by
+  `tests/mascot.spec.ts`.
+- `shared/ui/sprite.ts` is the site's ONE SVG sprite's address and ids
+  (`spriteRef`, `markSymbol`, `BRAND_SYMBOL`, `MASCOT_SYMBOLS`):
+  `sprite-file.ts` draws it from the sources (every kit glyph as the
+  kit's `iconSymbols` writes it, every tool's mark verbatim, the brand
+  mark and the mascot's parts from their cell tables, an ink's cells one
+  path through `cells.ts`'s `runPaths`) and names it by its content
+  (`_build/assets/sprite-<crc>.svg`); the `siteFiles` plugin emits it and
+  defines `SPRITE_DEFINE` to its path for the app, so the Studio's worker
+  keeps it with the page (`pageAssets` drops a `#symbol`). An external
+  file, not one inlined in each page: cached once across pages, where an
+  inlined sheet weighed on every page more than the inline glyphs it
+  replaced. `ToolMark`, `BrandMark` (its own mark; another grid's
+  `cells` draws its runs inline), `Mascot` and, through the kit's
+  `IconSprite` context `app.tsx` provides, every `DitherIcon` on a site
+  page `<use>` it. What is drawn to an image or exported draws its own
+  paths (`IconSprite` set back to `null`): a docs demo and its workbench
+  (`DemoCard`), every Studio frame (`FrameRenderer`). Guarded by
+  `tests/sprite.spec.ts` (each symbol against its source, the mascot
+  stood in every pose from its parts).
   `car.ts` is the mascot's car on the same cell grid (an original wedge
   speedster: the body printed like the mascot's, an ember stripe, the
   brand's diamond on the door, ember tail light, bone headlight, wheels

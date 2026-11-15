@@ -409,7 +409,7 @@ describe("the composer", () => {
     it("flies the mascot while the turn runs, and only then", () => {
       const flying = get(tray(false, true), ".run .run-mascot")
       expect(flying.getAttribute("aria-hidden")).toBe("true")
-      expect(flying.querySelectorAll("rect").length).toBeGreaterThan(0)
+      expect(flying.querySelectorAll(".mascot-turn").length).toBeGreaterThan(0)
       expect(tray(false, false).querySelector(".run-mascot")).toBeNull()
     })
 

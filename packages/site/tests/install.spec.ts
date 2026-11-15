@@ -160,10 +160,13 @@ describe("the service worker's rules", () => {
 
   it("keeps the build assets the app's page loads, and only those", () => {
     const html = `<script defer src="/_build/assets/index-1.js"></script><link href="/_build/assets/index-2.css" rel="stylesheet">
-      <link rel="icon" href="/favicon.svg"><a href="/docs/">docs</a><img src="https://cdn.example/x.png">`
+      <link rel="icon" href="/favicon.svg"><a href="/docs/">docs</a><img src="https://cdn.example/x.png">
+      <svg><use href="/_build/assets/sprite-1.svg#a"/></svg><svg><use href="/_build/assets/sprite-1.svg#b"/></svg>`
     expect(pageAssets(html, at(OFFLINE.app), site)).toEqual([
       at("_build/assets/index-1.js").href,
       at("_build/assets/index-2.css").href,
+      // the sprite once, whichever of its symbols the page uses
+      at("_build/assets/sprite-1.svg").href,
     ])
   })
 

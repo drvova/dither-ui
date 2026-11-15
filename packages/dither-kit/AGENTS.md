@@ -153,6 +153,16 @@ generated twin. Inside the kit every import is relative
   `dither-paint.ts`) leaves at full speed and settles long and soft,
   never past its mark; the site eases everything on it
   (`packages/site/tests/motion.spec.ts`).
+- Icons: `src/engine/icons.ts` is the one glyph table; `iconSymbols()`
+  writes it as `<symbol>`s (`iconSymbolId`, bare paths: the stroke, its
+  width, caps and joins come from the svg that uses a symbol).
+  `DitherIcon` draws its own paths, so a copied kit needs no sprite; under
+  the `IconSprite` context it is one `<use>` of the sprite the context
+  names: a file's URL (an app's own sprite carrying `iconSymbols()`) or
+  `""` for a `DitherIconSet` mounted in the page; `null` again inside a
+  subtree drawn to an image. The Icon cases of
+  `tests/solid/carried.spec.tsx` and the IconSet case of
+  `tests/solid/w2part7.spec.tsx`.
 
 - `DitherCommand` is modal: Escape closes, Tab never leaves it (focus
   returns to its input; the list is arrow-driven), focus restores to the

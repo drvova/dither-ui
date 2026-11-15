@@ -1,15 +1,18 @@
-// The brand mark: the 7x7 dithered diamond, ember core, `size` px square;
-// given `cells`, another mark on the same grid in the same hand (the close
-// mark). Decorative: its link or its place names it.
-import { For, type JSX, mergeProps, splitProps } from "solid-js"
-import { MARK_CELLS } from "@/shared/ui/brand-mark"
+// The brand mark: the 7x7 dithered diamond, ember core, `size` px square,
+// the sprite's (`sprite.ts`); given `cells`, another mark on the same grid
+// in the same hand (the close mark), its inks drawn as a path each.
+// Decorative: its link or its place names it.
+import { For, type JSX, Show, splitProps } from "solid-js"
+import { runPaths } from "@/shared/ui/cells"
+import { BRAND_SYMBOL, spriteRef } from "@/shared/ui/sprite"
 
 type Own = { size: number; cells?: readonly { x: number; y: number; core?: boolean }[] }
 type BrandMarkProps = Own & Omit<JSX.SvgSVGAttributes<SVGSVGElement>, keyof Own>
 
+const EMBER = "var(--signal, var(--swatch-orange))"
+
 export default function BrandMark(raw: BrandMarkProps) {
-  const merged = mergeProps({ cells: MARK_CELLS as NonNullable<Own["cells"]> }, raw)
-  const [props, rest] = splitProps(merged, ["size", "cells"])
+  const [props, rest] = splitProps(raw, ["size", "cells"])
   return (
     <svg
       {...rest}
@@ -20,17 +23,13 @@ export default function BrandMark(raw: BrandMarkProps) {
       {...{ focusable: "false" }}
       shape-rendering="crispEdges"
     >
-      <For each={props.cells}>
-        {(c) => (
-          <rect
-            x={c.x}
-            y={c.y}
-            width="1"
-            height="1"
-            fill={c.core ? "var(--signal, var(--swatch-orange))" : "currentColor"}
-          />
+      <Show when={props.cells} fallback={<use href={spriteRef(BRAND_SYMBOL)} />}>
+        {(cells) => (
+          <For each={runPaths(cells(), (c) => (c.core ? "core" : "ink"))}>
+            {(p) => <path d={p.d} fill={p.paint === "core" ? EMBER : "currentColor"} />}
+          </For>
         )}
-      </For>
+      </Show>
     </svg>
   )
 }

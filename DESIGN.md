@@ -234,6 +234,9 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
   Tailwind, StyleX, CSS Modules, CSS, GitHub, each coding agent), one
   colour, beside their names, never restyled.
 - Every icon button has a name.
+- One sprite: the glyphs, the marks, the brand mark and the mascot's
+  parts are symbols in one SVG file every page shares; the mascot's blink,
+  hop and rotor are its stylesheet's, never a script's.
 
 ## Copy
 
@@ -336,6 +339,7 @@ Smoothness is part of the look, so these are design rules too:
 | Print screens | `@dither-ui/kit/engine/pixel.ts` (`SCREENS`) |
 | The heat and the plates | `packages/site/src/pages/landing/heat.ts`, `plate.ts` |
 | The display face | `packages/site/src/shared/fonts/` |
+| The sprite (glyphs, marks, brand, mascot) | `packages/site/src/shared/ui/sprite.ts`, `sprite-file.ts` |
 | Studio audience and principles | `.impeccable.md` |
 
 Changing the look: change the source, then this file, in the same commit;

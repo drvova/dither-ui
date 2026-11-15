@@ -1,6 +1,7 @@
 /** The hand-rolled icon set: 24×24 geometry, stroke-first, currentColor.
- * One source of truth — `DitherIcon` renders these inline and `DitherIconSet`
- * stamps them as `<symbol>` sheets for `<use>` consumers. Path data is
+ * One source of truth — `DitherIcon` renders these inline, or `<use>`s them
+ * from a sprite its `IconSprite` context names, and `DitherIconSet` stamps
+ * them as `<symbol>` sheets (`iconSymbols`). Path data is
  * authored to the round-cap/2px house stroke; add glyphs here (and to the
  * docs gallery), never inline one-off svg paths in app code.
  * Circles are expressed as two-arc paths so every glyph is a plain `string[]`. */
@@ -167,3 +168,18 @@ export const ICONS = {
 
 export type IconName = keyof typeof ICONS
 export const ICON_NAMES = Object.keys(ICONS) as IconName[]
+
+/** A glyph's id as a `<symbol>` in a sprite. */
+export const iconSymbolId = (name: IconName) => `di-icon-${name}`
+
+/** The set as `<symbol>` sheets, one a glyph under `iconSymbolId`: what
+ * `DitherIconSet` stamps into a page and what an app's own sprite file
+ * carries. A symbol holds bare paths: the stroke, its width, caps and joins
+ * come from the svg that `<use>`s it (`DitherIcon` sets them), so one sheet
+ * serves every stroke width. */
+export function iconSymbols(): string {
+  return ICON_NAMES.map(
+    (name) =>
+      `<symbol id="${iconSymbolId(name)}" viewBox="0 0 24 24">${ICONS[name].map((d) => `<path d="${d}"/>`).join("")}</symbol>`,
+  ).join("")
+}

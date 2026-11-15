@@ -9,10 +9,10 @@ import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { COLORS } from "@/shared/config"
 import { installHand } from "@/shared/lib/hand"
 import { RISE_LIVE, RISE_WAIT } from "@/shared/lib/rise-wait"
-import { MARK_CELLS } from "@/shared/ui/brand-mark"
-import { drivenCells, toRuns } from "@/shared/ui/car"
-import { MARKS } from "@/shared/ui/marks"
-import { mascotCells } from "@/shared/ui/mascot"
+import { drivenCells } from "@/shared/ui/car"
+import { runPaths, toRuns } from "@/shared/ui/cells"
+import { EYE, MASCOT_ROTOR_STEPS } from "@/shared/ui/mascot"
+import { BRAND_SYMBOL, MASCOT_SYMBOLS, markSymbol, spriteRef } from "@/shared/ui/sprite"
 import { BAND_INK, CLOSE_CELLS, MENU_LINKS, SEAM_HEIGHT, STUDIO_LINK, bandFill } from "@/widgets/site-header/menu"
 import { SHEET_DRAG, SHEET_SLIDE } from "@/widgets/site-header/sheet"
 import { RISE, rise, riseDelays, useTheme } from "../../src/shared/lib"
@@ -149,7 +149,9 @@ describe("site header", () => {
     fireEvent.click(w.container.querySelector(".menu-key")!)
     const head = w.container.querySelector<HTMLElement>(".menu-grab")!
     const close = head.querySelector<HTMLElement>('[aria-label="Close menu"]')!
-    expect(all(close, "svg rect")).toHaveLength(CLOSE_CELLS.length)
+    expect(all(close, "svg path").map((p) => p.getAttribute("d"))).toEqual(
+      runPaths(CLOSE_CELLS, (c: { core?: boolean }) => (c.core ? "core" : "ink")).map((p) => p.d),
+    )
     expect(close.hasAttribute("autofocus")).toBe(true)
     expect(head.querySelector(".menu-handle")?.getAttribute("aria-hidden")).toBe("true")
     expect(head.style.paddingBottom).toBe(`${8 + SEAM_HEIGHT}px`)
@@ -250,73 +252,66 @@ describe("site header", () => {
 })
 
 describe("marks and the mascot", () => {
-  it("draws the brand's diamond, or another mark on its grid, as a decorative SVG", () => {
+  const href = (el: Element | null | undefined) => el?.getAttribute("href")
+  it("draws the brand's diamond from the sprite, or another mark on its grid as its own paths", () => {
     const w = render(() => <BrandMark size={13} />)
     const svg = w.container.querySelector("svg")!
     expect([svg.getAttribute("width"), svg.getAttribute("height")]).toEqual(["13", "13"])
     expect([svg.getAttribute("aria-hidden"), svg.getAttribute("focusable")]).toEqual(["true", "false"])
-    expect(all(svg, "rect")).toHaveLength(MARK_CELLS.length)
-    expect(all(svg, "rect").filter((r) => r.getAttribute("fill") !== "currentColor")).toHaveLength(1)
+    expect(href(svg.querySelector("use"))).toBe(spriteRef(BRAND_SYMBOL))
     const x = render(() => <BrandMark size={14} cells={CLOSE_CELLS} />)
-    expect(all(x.container, "rect")).toHaveLength(CLOSE_CELLS.length)
+    const paths = all(x.container, "path")
+    // one path an ink, its runs covering exactly the close mark's cells
+    expect(paths.map((p) => p.getAttribute("d"))).toEqual(
+      runPaths(CLOSE_CELLS, (c: { core?: boolean }) => (c.core ? "core" : "ink")).map((p) => p.d),
+    )
+    expect(paths.filter((p) => p.getAttribute("fill") !== "currentColor")).toHaveLength(1)
   })
 
-  it("draws a tool's mark in currentColor, at 14px unless told", () => {
+  it("draws a tool's mark from the sprite in currentColor, at 14px unless told", () => {
     const w = render(() => <ToolMark id="github" />)
     const svg = w.container.querySelector("svg")!
-    expect(svg.getAttribute("viewBox")).toBe(MARKS.github.viewBox)
     expect([svg.getAttribute("width"), svg.getAttribute("fill")]).toEqual(["14", "currentColor"])
     expect(svg.getAttribute("aria-hidden")).toBe("true")
-    expect(all(svg, "path").map((p) => p.getAttribute("d"))).toEqual([...MARKS.github.d])
-    const holed = (Object.keys(MARKS) as (keyof typeof MARKS)[]).find((id) => "evenodd" in MARKS[id])
-    if (holed) {
-      const h = render(() => <ToolMark id={holed} size={18} />)
-      expect(h.container.querySelector("svg")!.getAttribute("fill-rule")).toBe("evenodd")
-    }
+    expect(href(svg.querySelector("use"))).toBe(spriteRef(markSymbol("github")))
+    expect(svg.querySelector("path")).toBeNull()
   })
 
-  it("draws the mascot as a decorative SVG, the size its height", () => {
+  it("draws the mascot as a decorative SVG of the sprite's parts, the size its height", () => {
     const w = render(() => <Mascot size={30} class="max-[479px]:hidden" />)
     const svg = w.container.querySelector("svg")!
     expect(svg.getAttribute("aria-hidden")).toBe("true")
     expect(svg.getAttribute("height")).toBe("30")
     expect(svg.classList.contains("mascot") && svg.classList.contains("max-[479px]:hidden")).toBe(true)
-    expect(all(svg, "rect")).toHaveLength(mascotCells("idle").length)
+    expect(all(svg, "use").map(href)).toEqual(
+      [MASCOT_SYMBOLS.antennae, MASCOT_SYMBOLS.body, MASCOT_SYMBOLS.feet].map(spriteRef),
+    )
   })
 
-  it("hops under a pointer, blinks while alive, and holds still under reduced motion", () => {
+  it("poses by its stylesheet: alive, waving, flying on a rotor of every turn, no timer", () => {
     vi.useFakeTimers()
-    vi.spyOn(Math, "random").mockReturnValue(0)
-    const cells = (root: ParentNode) => all(root, "rect").map((r) => `${r.getAttribute("x")}.${r.getAttribute("y")}`)
-    const of = (pose: Parameters<typeof mascotCells>[0], turn = 0) =>
-      mascotCells(pose, turn).map((c) => `${c.x}.${c.y}`)
     const w = render(() => <Mascot size={16} alive />)
     const svg = w.container.querySelector("svg")!
-    vi.advanceTimersByTime(3200)
-    expect(cells(svg)).toEqual(of("blink"))
-    vi.advanceTimersByTime(140)
-    expect(cells(svg)).toEqual(of("idle"))
+    expect([svg.dataset.pose, svg.dataset.alive]).toEqual(["idle", ""])
+    // the lid the blink shows sits on the eye
+    const lid = svg.querySelector(".mascot-lid")!
+    expect([lid.getAttribute("x"), lid.getAttribute("y")]).toEqual(EYE.map(String))
+    expect(vi.getTimerCount()).toBe(0)
     fireEvent.pointerEnter(svg)
-    expect(cells(svg)).toEqual(of("hop"))
-    vi.advanceTimersByTime(220)
-    expect(cells(svg)).toEqual(of("idle"))
-    w.unmount()
+    expect(svg.dataset.pose).toBe("idle")
+
+    const waving = render(() => <Mascot size={16} pose="wave" />)
+    expect(href(waving.container.querySelector("use"))).toBe(spriteRef(MASCOT_SYMBOLS.wave))
+    expect(waving.container.querySelector("svg")!.dataset.alive).toBeUndefined()
 
     const flying = render(() => <Mascot size={16} pose="fly" />)
     const air = flying.container.querySelector("svg")!
-    expect(cells(air)).toEqual(of("fly", 0))
-    vi.advanceTimersByTime(60)
-    expect(cells(air)).toEqual(of("fly", 1))
-    // Flying, a pointer does not take it out of the air.
-    fireEvent.pointerEnter(air)
-    expect(cells(air)).toEqual(of("fly", 1))
-    flying.unmount()
-
-    reduced = true
-    const still = render(() => <Mascot size={16} alive pose="fly" />)
-    vi.advanceTimersByTime(8000)
-    expect(cells(still.container)).toEqual(of("fly", 0))
-    vi.mocked(Math.random).mockRestore()
+    expect(air.dataset.pose).toBe("fly")
+    expect(all(air, ".mascot-turn").map(href)).toEqual(
+      Array.from({ length: MASCOT_ROTOR_STEPS }, (_, t) => spriteRef(MASCOT_SYMBOLS.rotor(t))),
+    )
+    expect(all(air, ".mascot-turn").map((u) => u.style.getPropertyValue("--turn"))).toEqual(["0", "1", "2", "3"])
+    expect(vi.getTimerCount()).toBe(0)
   })
 
   it("turns the car's wheels only while it drives", () => {

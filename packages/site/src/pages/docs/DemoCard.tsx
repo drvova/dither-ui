@@ -13,6 +13,7 @@ import {
   Switch,
   useContext,
 } from "solid-js"
+import { IconSprite } from "@dither-ui/kit"
 import { lazyPart, routePath } from "@/shared/lib"
 import { restoreStyling, setStyling, STYLING_LABELS, styling, STYLINGS } from "@/shared/lib/restyle"
 import { play } from "@/shared/lib/sound"
@@ -265,38 +266,44 @@ export default function DemoCard(props: DemoCardProps) {
         aria-label={inspecting() ? "Preview, with the workbench" : undefined}
       >
         <div ref={(el) => (content = el)} class="w-full">
-          <Switch
-            fallback={
-              // Quiet frame while the demo waits for its turn: a fast flick can
-              // outrun the observer, and an empty bordered box reads as broken.
-              <div
-                class="flex h-40 animate-pulse items-center justify-center rounded-md bg-card/40 motion-reduce:animate-none"
-                aria-hidden="true"
-              >
-                <span class="text-[11px] text-muted-foreground">preview</span>
-              </div>
-            }
-          >
-            {/* keyed: each run is a new result, so each mounts afresh */}
-            <Match when={ran()} keyed>
-              {(result) => <RunView component={result.component} />}
-            </Match>
-            <Match when={revealed()}>{props.children}</Match>
-          </Switch>
+          {/* the demo draws its own glyphs: a capture renders this DOM to an
+              image, which cannot fetch the site's sprite */}
+          <IconSprite.Provider value={null}>
+            <Switch
+              fallback={
+                // Quiet frame while the demo waits for its turn: a fast flick can
+                // outrun the observer, and an empty bordered box reads as broken.
+                <div
+                  class="flex h-40 animate-pulse items-center justify-center rounded-md bg-card/40 motion-reduce:animate-none"
+                  aria-hidden="true"
+                >
+                  <span class="text-[11px] text-muted-foreground">preview</span>
+                </div>
+              }
+            >
+              {/* keyed: each run is a new result, so each mounts afresh */}
+              <Match when={ran()} keyed>
+                {(result) => <RunView component={result.component} />}
+              </Match>
+              <Match when={revealed()}>{props.children}</Match>
+            </Switch>
+          </IconSprite.Provider>
         </div>
       </div>
       <Show when={inspecting() && tab() === "preview" && host && content && root}>
-        <Workbench
-          host={host!}
-          content={content!}
-          card={root!}
-          benchKey={`${where().section}:${where().n}`}
-          section={where().section}
-          title={`${where().title} (dither-ui docs)`}
-          url={where().url}
-          render={ran() ? renderRun : () => props.children}
-          onExit={exit}
-        />
+        <IconSprite.Provider value={null}>
+          <Workbench
+            host={host!}
+            content={content!}
+            card={root!}
+            benchKey={`${where().section}:${where().n}`}
+            section={where().section}
+            title={`${where().title} (dither-ui docs)`}
+            url={where().url}
+            render={ran() ? renderRun : () => props.children}
+            onExit={exit}
+          />
+        </IconSprite.Provider>
       </Show>
       {/* The source mounts when its tab is first opened (mounted with the page,
           every one of its ~150 hidden code blocks rendered at initial mount)

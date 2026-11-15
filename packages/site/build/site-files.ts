@@ -3,7 +3,8 @@
 // (`sitemap.xml`, `robots.txt`, `llms.txt`), the share cards' section
 // manifest and each card's Discord component embed and oEmbed photo, the
 // install surface (the Studio's manifest and every icon, drawn from the
-// brand mark), the mascot's capture the docs' World section prints, and the
+// brand mark), the site's one SVG sprite (named by its content, the name
+// defined for the app as it builds), the mascot's capture the docs' World section prints, and the
 // bridge at the path the Studio's setup line fetches. Served in dev,
 // emitted with the browser's assets in a build.
 import { readFile } from "node:fs/promises"
@@ -13,18 +14,22 @@ import { installFiles } from "../src/app/install-files.ts"
 import { BRIDGE_FILE } from "../src/features/agent/bridge-file.ts"
 import * as crawl from "../src/pages/docs/crawler-files.ts"
 import { CAPTURE_PATH, mascotCapture } from "../src/shared/ui/mascot-capture.ts"
+import { SPRITE_DEFINE } from "../src/shared/ui/sprite.ts"
+import { spriteFile } from "../src/shared/ui/sprite-file.ts"
 
 /** The bridge as its own package exports it. */
 const BRIDGE_SOURCE = createRequire(import.meta.url).resolve("@dither-ui/bridge/dither-bridge.mjs")
 
 /** Every file, by its path in the build. */
 export async function siteFileList(): Promise<Record<string, string | Uint8Array>> {
+  const sprite = spriteFile()
   const files: Record<string, string | Uint8Array> = {
     "sitemap.xml": crawl.sitemapXml(),
     "robots.txt": crawl.robotsTxt(),
     "llms.txt": crawl.llmsTxt(),
     "og/sections.json": crawl.sectionsManifest(),
     ...installFiles(),
+    [sprite.path]: sprite.svg,
     [CAPTURE_PATH]: mascotCapture(),
     // As written, never minified: a file people run on their own machine
     // stays readable.
@@ -53,6 +58,7 @@ export function siteFiles(): Plugin {
     name: "site-files",
     // ahead of the app's own handler, which answers every address in dev
     enforce: "pre",
+    config: () => ({ define: { [SPRITE_DEFINE]: JSON.stringify(spriteFile().path) } }),
     configResolved(config) {
       base = config.base
     },
