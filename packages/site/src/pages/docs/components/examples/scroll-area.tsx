@@ -3,9 +3,11 @@ import { DitherScrollArea } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
+  const lines = Array.from({ length: 15 }, (_, i) => i + 1)
+
   return (
-    <DitherScrollArea class="h-40 rounded-lg border border-border/60 p-3">
-      <For each={Array.from({ length: 15 }, (_, k) => k + 1)}>
+    <DitherScrollArea class="mx-auto h-40 max-w-sm rounded-lg border border-border/60 p-3">
+      <For each={lines}>
         {(i) => (
           <p class="py-1 text-[12px] text-muted-foreground">Log line {i}: ordered dither keeps the texture coherent.</p>
         )}

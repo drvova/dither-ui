@@ -1,8 +1,23 @@
-import { DitherScope } from "@dither-kit"
+import { createSignal } from "solid-js"
+import { DitherScope, DitherSlider, DitherToggleGroup } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
+type Wave = "sine" | "square" | "triangle" | "saw"
+
 export default function Example() {
-  return <DitherScope label="ch1" />
+  const [wave, setWave] = createSignal<Wave>("sine")
+  const [glow, setGlow] = createSignal(60)
+  const waves = (["sine", "square", "triangle", "saw"] as const).map((w) => ({ value: w, label: w }))
+
+  return (
+    <div class="mx-auto grid max-w-md gap-5">
+      <DitherScope signal={wave()} afterglow={glow() / 100} label="ch1" />
+      <div role="group" aria-label="Wave" class="flex justify-center">
+        <DitherToggleGroup modelValue={wave()} onUpdateModelValue={(v) => setWave(v as Wave)} options={waves} />
+      </div>
+      <DitherSlider modelValue={glow()} onUpdateModelValue={(v) => setGlow(v as number)} label="Afterglow" />
+    </div>
+  )
 }
 
 export const meta = defineExample({

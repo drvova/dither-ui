@@ -885,11 +885,10 @@ in the page's folder.
   pieces apart at the top; reduced motion goes straight to the debris).
 - Live readings: the Gauge section's second card is an instrument panel
   reading the page itself (frames a second, the worst frame over the last
-  `FRAME_WINDOW` ms, the page's elements in thousands), measured by one
-  rAF loop that runs only while the card is in view (`createInviewLoop`) and
-  read through `docs/components/frames.ts` (`readFrames`, guarded by
-  `tests/frames.spec.ts`); its snippet measures the same way on its own,
-  so Run plays it.
+  half second, the page's elements in thousands), measured by its own rAF
+  loop that runs only while the panel is in view (`DitherInView`, the
+  example `components/examples/gauge-2.tsx`), so Run plays it as the demo
+  does.
 - Docs serve Solid: snippets are written in Solid, once, for DemoCard
   code tabs and Handbook CodeBlocks (a fragment, or a whole `.tsx`
   module; the source panel completes a fragment, see

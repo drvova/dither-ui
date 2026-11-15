@@ -2,26 +2,34 @@ import { createSignal } from "solid-js"
 import { DitherAccordion } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
-const ITEMS = [
-  { value: "what", title: "What is dithering?" },
-  { value: "why", title: "Why canvas?" },
-  { value: "copy", title: "Can I copy the kit out?" },
-]
-
 export default function Example() {
   const [faq, setFaq] = createSignal<string | string[]>("what")
+  const items = [
+    { value: "what", title: "What is dithering?" },
+    { value: "why", title: "Why canvas?" },
+    { value: "copy", title: "Can I copy the kit out?" },
+  ]
 
   return (
-    <DitherAccordion
-      modelValue={faq()}
-      onUpdateModelValue={setFaq}
-      items={ITEMS}
-      slots={{
-        what: "Ordered dithering trades smooth gradients for a fixed threshold matrix.",
-        why: "One engine paints every fill, so components stay coherent.",
-        copy: "Yes: the kit is plain source you paste into your app.",
-      }}
-    />
+    <div class="mx-auto max-w-sm">
+      <DitherAccordion
+        modelValue={faq()}
+        onUpdateModelValue={setFaq}
+        items={items}
+        type="single"
+        color="blue"
+        slots={{
+          what: (
+            <>
+              Ordered dithering trades smooth gradients for a fixed threshold matrix: the same Bayer 4x4 behind every
+              fill in this kit.
+            </>
+          ),
+          why: <>One engine paints every fill, so components stay coherent.</>,
+          copy: <>Yes, the kit folder has zero app imports; copy it and alias it.</>,
+        }}
+      />
+    </div>
   )
 }
 
