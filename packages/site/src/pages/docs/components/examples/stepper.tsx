@@ -1,4 +1,5 @@
 import { DitherStepper } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
@@ -8,3 +9,13 @@ export default function Example() {
     />
   )
 }
+
+export const meta = defineExample({
+  component: DitherStepper,
+  title: "Stepper",
+  studio: {
+    group: "navigation",
+    frame: { w: 480, h: 130 },
+    controls: { steps: { kind: "list", demo: ["Account", "Profile", "Done"] }, current: { min: 0, max: 8 } },
+  },
+})

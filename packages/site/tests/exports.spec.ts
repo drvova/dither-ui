@@ -23,6 +23,10 @@ const HELD = ["site/src", "restyle/src", "tasks/src"].map((p) => join(PACKAGES, 
  * routes (`default`, `route`), the entries and the shell. */
 const READ_BY_PLACE = [/^site\/src\/routes\//, /^site\/src\/entry-(client|server)\.tsx$/, /^site\/src\/app\.tsx$/]
 
+/** An export a build reads by its place: a docs example's `meta`, read as
+ * data by `packages/site/build/catalog.ts`. */
+const READ_BY_BUILD = { name: "meta", file: /^site\/src\/pages\/docs\/[\w-]+\/examples\/[\w-]+\.tsx$/ }
+
 /** Every package by its name: its folder in `packages/`. */
 const FOLDER: Record<string, string> = Object.fromEntries(
   readdirSync(PACKAGES)
@@ -197,6 +201,7 @@ describe("exports", () => {
       .flatMap(([file, mod]) =>
         [...mod.own, ...mod.forwards.keys()]
           .filter((name) => !USED.has(`${file}#${name}`))
+          .filter((name) => !(name === READ_BY_BUILD.name && READ_BY_BUILD.file.test(relative(PACKAGES, file))))
           .map((name) => `${relative(PACKAGES, file)}: ${name}`),
       )
     expect(unused).toEqual([])

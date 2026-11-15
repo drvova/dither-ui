@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherCheckboxCard } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [telemetry, setTelemetry] = createSignal(true)
@@ -13,3 +14,13 @@ export default function Example() {
     />
   )
 }
+
+export const meta = defineExample({
+  component: DitherCheckboxCard,
+  title: "Checkbox card",
+  studio: {
+    group: "inputs",
+    frame: { w: 300, h: 120 },
+    controls: { label: {}, description: { demo: "Anonymous usage stats" }, disabled: {} },
+  },
+})

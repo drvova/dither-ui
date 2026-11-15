@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherField, DitherFieldset, DitherInput } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [name, setName] = createSignal("Ada Byte")
@@ -16,3 +17,9 @@ export default function Example() {
     </DitherFieldset>
   )
 }
+
+export const meta = defineExample({
+  component: DitherFieldset,
+  title: "Fieldset",
+  studio: { group: "structure", frame: { w: 340, h: 190 }, controls: { legend: { demo: "Account" } } },
+})

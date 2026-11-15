@@ -1,4 +1,5 @@
 import { DitherExpandingArrow } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
@@ -8,3 +9,9 @@ export default function Example() {
     </>
   )
 }
+
+export const meta = defineExample({
+  component: DitherExpandingArrow,
+  title: "Expanding arrow",
+  studio: { group: "display", frame: { w: 260, h: 100 }, controls: { color: {}, disabled: {} } },
+})

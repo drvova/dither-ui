@@ -92,24 +92,39 @@ function mergedDefaults(component: ts.Symbol): Map<string, string> {
   return out
 }
 
-/** A prop's row, from the first of its declarations the kit makes. */
-function row(
-  name: string,
-  decl: ts.Declaration,
-  symbol: ts.Symbol,
-  merged: ReadonlyMap<string, string>,
-  checker: ts.TypeChecker,
-): PropRow {
+/** A prop the kit declares, at the first of its declarations the kit makes. */
+export type KitProp = {
+  name: string
+  decl: ts.Declaration
+  symbol: ts.Symbol
+  /** What its component hands `mergeProps` for each prop, as written. */
+  merged: ReadonlyMap<string, string>
+  checker: ts.TypeChecker
+}
+
+/** A prop's row. */
+function row({ name, decl, symbol, merged, checker }: KitProp): PropRow {
   const declared =
     (ts.isPropertySignature(decl) || ts.isPropertyDeclaration(decl)) && decl.type
       ? written(decl.type, checker)
       : checker.typeToString(checker.getNonNullableType(checker.getTypeOfSymbolAtLocation(symbol, decl)))
-  return { prop: name, type: tag(decl, "docs") ?? declared, default: tag(decl, "default") ?? merged.get(name) ?? "" }
+  return { prop: name, type: tag(decl, "docs") ?? declared, default: kitDefault({ name, decl, merged }) }
 }
+
+/** A prop's default as written: its `@default` tag, else what its
+ * component merges, else "". */
+export const kitDefault = ({ name, decl, merged }: Pick<KitProp, "name" | "decl" | "merged">): string =>
+  tag(decl, "default") ?? merged.get(name) ?? ""
 
 /** Every component the kit's Solid index exports, with its props' rows.
  * `sources` stands in for files on disk (a spec's edit of a kit file). */
 export function kitPropRows(sources: ReadonlyMap<string, string> = new Map()): Map<string, KitProps> {
+  return new Map([...eachKitProp(row, sources)].map(([of, rows]) => [of, { of, rows }]))
+}
+
+/** Every component the kit's Solid index exports, each prop it declares
+ * read by `read`, in the order its type declares them. */
+export function eachKitProp<R>(readProp: (prop: KitProp) => R, sources: ReadonlyMap<string, string> = new Map()) {
   const host = ts.createCompilerHost(OPTIONS, true)
   const read = host.getSourceFile
   host.getSourceFile = (file, lang, ...rest) =>
@@ -117,23 +132,24 @@ export function kitPropRows(sources: ReadonlyMap<string, string> = new Map()): M
   const program = ts.createProgram([KIT_INDEX], OPTIONS, host)
   const checker = program.getTypeChecker()
   const index = checker.getSymbolAtLocation(program.getSourceFile(KIT_INDEX)!)!
-  const out = new Map<string, KitProps>()
+  const out = new Map<string, R[]>()
   for (const exported of checker.getExportsOfModule(index)) {
     if (!/^[A-Z]/.test(exported.name)) continue
     const symbol = exported.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(exported) : exported
     if (!(symbol.flags & (ts.SymbolFlags.Function | ts.SymbolFlags.Variable))) continue
     const [call] = checker.getTypeOfSymbol(symbol).getCallSignatures()
     if (!call) continue
-    const rows = new Map<string, PropRow>()
+    const rows = new Map<string, R>()
     const merged = mergedDefaults(symbol)
     const param = call.parameters[0] && checker.getTypeOfSymbol(call.parameters[0])
     // a union of shapes takes what any of them does, in the order they say it
     for (const shape of !param ? [] : param.isUnion() ? param.types : [param])
       for (const prop of checker.getPropertiesOfType(checker.getApparentType(shape))) {
         const decl = prop.declarations?.find((d) => d.getSourceFile().fileName.startsWith(KIT_SRC))
-        if (decl && !rows.has(prop.name)) rows.set(prop.name, row(prop.name, decl, prop, merged, checker))
+        if (decl && !rows.has(prop.name))
+          rows.set(prop.name, readProp({ name: prop.name, decl, symbol: prop, merged, checker }))
       }
-    out.set(exported.name, { of: exported.name, rows: [...rows.values()] })
+    out.set(exported.name, [...rows.values()])
   }
   return out
 }

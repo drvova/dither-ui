@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherButton, DitherField, DitherForm, DitherInput } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [email, setEmail] = createSignal("")
@@ -25,3 +26,9 @@ export default function Example() {
     </DitherForm>
   )
 }
+
+export const meta = defineExample({
+  component: DitherForm,
+  title: "Form",
+  studio: { group: "structure", frame: { w: 340, h: 220 }, controls: {} },
+})

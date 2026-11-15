@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherChoiceChips } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [size, setSize] = createSignal("M")
@@ -22,3 +23,13 @@ export default function Example() {
     </>
   )
 }
+
+export const meta = defineExample({
+  component: DitherChoiceChips,
+  title: "Choice chips",
+  studio: {
+    group: "inputs",
+    frame: { w: 300, h: 90 },
+    controls: { label: { demo: "" }, options: {}, multiple: {}, disabled: {} },
+  },
+})

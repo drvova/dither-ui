@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherCollapsible } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [openA, setOpenA] = createSignal(true)
@@ -17,3 +18,14 @@ export default function Example() {
     </>
   )
 }
+
+export const meta = defineExample({
+  component: DitherCollapsible,
+  title: "Collapsible",
+  studio: {
+    group: "structure",
+    frame: { w: 300, h: 150 },
+    controls: { color: {}, title: { demo: "Details" } },
+    slot: "Hidden content",
+  },
+})

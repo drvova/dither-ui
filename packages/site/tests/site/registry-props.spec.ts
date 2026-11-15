@@ -21,7 +21,7 @@ import {
   type PropSpec,
 } from "@/entities/widget/model/registry"
 import { frameCode } from "../../src/entities/artboard/code"
-import { readKit, SITE } from "./docs-api"
+import { readKit, SITE, stated } from "./docs-api"
 
 const { props: kit, accepts } = readKit()
 
@@ -44,7 +44,7 @@ describe("the component registry", () => {
     const wrong = COMPONENT_REGISTRY.flatMap((e) => {
       const def = defaultComponentProps(e)
       return e.props.flatMap((spec) => {
-        const values = spec.kind === "select" ? spec.options : [spec.def, edited(spec)]
+        const values = spec.kind === "select" ? spec.options : [spec.def, edited(e, spec)]
         return values
           .filter((v) => {
             // a value the mapping reshapes is the mapping's to fit, held by the export's type check below
@@ -66,7 +66,7 @@ describe("the component registry", () => {
       return e.props
         .filter((spec) => !(spec.key in bound) && !(e.field && spec.key === "label"))
         .filter((spec) => {
-          const changed = { ...def, [spec.key]: edited(spec) }
+          const changed = { ...def, [spec.key]: edited(e, spec) }
           const reads = (f: (p: Record<string, unknown>) => unknown) =>
             JSON.stringify(f(changed)) !== JSON.stringify(f(def))
           return !reads((p) => boundProps(e.is, p)) && !(e.demo === "toaster" && reads(demoToast))
@@ -83,8 +83,11 @@ describe("the component registry", () => {
   })
 })
 
-/** A value each kind of setting may take that is not its default. */
-function edited(spec: PropSpec): string | number | boolean | string[] {
+/** A value each kind of setting may take that is not its default: the one
+ * its docs example states, else one made from its kind. */
+function edited(entry: ComponentEntry, spec: PropSpec): string | number | boolean | string[] {
+  const value = stated(entry.is, spec.key)
+  if (value !== undefined) return value as string | number | boolean | string[]
   switch (spec.kind) {
     case "text":
       return spec.key === "label" ? "Edited label" : `${spec.def} edited`
@@ -112,7 +115,7 @@ function exported(entry: ComponentEntry, edit: boolean): string {
   const a = createArtboard("button")
   a.name = entry.label
   const widget = createComponent(entry)
-  if (edit) for (const spec of entry.props) widget.props[spec.key] = edited(spec)
+  if (edit) for (const spec of entry.props) widget.props[spec.key] = edited(entry, spec)
   a.widget = widget
   return frameCode(a, "tailwind").code
 }

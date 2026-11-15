@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherSwitch } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [bloom, setBloom] = createSignal(true)
@@ -11,3 +12,13 @@ export default function Example() {
     </label>
   )
 }
+
+export const meta = defineExample({
+  component: DitherSwitch,
+  title: "Switch",
+  studio: {
+    group: "inputs",
+    frame: { w: 160, h: 80 },
+    controls: { color: {}, label: { demo: "Notifications" }, disabled: {} },
+  },
+})

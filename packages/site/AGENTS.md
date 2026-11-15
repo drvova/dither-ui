@@ -121,6 +121,22 @@ are from the repository's.
   example's data from the demo's own values). `widgets/source` completes
   a fragment into the module a reader takes (`asTsx`), shows the files
   and runs the example in the page (`src/widgets/source/AGENTS.md`).
+- An example module may export `meta = defineExample({ … })`
+  (`src/shared/lib/example.ts`, the site's, never the kit's): what the
+  kit's props type cannot say about its component (its Studio row, its
+  states), typed against the component's props. `build/catalog.ts` reads
+  every example by the TypeScript compiler, the meta as data, resolved
+  against the kit's props types (`eachKitProp`, `props.ts`), into
+  `virtual-dither-catalog` (the entries, which the Studio's registry
+  reads: `src/AGENTS.md`) and `virtual-dither-catalog/sources` (each
+  example's text, which the code export reads), and serves every
+  example's `?raw` without its meta and that import (`stripMeta`), so the
+  card, Run and the zip show the module a reader copies. A `virtual-`
+  id, not `virtual:`, because Rspack (the workspace's `rs test`, through
+  `exampleCatalogRsbuild` in `rstack.config.ts`) takes `virtual:` for a
+  URL scheme. `tests/catalog.spec.ts` holds the type check (a setting the
+  props lack, a value its prop does not take), the resolved settings to
+  the kit's props, and the stripped text.
 - The docs' API tables are printed off the kit's own props types, never
   typed here: `build/props.ts` reads each component's props by the
   TypeScript compiler (one row a prop the kit declares, in the type's
@@ -160,7 +176,9 @@ are from the repository's.
   shipped as written (the README, `public/agent/SKILL.md`) keeps its
   figures, pinned to them by `tests/landing-facts.spec.ts`.
 - Vite plugins, each a file in `build/`: `facts.ts` (above), `props.ts`
-  (the kit's props for the API tables, above), `utilities.ts` (the utility map
+  (the kit's props for the API tables, above), `catalog.ts` (the docs'
+  examples' catalogue, above; also in the player's nested build),
+  `utilities.ts` (the utility map
   the rewriter reads, compiled by `@dither-ui/restyle/utility-map` from the folders
   `utility-sources.ts` names, which the workspace's `rstack.config.ts`
   reads too), `kit-sources.ts` (the kit's own source at `kit/src/solid/`

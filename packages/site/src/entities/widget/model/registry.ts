@@ -1,17 +1,10 @@
 import { ICON_NAMES, type PixelColor, SCREEN_KINDS } from "@dither-ui/kit/engine"
+import { CATALOG } from "virtual-dither-catalog"
+import type { ComponentGroup, PropSpec } from "@/shared/lib/example"
 import { safeUrl } from "@/shared/lib/routes"
 
-export type PropSpec =
-  | { key: string; kind: "text"; def: string }
-  /** An href or a src: a string that `safeUrl` accepts, never a script. */
-  | { key: string; kind: "url"; def: string }
-  | { key: string; kind: "boolean"; def: boolean }
-  | { key: string; kind: "number"; def: number; min?: number; max?: number; step?: number }
-  | { key: string; kind: "select"; def: string; options: readonly string[] }
-  | { key: string; kind: "color"; def: PixelColor }
-  | { key: string; kind: "list"; def: string[] }
+export type { ComponentGroup, PropSpec }
 
-export type ComponentGroup = "inputs" | "navigation" | "display" | "overlays" | "structure"
 type ComponentDemo =
   | "alert"
   | "dialog"
@@ -50,6 +43,9 @@ export type ComponentEntry = {
   /** A text field: its `label` prop is not the component's but the
    * visible label a DitherField ties to it (`labelled`, `fieldLabel`). */
   field?: true
+  /** The docs example (its catalogue id) a new frame of the row is: what
+   * an unedited frame exports as its code. */
+  example?: string
 }
 
 const color = (def: PixelColor = "blue"): PropSpec => ({ key: "color", kind: "color", def })
@@ -90,16 +86,20 @@ const options = (v: unknown) => strList(v).map((label) => ({ value: label.toLowe
 const optionProps = (p: Record<string, unknown>) => ({ ...p, options: options(p.options) })
 const items = (labels: unknown) => strList(labels).map((label) => ({ label }))
 
+/** The row a docs example makes (its `meta`, resolved by the build:
+ * `virtual-dither-catalog`), with what is code beside it: the mapping its
+ * settings take to the component, the demo the Studio wraps it in. */
+function example(is: string, code: Pick<ComponentEntry, "mapProps" | "demo"> = {}): ComponentEntry {
+  const found = CATALOG.find((e) => e.component === is && e.studio)
+  if (!found?.studio) throw new Error(`no docs example gives ${is} a Studio row`)
+  const { group, frame, props, slotText, model, field } = found.studio
+  const entry: ComponentEntry = { is, label: found.title, group, frame, props, slotText, model, ...code }
+  if (found.studio.faithful) entry.example = found.id
+  return field ? labelled(entry) : entry
+}
+
 export const COMPONENT_REGISTRY: ComponentEntry[] = [
-  {
-    is: "DitherSwitch",
-    label: "Switch",
-    group: "inputs",
-    frame: { w: 160, h: 80 },
-    // its name for a reader: the switch shows no text of its own
-    props: [color(), text("label", "Notifications"), bool("disabled")],
-    model: { def: true },
-  },
+  example("DitherSwitch"),
   {
     is: "DitherCheckbox",
     label: "Checkbox",
@@ -293,24 +293,9 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       })),
     }),
   },
-  {
-    is: "DitherCollapsible",
-    label: "Collapsible",
-    group: "structure",
-    frame: { w: 300, h: 150 },
-    props: [color(), text("title", "Details")],
-    slotText: "Hidden content",
-    model: { def: true },
-  },
+  example("DitherCollapsible"),
 
-  {
-    is: "DitherBreadcrumb",
-    label: "Breadcrumb",
-    group: "navigation",
-    frame: { w: 320, h: 70 },
-    props: [list("items", ["Home", "Components", "Button"]), text("separator", "/")],
-    mapProps: (p) => ({ ...p, items: items(p.items) }),
-  },
+  example("DitherBreadcrumb", { mapProps: (p) => ({ ...p, items: items(p.items) }) }),
   {
     is: "DitherPagination",
     label: "Pagination",
@@ -333,14 +318,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     ],
     model: { def: 3 },
   },
-  {
-    is: "DitherStepper",
-    label: "Stepper",
-    group: "navigation",
-    frame: { w: 480, h: 130 },
-    props: [list("steps", ["Account", "Profile", "Done"]), number("current", 1, 0, 8)],
-    mapProps: (p) => ({ ...p, steps: items(p.steps) }),
-  },
+  example("DitherStepper", { mapProps: (p) => ({ ...p, steps: items(p.steps) }) }),
   {
     is: "DitherTimeline",
     label: "Timeline",
@@ -352,15 +330,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       items: strList(p.items).map((title, i) => ({ title, time: `${i + 9}:00`, body: `${title} event` })),
     }),
   },
-  {
-    is: "DitherNavMenu",
-    label: "Navigation menu",
-    group: "navigation",
-    frame: { w: 360, h: 90 },
-    props: [color(), list("items", ["Overview", "Components", "Examples"])],
-    model: { def: "Overview" },
-    mapProps: (p) => ({ ...p, items: items(p.items) }),
-  },
+  example("DitherNavMenu", { mapProps: (p) => ({ ...p, items: items(p.items) }) }),
 
   {
     is: "DitherBadge",
@@ -378,21 +348,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 300, h: 80 },
     props: [color(), number("value", 60, 0, 100), bool("indeterminate")],
   },
-  {
-    is: "DitherGauge",
-    label: "Gauge",
-    group: "display",
-    frame: { w: 220, h: 220 },
-    props: [
-      number("value", 62, 0, 100),
-      number("min", 0),
-      number("max", 100),
-      number("ticks", 10, 1, 20, 1),
-      number("warn", 0.8, 0, 1, 0.05),
-      text("label", "load"),
-      color("grey"),
-    ],
-  },
+  example("DitherGauge"),
   {
     is: "DitherScope",
     label: "Scope",
@@ -423,18 +379,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [select("as", "div", ["div", "section", "span", "article"])],
     slotText: "Box content",
   },
-  {
-    is: "DitherText",
-    label: "Text",
-    group: "display",
-    frame: { w: 300, h: 90 },
-    props: [
-      select("as", "p", ["p", "span", "h3", "li"]),
-      select("tone", "muted", ["default", "muted", "faint"]),
-      select("size", "sm", ["xs", "sm", "md", "lg"]),
-    ],
-    slotText: "The quick brown fox",
-  },
+  example("DitherText"),
   {
     is: "DitherDivider",
     label: "Divider",
@@ -563,14 +508,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [select("name", "Check", [...ICON_NAMES]), number("size", 16, 8, 48), number("strokeWidth", 2, 1, 3)],
   },
   { is: "DitherIconSet", label: "Icon set", group: "display", frame: { w: 200, h: 80 }, props: [], slotText: "" },
-  {
-    is: "DitherHeading",
-    label: "Heading",
-    group: "display",
-    frame: { w: 280, h: 90 },
-    props: [select("level", "2", ["1", "2", "3", "4", "5", "6"])],
-    slotText: "Section title",
-  },
+  example("DitherHeading"),
   {
     is: "DitherLabel",
     label: "Label",
@@ -579,14 +517,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [bool("required")],
     slotText: "Email",
   },
-  {
-    is: "DitherCaption",
-    label: "Caption",
-    group: "display",
-    frame: { w: 240, h: 80 },
-    props: [select("tone", "muted", ["muted", "faint"])],
-    slotText: "Uploaded 3 minutes ago",
-  },
+  example("DitherCaption"),
   {
     is: "DitherOverline",
     label: "Overline",
@@ -596,15 +527,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     slotText: "Chapter 02",
   },
   { is: "DitherCode", label: "Code", group: "display", frame: { w: 240, h: 80 }, props: [], slotText: "npm run build" },
-  {
-    is: "DitherKbdCombo",
-    label: "Kbd combo",
-    group: "display",
-    frame: { w: 220, h: 80 },
-    props: [list("keys", ["⌘", "K"]), text("separator", "+")],
-    slotText: "",
-    mapProps: (p) => ({ ...p, keys: strList(p.keys) }),
-  },
+  example("DitherKbdCombo", { mapProps: (p) => ({ ...p, keys: strList(p.keys) }) }),
   {
     is: "DitherBlockquote",
     label: "Blockquote",
@@ -666,14 +589,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [url("href", "#"), bool("external")],
     slotText: "Docs home",
   },
-  {
-    is: "DitherExternalLink",
-    label: "External link",
-    group: "display",
-    frame: { w: 240, h: 80 },
-    props: [url("href", "https://docs.solidjs.com"), number("iconSize", 12, 8, 20)],
-    slotText: "Solid docs",
-  },
+  example("DitherExternalLink"),
   {
     is: "DitherSelectableText",
     label: "Selectable text",
@@ -682,14 +598,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [select("as", "span", ["span", "div"])],
     slotText: "sk_live_51NqH2vKf9X",
   },
-  {
-    is: "DitherCopyableText",
-    label: "Copyable text",
-    group: "inputs",
-    frame: { w: 240, h: 80 },
-    props: [text("value", "npm i d3-scale d3-shape clsx"), text("label", "Copy"), number("size", 14, 8, 24)],
-    slotText: "copy install",
-  },
+  example("DitherCopyableText"),
   {
     is: "DitherNumberText",
     label: "Number",
@@ -757,14 +666,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 160, h: 80 },
     props: [text("char", "🚀"), text("label", "launch")],
   },
-  labelled({
-    is: "DitherPasswordInput",
-    label: "Password",
-    group: "inputs",
-    frame: { w: 280, h: 90 },
-    props: [text("placeholder", "At least 12 characters"), bool("invalid"), bool("disabled")],
-    model: { def: "correct-horse" },
-  }),
+  example("DitherPasswordInput"),
   labelled({
     is: "DitherSearchInput",
     label: "Search",
@@ -773,57 +675,11 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [text("placeholder", "Search…"), bool("disabled")],
     model: { def: "dither" },
   }),
-  labelled({
-    is: "DitherEmailInput",
-    label: "Email",
-    group: "inputs",
-    frame: { w: 280, h: 90 },
-    props: [text("placeholder", "you@example.com"), text("autocomplete", "email"), bool("invalid"), bool("disabled")],
-    model: { def: "a@b.co" },
-  }),
-  labelled({
-    is: "DitherPhoneInput",
-    label: "Phone",
-    group: "inputs",
-    frame: { w: 280, h: 90 },
-    props: [text("placeholder", "(555) 123-4567"), text("autocomplete", "tel"), bool("disabled")],
-    model: { def: "(415) 555-2671" },
-  }),
-  labelled({
-    is: "DitherCurrencyInput",
-    label: "Currency input",
-    group: "inputs",
-    frame: { w: 280, h: 90 },
-    props: [
-      text("prefix", "$"),
-      text("locale", "en-US"),
-      text("placeholder", "0.00"),
-      bool("invalid"),
-      bool("disabled"),
-    ],
-    model: { def: "1234567.5" },
-  }),
-  {
-    is: "DitherScrubInput",
-    label: "Scrub input",
-    group: "inputs",
-    frame: { w: 280, h: 90 },
-    props: [
-      number("min", 0, -100, 100),
-      number("max", 100, 0, 1000),
-      number("step", 1, 0.1, 50, 0.1),
-      bool("disabled"),
-    ],
-    model: { def: 64 },
-  },
-  {
-    is: "DitherHotkeyInput",
-    label: "Hotkey input",
-    group: "inputs",
-    frame: { w: 280, h: 90 },
-    props: [text("placeholder", "Press a shortcut…"), bool("disabled")],
-    model: { def: "Ctrl+Shift+K" },
-  },
+  example("DitherEmailInput"),
+  example("DitherPhoneInput"),
+  example("DitherCurrencyInput"),
+  example("DitherScrubInput"),
+  example("DitherHotkeyInput"),
   {
     is: "DitherCodeInput",
     label: "Code input",
@@ -840,104 +696,24 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [],
     slotText: "value",
   },
-  {
-    is: "DitherInlineEdit",
-    label: "Inline edit",
-    group: "inputs",
-    frame: { w: 280, h: 90 },
-    props: [text("placeholder", "—"), bool("disabled")],
-    model: { def: "bogdan" },
-  },
-  {
-    is: "DitherTagInput",
-    label: "Tag input",
-    group: "inputs",
-    frame: { w: 320, h: 100 },
-    props: [text("placeholder", "Add tag…"), number("max", 8, 1, 20), bool("disabled")],
-    model: { def: ["solid", "dither"] },
-  },
-  {
-    is: "DitherChoiceChips",
-    label: "Choice chips",
-    group: "inputs",
-    frame: { w: 300, h: 90 },
-    props: [text("label", ""), list("options", ["S", "M", "L", "XL"]), bool("multiple"), bool("disabled")],
-    model: { def: "M" },
-  },
-  {
-    is: "DitherCheckboxCard",
-    label: "Checkbox card",
-    group: "inputs",
-    frame: { w: 300, h: 120 },
-    props: [text("label", "Telemetry"), text("description", "Anonymous usage stats"), bool("disabled")],
-    model: { def: true },
-  },
-  {
-    is: "DitherKeyValueInput",
-    label: "Key/value input",
-    group: "inputs",
-    frame: { w: 360, h: 130 },
-    props: [bool("disabled")],
-    model: { def: [{ key: "Content-Type", value: "application/json" }] },
-  },
-  {
-    is: "DitherMentionInput",
-    label: "Mention input",
-    group: "inputs",
-    frame: { w: 340, h: 150 },
-    props: [
-      list("options", ["dana", "darius", "sam"]),
-      number("rows", 3, 2, 10),
-      text("placeholder", "Write… use @ to mention"),
-      bool("disabled"),
-    ],
-    model: { def: "cc @da" },
-  },
-  {
-    is: "DitherFileInput",
-    label: "File input",
-    group: "inputs",
-    frame: { w: 320, h: 170 },
-    props: [bool("multiple"), text("accept", "image/*"), text("buttonLabel", "Choose files"), bool("disabled")],
-    model: { def: [] },
-  },
-  {
-    is: "DitherListBox",
-    label: "List box",
-    group: "inputs",
-    frame: { w: 260, h: 160 },
-    props: [list("options", ["Kyoto", "Seoul", "Taipei"]), bool("disabled")],
-    model: { def: "Seoul", prop: "value" },
-  },
-  {
-    is: "DitherMultiSelect",
-    label: "Multi select",
-    group: "inputs",
-    frame: { w: 300, h: 220 },
-    props: [list("options", ["solid", "dither", "canvas", "tokens"]), text("placeholder", "Search…"), bool("disabled")],
-    model: { def: ["solid"], prop: "value" },
-  },
-  {
-    is: "DitherCascadeSelect",
-    label: "Cascade select",
-    group: "inputs",
-    frame: { w: 360, h: 90 },
-    props: [bool("disabled")],
-    model: { def: ["Japan", "Kansai"], prop: "value" },
+  example("DitherInlineEdit"),
+  example("DitherTagInput"),
+  example("DitherChoiceChips"),
+  example("DitherCheckboxCard"),
+  example("DitherKeyValueInput"),
+  example("DitherMentionInput"),
+  example("DitherFileInput"),
+  example("DitherListBox"),
+  example("DitherMultiSelect"),
+  example("DitherCascadeSelect", {
     mapProps: (p) => ({
       ...p,
       tree: [{ value: "Japan", children: [{ value: "Kansai", children: [{ value: "Kyoto" }, { value: "Osaka" }] }] }],
     }),
-  },
-  {
-    is: "DitherTransferList",
-    label: "Transfer list",
-    group: "inputs",
-    frame: { w: 420, h: 190 },
-    props: [text("sourceLabel", "Available"), text("targetLabel", "Selected"), bool("disabled")],
-    model: { def: ["admin"], prop: "value" },
+  }),
+  example("DitherTransferList", {
     mapProps: (p) => ({ ...p, source: ["admin", "editor", "viewer", "billing", "support"] }),
-  },
+  }),
   {
     is: "DitherLanguageSelect",
     label: "Language select",
@@ -946,46 +722,11 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [bool("includeDefault"), text("defaultLabel", "System default"), bool("disabled")],
     model: { def: "ja" },
   },
-  {
-    is: "DitherIconPicker",
-    label: "Icon picker",
-    group: "inputs",
-    frame: { w: 300, h: 200 },
-    props: [number("size", 16, 8, 32), text("placeholder", "Filter icons…"), bool("disabled")],
-    model: { def: "Check" },
-  },
-  {
-    is: "DitherFontPicker",
-    label: "Font picker",
-    group: "inputs",
-    frame: { w: 300, h: 300 },
-    props: [bool("disabled")],
-    model: { def: "system-ui, -apple-system, 'Segoe UI', sans-serif" },
-  },
-  {
-    is: "DitherCalendar",
-    label: "Calendar",
-    group: "inputs",
-    frame: { w: 260, h: 280 },
-    props: [text("min", ""), text("max", ""), bool("disabled")],
-    model: { def: "2026-10-07" },
-  },
-  {
-    is: "DitherDatePicker",
-    label: "Date picker",
-    group: "inputs",
-    frame: { w: 280, h: 300 },
-    props: [text("placeholder", "YYYY-MM-DD"), text("min", ""), text("max", ""), bool("disabled")],
-    model: { def: "2026-10-07" },
-  },
-  {
-    is: "DitherMonthPicker",
-    label: "Month picker",
-    group: "inputs",
-    frame: { w: 240, h: 180 },
-    props: [bool("disabled")],
-    model: { def: "2026-10" },
-  },
+  example("DitherIconPicker"),
+  example("DitherFontPicker"),
+  example("DitherCalendar"),
+  example("DitherDatePicker"),
+  example("DitherMonthPicker"),
   {
     is: "DitherColorSwatch",
     label: "Color swatch",
@@ -999,28 +740,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       bool("disabled"),
     ],
   },
-  {
-    is: "DitherColorPicker",
-    label: "Color picker",
-    group: "inputs",
-    frame: { w: 260, h: 270 },
-    props: [bool("disabled")],
-    model: { def: "#5227FF" },
-  },
-  {
-    is: "DitherKnob",
-    label: "Knob",
-    group: "inputs",
-    frame: { w: 240, h: 140 },
-    props: [
-      number("min", 0, -100, 100),
-      number("max", 100, 0, 1000),
-      number("step", 1, 0.1, 50, 0.1),
-      number("size", 72, 40, 128),
-      bool("disabled"),
-    ],
-    model: { def: 64 },
-  },
+  example("DitherColorPicker"),
+  example("DitherKnob"),
   {
     is: "DitherSignaturePad",
     label: "Signature pad",
@@ -1941,14 +1662,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 260, h: 60 },
     props: [select("orientation", "horizontal", ["horizontal", "vertical"])],
   },
-  {
-    is: "DitherTooltip",
-    label: "Tooltip",
-    group: "overlays",
-    frame: { w: 220, h: 100 },
-    props: [text("text", "Helpful detail"), number("delay", 0, 0, 1000)],
-    slotText: "Hover or focus",
-  },
+  example("DitherTooltip"),
   {
     is: "DitherPreviewCard",
     label: "Preview card",
@@ -1988,36 +1702,9 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       menus: strList(p.menus).map((label) => ({ label, items: [{ label: "Open" }, { label: "Settings" }] })),
     }),
   },
-  {
-    is: "DitherPopover",
-    label: "Popover",
-    group: "overlays",
-    frame: { w: 280, h: 180 },
-    props: [select("align", "start", ["start", "center", "end"])],
-    slotText: "Popover content",
-    model: { def: false, prop: "open", event: "close" },
-    demo: "popover",
-  },
-  {
-    is: "DitherDialog",
-    label: "Dialog",
-    group: "overlays",
-    frame: { w: 300, h: 150 },
-    props: [text("title", "Dialog title")],
-    slotText: "Dialog content",
-    model: { def: false, prop: "open", event: "close" },
-    demo: "dialog",
-  },
-  {
-    is: "DitherCenterMorphModal",
-    label: "Center morph modal",
-    group: "overlays",
-    frame: { w: 300, h: 150 },
-    props: [text("label", "Release notes")],
-    slotText: "The surface unfolds from its exact center.",
-    model: { def: false, prop: "open", event: "close" },
-    demo: "dialog",
-  },
+  example("DitherPopover", { demo: "popover" }),
+  example("DitherDialog", { demo: "dialog" }),
+  example("DitherCenterMorphModal", { demo: "dialog" }),
   {
     is: "DitherCommand",
     label: "Command",
@@ -2095,15 +1782,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [text("label", "Email"), text("description", "We will never share it."), text("error", "")],
     demo: "field",
   },
-  {
-    is: "DitherFieldset",
-    label: "Fieldset",
-    group: "structure",
-    frame: { w: 340, h: 190 },
-    props: [text("legend", "Account")],
-    demo: "fieldset",
-  },
-  { is: "DitherForm", label: "Form", group: "structure", frame: { w: 340, h: 220 }, props: [], demo: "form" },
+  example("DitherFieldset", { demo: "fieldset" }),
+  example("DitherForm", { demo: "form" }),
   {
     is: "DitherScrollArea",
     label: "Scroll area",
@@ -2156,14 +1836,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [number("min", 120, 80, 400), text("gap", "0.75rem")],
     slotText: "Card",
   },
-  {
-    is: "DitherToolbar",
-    label: "Toolbar",
-    group: "structure",
-    frame: { w: 360, h: 100 },
-    props: [text("label", "Formatting")],
-    demo: "toolbar",
-  },
+  example("DitherToolbar", { demo: "toolbar" }),
   {
     is: "DitherSidebar",
     label: "Sidebar",
@@ -2217,29 +1890,9 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     demo: "drawer-indent",
   },
 
-  {
-    is: "DitherGradientText",
-    label: "Gradient text",
-    group: "display",
-    frame: { w: 320, h: 100 },
-    props: [list("colors", ["#358ff3", "#7CFF67", "#358ff3"]), number("speed", 1, 0, 4, 0.1)],
-    slotText: "Gradient text",
-  },
-  {
-    is: "DitherShinyText",
-    label: "Shiny text",
-    group: "display",
-    frame: { w: 320, h: 100 },
-    props: [number("speed", 1, 0, 4, 0.1), bool("disabled")],
-    slotText: "Shiny text",
-  },
-  {
-    is: "DitherGlitchText",
-    label: "Glitch text",
-    group: "display",
-    frame: { w: 320, h: 100 },
-    props: [text("text", "GLITCH"), number("speed", 1, 0, 4, 0.1)],
-  },
+  example("DitherGradientText"),
+  example("DitherShinyText"),
+  example("DitherGlitchText"),
   {
     is: "DitherSplitText",
     label: "Split text",
@@ -2278,15 +1931,9 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("duration", 600, 100, 2000, 50),
     ],
   },
-  {
-    is: "DitherExpandTabs",
-    label: "Expand tabs",
-    group: "display",
-    frame: { w: 320, h: 90 },
-    props: [list("tabs", ["Home", "Library", "Alerts"]), color()],
-    model: { def: "home" },
+  example("DitherExpandTabs", {
     mapProps: (p) => ({ ...p, tabs: strList(p.tabs).map((label) => ({ value: label.toLowerCase(), label })) }),
-  },
+  }),
   {
     is: "DitherIsland",
     label: "Island",
@@ -2335,13 +1982,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     model: { def: "home" },
     mapProps: (p) => ({ ...p, items: strList(p.items).map((label) => ({ value: label.toLowerCase(), label })) }),
   },
-  {
-    is: "DitherVideoPlayer",
-    label: "Video player",
-    group: "display",
-    frame: { w: 360, h: 280 },
-    props: [url("src", ""), text("label", "Video"), color()],
-  },
+  example("DitherVideoPlayer"),
   {
     is: "DitherWorld",
     label: "World (3D)",
@@ -2464,14 +2105,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [number("threshold", 64, 24, 200, 4), select("axis", "x", ["x", "y", "both"]), color(), bool("disabled")],
     slotText: "Pull to confirm",
   },
-  {
-    is: "DitherExpandingArrow",
-    label: "Expanding arrow",
-    group: "display",
-    frame: { w: 260, h: 100 },
-    props: [color(), bool("disabled")],
-    slotText: "Explore the kit",
-  },
+  example("DitherExpandingArrow"),
   {
     is: "DitherSlideAction",
     label: "Slide action",
@@ -2552,32 +2186,9 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     model: { def: false },
     mapProps: (p) => ({ ...p, items: strList(p.items).map((label) => ({ value: label.toLowerCase(), label })) }),
   },
-  {
-    is: "DitherBlurText",
-    label: "Blur text",
-    group: "display",
-    frame: { w: 340, h: 100 },
-    props: [
-      text("text", "Blur into focus"),
-      select("by", "words", ["words", "chars"]),
-      number("stagger", 90, 0, 400, 10),
-      number("duration", 600, 100, 2000, 50),
-    ],
-  },
-  {
-    is: "DitherDecryptedText",
-    label: "Decrypted text",
-    group: "display",
-    frame: { w: 300, h: 100 },
-    props: [text("text", "DECRYPTED"), number("speed", 1, 0.2, 4, 0.1), select("trigger", "view", ["view", "hover"])],
-  },
-  {
-    is: "DitherScrambleText",
-    label: "Scramble text",
-    group: "display",
-    frame: { w: 340, h: 100 },
-    props: [text("text", "Hover to scramble"), number("speed", 1, 0.2, 4, 0.1)],
-  },
+  example("DitherBlurText"),
+  example("DitherDecryptedText"),
+  example("DitherScrambleText"),
   {
     is: "DitherShuffle",
     label: "Shuffle",
@@ -2585,21 +2196,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 300, h: 100 },
     props: [text("text", "Shuffle in"), number("stagger", 55, 0, 200, 5), number("duration", 650, 100, 2000, 50)],
   },
-  {
-    is: "DitherTextType",
-    label: "Text type",
-    group: "display",
-    frame: { w: 340, h: 100 },
-    props: [
-      list("texts", ["Type this out.", "Then this."]),
-      number("typingSpeed", 60, 10, 300, 5),
-      number("deletingSpeed", 35, 10, 300, 5),
-      number("pause", 1400, 200, 5000, 100),
-      bool("loop", true),
-      bool("cursor", true),
-    ],
-    mapProps: (p) => ({ ...p, texts: strList(p.texts) }),
-  },
+  example("DitherTextType", { mapProps: (p) => ({ ...p, texts: strList(p.texts) }) }),
   {
     is: "DitherFallingText",
     label: "Falling text",
@@ -2607,27 +2204,9 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 300, h: 100 },
     props: [text("text", "Falling text"), number("stagger", 45, 0, 200, 5), number("duration", 700, 100, 2000, 50)],
   },
-  {
-    is: "DitherScrollReveal",
-    label: "Scroll reveal",
-    group: "display",
-    frame: { w: 360, h: 120 },
-    props: [text("text", "Words reveal as you scroll into view")],
-  },
-  {
-    is: "DitherScrollFloat",
-    label: "Scroll float",
-    group: "display",
-    frame: { w: 320, h: 100 },
-    props: [text("text", "Scroll float"), number("amount", 1, 0, 3, 0.1)],
-  },
-  {
-    is: "DitherScrollVelocity",
-    label: "Scroll velocity",
-    group: "display",
-    frame: { w: 380, h: 80 },
-    props: [text("text", "DITHER · UI · TOOLKIT · "), number("baseSpeed", 60, 0, 400, 10)],
-  },
+  example("DitherScrollReveal"),
+  example("DitherScrollFloat"),
+  example("DitherScrollVelocity"),
   {
     is: "DitherTextCursor",
     label: "Text cursor",
@@ -2635,13 +2214,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     frame: { w: 280, h: 160 },
     props: [text("text", "dither")],
   },
-  {
-    is: "DitherTextPressure",
-    label: "Text pressure",
-    group: "display",
-    frame: { w: 300, h: 100 },
-    props: [text("text", "Pressure"), number("radius", 140, 20, 400, 10), number("strength", 1, 0, 3, 0.1)],
-  },
+  example("DitherTextPressure"),
   {
     is: "DitherVariableProximity",
     label: "Variable proximity",
@@ -2652,45 +2225,11 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       number("radius", 120, 20, 400, 10),
     ],
   },
-  {
-    is: "DitherTrueFocus",
-    label: "True focus",
-    group: "display",
-    frame: { w: 320, h: 100 },
-    props: [text("text", "True focus mode"), number("interval", 1400, 300, 5000, 100), number("blur", 5, 0, 12, 0.5)],
-  },
-  {
-    is: "DitherCircularText",
-    label: "Circular text",
-    group: "display",
-    frame: { w: 190, h: 190 },
-    props: [
-      text("text", "DITHER · UI · TOOLKIT · "),
-      number("duration", 12, 2, 60, 1),
-      number("size", 170, 80, 400, 10),
-    ],
-  },
-  {
-    is: "DitherCurvedLoop",
-    label: "Curved loop",
-    group: "display",
-    frame: { w: 420, h: 120 },
-    props: [text("text", "DITHER UI · CANVAS + BAYER · "), number("speed", 60, 0, 300, 10)],
-  },
-  {
-    is: "DitherFuzzyText",
-    label: "Fuzzy text",
-    group: "display",
-    frame: { w: 240, h: 100 },
-    props: [text("text", "FUZZY"), number("intensity", 4, 0, 20, 0.5)],
-  },
-  {
-    is: "DitherAsciiText",
-    label: "ASCII text",
-    group: "display",
-    frame: { w: 320, h: 150 },
-    props: [text("text", "DITHER"), number("cols", 64, 8, 160, 4)],
-  },
+  example("DitherTrueFocus"),
+  example("DitherCircularText"),
+  example("DitherCurvedLoop"),
+  example("DitherFuzzyText"),
+  example("DitherAsciiText"),
   {
     is: "DitherAnimatedContent",
     label: "Animated content",
@@ -2778,22 +2317,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     ],
     slotText: "Content fades into a soft edge as it reaches the blur band",
   },
-  {
-    is: "DitherStarBorder",
-    label: "Star border",
-    group: "display",
-    frame: { w: 220, h: 90 },
-    props: [color("green"), number("speed", 6, 1, 20, 0.5), number("thickness", 1, 1, 6, 1)],
-    slotText: "Star border",
-  },
-  {
-    is: "DitherElectricBorder",
-    label: "Electric border",
-    group: "display",
-    frame: { w: 220, h: 90 },
-    props: [color(), number("speed", 1, 0.2, 4, 0.1), number("thickness", 2, 1, 6, 1)],
-    slotText: "Electric border",
-  },
+  example("DitherStarBorder"),
+  example("DitherElectricBorder"),
   {
     is: "DitherGlareHover",
     label: "Glare hover",
@@ -3035,17 +2560,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [color("green"), number("count", 40, 4, 160, 4), number("speed", 1, 0, 4, 0.1)],
     slotText: "Antigravity",
   },
-  {
-    is: "DitherLogoLoop",
-    label: "Logo loop",
-    group: "display",
-    frame: { w: 360, h: 70 },
-    props: [
-      list("items", ["DITHER", "BAYER", "CANVAS", "SOLID", "PIXELS"]),
-      number("speed", 18, 3, 60, 1),
-      number("gap", 48, 8, 160, 4),
-    ],
-  },
+  example("DitherLogoLoop"),
   {
     is: "DitherMagicRings",
     label: "Magic rings",
@@ -3062,18 +2577,7 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
     props: [color("green"), number("gap", 28, 12, 80, 2), number("lineLength", 14, 4, 40, 2)],
     slotText: "",
   },
-  {
-    is: "DitherOrbitImages",
-    label: "Orbit images",
-    group: "display",
-    frame: { w: 220, h: 220 },
-    props: [
-      list("items", ["A", "B", "C", "D", "E"]),
-      number("radius", 80, 20, 200, 5),
-      number("duration", 16, 2, 60, 1),
-      number("size", 200, 80, 400, 10),
-    ],
-  },
+  example("DitherOrbitImages"),
   {
     is: "DitherPixelTransition",
     label: "Pixel transition",
@@ -3141,7 +2645,8 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
 
 /** A second value for a text prop whose text is read as a value (a
  * locale, a currency, a date, a ratio, a CSS colour, length or origin), by the prop's key: what
- * `tests/site/paint-law.spec.tsx` changes it to, every other prop's second
+ * `tests/site/paint-law.spec.tsx` changes it to where the row's docs example
+ * states none (`meta.states`), every other prop's second
  * value being made from its spec. */
 export const TEXT_SAMPLES: Readonly<Record<string, string>> = {
   locale: "de-DE",

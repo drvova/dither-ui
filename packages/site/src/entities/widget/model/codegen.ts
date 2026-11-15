@@ -1,9 +1,11 @@
 // A frame's widget as a Solid component file (`.tsx`), on the kit's Solid
 // layer (props camelCase, a model as its prop and `on<Event>` callback, the
 // slot as children, state as a signal).
+import EXAMPLES from "virtual-dither-catalog/sources"
 import { boundProps, componentEntry, demoToast, fieldLabel } from "@/entities/widget/model/registry"
 import type { PixelBloomInput, WidgetModel } from "@/entities/widget/model/types"
 import { comment, componentFile, js, objectLiteral, prop, px, text } from "../../../shared/lib/sfc"
+import { createComponent } from "./factory"
 import { modelOf, SCOPED_CHILDREN } from "./model"
 
 // Every document value reaches the file through `shared/lib/sfc`: as a JSX
@@ -62,7 +64,20 @@ function toasterCode(props: Record<string, unknown>): string {
   })
 }
 
+/** A frame as its row's docs example draws it, every setting as it came:
+ * the example's own code, as a reader copies it from the docs. */
+function exampleCode(w: Extract<WidgetModel, { kind: "component" }>): string | null {
+  const entry = componentEntry(w.is)
+  if (!entry?.example) return null
+  const fresh = createComponent(entry)
+  const unedited =
+    JSON.stringify([w.props, w.slotText, w.model]) === JSON.stringify([fresh.props, fresh.slotText, fresh.model])
+  return unedited ? EXAMPLES[entry.example] : null
+}
+
 function componentCode(w: Extract<WidgetModel, { kind: "component" }>): string {
+  const example = exampleCode(w)
+  if (example) return example
   if (componentEntry(w.is)?.demo === "toaster") return toasterCode(w.props)
   // Studio-only demo wrappers provide required parent context; exported code keeps
   // the public component and its editable props as the portable starting point.

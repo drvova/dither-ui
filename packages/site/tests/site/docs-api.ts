@@ -2,6 +2,7 @@
 // component takes and whether a value fits it (`registry-props.spec.ts`).
 import { join } from "node:path"
 import ts from "typescript"
+import { CATALOG } from "virtual-dither-catalog"
 
 export const SITE = join(__dirname, "../..")
 export const DOCS = join(SITE, "src/pages/docs")
@@ -77,3 +78,9 @@ export function readKit(): Kit {
     },
   }
 }
+
+/** The value a reader would set a prop to, where the component's docs
+ * example states one (its `meta.states`, `virtual-dither-catalog`): the
+ * second value the specs change a setting to before any they make up. */
+export const stated = (component: string, prop: string): unknown =>
+  CATALOG.find((e) => e.component === component)?.states.find((s) => prop in s)?.[prop]

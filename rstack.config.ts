@@ -8,6 +8,7 @@
 import { resolve } from "node:path"
 import { define } from "rstack"
 import { utilityMap } from "@dither-ui/restyle/utility-map"
+import { exampleCatalogRsbuild } from "./packages/site/build/catalog.ts"
 import { UTILITY_SOURCES } from "./packages/site/build/utility-sources.ts"
 
 const root = import.meta.dirname
@@ -20,8 +21,9 @@ define.test({
   testEnvironment: "node",
   setupFiles: ["./packages/dither-kit/tests/support/setup.ts"],
   // The utility map the styling rewriter reads (`virtual-dither-utilities`),
-  // compiled from the vocabulary the site's build compiles it from.
-  plugins: [utilityMap(UTILITY_SOURCES)],
+  // compiled from the vocabulary the site's build compiles it from, and the
+  // docs' examples as the Studio's registry reads them (`virtual-dither-catalog`).
+  plugins: [utilityMap(UTILITY_SOURCES), exampleCatalogRsbuild()],
   // The site's one alias, for its own specs; packages name each other.
   resolve: { alias: { "@": at("packages/site/src") } },
 })

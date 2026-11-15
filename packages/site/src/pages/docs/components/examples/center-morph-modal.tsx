@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherButton, DitherCenterMorphModal } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [open, setOpen] = createSignal(false)
@@ -19,3 +20,15 @@ export default function Example() {
     </>
   )
 }
+
+export const meta = defineExample({
+  component: DitherCenterMorphModal,
+  title: "Center morph modal",
+  studio: {
+    group: "overlays",
+    frame: { w: 300, h: 150 },
+    controls: { label: {} },
+    slot: "The surface unfolds from its exact center.",
+    model: { prop: "open", event: "close" },
+  },
+})

@@ -1,4 +1,5 @@
 import { DitherVideoPlayer } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
@@ -14,3 +15,13 @@ export default function Example() {
     </>
   )
 }
+
+export const meta = defineExample({
+  component: DitherVideoPlayer,
+  title: "Video player",
+  studio: {
+    group: "display",
+    frame: { w: 360, h: 280 },
+    controls: { src: { kind: "url", demo: "" }, label: { demo: "Video" }, color: {} },
+  },
+})

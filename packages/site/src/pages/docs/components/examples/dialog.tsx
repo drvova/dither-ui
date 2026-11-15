@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherButton, DitherDialog } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [open, setOpen] = createSignal(false)
@@ -23,3 +24,15 @@ export default function Example() {
     </>
   )
 }
+
+export const meta = defineExample({
+  component: DitherDialog,
+  title: "Dialog",
+  studio: {
+    group: "overlays",
+    frame: { w: 300, h: 150 },
+    controls: { title: { demo: "Dialog title" } },
+    slot: "Dialog content",
+    model: { prop: "open", event: "close" },
+  },
+})

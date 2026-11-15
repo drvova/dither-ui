@@ -895,6 +895,20 @@ in the page's folder.
   say different things the difference is pinned in
   `tests/site/docs-drift.ts` (regenerated with `WRITE_DRIFT=1`), so a
   change to either side shows. Moving a card to an example drops its entry.
+- An example about one component (its file named for it: `knob.tsx` is
+  `DitherKnob`'s) carries what the kit's props type cannot say beside its
+  code: `export const meta = defineExample({ component, title, studio?,
+  states? })` (`@/shared/lib/example`, imported last, the meta last in the
+  file), its Studio row (shelf, frame, settings in order with a range, an
+  option list, a kind or a `demo` value only where the type, the
+  example's own props and the kit's default do not give it, the slot, the
+  model, `field`) and `states` (props a reader would set it to, the
+  specs' second values). The build reads it as data (`build/catalog.ts`:
+  literals only, its component by name) and strips it and its import from
+  the text the card, Run and the zip show, so the reader's copy is the
+  example as before. A component with an example and no `meta` keeps its
+  hand row in `entities/widget/model/registry.ts`; giving it one moves
+  the row here (`../AGENTS.md`, the registry).
 - `SNIPPETS`/derived code must match what the demo renders — it now
   RUNS in the source panel, so a snippet that leaves out what the demo
   has (a chart's height: the chart snippets carry `class="h-64"`) renders

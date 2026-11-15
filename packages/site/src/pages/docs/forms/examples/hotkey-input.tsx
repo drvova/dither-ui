@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherField, DitherHotkeyInput } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [binding, setBinding] = createSignal("Ctrl+Shift+K")
@@ -10,3 +11,9 @@ export default function Example() {
     </DitherField>
   )
 }
+
+export const meta = defineExample({
+  component: DitherHotkeyInput,
+  title: "Hotkey input",
+  studio: { group: "inputs", frame: { w: 280, h: 90 }, controls: { placeholder: {}, disabled: { demo: false } } },
+})

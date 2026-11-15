@@ -1,4 +1,5 @@
 import { DitherToolbar, DitherButton, DitherSeparator } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
@@ -25,3 +26,9 @@ export default function Example() {
     </DitherToolbar>
   )
 }
+
+export const meta = defineExample({
+  component: DitherToolbar,
+  title: "Toolbar",
+  studio: { group: "structure", frame: { w: 360, h: 100 }, controls: { label: {} } },
+})

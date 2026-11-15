@@ -1,4 +1,5 @@
 import { DitherCaption } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
@@ -8,3 +9,9 @@ export default function Example() {
     </>
   )
 }
+
+export const meta = defineExample({
+  component: DitherCaption,
+  title: "Caption",
+  studio: { group: "display", frame: { w: 240, h: 80 }, controls: { tone: {} } },
+})

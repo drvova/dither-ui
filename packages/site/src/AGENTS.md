@@ -206,7 +206,20 @@ around this tree (entries, routes, the build, how Solid is written) is
   slot text through both code generators and Solid's own compiler).
 - `entities/widget/model/registry.ts` is the single source for Studio's searchable
   component library, inspector controls, untrusted-prop sanitization, functional
-  demo composition, and code export. A text field that reads a `DitherField`'s
+  demo composition, and code export. A row of a component whose docs
+  example carries a `meta` is generated from it (`example("DitherKnob")`
+  in its place in the list, beside it only what is code: its `mapProps`,
+  its `demo`): the build's catalogue (`virtual-dither-catalog`,
+  `../build/catalog.ts`, typed by `entities/widget/model/catalog.d.ts`;
+  the contract `shared/lib/example.ts`, `pages/AGENTS.md`) resolves each
+  setting's kind from its prop's type (a union of literals a select of
+  them, `PixelColor` a colour), its value from the meta's `demo`, the
+  example's props or the kit's default. The rest stay hand rows until
+  their example takes a meta. Where the example IS a new frame of the row
+  (the component alone, every prop it hands a setting at its value), the
+  row names it (`example`) and an unedited frame exports the example's own
+  code (`virtual-dither-catalog/sources`, `codegen.ts`); an edited one is
+  written by the generator. A text field that reads a `DitherField`'s
   context (DitherInput, Textarea, Select and the Email, Password, Search,
   Phone and Currency inputs, which wrap DitherInput) is `labelled`: a `label`
   text setting (empty by default) that is not the component's prop but the
@@ -236,9 +249,12 @@ around this tree (entries, routes, the build, how Solid is written) is
   `value`, `artboard.update`'s `widget.value`) only in the kind of the
   entry's default and under `MODEL_MAX`, else the default;
   `tests/field-values.spec.ts`. Every public `Dither*` export is covered
-  there or by a bespoke widget kind. `TEXT_SAMPLES` beside the rows gives
-  a text prop read as a value (a locale, a currency, a CSS length) the
-  second value `tests/site/paint-law.spec.tsx` changes it to.
+  there or by a bespoke widget kind. A setting's second value in the
+  specs (`tests/site/paint-law.spec.tsx`, the export's type check in
+  `registry-props.spec.ts`) is its docs example's `states` where it states
+  one (`stated`, `tests/site/docs-api.ts`); else `TEXT_SAMPLES` beside the
+  rows gives a text prop read as a value (a locale, a currency, a CSS
+  length) the second value the paint law changes it to.
 
 ## Local Contracts
 

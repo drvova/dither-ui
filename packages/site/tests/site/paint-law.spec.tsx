@@ -12,6 +12,7 @@
 // a failure named `<Component>.<input>`.
 //
 // The inputs: every prop the row declares, its second value made from its
+// docs example's states (`meta.states`) where it states one, else from its
 // spec (a boolean flipped, a number halfway to its bound, the next option,
 // another colour, a list reversed, a text that reads as a value from
 // `TEXT_SAMPLES`), then the surroundings: the print screen, the theme and
@@ -29,6 +30,7 @@ import { createComponent } from "@/entities/widget/model/factory"
 import type { ComponentModel } from "@/entities/widget/model/types"
 import { COMPONENT_REGISTRY, type ComponentEntry, type PropSpec, TEXT_SAMPLES } from "@/entities/widget/model/registry"
 import { WidgetRenderer } from "../../src/widgets/frame-renderer"
+import { stated } from "./docs-api"
 
 /** The kit clock's moment, ms: past every entrance. */
 const MOMENT = 2400
@@ -156,8 +158,10 @@ afterAll(() => {
   undoPaint()
 })
 
-/** A prop's second value, made from its spec. */
-function secondValue(spec: PropSpec): unknown {
+/** A prop's second value: the one its docs example states, else made from its spec. */
+function secondValue(entry: ComponentEntry, spec: PropSpec): unknown {
+  const value = stated(entry.is, spec.key)
+  if (value !== undefined) return value
   switch (spec.kind) {
     case "boolean":
       return !spec.def
@@ -188,7 +192,7 @@ const inputsOf = (entry: ComponentEntry): Input[] => [
   { name: "<none>", apply: () => {} },
   ...entry.props.map((spec): Input => ({
     name: spec.key,
-    apply: (widget) => void (widget.props[spec.key] = secondValue(spec)),
+    apply: (widget) => void (widget.props[spec.key] = secondValue(entry, spec)),
   })),
   { name: "<screen>", apply: (_, around) => void (around.screen = "dot") },
   { name: "<theme>", apply: (_, around) => void (around.dark = true) },

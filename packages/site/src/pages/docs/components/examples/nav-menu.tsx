@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherNavMenu } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [active, setActive] = createSignal("Overview")
@@ -12,3 +13,13 @@ export default function Example() {
     </>
   )
 }
+
+export const meta = defineExample({
+  component: DitherNavMenu,
+  title: "Navigation menu",
+  studio: {
+    group: "navigation",
+    frame: { w: 360, h: 90 },
+    controls: { color: {}, items: { kind: "list", demo: ["Overview", "Components", "Examples"] } },
+  },
+})

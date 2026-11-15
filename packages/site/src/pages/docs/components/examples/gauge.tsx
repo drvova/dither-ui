@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherGauge, DitherSlider } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [pressure, setPressure] = createSignal(62)
@@ -15,3 +16,21 @@ export default function Example() {
     </>
   )
 }
+
+export const meta = defineExample({
+  component: DitherGauge,
+  title: "Gauge",
+  studio: {
+    group: "display",
+    frame: { w: 220, h: 220 },
+    controls: {
+      value: { min: 0, max: 100, demo: 62 },
+      min: {},
+      max: {},
+      ticks: { min: 1, max: 20, step: 1 },
+      warn: { min: 0, max: 1, step: 0.05 },
+      label: { demo: "load" },
+      color: {},
+    },
+  },
+})

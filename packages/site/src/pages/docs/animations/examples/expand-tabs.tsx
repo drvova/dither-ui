@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherExpandTabs } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [tab, setTab] = createSignal("home")
@@ -17,3 +18,13 @@ export default function Example() {
     />
   )
 }
+
+export const meta = defineExample({
+  component: DitherExpandTabs,
+  title: "Expand tabs",
+  studio: {
+    group: "display",
+    frame: { w: 320, h: 90 },
+    controls: { tabs: { kind: "list", demo: ["Home", "Library", "Alerts"] }, color: {} },
+  },
+})

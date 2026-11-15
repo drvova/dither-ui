@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherPopover, DitherButton } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [open, setOpen] = createSignal(false)
@@ -17,3 +18,15 @@ export default function Example() {
     </DitherPopover>
   )
 }
+
+export const meta = defineExample({
+  component: DitherPopover,
+  title: "Popover",
+  studio: {
+    group: "overlays",
+    frame: { w: 280, h: 180 },
+    controls: { align: { demo: "start" } },
+    slot: "Popover content",
+    model: { prop: "open", event: "close" },
+  },
+})

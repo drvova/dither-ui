@@ -55,8 +55,9 @@ const dirOf = (name: string) => join(PACKAGES, FOLDER[name])
 const PUBLIC = "@dither-ui/kit"
 
 /** Modules a build supplies rather than a package (`restyle`'s utility map, the
- * site's kit props, `virtual:dither-props/<Component>`). */
-const VIRTUAL = new Set(["virtual-dither-utilities", "virtual:dither-props"])
+ * site's kit props, `virtual:dither-props/<Component>`, the docs' examples'
+ * catalogue, `virtual-dither-catalog`). */
+const VIRTUAL = new Set(["virtual-dither-utilities", "virtual:dither-props", "virtual-dither-catalog"])
 
 /** The site's alias for its own `src/`: no other package has one. */
 const OWN_SOURCE = { package: "@dither-ui/site", prefix: "@/" }

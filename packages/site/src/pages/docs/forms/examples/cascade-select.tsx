@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherCascadeSelect } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const TREE = [
@@ -23,3 +24,9 @@ export default function Example() {
     />
   )
 }
+
+export const meta = defineExample({
+  component: DitherCascadeSelect,
+  title: "Cascade select",
+  studio: { group: "inputs", frame: { w: 360, h: 90 }, controls: { disabled: {} }, model: { prop: "value" } },
+})
