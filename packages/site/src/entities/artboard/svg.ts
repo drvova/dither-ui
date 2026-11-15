@@ -27,7 +27,7 @@ type Run = { x: number; y: number; w: number; h: number }
 
 /** Past this many inks a canvas is a picture (a photo, a lit model, a
  * shader's smooth ramp), not a print: it is embedded as an image. */
-const MAX_INKS = 32
+const MAX_INKS = 48
 /** Past this many runs the cells would weigh more than the picture. */
 const MAX_RUNS = 40_000
 
@@ -86,6 +86,106 @@ export function cellRuns(
     }
     open = next
   }
+  return out
+}
+
+/** How far a cell may move from its own colour into the print's inks (RMS,
+ * 0-255, the colour as it shows, alpha applied). Past it the art is no print. */
+const INK_TOLERANCE = 12
+
+type Swatch = { key: number; shown: number[]; count: number }
+
+/**
+ * A raster held to at most `maxInks` inks, so its cells merge into runs: a
+ * canvas reads back with each cell's colour a hair off its ink (its alpha
+ * stored premultiplied) and a print's tones as many alphas. Every colour is
+ * first read to 6 bits a channel and 16 alphas (the ones under 1/32 clear),
+ * then the colours, as they show (alpha applied), are cut at their median
+ * along their widest spread into `maxInks` boxes (a line's few cells of
+ * its own hue keep a box of their own), each box one ink: its cells' mean.
+ * Null when that moves the cells further than `tolerance` on average (a
+ * photo, a smooth ramp): no print.
+ */
+export function quantizeInks(
+  data: ArrayLike<number>,
+  maxInks = MAX_INKS,
+  tolerance = INK_TOLERANCE,
+): Uint8ClampedArray | null {
+  const n = data.length / 4
+  const keyOf = new Int32Array(n).fill(-1)
+  const swatches = new Map<number, Swatch>()
+  for (let p = 0; p < n; p++) {
+    const i = p * 4
+    const a = Math.round(data[i + 3] / 17)
+    if (!a) continue
+    const key = (((data[i] >> 2) << 18) | ((data[i + 1] >> 2) << 12) | ((data[i + 2] >> 2) << 6)) * 16 + a
+    keyOf[p] = key
+    const s = swatches.get(key)
+    if (s) s.count++
+    else {
+      const al = a * 17
+      const ch = [data[i] >> 2, data[i + 1] >> 2, data[i + 2] >> 2].map((c) => ((c * 4 + 2) * al) / 255)
+      swatches.set(key, { key, shown: [...ch, al], count: 1 })
+    }
+  }
+  // Median cut: the box with the widest spread is cut at its weighted median.
+  const spread = (box: Swatch[]) => {
+    let best = 0
+    let dim = 0
+    for (let d = 0; d < 4; d++) {
+      let lo = 255
+      let hi = 0
+      for (const s of box) {
+        lo = Math.min(lo, s.shown[d])
+        hi = Math.max(hi, s.shown[d])
+      }
+      if (hi - lo > best) {
+        best = hi - lo
+        dim = d
+      }
+    }
+    return { best, dim }
+  }
+  const boxes: Swatch[][] = swatches.size ? [[...swatches.values()]] : []
+  while (boxes.length < maxInks) {
+    let pick = -1
+    let widest = 0
+    boxes.forEach((b, i) => {
+      if (b.length < 2) return
+      const w = spread(b).best
+      if (w > widest) {
+        widest = w
+        pick = i
+      }
+    })
+    if (pick < 0) break
+    const box = boxes[pick]
+    const { dim } = spread(box)
+    box.sort((x, y) => x.shown[dim] - y.shown[dim])
+    const half = box.reduce((t, s) => t + s.count, 0) / 2
+    let cut = 0
+    for (let seen = 0; cut < box.length - 1 && seen + box[cut].count <= half; cut++) seen += box[cut].count
+    cut = Math.max(1, Math.min(box.length - 1, cut))
+    boxes.splice(pick, 1, box.slice(0, cut), box.slice(cut))
+  }
+  // Each box's ink, its cells' mean as it shows, written back straight.
+  const ink = new Map<number, number[]>()
+  let err = 0
+  let total = 0
+  for (const box of boxes) {
+    const weight = box.reduce((t, s) => t + s.count, 0)
+    const mean = [0, 1, 2, 3].map((d) => box.reduce((t, s) => t + s.shown[d] * s.count, 0) / weight)
+    const a = Math.max(1, Math.round(mean[3]))
+    const rgba = [...mean.slice(0, 3).map((c) => Math.round(Math.min(255, (c * 255) / a))), a]
+    for (const s of box) {
+      ink.set(s.key, rgba)
+      err += (s.shown.reduce((t, v, d) => t + (v - mean[d]) ** 2, 0) / 4) * s.count
+      total += s.count
+    }
+  }
+  if (total && Math.sqrt(err / total) > tolerance) return null
+  const out = new Uint8ClampedArray(n * 4)
+  for (let p = 0; p < n; p++) if (keyOf[p] >= 0) out.set(ink.get(keyOf[p])!, p * 4)
   return out
 }
 

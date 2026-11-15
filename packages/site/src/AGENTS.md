@@ -71,7 +71,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   the work, not the chats, opened beside the original) and deleted (the
   last one's place taken by a new project under a new name; the page
   then forgets its chats, `forgetProject`)),
-  export-code, export-image (the PNG download), export-video (the video
+  export-code (the code dialog, its SVG keys over `entities/artboard`),
+  export-image (the PNG download), export-video (the video
   dialog over `entities/video`), reel (the score preview, its audio opened
   in the click that asks for it, as iOS needs), pan-zoom (wheel, middle or Space drag, one finger on empty
   canvas pans, two fingers pinch about their midpoint; a second finger ends
@@ -99,8 +100,12 @@ around this tree (entries, routes, the build, how Solid is written) is
   list of the kinds `createWidget` builds whole, its type
   `SimpleWidgetKind` and guard `isSimpleWidgetKind`, from its index; the
   artboard factory and the library's widget keys read it; `model/reel.ts`,
-  the reel's and the film's pure timeline), artboard (`picture.ts`, a
-  frame's drawn surface, `surfaceOf`, and its PNG, `artboardPng`; `code.ts`,
+  the reel's and the film's pure timeline; `screenLayers`, a screen's rows
+  and cells as the layer tree, the canvas and the SVG name them), artboard
+  (`picture.ts`, a frame's drawn surface, `surfaceOf`, and its PNG,
+  `artboardPng`; `vector.ts` and `svg.ts`, the frame as a layered SVG, and
+  `svg-copy.ts`, that SVG copied or saved, see SVG below; `model/name.ts`,
+  `fileBase`, the one way a frame's name becomes a file's; `code.ts`,
   the frame as code, its second entry), video (a frame as a HyperFrames composition: the builder,
   `composition.ts`, and what the dialog and the agent take from it,
   `video.ts`).
@@ -431,7 +436,8 @@ around this tree (entries, routes, the build, how Solid is written) is
     `inspect` (`inspect.ts`: the frame's controls in Tab order and the
     audit's findings, read off its drawn surface (`surfaceOf`,
     `entities/artboard/picture.ts`) at the canvas's zoom), `export_png`
-    (`image.export` names `image/<slug>.png`); frame summaries carry
+    (`image.export` names `image/<slug>.png`), `export_svg` (`svg.export`,
+    the SVG's text itself); frame summaries carry
     their `group`; the `AgentEvent` union the
     composer renders (delta, thought, assistant, tool, activity with the
     harness's ACP tool kind, plan, mode, commands, turn, error, stopped,
@@ -583,6 +589,50 @@ around this tree (entries, routes, the build, how Solid is written) is
   snippet's own CSS hooks stay classes), `tests/site/solid-code.spec.tsx`
   (a file and a fragment in each system), and the export and `code.get` cases in
   `tests/site/codegen.spec.tsx` and `state.spec.tsx`.
+- SVG: a frame (or the selection, each frame at its place) as a layered
+  SVG a design tool keeps editing (Figma, Illustrator, Sketch, Penpot),
+  read off the frame as drawn (`surfaceOf`) at the canvas's zoom by
+  `entities/artboard/vector.ts` (`framesSvg`) and written by `svg.ts`
+  (framework-free: the scene's nodes, `svgDocument`, `cellRuns`,
+  `fontStack`, `parseColor`). Each frame is a group named after it (ids
+  are the names design tools show as layers, each once), clipped to its
+  box, a `Background` layer (the surface's fill over what the page shows
+  under it, opaque) and then the frame's own layers: a chart's as the
+  layer tree names them (`layersOf`: its root, the back SVG as the grid,
+  the canvases as the series, the front SVG's parts as the X and Y axes
+  by where they stand, else the series' markers, the page layer as the
+  legend), a screen's rows and cells (`screenLayers`; the renderer marks
+  each with `layerMark(id)`), any other widget one layer named after its
+  component. Inside a layer: a box's fill and its edge as rectangles,
+  each line of text (a field's value or placeholder, an SVG tick's text
+  too, its anchor resolved) a `<text>` at its baseline, no anchor or
+  baseline attribute, in its size, weight and face (the stack from
+  `fontStack`: the faces a tool ships first, Michroma, Inter, JetBrains
+  Mono for the system mono; CSS's system keywords out), an inline SVG's
+  shapes copied with their computed paints and their place as a matrix
+  (what they refer to in `defs`), a canvas's print as its cells merged
+  into runs, one path an ink (its read-back held to `MAX_INKS` inks by
+  `quantizeInks`, a median cut of its colours as they show, so a line's
+  few cells keep their hue; a CSS filter on it, the glow, kept as an SVG
+  filter, blur, brightness and saturation, with its blend), and a canvas
+  the inks would move past `INK_TOLERANCE` or that runs past `MAX_RUNS`
+  (a photo, a smooth ramp) as its current frame in a PNG `<image>`, as
+  an `<img>` is.
+  Every colour is written as hex (`oklch()` and `color-mix()` read back
+  through a pixel). Delivery: `svg-copy.ts`'s `copyFramesSvg` writes
+  `image/svg+xml` with `text/plain` where `ClipboardItem.supports` says
+  the browser takes it (Chromium), else the text alone through the kit's
+  `copyText` (Safari, Firefox; Figma, Penpot and Illustrator read SVG text
+  on paste), and says which (`SVG_COPY_SAID`); `saveFramesSvg` downloads
+  `<name>.svg` (`selection.svg` for several). UI: the canvas bar's "Copy
+  as SVG" and "Save as SVG" keys (the selection) and the export dialog's
+  "Copy as SVG" and "Download SVG" (its frame). Protocol: `svg.export {
+  id? | ids? }` (the selection by default; malformed ids refused, a frame
+  not drawn fails) answers `{ ids, file: svg/<name>.svg, svg }`, the
+  `export_svg` tool. Pinned by `tests/svg.spec.ts` (the writer and a known
+  frame), `tests/site/svg-export.spec.tsx` (a frame of each chart type
+  and widget kind, a screen's layers, the selection, the command) and the
+  `svg.export` row of `tests/site/agent-commands.spec.ts`.
 - Clock for drivers: `clock.seek { seconds? }` / `clock.release` hold or
   free the kit clock from the protocol (the `seek_clock` tool), and
   `window.ditherStudio.clock` exposes the same four calls (`seek(seconds)`,

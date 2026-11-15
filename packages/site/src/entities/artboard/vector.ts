@@ -18,6 +18,7 @@ import {
   inkPaint,
   type Paint,
   parseColor,
+  quantizeInks,
   runsPath,
   type SvgFrame,
   type SvgNode,
@@ -45,7 +46,7 @@ type Walk = {
   defs: Map<string, string>
 }
 
-const SHAPES = new Set(["path", "line", "rect", "circle", "ellipse", "polyline", "polygon", "text", "image"])
+const SHAPES = new Set(["path", "line", "rect", "circle", "ellipse", "polyline", "polygon", "image"])
 const PAINT_PROPS = [
   "fill",
   "fill-opacity",
@@ -57,12 +58,6 @@ const PAINT_PROPS = [
   "stroke-linecap",
   "stroke-linejoin",
   "opacity",
-  "font-family",
-  "font-size",
-  "font-weight",
-  "text-anchor",
-  "dominant-baseline",
-  "letter-spacing",
 ] as const
 const DEF_TAGS = new Set(["linearGradient", "radialGradient", "pattern", "clipPath", "mask", "filter", "symbol"])
 
@@ -139,6 +134,19 @@ function group(name: string, children: SvgNode[]): SvgNode {
   return { t: "g", name, children }
 }
 
+/** Where an element's nodes go: a new group when it starts a layer (the
+ * layer before it again when that has the same name: an axis drawn as
+ * several parts is one layer), else where its parent's went. */
+function layerOf(el: Element, k: Walk, out: SvgNode[]): SvgNode[] {
+  const anchor = k.anchors.get(el)
+  if (!anchor) return out
+  const last = out[out.length - 1]
+  if (last?.t === "g" && last.name === anchor && !last.filter) return last.children
+  const g = { t: "g" as const, name: anchor, children: [] as SvgNode[] }
+  out.push(g)
+  return g.children
+}
+
 /** The element and what it holds, appended to `out` in paint order. */
 function walkElement(el: Element, k: Walk, out: SvgNode[], alpha: number) {
   const style = getComputedStyle(el)
@@ -146,13 +154,9 @@ function walkElement(el: Element, k: Walk, out: SvgNode[], alpha: number) {
   const opacity = Number.parseFloat(style.opacity || "1")
   if (opacity <= 0) return
   const a = alpha * (Number.isFinite(opacity) ? opacity : 1)
-  const anchor = k.anchors.get(el)
-  let into = out
-  if (anchor) {
-    const g = group(anchor, [])
-    out.push(g)
-    into = (g as { children: SvgNode[] }).children
-  }
+  // an inline SVG starts its own layer, if it is one, and walks its shapes
+  if (el instanceof SVGElement) return svgNodes(el, k, out, alpha)
+  const into = layerOf(el, k, out)
   const shown = style.visibility !== "hidden"
   if (el instanceof HTMLCanvasElement) {
     if (shown) canvasNodes(el, style, k, into, a)
@@ -162,11 +166,8 @@ function walkElement(el: Element, k: Walk, out: SvgNode[], alpha: number) {
     if (shown) imageNode(el, style, k, into, a)
     return
   }
-  if (el instanceof SVGElement) {
-    svgNodes(el, k, into, a)
-    return
-  }
   if (shown) boxNodes(el, style, k, into, a)
+  if (shown && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) fieldText(el, style, k, into, a)
   for (const child of el.childNodes) {
     if (child.nodeType === Node.TEXT_NODE) {
       if (shown) textNodes(child as Text, style, k, into, a)
@@ -247,6 +248,46 @@ const MAX_LETTERS = 4000
 
 /** A text node as one `<text>` a line, each where the page set it: the
  * letters read by a range, grouped into the lines they fell on. */
+/** Type as the page sets it: the face (as a stack), its spacing, its case,
+ * and where a line's baseline sits in the box the page gives its glyphs
+ * (the face's content area, centred on its line). */
+function typeOf(style: CSSStyleDeclaration) {
+  const size = Number.parseFloat(style.fontSize) || 16
+  const font = {
+    family: fontStack(style.fontFamily || "sans-serif"),
+    size,
+    weight: style.fontWeight || "400",
+    style: style.fontStyle || "normal",
+  }
+  const m = ascentOf(`${font.style} ${font.weight} ${size}px ${style.fontFamily}`)
+  return {
+    font,
+    spacing: Number.parseFloat(style.letterSpacing) || 0,
+    cased: TRANSFORM[style.textTransform] ?? ((s: string) => s),
+    baseline: (top: number, height: number) => (m ? top + (height - m.height) / 2 + m.ascent : top + height * 0.8),
+  }
+}
+
+/** An SVG `<text>` (a chart's tick) as text placed where it is drawn, its
+ * anchor and baseline already resolved, which every tool reads alike. */
+function svgText(el: SVGTextElement, style: CSSStyleDeclaration, k: Walk, out: SvgNode[], a: number) {
+  const text = (el.textContent ?? "").replace(/\s+/g, " ").trim()
+  const fill = paintOf(style.fill)
+  if (!text || !fill) return
+  const t = typeOf(style)
+  const b = boxOf(el.getBoundingClientRect(), k)
+  const opacity = (Number.parseFloat(style.opacity) || 1) * (Number.parseFloat(style.fillOpacity) || 1)
+  out.push({
+    t: "text",
+    x: b.x,
+    y: t.baseline(b.y, b.h),
+    text: t.cased(text),
+    font: t.font,
+    fill: withAlpha(fill, a * opacity),
+    spacing: t.spacing,
+  })
+}
+
 function textNodes(node: Text, style: CSSStyleDeclaration, k: Walk, out: SvgNode[], a: number) {
   const raw = node.data
   if (!raw.trim()) return
@@ -256,19 +297,9 @@ function textNodes(node: Text, style: CSSStyleDeclaration, k: Walk, out: SvgNode
       : style.color,
   )
   if (!fill) return
-  const size = Number.parseFloat(style.fontSize) || 16
-  const font = {
-    family: fontStack(style.fontFamily || "sans-serif"),
-    size,
-    weight: style.fontWeight || "400",
-    style: style.fontStyle || "normal",
-  }
-  const spacing = Number.parseFloat(style.letterSpacing) || 0
-  const cased = TRANSFORM[style.textTransform] ?? ((s: string) => s)
+  const { font, spacing, cased, baseline } = typeOf(style)
+  const size = font.size
   const pre = /^pre/.test(style.whiteSpace)
-  const m = ascentOf(`${font.style} ${font.weight} ${size}px ${style.fontFamily}`)
-  // The range's box is the face's content area, centred on its line.
-  const baseline = (top: number, height: number) => (m ? top + (height - m.height) / 2 + m.ascent : top + height * 0.8)
   const range = document.createRange()
   const lines: { x: number; top: number; h: number; text: string }[] = []
   const letters = raw.length <= MAX_LETTERS && typeof range.getClientRects === "function"
@@ -313,19 +344,66 @@ function textNodes(node: Text, style: CSSStyleDeclaration, k: Walk, out: SvgNode
 /** A blur and the page's blend, for a canvas a CSS filter softens (a
  * glow's layer). */
 function filterOf(style: CSSStyleDeclaration, k: Walk): { filter?: string; blend?: string } {
-  const blur = /blur\(([\d.]+)px\)/.exec(style.filter)?.[1]
+  const f = style.filter
+  const blur = Number(/blur\(([\d.]+)px\)/.exec(f)?.[1] ?? 0)
+  const bright = Number(/brightness\(([\d.]+)\)/.exec(f)?.[1] ?? 1)
+  const sat = Number(/saturate\(([\d.]+)\)/.exec(f)?.[1] ?? 1)
   const out: { filter?: string; blend?: string } = {}
-  if (blur && Number(blur) > 0) {
-    const id = `blur-${blur.replace(".", "_")}`
+  if (blur > 0 || bright !== 1 || sat !== 1) {
+    const id = `glow-${[blur, bright, sat].join("-").replace(/\./g, "_")}`
+    const steps = [
+      blur > 0 ? `<feGaussianBlur stdDeviation="${blur}"/>` : "",
+      bright !== 1
+        ? `<feComponentTransfer>${["R", "G", "B"].map((c) => `<feFunc${c} type="linear" slope="${bright}"/>`).join("")}</feComponentTransfer>`
+        : "",
+      sat !== 1 ? `<feColorMatrix type="saturate" values="${sat}"/>` : "",
+    ]
     k.defs.set(
       id,
-      `<filter id="${id}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${blur}"/></filter>`,
+      `<filter id="${id}" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">${steps.join("")}</filter>`,
     )
     out.filter = id
   }
   if (style.mixBlendMode && style.mixBlendMode !== "normal") out.blend = style.mixBlendMode
   return out
 }
+
+/** A field's words, which are its value, not its text: the value, else
+ * the placeholder in its own ink; one line centred in an input, the first
+ * line under the padding in a textarea. */
+function fieldText(
+  el: HTMLInputElement | HTMLTextAreaElement,
+  style: CSSStyleDeclaration,
+  k: Walk,
+  out: SvgNode[],
+  a: number,
+) {
+  if (el instanceof HTMLInputElement && !FIELD_TYPES.has(el.type)) return
+  const value = el.type === "password" ? "\u2022".repeat(el.value.length) : el.value
+  const words = (value || el.placeholder).split("\n")[0]
+  if (!words.trim()) return
+  const ink = value ? style : getComputedStyle(el, "::placeholder")
+  const fill = paintOf(ink.color)
+  if (!fill) return
+  const b = boxOf(el.getBoundingClientRect(), k)
+  if (outside(b, k)) return
+  const t = typeOf(style)
+  const pad = (side: string) =>
+    (Number.parseFloat(style.getPropertyValue(`padding-${side}`)) || 0) +
+    (Number.parseFloat(style.getPropertyValue(`border-${side}-width`)) || 0)
+  const line = Number.parseFloat(style.lineHeight) || t.font.size * 1.4
+  const y = el instanceof HTMLTextAreaElement ? t.baseline(b.y + pad("top"), line) : t.baseline(b.y, b.h)
+  out.push({
+    t: "text",
+    x: b.x + pad("left"),
+    y,
+    text: t.cased(words),
+    font: t.font,
+    fill: withAlpha(fill, a),
+    spacing: t.spacing,
+  })
+}
+const FIELD_TYPES = new Set(["text", "email", "password", "search", "tel", "url", "number", ""])
 
 /** A canvas as its cells (a print: few inks), else its frame as a PNG. A
  * canvas the page cannot read (another origin's pixels) is left out. */
@@ -347,7 +425,8 @@ function canvasNodes(cv: HTMLCanvasElement, style: CSSStyleDeclaration, k: Walk,
     return
   }
   const fx = filterOf(style, k)
-  const runs = cellRuns(data, cv.width, cv.height)
+  const inked = quantizeInks(data)
+  const runs = inked && cellRuns(inked, cv.width, cv.height)
   const nodes: SvgNode[] = []
   if (runs) {
     const cw = b.w / cv.width
@@ -398,13 +477,7 @@ function svgNodes(el: SVGElement, k: Walk, out: SvgNode[], alpha: number) {
   }
   const style = getComputedStyle(el)
   if (style.display === "none") return
-  const anchor = k.anchors.get(el)
-  let into = out
-  if (anchor) {
-    const g = group(anchor, [])
-    out.push(g)
-    into = (g as { children: SvgNode[] }).children
-  }
+  const into = layerOf(el, k, out)
   if (tag === "use") {
     const ref = (el.getAttribute("href") ?? el.getAttribute("xlink:href") ?? "").replace(/^#/, "")
     const target = ref ? el.ownerDocument.getElementById(ref) : null
@@ -414,6 +487,10 @@ function svgNodes(el: SVGElement, k: Walk, out: SvgNode[], alpha: number) {
         t: "shape",
         markup: `<g transform="${matrixOf(el as SVGGraphicsElement, k)}">${shapeMarkup(el, style, alpha)}</g>`,
       })
+    return
+  }
+  if (tag === "text") {
+    if (style.visibility !== "hidden") svgText(el as SVGTextElement, style, k, into, alpha)
     return
   }
   if (SHAPES.has(tag)) {
@@ -453,7 +530,7 @@ function paintAttrs(style: CSSStyleDeclaration, alpha: number): string {
       if (o < 1) s += ` opacity="${Math.round(o * 1000) / 1000}"`
       continue
     }
-    if (p === "font-family") v = fontStack(v)
+    if (/^-?[\d.]+px$/.test(v)) v = v.slice(0, -2)
     if ((p === "stroke-dasharray" && v === "none") || v === "normal" || v === "auto") continue
     s += ` ${p}="${xmlText(v)}"`
   }
@@ -461,7 +538,7 @@ function paintAttrs(style: CSSStyleDeclaration, alpha: number): string {
 }
 
 const GEOMETRY =
-  /^(d|x|y|x1|x2|y1|y2|cx|cy|r|rx|ry|width|height|points|transform|href|xlink:href|viewBox|preserveAspectRatio|dx|dy|text-anchor|pathLength|gradientUnits|gradientTransform|offset|stop-color|stop-opacity|fx|fy|patternUnits|patternTransform|id|spreadMethod)$/
+  /^(d|x|y|x1|x2|y1|y2|cx|cy|r|rx|ry|width|height|points|transform|href|xlink:href|viewBox|preserveAspectRatio|pathLength|gradientUnits|gradientTransform|offset|stop-color|stop-opacity|fx|fy|patternUnits|patternTransform|id|spreadMethod)$/
 
 /** One SVG element as markup: its geometry attributes, its computed paints
  * (on a shape) and, for text, its text. */
@@ -470,9 +547,7 @@ function shapeMarkup(el: Element, style: CSSStyleDeclaration, alpha: number): st
     .filter((at) => GEOMETRY.test(at.name) && at.name !== "transform" && at.name !== "id")
     .map((at) => ` ${at.name}="${xmlText(at.value)}"`)
     .join("")
-  const tag = el.localName
-  const inner = tag === "text" ? xmlText(el.textContent ?? "") : ""
-  return `<${tag}${attrs}${paintAttrs(style, alpha)}${inner ? `>${inner}</${tag}>` : "/>"}`
+  return `<${el.localName}${attrs}${paintAttrs(style, alpha)}/>`
 }
 
 /** A referenced element (a gradient, a symbol) whole, as markup: geometry

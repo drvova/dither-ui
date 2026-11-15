@@ -340,6 +340,13 @@ Default section order:
   clip, the Bayer motif, a riser and an impact on every cut) that the
   export carries as the composition's audio track. Details in
   `packages/site/src/AGENTS.md` and `packages/dither-kit/AGENTS.md`.
+- Design tools: every Studio frame, and a selection, copies or saves as
+  a layered SVG a designer keeps editing in Figma, Illustrator, Sketch or
+  Penpot (one group a layer named after it, text as `<text>`, the dither
+  as cells merged into runs, art with no vector form as a PNG `<image>`):
+  `entities/artboard/vector.ts` over `svg.ts`, the canvas bar's and the
+  export dialog's SVG keys, the `svg.export` command / `export_svg` tool.
+  Details in `packages/site/src/AGENTS.md` (SVG).
 - Styling systems: the kit is one kit in layers: `@dither-ui/kit/engine/`
   (framework-free, styling-free logic), `@dither-ui/kit/solid/` (the components,
   authored in SolidJS with Tailwind), `@dither-ui/kit/tailwind/` (the Tailwind

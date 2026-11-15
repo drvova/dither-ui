@@ -1185,6 +1185,7 @@ in the page's folder.
   percentage, which goes to 100%, zoom in, fit every frame), the
   selection's name in a slot of its own width, then Duplicate,
   Group/Ungroup (one slot), Delete; Replay, Evolve, Reel, Data; Code, PNG,
+  Copy as SVG, Save as SVG (the label says for a moment how the copy went),
   Video; Inspect. Every key is a glyph with its name (`aria-label`) and its
   words and keys in the title, always present: one that does not apply is
   disabled, never removed, so the bar keeps its width whatever is picked

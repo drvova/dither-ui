@@ -3,7 +3,16 @@
 // runs per ink, colours and faces as a design tool reads them, names as
 // layer ids, and a known frame written whole.
 import { describe, expect, it } from "rstack/test"
-import { cellRuns, fontStack, inkPaint, parseColor, runsPath, svgDocument, xmlText } from "@/entities/artboard/svg"
+import {
+  cellRuns,
+  fontStack,
+  inkPaint,
+  parseColor,
+  quantizeInks,
+  runsPath,
+  svgDocument,
+  xmlText,
+} from "@/entities/artboard/svg"
 
 /** A raster from rows of letters: `.` clear, each other letter an ink. */
 function raster(rows: string[]) {
@@ -35,6 +44,27 @@ describe("cell runs", () => {
     expect(cellRuns(r.data, r.w, r.h, 1)).toBeNull()
     expect(cellRuns(r.data, r.w, r.h, 32, 3)).toBeNull()
     expect(cellRuns(r.data, r.w, r.h)?.size).toBe(2)
+  })
+
+  it("holds a canvas's read-back to its inks: a hair off joins its ink, a few cells of their own hue keep theirs", () => {
+    // 200 cells of one blue at alphas a step apart, 4 cells of red, 1 clear.
+    const cells: number[][] = [
+      ...Array.from({ length: 200 }, (_, i) => [40 + (i % 3), 90, 200, 120 + (i % 4)]),
+      ...Array.from({ length: 4 }, () => [250, 20, 20, 255]),
+      [0, 0, 0, 0],
+    ]
+    const out = quantizeInks(cells.flat(), 2)!
+    const inks = new Set<string>()
+    for (let i = 0; i < out.length; i += 4) if (out[i + 3]) inks.add(out.slice(i, i + 4).join())
+    expect(inks.size).toBe(2)
+    expect(out[200 * 4]).toBeGreaterThan(240) // the red kept its own ink
+    expect([...out.slice(204 * 4)]).toEqual([0, 0, 0, 0])
+  })
+
+  it("is no print when the inks would move the cells too far (a smooth ramp)", () => {
+    const ramp = Array.from({ length: 256 }, (_, i) => [i, 255 - i, (i * 7) % 256, 255]).flat()
+    expect(quantizeInks(ramp, 2)).toBeNull()
+    expect(quantizeInks(ramp, 64)).not.toBeNull()
   })
 
   it("writes runs as one path of rectangles at the cell's size", () => {
