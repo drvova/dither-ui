@@ -1,20 +1,22 @@
 import { createSignal } from "solid-js"
-import { DitherField, DitherSelect } from "@dither-kit"
+import { DitherSelect } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
-const CHARTS = [
-  { value: "line", label: "Line" },
-  { value: "bar", label: "Bar" },
-  { value: "area", label: "Area" },
-]
-
 export default function Example() {
-  const [chart, setChart] = createSignal("")
+  const [chart, setChart] = createSignal("area")
+  const CHARTS = [
+    { value: "area", label: "Area" },
+    { value: "line", label: "Line" },
+    { value: "bar", label: "Bar" },
+    { value: "pie", label: "Pie" },
+    { value: "radar", label: "Radar" },
+  ]
 
   return (
-    <DitherField label="Chart type">
-      <DitherSelect modelValue={chart()} onUpdateModelValue={setChart} options={CHARTS} />
-    </DitherField>
+    <div class="mx-auto max-w-sm">
+      <DitherSelect modelValue={chart()} onUpdateModelValue={setChart} options={CHARTS} placeholder="Chart type…" />
+      <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">chart: "{chart()}"</p>
+    </div>
   )
 }
 

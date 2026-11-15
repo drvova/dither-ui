@@ -1,17 +1,22 @@
 import { createSignal } from "solid-js"
-import { DitherCombobox } from "@dither-kit"
+import { DitherCombobox, type PixelColor } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
-const CITIES = [
-  { value: "kyoto", label: "Kyoto" },
-  { value: "seoul", label: "Seoul" },
-  { value: "taipei", label: "Taipei" },
-]
-
 export default function Example() {
-  const [city, setCity] = createSignal("")
+  const [swatch, setSwatch] = createSignal("blue")
+  const COLORS = ["green", "blue", "purple", "pink", "orange", "red", "grey"].map((c) => ({ value: c, label: c }))
 
-  return <DitherCombobox placeholder="Search…" modelValue={city()} onUpdateModelValue={setCity} options={CITIES} />
+  return (
+    <div class="mx-auto max-w-sm">
+      <DitherCombobox
+        modelValue={swatch()}
+        onUpdateModelValue={setSwatch}
+        options={COLORS}
+        color={swatch() as PixelColor}
+      />
+      <p class="mt-4 text-center font-mono text-[11px] text-muted-foreground">swatch: "{swatch()}"</p>
+    </div>
+  )
 }
 
 export const meta = defineExample({

@@ -3,12 +3,15 @@ import { DitherToggle } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [bold, setBold] = createSignal(true)
+  const [bloomOn, setBloomOn] = createSignal(true)
 
   return (
-    <DitherToggle modelValue={bold()} onUpdateModelValue={setBold}>
-      Bold
-    </DitherToggle>
+    <div class="mx-auto max-w-sm text-center">
+      <DitherToggle modelValue={bloomOn()} onUpdateModelValue={setBloomOn}>
+        bloom
+      </DitherToggle>
+      <p class="mt-4 font-mono text-[11px] text-muted-foreground">bloom: {String(bloomOn())}</p>
+    </div>
   )
 }
 
