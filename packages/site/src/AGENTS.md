@@ -617,7 +617,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   filter, blur, brightness and saturation, with its blend), and a canvas
   the inks would move past `INK_TOLERANCE` or that runs past `MAX_RUNS`
   (a photo, a smooth ramp) as its current frame in a PNG `<image>`, as
-  an `<img>` is.
+  an `<img>` is (one drawn pixelated, a still avatar or spinner, is cells
+  like a canvas).
   Every colour is written as hex (`oklch()` and `color-mix()` read back
   through a pixel). Delivery: `svg-copy.ts`'s `copyFramesSvg` writes
   `image/svg+xml` with `text/plain` where `ClipboardItem.supports` says

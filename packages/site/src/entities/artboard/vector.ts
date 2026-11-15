@@ -405,33 +405,41 @@ function fieldText(
 }
 const FIELD_TYPES = new Set(["text", "email", "password", "search", "tel", "url", "number", ""])
 
-/** A canvas as its cells (a print: few inks), else its frame as a PNG. A
- * canvas the page cannot read (another origin's pixels) is left out. */
-function canvasNodes(cv: HTMLCanvasElement, style: CSSStyleDeclaration, k: Walk, out: SvgNode[], a: number) {
-  if (!cv.width || !cv.height) return
+/** A canvas (or a pixelated image) as its cells (a print: few inks), else
+ * its frame as a PNG. Pixels the page cannot read (another origin's) are
+ * left out. */
+function canvasNodes(
+  cv: HTMLCanvasElement | HTMLImageElement,
+  style: CSSStyleDeclaration,
+  k: Walk,
+  out: SvgNode[],
+  a: number,
+) {
+  const w = cv instanceof HTMLImageElement ? cv.naturalWidth : cv.width
+  const h = cv instanceof HTMLImageElement ? cv.naturalHeight : cv.height
+  if (!w || !h) return
   const b = boxOf(cv.getBoundingClientRect(), k)
   if (outside(b, k)) return
   let copy: HTMLCanvasElement
   let data: Uint8ClampedArray
   try {
     copy = document.createElement("canvas")
-    copy.width = cv.width
-    copy.height = cv.height
+    copy.width = w
+    copy.height = h
     const ctx = copy.getContext("2d", { willReadFrequently: true })
     if (!ctx) return
     ctx.drawImage(cv, 0, 0)
-    data = ctx.getImageData(0, 0, cv.width, cv.height).data
+    data = ctx.getImageData(0, 0, w, h).data
   } catch {
     return
   }
   const fx = filterOf(style, k)
   const inked = quantizeInks(data)
-  const runs = inked && cellRuns(inked, cv.width, cv.height)
+  const runs = inked && cellRuns(inked, w, h)
   const nodes: SvgNode[] = []
   if (runs) {
-    const cw = b.w / cv.width
-    const ch = b.h / cv.height
-    for (const [ink, list] of runs) nodes.push({ t: "cells", d: runsPath(list, cw, ch, b.x, b.y), fill: inkPaint(ink) })
+    for (const [ink, list] of runs)
+      nodes.push({ t: "cells", d: runsPath(list, b.w / w, b.h / h, b.x, b.y), fill: inkPaint(ink) })
   } else nodes.push({ t: "image", ...b, href: copy.toDataURL("image/png"), fit: "none" })
   if (!nodes.length) return
   const g: SvgNode = { t: "g", name: fx.filter ? "Glow" : runs ? "Cells" : "Picture", children: nodes, ...fx }
@@ -447,10 +455,13 @@ const FIT: Record<string, string> = {
 }
 
 /** An image as its pixels (embedded, so the file stands alone), or its
- * address when the page may not read them. */
+ * address when the page may not read them; one drawn pixelated as cells. */
 function imageNode(img: HTMLImageElement, style: CSSStyleDeclaration, k: Walk, out: SvgNode[], a: number) {
+  if (!img.complete || !img.naturalWidth) return
+  // An image drawn cell by cell (a still avatar or spinner) is a print.
+  if (/pixelated|crisp-edges/.test(style.imageRendering)) return canvasNodes(img, style, k, out, a)
   const b = boxOf(img.getBoundingClientRect(), k)
-  if (outside(b, k) || !img.complete || !img.naturalWidth) return
+  if (outside(b, k)) return
   let href = img.currentSrc || img.src
   try {
     const c = document.createElement("canvas")
