@@ -1,12 +1,3 @@
-.ink-scope.wb-ink {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-
 .ink-scope .marker {
   fill: none;
   stroke-linecap: round;
@@ -35,7 +26,6 @@
 .ink-scope .handles .frame {
   fill: none;
   stroke: var(--wb-hl);
-  stroke-width: 1;
 }
 
 .ink-scope .handles .stem {
@@ -51,17 +41,4 @@
 .ink-scope .eraser {
   fill: color-mix(in oklab, var(--color-foreground) 8%, transparent);
   stroke: color-mix(in oklab, var(--color-foreground) 60%, transparent);
-}
-
-.wb-size {
-  position: absolute;
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-size: 10px;
-  line-height: 12px;
-  white-space: nowrap;
-  transform: translateX(-100%);
-  color: black;
-  background: var(--wb-hl);
-  pointer-events: none;
 }

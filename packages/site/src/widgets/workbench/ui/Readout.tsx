@@ -2,7 +2,8 @@
 // its controls — the inspected box (box model, copy CSS / selector), type
 // with its contrast grade, colour samples in every format, the a11y reading
 // and the stage's audit, guides and the layout grid (placeable by keyboard),
-// the pens, the selection, the comment threads, and a capture's result.
+// the pens, the selection (and the annotations as an SVG file), the comment
+// threads, and a capture's result.
 import { createEffect, createMemo, createSignal, For, Index, on, onCleanup, Show } from "solid-js"
 import { copyText } from "@dither-ui/kit"
 import { download } from "@/shared/lib/files"
@@ -10,6 +11,7 @@ import { COLOR_FORMATS, formatColor, grade } from "@/shared/lib/inspect/color"
 import { cssOf, selectorOf } from "@/shared/lib/inspect/measure"
 import { copyImage, MAX_SECONDS, videoTypes } from "@/widgets/workbench/model/capture"
 import { SWATCHES, swatch } from "@/widgets/workbench/model/settings"
+import { ANNOTATIONS, serializeSvg } from "@/widgets/workbench/model/svg"
 import { ICONS, toolById } from "@/widgets/workbench/model/tools"
 import { uid } from "@/widgets/workbench/model/workspace"
 import { play } from "@/shared/lib/sound"
@@ -144,6 +146,20 @@ export default function Readout() {
     const c = b.capture()
     if (c?.kind === "shot") download(c.blob, `${b.o.key.replace(/[^\w-]+/g, "-")}.png`)
   }
+  /** The annotations as the SVG layer draws them, a file of their own. */
+  const annotated = createMemo(() => {
+    const w = b.ws()
+    return w.arrows.length + w.strokes.length + w.notes.length + w.threads.length > 0
+  })
+  function copySvg() {
+    const g = b.o.host.querySelector<SVGGElement>(`.${ANNOTATIONS}`)
+    if (g) void copy(serializeSvg(g, b.size().w, b.size().h), "the annotations as SVG")
+  }
+  const SvgKey = () => (
+    <button type="button" class="act" disabled={!annotated()} onClick={copySvg}>
+      <Icon d={ICONS.copy} size={12} /> Copy annotations as SVG
+    </button>
+  )
   async function copyShot() {
     const c = b.capture()
     if (c?.kind !== "shot") return
@@ -681,6 +697,7 @@ export default function Readout() {
           <button type="button" class="act" onClick={() => b.clearAll()}>
             Clear all
           </button>
+          <SvgKey />
         </div>
       </Show>
 
@@ -700,6 +717,7 @@ export default function Readout() {
             <button type="button" class="act" onClick={() => b.copyForAgent()}>
               {b.o.send ? "Send to the agent" : "Copy for agent"} (K)
             </button>
+            <SvgKey />
           </div>
           <Show
             when={threads().length}

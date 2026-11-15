@@ -54,12 +54,18 @@ controller's Solid-bound parts (below).
   `capture.ts` (DOM render, tab grab, region recording, trim, frames for
   a GIF; encoded by `shared/lib/gif.ts` with the kit's `BAYER8`: one
   palette over all frames, ordered-dithered, only the changed box after
-  the first frame), `tools.ts`.
-- `ui/` — one component per layer or panel: `Tray`, `Rulers`, `Guides`,
-  `Marks`, `Ink`, `Notes`, `Comments`, `Loupe`, `Readout`, `Motion`,
-  `Responsive`, `Settings`, `Icon`; `Keyed` is the list they share, its
-  rows living as long as their id (the workspace is replaced whole on
-  every change).
+  the first frame), `tools.ts`, `svg.ts` (the SVG layer's text: a label's
+  width in the mono face, measured once, a note's lines wrapped as its
+  field wraps them, and `serializeSvg`, a group as a standalone file with
+  its computed paint written on each element).
+- `ui/` — one component per layer or panel: `Overlay` (the one SVG
+  layer: `Guides`, `Marks`, the annotations group of `Ink`'s `Drawings`,
+  `Notes`' `NoteShapes` and `Comments`' `Pins`, `Ink`'s drafts and
+  selection chrome, `Rulers`; `Label` is its filled text box), `Tray`,
+  `Notes` (the field a note is written in), `Comments` (the pins' keys
+  and the thread), `Loupe`, `Readout`, `Motion`, `Responsive`,
+  `Settings`, `Icon`; `Keyed` is the list they share, its rows living as
+  long as their id (the workspace is replaced whole on every change).
 
 ## Local Contracts
 
@@ -101,6 +107,17 @@ controller's Solid-bound parts (below).
   `document.elementsFromPoint`, skipping the overlay. Comments anchor to
   the nearest control (`controlOf`), by child path (re-found after
   re-renders) with the selector and box kept for the agent.
+- Everything the overlay draws is ONE SVG (`ui/Overlay.tsx`, z 4 over
+  the pointer surface): guides and grid, X-ray (one path per tone and
+  depth), the box model, type lines, the Tab order, distances, labels,
+  arrows, strokes, notes, comment pins, drafts, the selection and the
+  rulers; every stroke `vector-effect: non-scaling-stroke`, hairlines on
+  the half pixel. Only the rulers' grounds take a press there. What is
+  operable stays HTML over it: the note being written (its field), each
+  pin's key (a transparent `<button>` the pin's size, named, ringed), the
+  thread, the loupe and the tray. The annotations are the layer's
+  `ANNOTATIONS` group; "Copy annotations as SVG" (the readout's Select
+  and Comment rows) copies it through `serializeSvg`, stage-sized.
 - Overlay layers are decorative (`aria-hidden`): the readout says the same
   in words and every measurement, colour and audit result is reachable
   there; guides can be placed by number; the tray is a `toolbar` with
@@ -141,14 +158,15 @@ controller's Solid-bound parts (below).
 - `tests/workbench.spec.ts` (root, `rs test`): the GIF encoder (LZW round-trips through a
   decoder, table resets included; median cut; Bayer dithering; the
   GIF89a frame; delta frames decoded back exactly; kept colours exact), colour parsing/printing/contrast, geometry,
-  ink, workspace sanitizing/history/Markdown, settings, the DOM readings
+  ink, workspace sanitizing/history/Markdown, settings, the SVG layer's
+  label widths, note wrapping and serialisation, the DOM readings
   (names, roles, states, Tab order, paths, selectors, controlOf, the
   audit's targets: labels, spacing, disabled, hidden).
 - `tests/site/workbench.spec.tsx` (Vitest): the workbench
   mounted on a preview, the controller's undoable workspace, its keys and
-  its Escape ladder, the measuring loop, every layer of the overlay and
-  panel under the frame, the feedback sent or copied, and what unmounting
-  gives back.
+  its Escape ladder, the measuring loop, every layer of the overlay (one
+  SVG) and panel under the frame, the feedback sent or copied, the
+  annotations copied as SVG, and what unmounting gives back.
 - Browser walk (`npm run dev`): every tool on `/docs/button` (hover, pin, Alt
   distances and Alt+S, X-ray, Typography's contrast, Accessibility's Tab
   order, guides placed / dragged off, the loupe over a dithered canvas,

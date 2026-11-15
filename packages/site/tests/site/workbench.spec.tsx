@@ -315,24 +315,20 @@ describe("the measuring loop", () => {
     step(1000)
     expect(w.b.size()).toEqual({ w: 400, h: 300 })
     expect(w.b.reading()?.box).toEqual({ x: 40, y: 60, w: 100, h: 30 })
-    const target = w.overlay.querySelector<HTMLElement>(".wb-marks .target")!
-    expect(target.style.left).toBe("40px")
-    expect(target.style.width).toBe("100px")
-    expect(target.querySelector(".chip")!.textContent).toContain("100×30")
-    const span = w.overlay.querySelector<HTMLElement>(".wb-rule-x .span")!
-    expect(span.style.left).toBe("40px")
-    expect(w.overlay.querySelector<HTMLElement>(".wb-rule-x .at")!.style.left).toBe("50px")
-    // Labels every 50 along each ruler.
-    expect([...w.overlay.querySelectorAll(".wb-rule-x > span")].map((s) => s.textContent)).toEqual([
-      "50",
-      "100",
-      "150",
-      "200",
-      "250",
-      "300",
-      "350",
-      "400",
-    ])
+    // One SVG layer draws it all, in stage px.
+    expect(w.overlay.querySelectorAll(":scope > svg")).toHaveLength(1)
+    const layer = w.overlay.querySelector("svg.wb-layer")!
+    expect(layer.getAttribute("viewBox")).toBe("0 0 400 300")
+    const box = layer.querySelector(".wb-marks .target .box")!
+    expect(["x", "y", "width", "height"].map((a) => box.getAttribute(a))).toEqual(["39.5", "59.5", "101", "31"])
+    expect(layer.querySelector(".wb-marks .target .label")!.textContent).toContain("100×30")
+    const span = layer.querySelector(".wb-rulers .span")!
+    expect(span.getAttribute("x")).toBe("40")
+    expect(span.getAttribute("width")).toBe("100")
+    expect(layer.querySelector(".wb-rulers .at")!.getAttribute("d")).toMatch(/^M50\.5 0V14/)
+    // Labels every 50 along the top ruler (then the left's, turned).
+    const labels = [...layer.querySelectorAll(".wb-rulers text.n:not([transform])")].map((s) => s.textContent)
+    expect(labels).toEqual(["50", "100", "150", "200", "250", "300", "350", "400", "px"])
     const readout = w.card.querySelector(".wb-readout")!
     expect(readout.getAttribute("aria-label")).toBe("Workbench: Inspect")
     expect(readout.textContent).toContain("pointing")
@@ -356,7 +352,7 @@ describe("the measuring loop", () => {
     step(1000)
     expect(w.b.a11y()).toMatchObject({ role: "button", name: "Deploy", control: true })
     expect(w.b.order()).toHaveLength(1)
-    expect(w.overlay.querySelector(".wb-marks .order")!.textContent).toBe("1")
+    expect(w.overlay.querySelector(".wb-marks .label.guide")!.textContent).toBe("1")
     expect(w.card.querySelector(".wb-readout")!.textContent).toContain("1 tab stops")
   })
 
@@ -365,10 +361,14 @@ describe("the measuring loop", () => {
     w.key("x")
     step(1000)
     expect(w.b.xray()).toHaveLength(1)
-    expect(w.overlay.querySelector<HTMLElement>("canvas.xray")!.style.display).toBe("")
+    // One path per tone and depth, each box an outline just inside it.
+    const xray = w.overlay.querySelector(".wb-marks path.xray")!
+    expect(xray.getAttribute("d")).toBe("M40.5 60.5h99v29h-99z")
+    expect(xray.getAttribute("stroke-opacity")).toBe("0.85")
+    expect(w.overlay.querySelector("canvas")).toBeNull()
     expect(w.card.querySelector(".wb-readout")!.textContent).toContain("1 elements, 0 flex or grid (dashed), depth 1")
     w.key("i")
-    expect(w.overlay.querySelector<HTMLElement>("canvas.xray")!.style.display).toBe("none")
+    expect(w.overlay.querySelector(".wb-marks path.xray")).toBeNull()
   })
 })
 
@@ -378,9 +378,8 @@ describe("the overlay's layers", () => {
     w.key("g")
     w.b.settings.snap = false
     w.point("pointermove", 200, 50)
-    const ghost = w.overlay.querySelector<HTMLElement>(".wb-guides .line.preview")!
-    expect(ghost.classList.contains("x")).toBe(true)
-    expect(ghost.style.left).toBe("200px")
+    const ghost = w.overlay.querySelector(".wb-guides .preview .line")!
+    expect(ghost.getAttribute("d")).toBe("M200.5 0V300")
     w.drag([200, 50], [200, 50])
     expect(w.b.ws().guides).toMatchObject([{ axis: "x", at: 200 }])
     w.key("h")
@@ -397,14 +396,15 @@ describe("the overlay's layers", () => {
     form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))
     expect(w.b.ws().guides.map((g) => g.at)).toEqual([200, 260])
     // The gap between neighbours on an axis is labelled between them.
-    const gap = w.overlay.querySelector<HTMLElement>(".wb-guides .gap")!
+    const gap = w.overlay.querySelector(".wb-guides .label.ring")!
     expect(gap.textContent).toBe("60")
-    expect(gap.style.left).toBe("230px")
+    const chip = gap.querySelector("rect")!
+    expect(Number(chip.getAttribute("x")) + Number(chip.getAttribute("width")) / 2).toBe(230)
     expect(w.card.querySelectorAll(".wb-readout .tags li")).toHaveLength(2)
 
     // Out of the top ruler: a horizontal guide, dropped on the stage.
     w.overlay
-      .querySelector(".wb-rule-x")!
+      .querySelector(".wb-rulers .rule-x")!
       .dispatchEvent(
         new MouseEvent("pointerdown", { clientX: 80, clientY: 4, button: 0, bubbles: true, cancelable: true }),
       )
@@ -440,7 +440,7 @@ describe("the overlay's layers", () => {
     expect(w.overlay.querySelectorAll(".wb-ink g path")).toHaveLength(2)
     w.point("pointerup", 260, 200)
     expect(w.b.ws().arrows).toMatchObject([{ from: { x: 200, y: 200 }, to: { x: 260, y: 200 }, width: 2 }])
-    const drawn = w.overlay.querySelector(".wb-ink g")!
+    const drawn = w.overlay.querySelector(".wb-annotations .arrow")!
 
     w.key("s")
     step(1000)
@@ -448,7 +448,7 @@ describe("the overlay's layers", () => {
     expect(w.b.selection()).toHaveLength(1)
     expect(w.b.ws().arrows[0].from).toEqual({ x: 210, y: 220 })
     // The row is the arrow it was: only what it reads moved.
-    expect(w.overlay.querySelector(".wb-ink g")).toBe(drawn)
+    expect(w.overlay.querySelector(".wb-annotations .arrow")).toBe(drawn)
     expect(w.overlay.querySelectorAll(".wb-ink .selected")).toHaveLength(1)
     expect(w.overlay.querySelectorAll(".wb-ink .handles .knob")).toHaveLength(5)
     expect(w.card.querySelector(".wb-readout")!.textContent).toContain("selected 1")
@@ -467,7 +467,7 @@ describe("the overlay's layers", () => {
     w.key("n")
     w.point("pointerdown", 100, 100)
     w.point("pointermove", 120, 110)
-    expect(w.overlay.querySelector(".wb-ink > path")).not.toBeNull()
+    expect(w.overlay.querySelector(".wb-ink > path.ink")).not.toBeNull()
     w.point("pointerup", 140, 120)
     expect(w.b.ws().strokes).toMatchObject([{ kind: "ink", width: 3 }])
     // The marker, from the readout.
@@ -475,7 +475,7 @@ describe("the overlay's layers", () => {
     expect(w.b.settings.pen).toBe("marker")
     w.drag([10, 10], [30, 30])
     expect(w.b.ws().strokes[1]).toMatchObject({ kind: "marker", width: 14 })
-    expect(w.overlay.querySelector(".wb-ink .marker")).not.toBeNull()
+    expect(w.overlay.querySelector(".wb-annotations .marker")).not.toBeNull()
 
     w.key("e")
     w.point("pointermove", 100, 100)
@@ -499,9 +499,12 @@ describe("the overlay's layers", () => {
     field.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }))
     expect(w.b.editing()).toBeNull()
     expect(w.b.tool()).toBe("text")
-    const note = w.overlay.querySelector<HTMLElement>(".wb-notes .note")!
-    expect(note.textContent).toBe("tighter\nhere")
-    expect(note.style.left).toBe("30px")
+    // Kept, it is drawn in the SVG layer: a line a tspan, its box behind.
+    expect(w.overlay.querySelector(".wb-notes .note")).toBeNull()
+    const note = w.overlay.querySelector<SVGGElement>(".wb-annotations g.note")!
+    expect([...note.querySelectorAll("tspan")].map((t) => t.textContent)).toEqual(["tighter", "here"])
+    expect(note.querySelector("tspan")!.getAttribute("x")).toBe("35")
+    expect(note.querySelector("rect")!.getAttribute("x")).toBe("30.5")
     expect(note.dataset.note).toBe(w.b.ws().notes[0].id)
 
     // Written in again by a double click; emptied, it goes.
@@ -522,7 +525,7 @@ describe("the overlay's layers", () => {
     w.key("m")
     w.point("pointermove", 50, 70)
     step(1000)
-    expect(w.overlay.querySelector(".wb-marks .ghost .chip")!.textContent).toContain("comment on ")
+    expect(w.overlay.querySelector(".wb-marks .aim .label")!.textContent).toContain("comment on ")
     w.point("pointerdown", 50, 70)
     expect(w.b.draftThread()).toMatchObject({ at: { x: 50, y: 70 }, offset: { x: 10, y: 10 } })
     expect(w.b.draftThread()!.selector.startsWith("#button ")).toBe(true)
@@ -545,6 +548,10 @@ describe("the overlay's layers", () => {
     expect(pin.getAttribute("aria-label")).toBe("Comment 1: Too wide")
     expect(pin.getAttribute("aria-expanded")).toBe("true")
     expect(pin.style.left).toBe("50px")
+    // Drawn in the SVG layer under its key: a balloon whose tail is the point.
+    const drawn = w.overlay.querySelector(".wb-annotations .pin")!
+    expect(drawn.textContent).toBe("1")
+    expect(drawn.querySelector("path")!.getAttribute("d")).toMatch(/^M58 50H/)
     expect(pop().getAttribute("aria-label")).toMatch(/^Comment 1 on /)
     expect(field().value).toBe("")
 
@@ -572,6 +579,39 @@ describe("the overlay's layers", () => {
     act("Delete").click()
     expect(w.b.ws().threads).toHaveLength(0)
     expect(w.overlay.querySelector(".wb-comments .pin")).toBeNull()
+    expect(w.overlay.querySelector(".wb-annotations .pin")).toBeNull()
+  })
+
+  it("copies the annotations as one SVG file, their paint written out", async () => {
+    const w = bench()
+    const written: string[] = []
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: async (t: string) => void written.push(t) },
+      configurable: true,
+    })
+    w.key("s")
+    const key = () =>
+      [...w.card.querySelectorAll<HTMLButtonElement>(".wb-readout .act")].find((k) =>
+        k.textContent?.includes("Copy annotations as SVG"),
+      )!
+    expect(key().disabled).toBe(true)
+    w.b.change((d) => {
+      d.arrows.push({ id: "a1", from: { x: 10, y: 10 }, to: { x: 90, y: 40 }, width: 2, color: "var(--swatch-orange)" })
+      d.notes.push({ id: "n1", at: { x: 5, y: 6 }, text: "tighter", color: "red", size: 13 })
+    })
+    expect(key().disabled).toBe(false)
+    key().click()
+    await tick()
+    expect(written).toHaveLength(1)
+    const svg = new DOMParser().parseFromString(written[0], "image/svg+xml").documentElement
+    expect(svg.getAttribute("viewBox")).toBe("0 0 400 300")
+    expect(svg.querySelectorAll("path").length).toBeGreaterThanOrEqual(2)
+    expect(svg.querySelector("tspan")!.textContent).toBe("tighter")
+    // Plain SVG: no class, data or style the page's sheets would have to answer.
+    expect(written[0]).not.toMatch(/class=|data-|style=/)
+    // Every paint resolved to a value (the swatches are the theme's tokens).
+    expect(svg.querySelector("g[stroke]")!.getAttribute("stroke")).not.toContain("var(")
+    expect(w.card.querySelector('[role="status"]')!.textContent).toBe("Copied the annotations as SVG")
   })
 
   it("holds a press on the tray and a pin from the frame under them", () => {
@@ -631,10 +671,10 @@ describe("the overlay's layers", () => {
     w.point("pointerdown", 10, 10)
     w.point("pointermove", 110, 60)
     expect(w.overlay.querySelector(".wb-ink rect.region")!.getAttribute("width")).toBe("100")
-    expect(w.overlay.querySelector(".wb-size")!.textContent).toBe("100×50")
+    expect(w.overlay.querySelector(".wb-ink .size")!.textContent).toBe("100×50")
     w.key("Escape")
     expect(w.b.draft()).toBeNull()
-    expect(w.overlay.querySelector(".wb-size")).toBeNull()
+    expect(w.overlay.querySelector(".wb-ink .size")).toBeNull()
   })
 })
 

@@ -2,8 +2,11 @@
 // through re-renders (found again by its child path), opens its thread —
 // messages, a reply field, resolve / reopen, delete. A new thread starts
 // where the Comment tool clicks. Enter posts, Shift+Enter breaks the line,
-// Escape closes.
+// Escape closes. `Pins` draws the pins in the overlay's SVG layer; each is
+// pressed through a key of the same size laid over it (named, focusable).
 import { createEffect, createMemo, createSignal, on, Show } from "solid-js"
+import type { Point } from "@/shared/lib/inspect/geometry"
+import { textWidth } from "@/widgets/workbench/model/svg"
 import { ICONS } from "@/widgets/workbench/model/tools"
 import { useBench } from "../context"
 import Icon from "./Icon"
@@ -19,6 +22,54 @@ const ago = (t: number) => {
       : s < 86400
         ? `${Math.round(s / 3600)}h`
         : `${Math.round(s / 86400)}d`
+}
+
+const PIN = 20
+
+/** A pin's balloon standing on `at` (its tail, the bottom-left corner). */
+function balloon(at: Point, label: string) {
+  const w = Math.max(PIN, textWidth(label, 10) + 10)
+  const [x0, y0, x1, y1] = [at.x - 2, at.y - PIN, at.x - 2 + w, at.y]
+  const r = PIN / 2
+  return {
+    d: `M${x0 + r} ${y0}H${x1 - r}A${r} ${r} 0 0 1 ${x1} ${y0 + r}A${r} ${r} 0 0 1 ${x1 - r} ${y1}H${x0 + 2}A2 2 0 0 1 ${x0} ${y1 - 2}V${y0 + r}A${r} ${r} 0 0 1 ${x0 + r} ${y0}Z`,
+    x: x0 + w / 2,
+    y: y0 + r,
+  }
+}
+
+function Pin(props: { at: Point; label: string; class: string }) {
+  const shape = createMemo(() => balloon(props.at, props.label))
+  return (
+    <g class={props.class}>
+      <path d={shape().d} />
+      <text x={shape().x} y={shape().y} text-anchor="middle" dominant-baseline="central">
+        {props.label}
+      </text>
+    </g>
+  )
+}
+
+export function Pins() {
+  const b = useBench()
+  return (
+    <g class="comments-scope">
+      <Keyed each={b.ws().threads}>
+        {(t) => (
+          <Show when={b.pins()[t().id]}>
+            {(at) => (
+              <Pin
+                at={at()}
+                label={String(t().n)}
+                class={`pin${t().resolved ? " resolved" : ""}${b.openThread() === t().id ? " open" : ""}`}
+              />
+            )}
+          </Show>
+        )}
+      </Keyed>
+      <Show when={b.draftThread()}>{(d) => <Pin at={d().at} label="+" class="pin draft" />}</Show>
+    </g>
+  )
 }
 
 export default function Comments() {
@@ -98,13 +149,6 @@ export default function Comments() {
           </button>
         )}
       </Keyed>
-      <Show when={b.draftThread()}>
-        {(d) => (
-          <span class="pin draft" style={{ left: `${d().at.x}px`, top: `${d().at.y}px` }}>
-            +
-          </span>
-        )}
-      </Show>
       <Show when={(thread() || b.draftThread()) && place()}>
         {(at) => (
           <div
