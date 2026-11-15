@@ -1,21 +1,41 @@
+import { createSignal } from "solid-js"
 import { DitherSchedule } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
+  // fractional hours: 13.5 is half past one
+  const [now, setNow] = createSignal(13.5)
+
   return (
-    <>
+    <div class="mx-auto max-w-md">
+      <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
+        now
+        <input
+          value={now()}
+          onInput={(e) => setNow(e.currentTarget.valueAsNumber)}
+          type="range"
+          min="8"
+          max="18"
+          step="0.25"
+          class="h-6 w-40 accent-[var(--accent)]"
+        />
+        <span class="tabular-nums">
+          {Math.floor(now())}:{String(Math.round((now() % 1) * 60)).padStart(2, "0")}
+        </span>
+      </label>
       <DitherSchedule
+        class="mt-3"
         events={[
           { start: 9, end: 10.5, label: "Standup", color: "blue" },
           { start: 11, end: 12.5, label: "Design review", color: "purple" },
           { start: 14, end: 16, label: "Focus block", color: "green" },
+          { start: 16.5, end: 17.5, label: "Client call", color: "orange" },
         ]}
         from={8}
         to={18}
-        now={13.5}
+        now={now()}
       />
-      {/* fractional hours: 13.5 is half past one */}
-    </>
+    </div>
   )
 }
 

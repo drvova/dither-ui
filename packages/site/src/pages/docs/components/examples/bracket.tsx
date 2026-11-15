@@ -1,29 +1,56 @@
-import { createSignal } from "solid-js"
-import { DitherBracket } from "@dither-kit"
+import { createStore, produce } from "solid-js/store"
+import { DitherBracket, type BracketMatch } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  type Pairing = { a: string; b: string; winner?: "a" | "b" }
-
-  const [rounds, setRounds] = createSignal<Pairing[][]>([
+  const [rounds, setRounds] = createStore<BracketMatch[][]>([
     [
       { a: "Bayer", b: "Ordered" },
       { a: "Halftone", b: "Threshold" },
     ],
     [{ a: "TBD", b: "TBD" }],
   ])
-
   // you own the data: the winner advances into the next round
   function pick(r: number, m: number, side: "a" | "b") {
-    const next = rounds().map((round) => round.map((match) => ({ ...match })))
-    const match = next[r][m]
-    match.winner = side
-    const ahead = next[r + 1]?.[Math.floor(m / 2)]
-    if (ahead) ahead[m % 2 === 0 ? "a" : "b"] = match[side]
-    setRounds(next)
+    setRounds(
+      produce((rounds) => {
+        const match = rounds[r][m]
+        match.winner = side
+        const winner = side === "a" ? match.a : match.b
+        const next = rounds[r + 1]?.[Math.floor(m / 2)]
+        if (next) {
+          if (m % 2 === 0) next.a = winner
+          else next.b = winner
+        }
+      }),
+    )
+  }
+  function reset() {
+    setRounds(
+      produce((rounds) => {
+        rounds[0].forEach((m) => delete m.winner)
+        rounds[1][0] = { a: "TBD", b: "TBD" }
+      }),
+    )
   }
 
-  return <DitherBracket rounds={rounds()} interactive color="green" onPick={pick} />
+  return (
+    <div class="grid justify-items-center gap-3">
+      {/* Centred while it fits; on the narrowest phones it scrolls. */}
+      <div class="w-full overflow-x-auto">
+        <div class="mx-auto w-max">
+          <DitherBracket rounds={rounds} interactive color="green" onPick={pick} />
+        </div>
+      </div>
+      <button
+        type="button"
+        class="text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+        onClick={reset}
+      >
+        Reset bracket
+      </button>
+    </div>
+  )
 }
 
 export const meta = defineExample({

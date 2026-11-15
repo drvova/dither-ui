@@ -880,9 +880,11 @@ in the page's folder.
 - The World section's rocket (`docs/components/rocket.ts`, guarded by
   `tests/rocket.spec.ts`) is our own atomic-age rocket, never a real
   vehicle, flag or marking: a VRML file whose flame flickers and whose
-  climb and fireball run on its own tracks, the page's Launch key driving
-  one clock (`launchAt`: the file's moment, then `scatter` blowing the
-  pieces apart at the top; reduced motion goes straight to the debris).
+  climb and fireball run on its own tracks; the example
+  (`components/examples/world-2.tsx`, the file as written, held to
+  `ROCKET` by `tests/site/example-copies.spec.ts`) drives one clock from
+  its Launch key: the file's moment, then `scatter` blowing the pieces
+  apart at the top; reduced motion goes straight to the debris.
 - Live readings: the Gauge section's second card is an instrument panel
   reading the page itself (frames a second, the worst frame over the last
   half second, the page's elements in thousands), measured by its own rAF

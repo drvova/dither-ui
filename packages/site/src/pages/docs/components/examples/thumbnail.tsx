@@ -1,17 +1,21 @@
 import { DitherThumbnail } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
-export default function Example() {
+export default function Example(props: { sprites?: string; poster?: string; image?: string; video?: string }) {
   return (
     <>
       {/* a picture that is a link: it rests under a Bayer veil and wakes under a
            pointer, the picture scaling up a touch inside its frame as the veil goes */}
-      <div class="grid gap-4 sm:grid-cols-2">
-        <DitherThumbnail src="/sprites.webp" alt="The sprite sheet, in the Image docs" href="/docs/image" />
+      <div class="mx-auto grid max-w-xl gap-4 sm:grid-cols-2">
         <DitherThumbnail
-          src="/trailer/poster.webp"
+          src={props.sprites ?? "/sprites.webp"}
+          alt="The sprite sheet, in the Image docs"
+          href={props.image ?? "/docs/image"}
+        />
+        <DitherThumbnail
+          src={props.poster ?? "/trailer/poster.webp"}
           alt="The film's poster, in the Video player docs"
-          href="/docs/video-player"
+          href={props.video ?? "/docs/video-player"}
           ratio="16 / 9"
           veilCell={3}
         />
