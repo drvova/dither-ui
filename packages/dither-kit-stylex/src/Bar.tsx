@@ -1,6 +1,6 @@
 // Generated from @dither-ui/kit/solid/Bar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createEffect, createMemo, Index, mergeProps, onCleanup, Show } from "solid-js"
+import { createComputed, createMemo, Index, mergeProps, onCleanup, Show } from "solid-js"
 import { type StrokeVariant, useChartPart, type VariantInput } from "@dither-ui/kit/solid/runtime/chart-context.ts"
 import { SeriesContext } from "@dither-ui/kit/solid/runtime/series-context.ts"
 import type { SeriesProps } from "./CartesianSeries"
@@ -21,7 +21,8 @@ export default function Bar(raw: BarProps) {
     )
   }
 
-  createEffect(() =>
+  // Registered as it is made, a server render's print included.
+  createComputed(() =>
     ctx.registerSeries({
       dataKey: props.dataKey,
       kind: "bar",

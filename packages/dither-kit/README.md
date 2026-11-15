@@ -1,7 +1,7 @@
 # @dither-ui/kit
 
 Dithered UI toolkit for Solid: composable ordered-dither **charts** (area,
-line, bar, pie, radar) on one tiny canvas engine, plus generative **avatars**,
+line, bar, pie, radar) printed as SVG by one tiny dither engine, plus generative **avatars**,
 **buttons**, **gradient washes** and friends. The kit of
 [dither-ui](https://dither-ui.com).
 
@@ -87,7 +87,7 @@ Pass the resulting public URL as `precompiled` to a chart root or standalone
 surface. The kit currently exports compilers for gradient and button rasters;
 chart, image, and spinner precompiled URLs are consumed by the kit but generated,
 encoded, cached, and invalidated by the host app. The chart image replaces the
-dither canvas while its SVG and DOM children remain available. Use
+dither print while its SVG and DOM children remain available. Use
 `renderMode="static"` when a client paint is needed but animation and resize
 observation are unnecessary. In static mode, `maxCols`/`maxRows` props
 auto-default to `STATIC_DEFAULT_MAX_COLS` (320) and `STATIC_DEFAULT_MAX_ROWS`
@@ -100,7 +100,8 @@ block first contentful paint.
 ## Client cost controls
 
 `cell` controls backing resolution; larger cells mean fewer pixels to compute.
-The kit also pauses chart RAF loops while invisible, batches standalone surface
+Charts print as SVG (no loop; their motion is CSS). The kit pauses canvas RAF
+loops while invisible, batches standalone surface
 pixels through one `putImageData`, and copies bloom layers only after a changed
 frame. `createRasterBuffer()` and `putRasterBuffer()` are exported for host code
 that wants the same reusable RGBA-buffer upload path. `setRasterPixel32()`

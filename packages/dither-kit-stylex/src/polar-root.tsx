@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/polar-root.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type Component, createMemo, type JSX, mergeProps, splitProps } from "solid-js"
+import { CHART_FALLBACK, chartName } from "@dither-ui/kit/engine/chart-svg.ts"
 import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
 import type { BloomInput, EasingInput } from "@dither-ui/kit/engine/dither-paint.ts"
 import { axisAtAngle, sliceAtAngle } from "@dither-ui/kit/engine/polar.ts"
@@ -11,6 +12,7 @@ import { ChartLayers } from "./runtime/chart-layer"
 import { CommonChartContext } from "@dither-ui/kit/solid/runtime/common-context.ts"
 import { PolarChartContext, usePolarController } from "@dither-ui/kit/solid/runtime/polar-context.ts"
 import { useChartDimensions } from "@dither-ui/kit/solid/runtime/use-chart-dimensions.ts"
+import "@dither-ui/kit/solid/chart.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -131,10 +133,10 @@ function also<E extends Event>(handler: unknown, e: E) {
 }
 
 /** Builds a concrete polar chart component (PieChart, RadarChart) with the
- * family painter + optional back decoration baked in. */
+ * family's print + optional back decoration baked in. */
 export function definePolarChart(
   chartType: "pie" | "radar",
-  canvas: Component,
+  plot: Component,
   backDecoration?: Component,
 ): Component<PolarChartProps> {
   return function PolarChart(raw: PolarChartProps) {
@@ -153,7 +155,7 @@ export function definePolarChart(
     )
     const [props, rest] = splitProps(merged, OWN)
     let el: HTMLDivElement | undefined
-    const { size } = useChartDimensions(() => el)
+    const { size } = useChartDimensions(() => el, CHART_FALLBACK.polar)
     const margins = createMemo<Margins>(() => ({
       ...DEFAULT_POLAR_MARGINS,
       ...props.margins,
@@ -236,10 +238,20 @@ export function definePolarChart(
               width={size().width}
               height={size().height}
               transform={`translate(${margins().left},${margins().top})`}
-              ready={ctx.ready}
-              canvas={canvas}
+              label={chartName(chartType, ctx.common.names.map(ctx.common.labelOf))}
+              motion={{
+                enter: ctx.animate,
+                duration: ctx.animationDuration,
+                delay: ctx.animationDelay,
+                easing: ctx.easing,
+                revision: ctx.revision,
+                lift: ctx.hoverLift ? 0.22 * ctx.hoverStrength : 0,
+                hovered: false,
+                bloomOnHover: ctx.bloomOnHover,
+                tooltip: ctx.common.tooltip,
+              }}
+              plot={plot}
               backDecoration={backDecoration}
-              alwaysBack
             >
               {props.children}
             </ChartLayers>

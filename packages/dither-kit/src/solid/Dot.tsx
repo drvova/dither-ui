@@ -16,12 +16,7 @@ export default function Dot(raw: DotProps) {
   return (
     <Show when={ctx.ready && band()}>
       {(b) => (
-        <g
-          style={{
-            opacity: ctx.entranceDone ? 1 : 0,
-            transition: "opacity 300ms ease",
-          }}
-        >
+        <g class="dk-chart-after">
           <Index each={b()}>
             {(pt, i) => (
               <circle

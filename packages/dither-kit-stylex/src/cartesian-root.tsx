@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/cartesian-root.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { type Component, createMemo, type JSX, mergeProps, splitProps } from "solid-js"
+import { CHART_FALLBACK, chartName } from "@dither-ui/kit/engine/chart-svg.ts"
 import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
 import type { BloomInput, EasingInput } from "@dither-ui/kit/engine/dither-paint.ts"
 import { precompiledSrc, type PrecompiledDither } from "@dither-ui/kit/engine/precompile.ts"
@@ -16,6 +17,7 @@ import {
 import { ChartLayers } from "./runtime/chart-layer"
 import { CommonChartContext } from "@dither-ui/kit/solid/runtime/common-context.ts"
 import { useChartDimensions } from "@dither-ui/kit/solid/runtime/use-chart-dimensions.ts"
+import "@dither-ui/kit/solid/chart.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -158,19 +160,15 @@ function also<E extends Event>(handler: unknown, e: E) {
 }
 
 /**
- * Shared root for the cartesian dither charts (area, line, bar). Owns the
- * measured size, the shared context, and pointer interaction; every visual is
- * composed as children. Back chrome (grid) sits behind the dither
- * canvas; the canvas paints the fill/line/bars + stars; front chrome (axes,
- * dots) and DOM legend/tooltip layer on top. `chartType` drives the scales and
- * the `canvas` prop supplies the family's painter.
- */
-/**
  * Builds a concrete cartesian chart component (AreaChart, LineChart, BarChart)
- * with `chartType` + `canvas` baked in, so the public component exposes only the
- * data/config/composition props — no forwarding, fully typed.
+ * with `chartType` + `plot` baked in, so the public component exposes only the
+ * data/config/composition props — no forwarding, fully typed. The root owns
+ * the measured size, the shared context, and pointer interaction; every
+ * visual is composed as children. Back chrome (grid) sits behind the
+ * family's print (the fill, line or bars + stars, as SVG); front chrome
+ * (axes, dots) and the DOM legend/tooltip layer on top.
  */
-export function defineCartesianChart(chartType: ChartType, canvas: Component): Component<CartesianChartProps> {
+export function defineCartesianChart(chartType: ChartType, plot: Component): Component<CartesianChartProps> {
   return function CartesianChart(raw: CartesianChartProps) {
     const merged = mergeProps(
       {
@@ -192,7 +190,7 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component): C
     )
     const [props, rest] = splitProps(merged, OWN)
     let el: HTMLDivElement | undefined
-    const { size } = useChartDimensions(() => el)
+    const { size } = useChartDimensions(() => el, CHART_FALLBACK.cartesian)
     const margins = createMemo<Margins>(() => ({
       ...DEFAULT_MARGINS,
       ...props.margins,
@@ -207,6 +205,7 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component): C
       stackType: () => props.stackType,
       dimensions: size,
       margins,
+      interactive: () => props.interactive,
       animate: () => props.animate,
       // Explicit prop > master-seed derivation > house default.
       animationDuration: () => props.animationDuration ?? seeded()?.duration ?? 900,
@@ -275,8 +274,19 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component): C
               width={size().width}
               height={size().height}
               transform={`translate(${margins().left},${margins().top})`}
-              ready={ctx.ready}
-              canvas={canvas}
+              label={chartName(chartType, ctx.configKeys.map(ctx.common.labelOf))}
+              motion={{
+                enter: ctx.animate,
+                duration: ctx.animationDuration,
+                delay: ctx.animationDelay,
+                easing: ctx.easing,
+                revision: ctx.revision,
+                lift: ctx.hoverLift ? 0.22 * ctx.hoverStrength : 0,
+                hovered: ctx.hovered,
+                bloomOnHover: ctx.bloomOnHover,
+                tooltip: ctx.common.tooltip,
+              }}
+              plot={plot}
             >
               {props.children}
             </ChartLayers>

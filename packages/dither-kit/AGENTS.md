@@ -17,8 +17,8 @@ package's paths are from the repository's root.
   step-timing primitives, the sequence timeline algebra, the clock director,
   the wipe engine (ordered-dither masks), the keyframe engine (container
   units), the score engine (a film's soundtrack from its cut),
-  container-query scales, chart roots/contexts, canvas painters, and the
-  public component set.
+  container-query scales, chart roots/contexts and the charts' SVG print,
+  canvas painters, and the public component set.
 - Consumers import ONLY what `package.json` `exports` declares: the Solid
   layer's index (`@dither-ui/kit`, `src/solid/index.ts`; a reader who copied
   `src/` aliases `@dither-kit` to its `solid/`), the engine's public API
@@ -41,13 +41,8 @@ generated twin. Inside the kit every import is relative
 
 - `engine/` — every module that carries no class name and no framework:
   palette, pixel, raster, the painters and backgrounds' renderers, the
-  chart paint loops (`cartesian-loop.ts`, `bar-loop.ts`, `pie-loop.ts`,
-  `radar-loop.ts`: `startCartesianLoop`, `startBarLoop`, `startPieLoop`,
-  `startRadarLoop`, over `chart-loop.ts`: the canvases at the backing
-  size, the timed entrance, the frames a loop is driven on, and the
-  bar, pie and radar charts' whole draw, `startChartLoop`, around a
-  family's own `paint`), the one rule for when a chart's held fill is stale
-  (`chart-fill.ts`) and the chart family's types (`chart-types.ts`),
+  charts' print (`chart-svg.ts`, the Charts contract below) and the chart
+  family's types (`chart-types.ts`),
   timing, sequence, clock, wipe, keyframes, score, parsers and GL engines,
   `copy-text.ts`, `theme.css`, `theme.ts` and `base.css` (the scoped
   box-model base every layer assumes), `tone.ts` and the stylesheet it
@@ -87,13 +82,13 @@ generated twin. Inside the kit every import is relative
   names, `<name>-enter-from` / `-enter-active` / `-enter-to` and the three
   `-leave-*`, so a transition is a plain stylesheet), and the chart
   family's (`chart-context.ts`, `common-context.ts`, `polar-context.ts`,
-  `series-context.ts`, `use-chart-dimensions.ts`, `plot-canvas.tsx`
-  (`PlotCanvas`: every family's dither and bloom canvases, or the
-  precompiled image, and its loop started, restarted and woken) under
-  `cartesian-canvas.tsx`, `bar-canvas.tsx` and `polar-canvas.tsx` (the
-  pie's and the radar's, one canvas over each one's loop and fill), and
-  `chart-layer.tsx`, which sorts a chart root's children into its back,
-  drawing and DOM layers).
+  `series-context.ts`, `use-chart-dimensions.ts`, `chart-plot.tsx`
+  (`PlotFrame`: every family's print at the margins, or the precompiled
+  image, the bloom over it and its marks; `Cells`, `Inks`) under
+  `cartesian-plot.tsx`, `bar-plot.tsx` and `polar-plot.tsx` (the pie's
+  and the radar's), and `chart-layer.tsx`, which sorts a chart root's
+  children into its back, front and DOM layers and stacks them in the
+  root's one `<svg>`).
   Conventions: props are never destructured (defaults through `mergeProps`,
   a control's own props apart from the element's through `splitProps`, the
   rest spread on the element so listeners and ARIA reach it); elements are
@@ -252,12 +247,9 @@ generated twin. Inside the kit every import is relative
   it provides (`ScreenContext`; Bayer without one), seeded as ever;
   the charts' contexts expose the same as `matrixOf(variant)`
   (`useVariantMatrix`, `resolveMatrix` when no screen is around). A
-  screen that changes reprints a chart through `engine/chart-fill.ts`:
-  `seriesFill`, `pieFill` and `radarFill` name everything a family's
-  fill is printed from, each series' matrix among it; a loop reprints
-  when that differs from the fill it holds, and the family's canvas
-  reads the same function in its wake list, so a new input to the fill
-  is added there once. A fill
+  screen that changes reprints a chart: its print is a memo over what it
+  reads, `matrixOf` among it, so a new matrix prints new inks and the
+  same matrix the same. A fill
   that carries a label (badge, toggle, button) keeps Bayer through
   `useLabelMatrix`, because a hatch under type breaks its letters.
   `precompile.ts` takes a `screen` option for surfaces that raster
@@ -321,9 +313,9 @@ generated twin. Inside the kit every import is relative
   render with one worker; a moment that is not the next step, the first
   included, prints on a clean raster), holds a paused surface on its
   first frame (clock 0) whatever the moment, and prints the moment again
-  when what its frame read changes (`holds()` is true while directed); the chart canvases run the entrance from
-  composition time 0 and derive the sparkle tick from the moment;
-  spinner, skeleton, progress, avatar and `CurvedLoop` are pure functions
+  when what its frame read changes (`holds()` is true while directed); a
+  chart's entrance and sparkles are `dk-*` CSS animations
+  (`solid/chart.css`), directed like the rest below; spinner, skeleton, progress, avatar and `CurvedLoop` are pure functions
   of the moment. A canvas that changes on a cadence reads the moment from
   `src/solid/runtime/kit-time.ts` (`createKitTime(host, reduced)`: the
   run's own ms, advanced by frames while in view, a step at most 100ms, at
@@ -1228,7 +1220,7 @@ generated twin. Inside the kit every import is relative
   keyboard focus: an outline sits under its canvases, and its well clips
   an outer one.
 - Canvas visibility defaults to paused until IntersectionObserver reports the
-  element visible; do not start chart animation loops optimistically before the
+  element visible; do not start a canvas loop optimistically before the
   first visibility observation. The IO callback must record the element as
   visible before calling `onWake` so `schedule()` sees the correct state,
   and reads the NEWEST entry it is handed (`latestEntry`,
@@ -1236,10 +1228,6 @@ generated twin. Inside the kit every import is relative
   Chromium hands one callback an entry per change, oldest first, so a
   canvas observed at 0x0 and sized a moment later arrives as [out, in]
   (`tests/surface-loop.spec.ts`).
-- A chart loop that skips a frame with nothing new to paint still asks for
-  the next one while its entrance is under way (a delay, or two frames on
-  one timestamp), in the engine's cartesian loop; else it stops
-  part drawn until a hover wakes it. `tests/chart-entrance.spec.ts`.
 - `precompile.ts` must remain browser/SSR safe: it returns raw RGBA buffers and
   must not import a framework, DOM APIs, or a server-specific image encoder. Consumers
   own caching and invalidation of packaged assets.
@@ -1287,8 +1275,47 @@ generated twin. Inside the kit every import is relative
   DitherImage for per-instance tuning; the button's `renderMode="static"`
   only holds its fill at rest.
 - Chart composition: root provides context (`cartesian-root` / `polar-root`),
-  children register series via contexts. Props are declared with explicit
+  children register series via contexts as they are made (`createComputed`,
+  so a server render's print reads them). Props are declared with explicit
   runtime defaults.
+- Charts are SVG: a chart with its data prints on the server, no canvas
+  and no script needed to see it. `engine/chart-svg.ts` paints each
+  family's resting frame (no hover, the entrance done, the sparkles
+  apart) into a raster with the same thresholds, alphas and blends the
+  canvas loops used, and `rasterInks` writes it as paths, one a distinct
+  RGBA (the cell's stored bytes as the colour, its alpha byte as the
+  opacity, so the SVG composites what `putImageData` showed), each row's
+  runs a 1-unit stroke, in a viewBox of the backing's cells over the plot
+  (`preserveAspectRatio="none"`, `crispEdges`): cell for cell the canvas,
+  every family, and pixel for pixel in Chromium at 1x and 2x (Gecko's
+  canvas premultiplies, so there the two differ by at most 8/255). Tone
+  patterns (`<pattern>` Bayer levels) were measured and not taken: a
+  fill's alpha ramps cell by cell, so 16 tones hold 7 to 49% of a chart's
+  cells. Bars and slices are inked per owner (`rasterInks`' owner map),
+  each its own mark. The root's one `<svg>` (`chart-layer.tsx`) is named
+  for the chart and its series (`chartName`: `role="group"`, a `<title>`),
+  sized to the measured box, or before a measure to `CHART_FALLBACK`
+  (600x240, polar 320x320) scaled into the box; axes, ring labels and
+  values are `<text>`, the legend HTML (its keys are buttons). A mark
+  (a data index, a bar, a slice, a radar axis; `role="img"`, named by its
+  heading and values, `headingOf`: the row's first text outside the
+  series) shows its crosshair cells and its values under `:hover` or
+  `data-marked` (`markerIndex`), none while a composed `<Tooltip>` shows
+  them (`data-tooltip`), none on a chart that is not `interactive`. The
+  motion is `solid/chart.css`'s: the entrance (`data-enter`, timed by
+  `--dk-chart-duration`/`-delay`/`-ease` from the root's props,
+  `cssEasing`): a clip sweep (reversed where the seed reverses it), bars
+  growing from their base in the stagger's wave, the pie's arc mask going
+  round, the radar scaling out of its centre, dots after it; the lift
+  (`data-lift`, an alpha slope filter), bars fading under another's
+  hover, a slice popping along its middle, the bloom (an SVG filter of the
+  same blur, brightness and saturation, `bloomOf`) and the sparkles'
+  twinkle; all of it off under reduced motion. A replay or new data
+  remounts the `<svg>`, so the entrance runs again; `entranceDone` (the
+  active dot) lands on the entrance's `animationend`, at once without
+  one. Pinned by `tests/chart-svg.spec.ts` (the inks draw back the raster
+  byte for byte, each cell in its owner's group; a new screen, new inks)
+  and `tests/solid/charts.spec.tsx`.
 - A component's props type is the one description of its props: the
   docs' API tables print it (`packages/site/build/props.ts`), the Studio's
   registry is held to it, and a reader copying the kit reads it in their
@@ -1333,8 +1360,8 @@ generated twin. Inside the kit every import is relative
 - Print screens: `tests/screens.spec.ts` (each screen a permutation, the
   seeded jitter equal to Bayer's) and the `DitherScreen` cases of
   `tests/solid/carried.spec.tsx` and `tests/solid/kit.spec.tsx`
-  (a `DitherScreen` reaching a surface), `tests/chart-screen.spec.ts` (each
-  chart loop reprints on a new matrix and sleeps on the same one) and the
+  (a `DitherScreen` reaching a surface), `tests/chart-svg.spec.ts` (each
+  chart family's print takes a new matrix and keeps the same one) and the
   `DitherScreen` cases of `tests/solid/charts.spec.tsx`; the poster:
   `tests/poster.spec.ts`.
 - Painting at memory speed: `tests/paint-limits.spec.ts` pins `cellCanvas`

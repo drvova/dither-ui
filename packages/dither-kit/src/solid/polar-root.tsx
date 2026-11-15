@@ -1,4 +1,5 @@
 import { type Component, createMemo, type JSX, mergeProps, splitProps } from "solid-js"
+import { CHART_FALLBACK, chartName } from "../engine/chart-svg"
 import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "../engine/dither-paint"
 import type { BloomInput, EasingInput } from "../engine/dither-paint"
 import { axisAtAngle, sliceAtAngle } from "../engine/polar"
@@ -9,6 +10,7 @@ import { ChartLayers } from "./runtime/chart-layer"
 import { CommonChartContext } from "./runtime/common-context"
 import { PolarChartContext, usePolarController } from "./runtime/polar-context"
 import { useChartDimensions } from "./runtime/use-chart-dimensions"
+import "./chart.css"
 
 type Row = Record<string, unknown>
 
@@ -122,10 +124,10 @@ function also<E extends Event>(handler: unknown, e: E) {
 }
 
 /** Builds a concrete polar chart component (PieChart, RadarChart) with the
- * family painter + optional back decoration baked in. */
+ * family's print + optional back decoration baked in. */
 export function definePolarChart(
   chartType: "pie" | "radar",
-  canvas: Component,
+  plot: Component,
   backDecoration?: Component,
 ): Component<PolarChartProps> {
   return function PolarChart(raw: PolarChartProps) {
@@ -144,7 +146,7 @@ export function definePolarChart(
     )
     const [props, rest] = splitProps(merged, OWN)
     let el: HTMLDivElement | undefined
-    const { size } = useChartDimensions(() => el)
+    const { size } = useChartDimensions(() => el, CHART_FALLBACK.polar)
     const margins = createMemo<Margins>(() => ({
       ...DEFAULT_POLAR_MARGINS,
       ...props.margins,
@@ -227,10 +229,20 @@ export function definePolarChart(
               width={size().width}
               height={size().height}
               transform={`translate(${margins().left},${margins().top})`}
-              ready={ctx.ready}
-              canvas={canvas}
+              label={chartName(chartType, ctx.common.names.map(ctx.common.labelOf))}
+              motion={{
+                enter: ctx.animate,
+                duration: ctx.animationDuration,
+                delay: ctx.animationDelay,
+                easing: ctx.easing,
+                revision: ctx.revision,
+                lift: ctx.hoverLift ? 0.22 * ctx.hoverStrength : 0,
+                hovered: false,
+                bloomOnHover: ctx.bloomOnHover,
+                tooltip: ctx.common.tooltip,
+              }}
+              plot={plot}
               backDecoration={backDecoration}
-              alwaysBack
             >
               {props.children}
             </ChartLayers>

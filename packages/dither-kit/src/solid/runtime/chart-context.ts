@@ -85,6 +85,7 @@ export type ControllerInput = {
   stackType: () => StackType
   dimensions: () => Dimensions
   margins: () => Margins
+  interactive: () => boolean
   animate: () => boolean
   animationDuration: () => number
   animationDelay: () => number
@@ -116,8 +117,7 @@ export type ControllerInput = {
 /**
  * Builds the shared chart context. Derivations are memos, interaction is
  * signals, and the value is a plain object whose getters delegate to those
- * reactive sources: reading `ctx.ready` in JSX tracks, while the canvas RAF
- * loop reads `state.current.configKeys` fresh each frame.
+ * reactive sources: reading `ctx.ready` in JSX or a memo tracks.
  */
 export function useChartController(input: ControllerInput): ChartContextValue {
   const isBar = input.chartType === "bar"
@@ -128,6 +128,7 @@ export function useChartController(input: ControllerInput): ChartContextValue {
   const [cursorX, setCursorXSignal] = createSignal(0)
   const [isMouseInChart, setIsMouseInChartSignal] = createSignal(false)
   const [seriesSpecs, setSeriesSpecsSignal] = createSignal<Record<string, SeriesSpec>>({})
+  const [tooltip, setTooltip] = createSignal(false)
 
   const [revision, setRevision] = createSignal(0)
   const [entranceDone, setEntranceDone] = createSignal(!input.animate())
@@ -238,6 +239,10 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     get ready() {
       return ready()
     },
+    get tooltip() {
+      return tooltip()
+    },
+    showsTooltip: setTooltip,
     get tooltipLeft() {
       return Math.max(48, Math.min(plotWidth() + input.margins().left - 48, cursorX()))
     },
@@ -293,6 +298,9 @@ export function useChartController(input: ControllerInput): ChartContextValue {
     },
     get ready() {
       return ready()
+    },
+    get interactive() {
+      return input.interactive()
     },
     xCenter,
     get bandwidth() {

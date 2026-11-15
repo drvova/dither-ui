@@ -1,6 +1,6 @@
 // Generated from @dither-ui/kit/solid/CartesianSeries.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createEffect, createMemo, type JSX, mergeProps, onCleanup, Show } from "solid-js"
+import { createComputed, createMemo, type JSX, mergeProps, onCleanup, Show } from "solid-js"
 import {
   type SeriesKind,
   type StrokeVariant,
@@ -42,7 +42,8 @@ export default function CartesianSeries(raw: CartesianSeriesProps) {
     )
   }
 
-  createEffect(() =>
+  // Registered as it is made, a server render's print included.
+  createComputed(() =>
     ctx.registerSeries({
       dataKey: props.dataKey,
       kind: props.kind,

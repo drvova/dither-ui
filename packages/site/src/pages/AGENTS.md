@@ -1578,7 +1578,8 @@ in the page's folder.
   macrotask (Solid mounts in the call itself) — never an animation frame: the renderer drives
   Chrome with begin-frame control, so frames and rAF only happen when it
   captures one, and every surface paints its moment synchronously on seek
-  (a chart that measures later repaints the moment through its `wake`).
+  (a chart prints as SVG, its entrance a CSS animation the renderer
+  seeks).
   `routes/play.tsx` is the page (noindex, outside the site's shell,
   prerendered as `play/index.html`) and the
   same `main.ts` (`mountPlayer`) is the entry of the single-file bundle

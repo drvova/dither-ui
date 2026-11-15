@@ -99,8 +99,12 @@ describe("the Solid StyleX layer", () => {
     const { files } = await generate()
     expect([...files].filter(([, t]) => /from "[^"]*tailwind\//.test(t)).map(([n]) => n)).toEqual([])
     expect([...files.keys()].filter((n) => n.startsWith("runtime/"))).toEqual([
+      "runtime/bar-plot.tsx",
+      "runtime/cartesian-plot.tsx",
       "runtime/chart-layer.tsx",
+      "runtime/chart-plot.tsx",
       "runtime/fill-layers.tsx",
+      "runtime/polar-plot.tsx",
     ])
   }, 120_000)
 

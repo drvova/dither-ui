@@ -1,4 +1,5 @@
 import { type Component, createMemo, type JSX, mergeProps, splitProps } from "solid-js"
+import { CHART_FALLBACK, chartName } from "../engine/chart-svg"
 import { bloomFromSeed, easingFromSeed, geometryFromSeed, motionFromSeed } from "../engine/dither-paint"
 import type { BloomInput, EasingInput } from "../engine/dither-paint"
 import { precompiledSrc, type PrecompiledDither } from "../engine/precompile"
@@ -14,6 +15,7 @@ import {
 import { ChartLayers } from "./runtime/chart-layer"
 import { CommonChartContext } from "./runtime/common-context"
 import { useChartDimensions } from "./runtime/use-chart-dimensions"
+import "./chart.css"
 
 type Row = Record<string, unknown>
 
@@ -149,19 +151,15 @@ function also<E extends Event>(handler: unknown, e: E) {
 }
 
 /**
- * Shared root for the cartesian dither charts (area, line, bar). Owns the
- * measured size, the shared context, and pointer interaction; every visual is
- * composed as children. Back chrome (grid) sits behind the dither
- * canvas; the canvas paints the fill/line/bars + stars; front chrome (axes,
- * dots) and DOM legend/tooltip layer on top. `chartType` drives the scales and
- * the `canvas` prop supplies the family's painter.
- */
-/**
  * Builds a concrete cartesian chart component (AreaChart, LineChart, BarChart)
- * with `chartType` + `canvas` baked in, so the public component exposes only the
- * data/config/composition props — no forwarding, fully typed.
+ * with `chartType` + `plot` baked in, so the public component exposes only the
+ * data/config/composition props — no forwarding, fully typed. The root owns
+ * the measured size, the shared context, and pointer interaction; every
+ * visual is composed as children. Back chrome (grid) sits behind the
+ * family's print (the fill, line or bars + stars, as SVG); front chrome
+ * (axes, dots) and the DOM legend/tooltip layer on top.
  */
-export function defineCartesianChart(chartType: ChartType, canvas: Component): Component<CartesianChartProps> {
+export function defineCartesianChart(chartType: ChartType, plot: Component): Component<CartesianChartProps> {
   return function CartesianChart(raw: CartesianChartProps) {
     const merged = mergeProps(
       {
@@ -183,7 +181,7 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component): C
     )
     const [props, rest] = splitProps(merged, OWN)
     let el: HTMLDivElement | undefined
-    const { size } = useChartDimensions(() => el)
+    const { size } = useChartDimensions(() => el, CHART_FALLBACK.cartesian)
     const margins = createMemo<Margins>(() => ({
       ...DEFAULT_MARGINS,
       ...props.margins,
@@ -198,6 +196,7 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component): C
       stackType: () => props.stackType,
       dimensions: size,
       margins,
+      interactive: () => props.interactive,
       animate: () => props.animate,
       // Explicit prop > master-seed derivation > house default.
       animationDuration: () => props.animationDuration ?? seeded()?.duration ?? 900,
@@ -266,8 +265,19 @@ export function defineCartesianChart(chartType: ChartType, canvas: Component): C
               width={size().width}
               height={size().height}
               transform={`translate(${margins().left},${margins().top})`}
-              ready={ctx.ready}
-              canvas={canvas}
+              label={chartName(chartType, ctx.configKeys.map(ctx.common.labelOf))}
+              motion={{
+                enter: ctx.animate,
+                duration: ctx.animationDuration,
+                delay: ctx.animationDelay,
+                easing: ctx.easing,
+                revision: ctx.revision,
+                lift: ctx.hoverLift ? 0.22 * ctx.hoverStrength : 0,
+                hovered: ctx.hovered,
+                bloomOnHover: ctx.bloomOnHover,
+                tooltip: ctx.common.tooltip,
+              }}
+              plot={plot}
             >
               {props.children}
             </ChartLayers>

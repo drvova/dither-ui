@@ -273,9 +273,9 @@ visual difference at low opacity is imperceptible. Override per-instance with
 ```
 
 Without a packaged asset, the kit also batches gradient and spinner pixels
-through `ImageData`, caps chart backing resolution with `cell`, pauses
-off-screen chart loops, and avoids rebuilding bloom layers when the frame is
-unchanged. Exported constants `DEFAULT_MAX_COLS` (960), `DEFAULT_MAX_ROWS`
+through `ImageData`, caps chart backing resolution with `cell`, prints charts
+as SVG with no loop at all (their motion is CSS), and avoids rebuilding bloom
+layers when the frame is unchanged. Exported constants `DEFAULT_MAX_COLS` (960), `DEFAULT_MAX_ROWS`
 (600), `STATIC_DEFAULT_MAX_COLS` (320), `STATIC_DEFAULT_MAX_ROWS` (200) let
 server-side compilers match client caps.
 
@@ -298,10 +298,14 @@ The kit applies several main-thread optimizations that benefit every consumer:
   group print their fill as CSS (`@dither-ui/kit/engine/tones.css`: every
   print screen's 17 tones as 4x4 tiles), rendered with the page: no canvas,
   no paint, and a hover or press steps between tones in the stylesheet.
-- **`IntersectionObserver` visibility gating.** Chart paint loops remain
+- **`IntersectionObserver` visibility gating.** Canvas loops remain
   paused until the IO reports the canvas visible. The IO callback marks the
   canvas visible before calling `onWake` so `schedule()` sees the correct
   state and requests a RAF immediately.
+- **Charts print as SVG.** A chart's dither is its cells written as SVG
+  paths, one an ink, painted once from its data (on the server for a
+  prerendered page): no canvas, no frame loop, nothing to wake; the
+  entrance, the hover and the sparkles are CSS.
 
 Kit-level benchmarks on the Solid components, in a real DOM
 (`npm run bench:browser -w @dither-ui/kit`, Solid's production build, 3 warmups +

@@ -1,4 +1,4 @@
-import { createEffect, createMemo, type JSX, mergeProps, onCleanup, Show } from "solid-js"
+import { createComputed, createMemo, type JSX, mergeProps, onCleanup, Show } from "solid-js"
 import { type SeriesKind, type StrokeVariant, useChartPart, type VariantInput } from "./runtime/chart-context"
 import { SeriesContext } from "./runtime/series-context"
 
@@ -35,7 +35,8 @@ export default function CartesianSeries(raw: CartesianSeriesProps) {
     )
   }
 
-  createEffect(() =>
+  // Registered as it is made, a server render's print included.
+  createComputed(() =>
     ctx.registerSeries({
       dataKey: props.dataKey,
       kind: props.kind,

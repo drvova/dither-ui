@@ -1,6 +1,6 @@
 // Generated from @dither-ui/kit/solid/Tooltip.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createMemo, For, mergeProps, Show } from "solid-js"
+import { createMemo, For, mergeProps, onCleanup, onMount, Show } from "solid-js"
 import { rgb } from "@dither-ui/kit/engine/palette.ts"
 import { cn, type StyleProp } from "./lib"
 import { chartLayer } from "./runtime/chart-layer"
@@ -65,6 +65,12 @@ export default function Tooltip(raw: TooltipProps) {
   const props = mergeProps({ variant: "default" as TooltipVariant }, raw)
 
   const chart = useCommonChart()
+  // Once it can show (a script runs), the values are the tooltip's: the
+  // print's marks show none of their own.
+  onMount(() => {
+    chart.showsTooltip(true)
+    onCleanup(() => chart.showsTooltip(false))
+  })
   const show = createMemo(() => chart.ready && chart.hoverIndex != null)
 
   // Retain the last hovered index so the card keeps its content while fading out.
