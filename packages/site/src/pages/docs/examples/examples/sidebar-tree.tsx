@@ -124,12 +124,8 @@ export default function Example() {
             <span class="text-foreground">{treeActive()}</span>
           </div>
           <div class="grid flex-1 gap-1.5 p-4" aria-hidden="true">
-            <For each={Array.from({ length: 8 }, (_, k) => k + 1)}>
-              {(i) => (
-                <div
-                  class={`h-2 rounded-sm bg-border/40 ${["w-2/3", "w-11/12", "w-3/4", "w-5/6", "w-1/2", "w-4/5", "w-2/3", "w-1/3"][i - 1]}`}
-                />
-              )}
+            <For each={[66.67, 91.67, 75, 83.33, 50, 80, 66.67, 33.33]}>
+              {(w) => <div class="h-2 rounded-sm bg-border/40" style={{ width: `${w}%` }} />}
             </For>
           </div>
         </div>

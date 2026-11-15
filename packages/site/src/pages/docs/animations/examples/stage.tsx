@@ -17,6 +17,8 @@ export default function Example() {
   // the same keys, resolved to px for painters
   // the engine alone: sampleKeyframes, keyframeTransform and resolveSample sample the same keys,
   // write the transform and resolve it to px
+  // stage-demo, stage-sky, stage-hills, stage-moon and stage-dot are hooks for your
+  // stylesheet: the docs give the stage its height and frame, and the hills, moon and dot their fills
   return (
     <>
       <div ref={widen} class="mb-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">

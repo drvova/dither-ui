@@ -18,6 +18,9 @@ export default function Example() {
   // that measure the container itself: .scan { animation: dither-cq-traverse 2.8s ease-in-out
   // infinite alternate; } the selector route, the engine's active bucket on the host element:
   // .cq-card[data-cq="xs"] .cell { border-color: #d9a441; } .cq-card[data-cq="xl"] .cell {
+  // cq-panel, cq-readout, cq-bucket, cq-grid, seq-cell and cq-scan are hooks for your
+  // stylesheet: the docs size the panel (a native resize box), lay the grid's columns off the
+  // panel's [data-cq] bucket, and run the scan on dither-cq-traverse, which measures 100cqw
   return (
     <>
       <div class="mb-3 flex flex-wrap items-center gap-2">

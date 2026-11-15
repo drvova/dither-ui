@@ -46,7 +46,7 @@ function closing(text: string, open: number): number {
 
 /** The props a page's pickers hand an example: a value each, or `undefined`
  * for one the example leaves at its own default. */
-export type ExampleProps = Readonly<Record<string, Data | undefined>>
+type ExampleProps = Readonly<Record<string, Data | undefined>>
 
 /**
  * An example module as the reader takes it for the props its card's pickers

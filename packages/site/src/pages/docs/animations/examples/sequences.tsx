@@ -13,6 +13,8 @@ export default function Example() {
   // children wave in from the center, ping-pong three times, quantized; the driver writes --seq-p (0
   // to 1) and data-seq (before, active or done) on each child, and each child styles itself from
   // them. planSequence and sampleSequence run the same algebra under your own clock
+  // seq-cell is a hook for your stylesheet: each cell reads the driver's --seq-p (0 to 1) and
+  // data-seq; the docs give it opacity: var(--seq-p, 0) and a rise of (1 - p) * 16px
   return (
     <>
       <div class="mb-3 flex flex-wrap items-center gap-2">

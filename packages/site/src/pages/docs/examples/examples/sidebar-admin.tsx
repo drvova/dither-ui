@@ -109,7 +109,10 @@ export default function Example() {
               {(i) => (
                 <div class="flex h-8 items-center gap-3 rounded-md border border-border/60 px-3">
                   <span class="size-3 rounded-[2px] bg-border/70" />
-                  <span class={`h-2 rounded-sm bg-border/50 ${["w-1/3", "w-1/4", "w-2/5", "w-1/3", "w-1/5"][i - 1]}`} />
+                  <span
+                    class="h-2 rounded-sm bg-border/50"
+                    style={{ width: `${[33.33, 25, 40, 33.33, 20][i - 1]}%` }}
+                  />
                   <span class="ml-auto h-2 w-10 rounded-sm bg-border/40" />
                 </div>
               )}

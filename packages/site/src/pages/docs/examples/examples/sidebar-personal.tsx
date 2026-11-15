@@ -76,13 +76,7 @@ export default function Example() {
                 <For each={calCells}>
                   {(day) => (
                     <span
-                      class={`grid h-5 place-items-center rounded-[3px] ${
-                        day === CAL_TODAY
-                          ? "bg-card text-foreground ring-1 ring-border"
-                          : day
-                            ? "text-muted-foreground"
-                            : ""
-                      }`}
+                      class={`grid h-5 place-items-center rounded-[3px] ${day === CAL_TODAY ? "bg-card text-foreground ring-1 ring-border" : "text-muted-foreground"}`}
                     >
                       {day ?? ""}
                     </span>
