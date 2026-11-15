@@ -268,7 +268,8 @@ are from the repository's.
   the twin made relative, and the real script run against it,
   `tests/exports.spec.ts`: no export of the
   site's, the rewriter's or the tasks' modules that nothing in the
-  workspace imports, specs counting, `tests/focus-ring.spec.ts`,
+  workspace imports, specs counting, a docs example's `meta` and its
+  default read by the catalogue instead, `tests/focus-ring.spec.ts`,
   `tests/observer-entries.spec.ts`: every visibility observer in the kit
   and the site reads its newest entry, never only the first,
   `tests/site/stylex-layer.spec.tsx`, `tests/site/paint-law.spec.tsx`: the

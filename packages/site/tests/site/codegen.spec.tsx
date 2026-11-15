@@ -260,8 +260,10 @@ describe("widgetCode", () => {
     expect(input).toContain('import { createSignal } from "solid-js"')
     expect(input).toContain('const [value, setValue] = createSignal("")')
     expect(input).toContain("<DitherInput modelValue={value()} onUpdateModelValue={setValue} ")
-    // a model on its own prop and event: an update carries the next value...
-    const page = widgetCode(createComponent(componentEntry("DitherPagination")!), frame)
+    // a model on its own prop and event: an update carries the next value (an
+    // edited frame, which the generator writes, not the docs example)...
+    const pagination = createComponent(componentEntry("DitherPagination")!)
+    const page = widgetCode({ ...pagination, props: { ...pagination.props, total: 20 } }, frame)
     expect(page).toContain("page={value()} onUpdatePage={setValue}")
     // ...and an event that only says the control is done sets it false
     const dialog = widgetCode(createComponent(componentEntry("DitherDialog")!), frame)
