@@ -34,6 +34,7 @@ import {
   KEYS_END,
   KEYS_READ,
   KEYS_START,
+  late,
   measureContrast,
   PAINT,
   PAINT_SET,
@@ -171,6 +172,14 @@ describe("focus as a keyboard meets it", () => {
     expect(indicated(before, focusMarks(key))).toBe(false)
     ;(key.parentElement as HTMLElement).style.boxShadow = "0 0 0 1px white"
     expect(indicated(before, focusMarks(key))).toBe(true)
+  })
+
+  it("looks at a stop that did not show when listed on screen, every time focus comes back to it", () => {
+    // a riser held unseen below the fold is listed without its marks; a
+    // second visit once read them as null and failed the page
+    expect(late(undefined)).toBe(true)
+    expect(late({ marks: null })).toBe(true)
+    expect(late({ marks: focusMarks(page(`<button id="k">k</button>`).querySelector("#k")!) })).toBe(false)
   })
 
   it("never lands where a reader cannot see it or is not told of it", () => {

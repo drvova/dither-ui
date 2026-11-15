@@ -658,6 +658,13 @@ export function indicated(before, after) {
   return before.some((b, i) => b !== after[i])
 }
 
+/** Whether a stop's marks are looked at on screen as focus comes to it:
+ * one never listed (a key shown on focus) or listed while it did not show
+ * (a riser a scroll timeline holds unseen below the fold), each time. */
+export function late(stop) {
+  return !stop || !stop.marks
+}
+
 /** Where focus landed that a reader cannot see or a screen reader is not
  * told of: `""` when it is fine. A box revealed by its focus (a skip link)
  * is read as it stands focused; a native field laid transparent over the
@@ -731,7 +738,7 @@ export function changedPixels(a, b, [x, y, w, h], scale) {
 /** The rules as source, for the page scripts below. */
 const RULES = [
   `const INTERACTIVE = ${JSON.stringify(INTERACTIVE)}`,
-  ...[concealed, roleOf, accessibleName, describe, auditA11y, focusMarks, indicated, hiddenFocus, unreached].map(
+  ...[concealed, roleOf, accessibleName, describe, auditA11y, focusMarks, indicated, late, hiddenFocus, unreached].map(
     String,
   ),
 ].join("\n")
@@ -795,14 +802,14 @@ W.onFocus = (e) => {
   const root = (el.parentElement && el.parentElement.parentElement) || el
   for (const a of root.getAnimations({ subtree: true })) if (typeof CSSTransition !== "undefined" && a instanceof CSSTransition) a.finish()
   let key = W.keyOf.get(el)
-  // a stop that did not show before focus came to it (a key shown on focus): its marks are looked at on screen
-  const late = key === undefined
-  if (late) {
+  // a stop that did not show before focus came to it: its marks are looked at on screen
+  const unseen = late(W.stops[key])
+  if (key === undefined) {
     key = W.stops.length
     W.keyOf.set(el, key)
     W.stops.push({ key, el, roving: "", where: describe(el), marks: null })
   }
-  const marked = late ? false : indicated(W.stops[key].marks, focusMarks(el))
+  const marked = unseen ? false : indicated(W.stops[key].marks, focusMarks(el))
   W.focusLog.push({ key, where: describe(el), hidden: hiddenFocus(el), marked })
 }
 W.onKey = (e) => {

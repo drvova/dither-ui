@@ -76,6 +76,7 @@ export function accessibleName(el: Element): string
 export function auditA11y(doc: Document): A11yAudit
 export function focusMarks(el: Element): string[]
 export function indicated(before: string[], after: string[]): boolean
+export function late(stop: { marks: string[] | null } | undefined): boolean
 export function hiddenFocus(el: Element): string
 export function unreached<T extends Stop>(stops: T[], reached: number[], widgetsReached?: string[]): T[]
 export function dialogFindings(r: DialogRecord): string[]
