@@ -192,8 +192,8 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
   motion (a dialog's phase, a car's driving).
 - **One lift, for the hand**: a key or a card let go after a press settles
   on the hand's spring, which may pass its mark a little and come back
-  (the user's call). One definition, a response of 0.35s and a bounce of
-  0.25 (`HAND_SPRING`, about 3% past its mark, settled in `500ms`), as CSS
+  (the user's call). One definition,
+  a response of 0.35s and a bounce of 0.25 (`HAND_SPRING`, about 3% past its mark, settled in `500ms`), as CSS
   `linear()` (`--ease-spring` over `--spring-time`, the glide where
   `linear()` is not supported): the press's way back, a transition.
   Nothing that moves by itself springs.

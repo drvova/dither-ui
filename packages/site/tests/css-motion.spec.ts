@@ -81,7 +81,7 @@ describe("the press", () => {
     expect(pressed?.selector).toContain(':is(.key, .key-chrome, .nav-a, .seg > button, [data-press="key"]):active')
     // a card gives only where none of its controls, links or canvases took the press
     expect(pressed?.selector).toMatch(
-      /\[data-press="card"\]:active:not\(:has\(:is\(a, button, [^)]*canvas[^)]*\):active\)\)/,
+      /\[data-press="card"\]:active:not\(\s*:has\(\s*:is\(\s*a,\s*button,[^)]*canvas[^)]*\):active\s*\)\s*\)/,
     )
     expect(pressed?.body).toContain("--press-t: var(--press-time) var(--ease-settle);")
     expect(pressed?.body).toContain("scale: var(--press-scale, 0.97);")
