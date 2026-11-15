@@ -775,7 +775,11 @@ around this tree (entries, routes, the build, how Solid is written) is
   canvas) is `touch-none`. A frame's resize handle reaches 24px on the
   screen under a cursor and 40px under a finger whatever the zoom
   (`--zoom` on the frames' layer, `widgets/canvas/Artboard.css`), the
-  frame's name (its move grip) standing over that reach. A menu
+  frame's name (its move grip) standing over that reach. That key is
+  unseen: the canvas draws the selection's outline, the handles (8px at
+  any zoom), the snap guides and the marquee in ONE SVG layer over the
+  frames, in screen px, taking no press (`widgets/canvas/Overlay.tsx`,
+  strokes `non-scaling`; the canvas cases of `tests/site/render.spec.tsx`). A menu
   opened at a point moves in from the window's edge (`inView`, the kit's
   engine). Keys shown on hover show on a screen without hover
   (`[@media(hover:none)]`). A press gives under a finger as under a mouse

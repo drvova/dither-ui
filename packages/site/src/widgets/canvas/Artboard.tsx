@@ -8,9 +8,11 @@ import { FrameRenderer } from "@/widgets/frame-renderer"
 import "./Artboard.css"
 
 // 8-direction resize with shift-to-constrain (corner handles keep the aspect
-// ratio). Widget frames allow smaller minimums than chart frames.
+// ratio). Widget frames allow smaller minimums than chart frames. A handle
+// here is the key pressed (unseen, its reach in `Artboard.css`); the canvas's
+// SVG layer draws it (`Overlay.tsx`), with the selection's outline.
 type ResizeDir = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw"
-const HANDLES: { dir: ResizeDir; class: string }[] = [
+export const HANDLES: { dir: ResizeDir; class: string }[] = [
   { dir: "nw", class: "-left-1.5 -top-1.5 cursor-nwse-resize" },
   { dir: "n", class: "-top-1.5 left-1/2 -translate-x-1/2 cursor-ns-resize" },
   { dir: "ne", class: "-right-1.5 -top-1.5 cursor-nesw-resize" },
@@ -223,13 +225,7 @@ export default function Artboard(props: { artboard: ArtboardModel }) {
         </span>
       </div>
 
-      <div
-        data-artboard-surface
-        class={cn(
-          "h-full w-full rounded-lg bg-card/60 p-3 font-sans",
-          selected() ? "ring-2 ring-accent" : "border border-border",
-        )}
-      >
+      <div data-artboard-surface class={cn("h-full w-full rounded-lg border border-border bg-card/60 p-3 font-sans")}>
         <FrameRenderer artboard={props.artboard} canvas />
       </div>
 
@@ -242,7 +238,7 @@ export default function Artboard(props: { artboard: ArtboardModel }) {
           {(hd) => (
             <div
               data-handle={hd.dir}
-              class={cn("handle absolute z-10 size-3 rounded-[2px] border border-accent bg-background", hd.class)}
+              class={cn("handle absolute z-10 size-3", hd.class)}
               onPointerDown={(e) => onResizeDown(hd.dir, e)}
             />
           )}

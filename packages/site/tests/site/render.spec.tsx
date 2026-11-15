@@ -325,6 +325,38 @@ describe("a frame on the canvas", () => {
     expect(inset).toBe("min(0px, calc((12px - var(--handle-reach) / var(--zoom, 1)) / 2))")
   })
 
+  it("draws the selection and its handles in one SVG layer, the same size at any zoom", () => {
+    const a = frame("button", 100, 50)
+    a.w = 300
+    a.h = 200
+    const b = frame("button", 500, 50)
+    b.locked = true
+    editor.viewport = { x: 10, y: 20, zoom: 2 }
+    const { container } = render(() => <Canvas />)
+    const layer = container.querySelector(".dk-canvas > svg.canvas-overlay")!
+    expect(layer.getAttribute("aria-hidden")).toBe("true")
+    expect(layer.querySelectorAll(".sel")).toHaveLength(0)
+    selectArtboard(a.id)
+    selectArtboard(b.id, true)
+    // An outline a frame, on the screen: 2px just outside its box.
+    const sel = [...layer.querySelectorAll(".sel")].map((r) =>
+      ["x", "y", "width", "height"].map((k) => Number(r.getAttribute(k))),
+    )
+    expect(sel[0]).toEqual([209, 119, 602, 402])
+    expect(sel).toHaveLength(2)
+    // Eight 8px knobs in one path, on the unlocked frame only; the keys
+    // they are pressed through stay the frame's.
+    const knobs = layer.querySelector(".knob")!.getAttribute("d")!
+    expect(knobs.match(/M/g)).toHaveLength(8)
+    expect(knobs.startsWith("M206.5 116.5h8v8h-8z")).toBe(true)
+    expect(container.querySelectorAll("[data-handle]")).toHaveLength(8)
+    editor.viewport.zoom = 0.5
+    expect(layer.querySelector(".knob")!.getAttribute("d")!.startsWith("M56.5 41.5h8v8h-8z")).toBe(true)
+    // Its stylesheet keeps every line its width on the screen.
+    const css = readFileSync(join(process.cwd(), "src/widgets/canvas/Canvas.css"), "utf8")
+    expect(css).toMatch(/\.canvas-overlay \{[^]*vector-effect: non-scaling-stroke;/)
+  })
+
   it("shows no handles on a locked frame, and its label does not move it", () => {
     const a = frame("button")
     a.locked = true
@@ -405,10 +437,11 @@ describe("the canvas", () => {
     host.dispatchEvent(press("pointerdown", { clientX: 10, clientY: 10 }))
     window.dispatchEvent(press("pointermove", { clientX: 80, clientY: 80 }))
     expect(editor.selectedIds).toEqual([a.id])
-    const box = container.querySelector<HTMLElement>(".bg-accent\\/10")!
-    expect([box.style.left, box.style.top, box.style.width, box.style.height]).toEqual(["10px", "10px", "70px", "70px"])
+    // Drawn in the canvas's SVG layer, a 1px line on the pixel grid.
+    const box = container.querySelector(".canvas-overlay .marquee")!
+    expect(["x", "y", "width", "height"].map((a) => box.getAttribute(a))).toEqual(["10.5", "10.5", "69", "69"])
     window.dispatchEvent(press("pointerup", { clientX: 80, clientY: 80 }))
-    expect(container.querySelector(".bg-accent\\/10")).toBeNull()
+    expect(container.querySelector(".canvas-overlay .marquee")).toBeNull()
     expect(editor.selectedIds).toEqual([a.id])
     host.dispatchEvent(press("pointerdown", { clientX: 10, clientY: 10 }))
     window.dispatchEvent(press("pointerup", { clientX: 10, clientY: 10 }))
@@ -428,7 +461,7 @@ describe("the canvas", () => {
     expect(host.className).not.toContain("cursor-grab")
     editor.viewport.zoom = 2
     editor.guides.v = 100
-    expect(container.querySelector<HTMLElement>(".w-px")?.style.left).toBe("230px")
+    expect(container.querySelector(".canvas-overlay .guide")?.getAttribute("x1")).toBe("230.5")
   })
 
   it("leaves Space to a focused select or field, and pans over a button", () => {
