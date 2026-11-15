@@ -9,6 +9,7 @@ import { defineConfig } from "vite"
 import { GROUPS } from "./src/pages/docs/groups.ts"
 import { ALIASES } from "./build/aliases.ts"
 import { exampleCatalog } from "./build/catalog.ts"
+import { chunkModules } from "./build/chunk-modules.ts"
 import { siteFacts } from "./build/facts.ts"
 import { kitSources } from "./build/kit-sources.ts"
 import { kitProps } from "./build/props.ts"
@@ -47,6 +48,7 @@ export default defineConfig({
     runCompiler(),
     siteFiles(),
     standaloneScripts(),
+    chunkModules(),
   ],
   resolve: { alias: ALIASES },
   server: { fs: { allow: ["../.."] } },

@@ -14,6 +14,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { gzipSync } from "node:zlib"
 import { describe, expect, it } from "vitest"
+import { CHUNK_MODULES } from "../../build/chunk-modules"
 
 const OUT = join(__dirname, "../../.output/public")
 
@@ -47,6 +48,32 @@ function firstLoad(page: string): string[] {
   return [...seen]
 }
 
+/** Each chunk's source modules, by its file (`build/chunk-modules.ts`). */
+type Chunks = Record<string, string[]>
+
+/** What the landing never loads first: the docs' page, its cards, the
+ * styling rewriter and the pack table. */
+const DOCS_ONLY = [
+  /^packages\/site\/src\/pages\/docs\/(DocsPage|DemoCard)\.tsx$/,
+  /^packages\/site\/src\/pages\/docs\/pack-loaders\.ts$/,
+  /^packages\/restyle\/src\//,
+]
+
+/** What neither first load carries, its art being below the first screen:
+ * the kit's world engine in every file it is split into, its model and
+ * splat parsers, the assembly, DitherWorld, and the charts. */
+const BELOW_THE_FOLD = [
+  /^packages\/dither-kit\/src\/engine\/(world[\w-]*|models|splats|assemble)\.ts$/,
+  /^packages\/dither-kit\/src\/engine\/models\//,
+  /^packages\/dither-kit\/src\/solid\/(DitherWorld\.tsx|area-chart\.ts|runtime\/chart-context\.ts)$/,
+]
+
+/** The heavy modules a page's first load carries, as `<chunk>: <module>`,
+ * read by what each chunk holds, never by its name. */
+function heavyIn(files: string[], chunks: Chunks, heavy: RegExp[]): string[] {
+  return files.flatMap((f) => (chunks[f] ?? []).filter((m) => heavy.some((h) => h.test(m))).map((m) => `${f}: ${m}`))
+}
+
 const gzipKB = (files: string[]) =>
   files.reduce((n, f) => n + gzipSync(readFileSync(join(OUT, f)), { level: 9 }).length, 0) / 1024
 
@@ -59,22 +86,44 @@ describe.skipIf(!existsSync(join(OUT, "index.html")))("a page's first load", () 
     })
 
   it("holds neither the other page nor the kit's heavy engines", () => {
-    // the build's own record: each chunk's name (its first module's) and
-    // each route's chunk
-    const manifest: Record<string, { file: string; name?: string }> = JSON.parse(
+    // the build's own record: each route's chunk (Vite's manifest) and the
+    // modules in every chunk (`build/chunk-modules.ts`)
+    const manifest: Record<string, { file: string }> = JSON.parse(
       readFileSync(join(OUT, ".vite/manifest.json"), "utf8"),
     )
-    const chunks = Object.entries(manifest)
-    const route = (path: string) => chunks.find(([src]) => src.startsWith(`src/routes/${path}?pick=default`))![1].file
-    const named = (files: string[]) => files.map((f) => chunks.find(([, c]) => c.file === f)?.[1].name ?? f)
+    const chunks: Chunks = JSON.parse(readFileSync(join(OUT, CHUNK_MODULES), "utf8"))
+    const route = (path: string) =>
+      Object.entries(manifest).find(([src]) => src.startsWith(`src/routes/${path}?pick=default`))![1].file
     const landing = firstLoad("index.html")
     const docs = firstLoad("docs/button/index.html")
     expect(landing).not.toContain(route("docs/[section].tsx"))
-    expect(named(landing).filter((n) => ["DocsPage", "DemoCard", "restyle", "pack-loaders"].includes(n))).toEqual([])
     expect(docs).not.toContain(route("index.tsx"))
-    for (const files of [landing, docs])
-      expect(
-        named(files).filter((n) => ["models", "world", "DitherWorld", "chart-context", "area-chart"].includes(n)),
-      ).toEqual([])
+    // every chunk a first load runs is in the record
+    expect([...landing, ...docs].filter((f) => !chunks[f])).toEqual([])
+    expect(heavyIn(landing, chunks, [...DOCS_ONLY, ...BELOW_THE_FOLD])).toEqual([])
+    expect(heavyIn(docs, chunks, BELOW_THE_FOLD)).toEqual([])
+  })
+})
+
+describe("the first load's guard", () => {
+  // The kit's world engine split into files of their own (world-math,
+  // world-scene, ...): a chunk Rollup names after one of them carries the
+  // engine all the same, and a guard by the chunk's name let it through.
+  const chunks: Chunks = {
+    "_build/assets/index-a1.js": ["packages/site/src/entry-client.tsx"],
+    "_build/assets/world-math-b2.js": [
+      "packages/dither-kit/src/engine/world-math.ts",
+      "packages/dither-kit/src/engine/world.ts",
+    ],
+    "_build/assets/obj-c3.js": ["packages/dither-kit/src/engine/models/obj.ts"],
+  }
+
+  it("finds a heavy module in a chunk named after another", () => {
+    expect(heavyIn(Object.keys(chunks), chunks, BELOW_THE_FOLD)).toEqual([
+      "_build/assets/world-math-b2.js: packages/dither-kit/src/engine/world-math.ts",
+      "_build/assets/world-math-b2.js: packages/dither-kit/src/engine/world.ts",
+      "_build/assets/obj-c3.js: packages/dither-kit/src/engine/models/obj.ts",
+    ])
+    expect(heavyIn(["_build/assets/index-a1.js"], chunks, BELOW_THE_FOLD)).toEqual([])
   })
 })
