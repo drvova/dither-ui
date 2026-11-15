@@ -1,23 +1,25 @@
-import { DitherPreviewCard, DitherAvatar } from "@dither-kit"
+import { DitherAvatar, DitherPreviewCard } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <DitherPreviewCard
-      trigger={
-        <button type="button" class="underline decoration-border underline-offset-4">
-          @ada
-        </button>
-      }
-    >
-      <div class="flex items-center gap-3">
-        <DitherAvatar name="Ada Lovelace" size={40} />
-        <div>
-          <p class="text-[13px]">Ada Lovelace</p>
-          <p class="text-[11px] text-muted-foreground">Wrote the first program.</p>
+    <div class="flex justify-center">
+      <DitherPreviewCard
+        trigger={
+          <button type="button" class="text-[13px] underline decoration-border underline-offset-4">
+            @ada
+          </button>
+        }
+      >
+        <div class="flex items-center gap-3">
+          <DitherAvatar name="Ada Lovelace" size={40} />
+          <div>
+            <p class="text-[13px] text-foreground">Ada Lovelace</p>
+            <p class="text-[11px] text-muted-foreground">Wrote the first program.</p>
+          </div>
         </div>
-      </div>
-    </DitherPreviewCard>
+      </DitherPreviewCard>
+    </div>
   )
 }
 

@@ -11,10 +11,10 @@ export default function Example() {
   const [last, setLast] = createSignal("none")
 
   return (
-    <>
+    <div class="flex flex-col items-center gap-3">
       <DitherMenubar menus={menus} onSelect={(m, i) => setLast(`${m} → ${i}`)} />
-      <p class="mt-3 text-[12px] text-muted-foreground">last action: {last()}</p>
-    </>
+      <p class="text-[12px] text-muted-foreground">last action: {last()}</p>
+    </div>
   )
 }
 

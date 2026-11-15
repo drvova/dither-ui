@@ -13,12 +13,14 @@ export default function Example() {
   const [last, setLast] = createSignal("none")
 
   return (
-    <>
+    <div class="flex flex-col items-center gap-3">
       <DitherContextMenu items={items} onSelect={(label) => setLast(label)}>
-        <div class="rounded-lg border border-dashed border-border p-10">right-click me</div>
+        <div class="flex h-32 w-64 items-center justify-center rounded-lg border border-dashed border-border text-[12px] text-muted-foreground select-none">
+          right-click me
+        </div>
       </DitherContextMenu>
-      <p class="mt-3 text-[12px] text-muted-foreground">last action: {last()}</p>
-    </>
+      <p class="text-[12px] text-muted-foreground">last action: {last()}</p>
+    </div>
   )
 }
 
