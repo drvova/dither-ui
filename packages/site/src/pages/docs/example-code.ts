@@ -1,9 +1,8 @@
-// An example's code as its card shows it, printed from the very values its
-// demo renders: the sample data a page hands an example, and an example
-// module (`<pack>/examples/<id>.tsx`) with the props a page's pickers set
-// written in. Framework free.
+// An example's code as its card shows it: an example module
+// (`<pack>/examples/<id>.tsx`) with the props the page's pickers set written
+// in, so the code shown is the demo shown. Framework free.
 
-export type Data = string | number | boolean | readonly Data[] | { readonly [key: string]: Data }
+type Data = string | number | boolean | readonly Data[] | { readonly [key: string]: Data }
 
 /** A key as a reader's object literal writes it: bare when it can be. */
 const keyCode = (key: string) => (/^[A-Za-z_$][\w$]*$/.test(key) ? key : JSON.stringify(key))
@@ -17,18 +16,6 @@ const valueCode = (v: Data): string =>
           .map(([k, x]) => `${keyCode(k)}: ${valueCode(x)}`)
           .join(", ")} }`
       : JSON.stringify(v)
-
-/** An example's sample data as the line that declares it in the example,
- * printed from the very values its demo renders, so the two never drift:
- * a list one item a line (`const rows = [\n  { month: "Jan", revenue: 42 },`)
- * or an object one entry a line (a chart config). */
-export function dataCode(name: string, value: readonly Data[] | { readonly [key: string]: Data }) {
-  const lines = Array.isArray(value)
-    ? value.map((item) => `  ${valueCode(item)},`)
-    : Object.entries(value).map(([k, v]) => `  ${keyCode(k)}: ${valueCode(v)},`)
-  const [open, close] = Array.isArray(value) ? ["[", "]"] : ["{", "}"]
-  return `const ${name} = ${open}\n${lines.join("\n")}\n${close}`
-}
 
 const OPEN = "([{"
 const CLOSE = ")]}"

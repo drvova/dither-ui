@@ -146,20 +146,23 @@ are from the repository's.
   never in its own `onMount`.
 - A component's scoped styles are `<Name>.css` beside it, nested under a
   root hook class `<kebab-name>-scope`.
-- Docs tooling: each demo's example is written once, in Solid with
+- Docs tooling: every demo's example is written once, in Solid with
   Tailwind's classes: a module of its own,
   `src/pages/docs/<pack>/examples/<id>.tsx` (a default-exported component
   importing the kit as `@dither-kit`), which the page imports twice, as
   the demo's component and as its text (`./examples/<id>.tsx?raw`) for the
-  card's code; or, where the demo is wired to the page (pickers, readouts,
-  state the page shares) or says more than its code, a string beside the
-  demo (a fragment: JSX with the script it needs as loose lines over or
-  under it, or a whole `.tsx` module), held to the demo by
-  `tests/site/docs-drift.spec.tsx`. Either way the
+  card's code. The demo is the module, so the two cannot drift. Where the
+  page's pickers drive a demo, the picks are the module's props (read as
+  `props.<name> ?? <default>`, or an attribute given only when set) and
+  `exampleCode` (`pages/docs/example-code.ts`, `tests/example-code.spec.ts`)
+  writes the picked values into the text, so the code shown is the demo
+  shown and runs as written; a value only the demo needs (a replay token,
+  an address under the site's base path) goes to the demo alone. The
   `@dither-ui/restyle` package writes it in the reader's styling system
-  (`pages/docs/snippet.ts`: `docsCode`, `docsFiles`; `dataCode` prints an
-  example's data from the demo's own values). `widgets/source` completes
-  a fragment into the module a reader takes (`asTsx`), shows the files
+  (`pages/docs/snippet.ts`: `docsCode`, `docsFiles`). A file an example
+  carries as written where the kit or the site makes it (the seeded world
+  and shader, the rocket) is pinned to its maker by
+  `tests/site/example-copies.spec.ts`. `widgets/source` shows the files
   and runs the example in the page (`src/widgets/source/AGENTS.md`).
 - An example module may export `meta = defineExample({ … })`
   (`src/shared/lib/example.ts`, the site's, never the kit's): what the

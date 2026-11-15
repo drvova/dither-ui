@@ -2,7 +2,7 @@
 // set: the props parameter gone, each read written as its value, its
 // default, or (an attribute with neither) left out.
 import { describe, expect, it } from "rstack/test"
-import { dataCode, exampleCode } from "@/pages/docs/example-code"
+import { exampleCode } from "@/pages/docs/example-code"
 
 const TERMINAL = `import { DitherFaultyTerminal, type DitherColor } from "@dither-kit"
 
@@ -46,8 +46,5 @@ describe("an example's code", () => {
     expect(() =>
       exampleCode("export default function Example(props: { a?: string }) {\n  return <p>{props.a.length}</p>\n}"),
     ).toThrow()
-  })
-  it("prints sample data one item a line", () => {
-    expect(dataCode("rows", [{ month: "Jan", n: 1 }])).toBe('const rows = [\n  { month: "Jan", n: 1 },\n]')
   })
 })

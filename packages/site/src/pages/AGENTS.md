@@ -876,7 +876,7 @@ in the page's folder.
 - Galleries and chip rows are PICKERS, not decoration: `aria-pressed`
   buttons drive the main preview's props; chart previews also bump a
   replay token so the kit's dither entrance is the transition. Code tabs
-  are computed from the picked state — what you see is what you copy.
+  write the picked state into the example — what you see is what you copy.
 - The World section's rocket (`docs/components/rocket.ts`, guarded by
   `tests/rocket.spec.ts`) is our own atomic-age rocket, never a real
   vehicle, flag or marking: a VRML file whose flame flickers and whose
@@ -908,20 +908,17 @@ in the page's folder.
   and Handbook block goes through it, so a snippet idiom the rewriter mangles
   gets a rule in `packages/restyle/src/index.ts` + a
   `packages/restyle/tests/restyle.spec.ts` case.
-- An example is written once where it can be: `docs/<pack>/examples/<id>.tsx`
+- An example is written once: `docs/<pack>/examples/<id>.tsx`
   (`<section id>.tsx`, `-<n>` for a section's later cards) is the whole
   module a reader copies, importing the kit as `@dither-kit`; the pack
   renders it as the demo (`<IdExample />`, inside whatever frame the
   page lays around it) and hands its text (`./examples/<id>.tsx?raw`) to
-  the card as `code`. It holds its own state, so a demo whose state the
-  page reads (a readout beside it, a picker or a key that drives it, a
-  reset), whose value differs from what its code shows, or that asks for
-  the site's base path (`assetPath`) keeps its code as a string. Such a
-  string is held to its demo by `tests/site/docs-drift.spec.tsx`: run as
-  Run runs it, its DOM must stand inside the demo's, and where the two
-  say different things the difference is pinned in
-  `tests/site/docs-drift.ts` (regenerated with `WRITE_DRIFT=1`), so a
-  change to either side shows. Moving a card to an example drops its entry.
+  the card as `code`. It holds its own state, data and controls; what the
+  page owns around it (a gallery or chips that pick a variant, a screen, a
+  palette) reaches it as props, which `exampleCode` writes into the code
+  (`packages/site/AGENTS.md`). A card that renders a component never
+  keeps its code as a string beside its demo; a card of a command, a
+  module or a stylesheet is text, with no demo to drift from.
 - An example about one component (its file named for it or for its
   section: `knob.tsx` is `DitherKnob`'s, `toast.tsx` `DitherToaster`'s)
   carries what the kit's props type cannot say beside its
@@ -939,16 +936,10 @@ in the page's folder.
   the text the card, Run and the zip show, so the reader's copy is the
   example as before. A component with an example and no `meta` keeps its
   hand row in `entities/widget/model/registry.ts`; giving it one moves
-  the row here (`../AGENTS.md`, the registry). Where the component's card
-  still shows a code string, its example module stands beside it in the
-  pack's `examples/` for the catalogue (its Studio row, the export's
-  code) until the card moves to it.
-- `SNIPPETS`/derived code must match what the demo renders — it now
-  RUNS in the source panel, so a snippet that leaves out what the demo
-  has (a chart's height: the chart snippets carry `class="h-64"`) renders
-  differently there. Every example runs as written (its state, handlers
-  and data declared, the data printed by `dataCode` from the demo's own
-  values, no elision, only assets the site holds; see
+  the row here (`../AGENTS.md`, the registry). One module a card: the
+  meta rides on the module the docs page renders, never a second file.
+- Every example runs as written (its state, handlers and data declared,
+  no elision, only assets the site holds; see
   `widgets/source/AGENTS.md`); a demo stays inside its card (an overlay
   demo is `absolute` in its box, never `fixed` over the page); API tables
   print the kit's props as its types say them, so a kit API change is
@@ -1149,9 +1140,9 @@ in the page's folder.
   snippets + local state, the examples written once in the subfolder's
   `examples/`) with a sibling `*-nav.ts` exporting nav items,
   both named in `DOCS`; DocsPage is the shell and renders the packs from
-  the table (`PACK_NAMES`). Data several packs' demos print (the
-  dashboard rows, the stat cards, the palette's colours) is
-  `docs/demo-data.ts`; the gallery tiles' pressed classes `docs/gallery.ts`.
+  the table (`PACK_NAMES`). What several packs' galleries share (the
+  months, the area fills, the palette's colours) is `docs/demo-data.ts`;
+  each example holds its own data; the gallery tiles' pressed classes `docs/gallery.ts`.
   `docs/handbook/` = the Handbook (`HandbookDocs.tsx`), `docs/overview/` =
   the Quick start pack, `docs/utils/` = Utils (`UtilsDocs.tsx`: the
   palette, then `ScreensSection.tsx`).
