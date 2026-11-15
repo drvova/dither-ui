@@ -1,8 +1,15 @@
-import { DitherOverline } from "@dither-kit"
+import { DitherHeading, DitherOverline } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherOverline>Chapter 02</DitherOverline>
+  return (
+    <div class="text-left">
+      <DitherOverline>Chapter 02</DitherOverline>
+      <DitherHeading class="mt-1" level="2">
+        The renderer
+      </DitherHeading>
+    </div>
+  )
 }
 
 export const meta = defineExample({

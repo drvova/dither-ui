@@ -2,7 +2,14 @@ import { DitherEmoji } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherEmoji char="🚀" label="launch" />
+  return (
+    <div class="flex items-center justify-center gap-3 text-lg">
+      <DitherEmoji char="🚀" label="launch" />
+      <DitherEmoji char="🔥" label="trending" />
+      <DitherEmoji char="✨" label="new" />
+      <DitherEmoji char="⚠️" label="warning" />
+    </div>
+  )
 }
 
 export const meta = defineExample({

@@ -3,9 +3,22 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <DitherPluralText count={1} one={(scope) => <>{scope.count} result found</>}>
-      {(scope) => <>{scope.count} results found</>}
-    </DitherPluralText>
+    <div class="grid justify-center gap-1 text-[13px]">
+      <DitherPluralText count={1}>
+        {({ count }) => (
+          <span>
+            <b>{count}</b> result found
+          </span>
+        )}
+      </DitherPluralText>
+      <DitherPluralText class="text-muted-foreground" count={7}>
+        {({ count }) => (
+          <span>
+            <b>{count}</b> results found
+          </span>
+        )}
+      </DitherPluralText>
+    </div>
   )
 }
 

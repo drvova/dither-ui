@@ -2,7 +2,19 @@ import { DitherFileSizeText } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherFileSizeText bytes={1536} />
+  return (
+    <div class="grid justify-center gap-1 text-[13px]">
+      <span>
+        <DitherFileSizeText bytes={512} /> (raw)
+      </span>
+      <span>
+        <DitherFileSizeText bytes={1536} /> (a small file)
+      </span>
+      <span class="text-muted-foreground">
+        <DitherFileSizeText bytes={8589934592} /> (a game update)
+      </span>
+    </div>
+  )
 }
 
 export const meta = defineExample({

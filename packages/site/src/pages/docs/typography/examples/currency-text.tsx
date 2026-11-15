@@ -2,7 +2,13 @@ import { DitherCurrencyText } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherCurrencyText value={1299.5} />
+  return (
+    <div class="grid justify-center gap-1 text-[13px]">
+      <DitherCurrencyText value={1299.5} />
+      <DitherCurrencyText class="text-muted-foreground" value={1299.5} currency="EUR" locale="de-DE" />
+      <DitherCurrencyText class="text-muted-foreground" value={49} currency="JPY" decimals={0} />
+    </div>
+  )
 }
 
 export const meta = defineExample({

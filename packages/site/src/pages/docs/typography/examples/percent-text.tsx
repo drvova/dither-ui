@@ -2,7 +2,13 @@ import { DitherPercentText } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherPercentText value={0.42} />
+  return (
+    <div class="flex justify-center gap-4 text-[13px]">
+      <DitherPercentText value={0.42} />
+      <DitherPercentText class="text-muted-foreground" value={0.4235} decimals={1} />
+      <DitherPercentText class="text-muted-foreground" value={1} />
+    </div>
+  )
 }
 
 export const meta = defineExample({

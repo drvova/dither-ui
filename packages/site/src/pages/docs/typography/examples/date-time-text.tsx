@@ -2,7 +2,17 @@ import { DitherDateTimeText } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherDateTimeText date="2026-10-07T15:04:00Z" />
+  return (
+    <div class="grid justify-center gap-1 text-[13px]">
+      <DitherDateTimeText date="2026-10-07T15:04:00Z" options={{ timeZone: "UTC" }} />
+      <DitherDateTimeText
+        class="text-muted-foreground"
+        date="2026-10-07T15:04:00Z"
+        options={{ timeZone: "UTC", dateStyle: "full" }}
+      />
+      <DitherDateTimeText class="text-muted-foreground" date="not a date" />
+    </div>
+  )
 }
 
 export const meta = defineExample({

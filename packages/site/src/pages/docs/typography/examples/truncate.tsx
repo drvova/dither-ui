@@ -2,7 +2,13 @@ import { DitherTruncate } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherTruncate>a file name that clips in this box</DitherTruncate>
+  return (
+    <div class="mx-auto w-56">
+      <DitherTruncate title="quarterly-report-final-v3-actually-final.xlsx">
+        quarterly-report-final-v3-actually-final.xlsx
+      </DitherTruncate>
+    </div>
+  )
 }
 
 export const meta = defineExample({

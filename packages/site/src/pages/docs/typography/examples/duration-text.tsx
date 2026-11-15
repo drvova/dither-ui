@@ -2,7 +2,19 @@ import { DitherDurationText } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherDurationText ms={80400000} />
+  return (
+    <div class="grid justify-center gap-1 text-[13px]">
+      <span>
+        <DitherDurationText ms={500} /> (build sub-second)
+      </span>
+      <span>
+        <DitherDurationText ms={125000} /> (a queue wait)
+      </span>
+      <span class="text-muted-foreground">
+        <DitherDurationText ms={80400000} /> (a download)
+      </span>
+    </div>
+  )
 }
 
 export const meta = defineExample({

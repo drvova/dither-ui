@@ -2,7 +2,15 @@ import { DitherLineClamp } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherLineClamp>Body copy that stops after N lines with an ellipsis…</DitherLineClamp>
+  return (
+    <div class="mx-auto w-full max-w-sm">
+      <DitherLineClamp class="text-[13px] leading-relaxed text-muted-foreground" lines={2}>
+        The kit is a folder, not a package: copy it, alias it, and every component keeps the same seed contract all the
+        way down to the Bayer matrix that thresholds the fill. This sentence exists only to overflow the two-line clamp
+        so the ellipsis earns its place in the demo.
+      </DitherLineClamp>
+    </div>
+  )
 }
 
 export const meta = defineExample({
