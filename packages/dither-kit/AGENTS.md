@@ -1116,7 +1116,26 @@ generated twin. Inside the kit every import is relative
   part drawn until a hover wakes it. `tests/chart-entrance.spec.ts`.
 - `precompile.ts` must remain browser/SSR safe: it returns raw RGBA buffers and
   must not import a framework, DOM APIs, or a server-specific image encoder. Consumers
-  own encoding, caching, and invalidation of packaged assets.
+  own caching and invalidation of packaged assets.
+- A frame known at render is an image, not a canvas: `png.ts` (`pngBytes`,
+  `rasterSrc`, in `api.ts`; the one `crc32`, the site's zip's too, and the
+  encoder the site's icons are written with) writes a raster synchronously, in any runtime, as a
+  PNG at one pixel a cell (indexed with tRNS up to 256 colours, RGBA past
+  them; inflating to the raster's exact bytes, `tests/png.spec.ts`), and
+  the component renders it as an `<img>` scaled `image-rendering:
+  pixelated` (every engine at the floor takes it, so no `crisp-edges`
+  fallback is written) in its render, so a server render carries it, it
+  shows with scripts off, and no canvas, no `devicePixelRatio` read and no
+  repaint follows a change of pixel density (a zoom, another monitor). A
+  static `DitherSpinner` (its first frame) and a `DitherAvatar` with
+  `animate={false}` (its whole frame) are such images, bloom layer
+  included (the same source under the glow's filter); `cellWriter`
+  (`raster.ts`) is `cellCanvas`'s cell and rect over a raster of one's
+  own, so the image holds the bytes the canvas showed. A surface whose
+  frame depends on its laid-out box (a gradient, a poster, every
+  background on the surface loop, whose cell count is the box over
+  `cell / dpr`) or on time stays a canvas: its grid is not known until
+  the page lays it out.
 - `precompiled` replaces only the dither plot/surface image; surrounding chart
   composition remains available. `renderMode="static"` disables animation and
   resize observation for standalone surfaces, auto-uses lower backing-resolution

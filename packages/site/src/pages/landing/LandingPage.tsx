@@ -392,7 +392,7 @@ export default function LandingPage() {
                       </DitherReveal>
                     </DitherScreen>
                     <span class="inside-who" aria-hidden="true">
-                      <DitherAvatar name={c.title} color={c.ink} size={56} />
+                      <DitherAvatar name={c.title} color={c.ink} size={56} animate={false} />
                     </span>
                     <h3 class="inside-h">
                       <PixelWord text={c.name} cell={5} />

@@ -180,7 +180,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   `tests/site/scroll-scene.spec.tsx`) —
   `files.ts` — `download()` and a stored .zip of text files, the ONE download
   path for the Studio's exports, the workbench and the source panel, and the
-  ONE `crc32` (the zip's entries, the icons' PNG chunks) —
+  zip's entries checked by the kit's one `crc32` (`@dither-ui/kit/engine/png.ts`) —
   `words.ts` — `breakable`, a camelCase name with a break point at each hump,
   for display only (the inspector's names) — `restyle.ts` — the reader's
   choice of styling system, kept across visits, over the `@dither-ui/restyle` package (a
@@ -934,8 +934,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   (`studio/app.webmanifest`; `id`,
   `start_url` and `scope` all `.`, standalone, the Studio's dark ground
   as background and theme, icons a folder up), every icon drawn from
-  `MARK_CELLS` as a PNG it encodes itself (the maskable one's mark inside
-  the 80% safe circle; its chunks' CRC-32 is `shared/lib/files.ts`'s) and
+  `MARK_CELLS` as a PNG through the kit's encoder (`@dither-ui/kit/engine/png.ts`; the maskable one's mark inside
+  the 80% safe circle) and
   the tab's SVG, all listed by `installFiles()`
   and emitted by the `siteFiles` plugin, and the head tables the pages
   render (`ICON_HEAD`, the icons, on every site page from the shell;

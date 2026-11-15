@@ -3,9 +3,9 @@ import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { SPINNER_DEFAULT, spinnerFromSeed, type SpinnerParams } from "../engine/dither-paint"
 import type { Rgb } from "../engine/palette"
 import { BAYER4, fillOf, type PixelColor, pixelPrefersReducedMotion } from "../engine/pixel"
+import { rasterSrc } from "../engine/png"
 import { precompiledSrc, type DitherRenderMode, type PrecompiledDither } from "../engine/precompile"
 import {
-  cellCanvas,
   setOrBlendRasterPixel,
   clearRasterBuffer,
   createRasterBuffer,
@@ -45,16 +45,15 @@ function squareT(sx: number, sy: number): number {
 /** One frame — walk every cell, resolve its outline membership + path coord by
  * SHAPE, its brightness by FLOW, then carve detail and dither. `phase` (0..1)
  * advances over time. */
-function paintSpinner(
-  ctx: CanvasRenderingContext2D | RasterBuffer,
+function spinnerFrame(
   cells: number,
   fill: Rgb,
   phase: number,
   matrix: number[][] = BAYER4,
   p: SpinnerParams = SPINNER_DEFAULT,
-): void {
-  if ("data" in ctx) clearRasterBuffer(ctx)
-  const px = "data" in ctx ? null : cellCanvas(ctx, cells, cells)
+  out: RasterBuffer = createRasterBuffer(cells, cells),
+): RasterBuffer {
+  clearRasterBuffer(out)
   const c = cells / 2
   const half = c - 0.5
   const arc = Math.max(0.05, Math.min(1, p.arc))
@@ -98,11 +97,10 @@ function paintSpinner(
       if (p.spokes > 0 && p.shape !== 2) bright *= 0.35 + 0.65 * Math.abs(Math.cos((ang * p.spokes) / 2)) ** 2
       if (bright <= 0 || bright <= matrix[y & 3][x & 3]) continue
       const alpha = 0.4 + 0.6 * bright
-      if (px) px.cell(x, y, fill, alpha)
-      else setOrBlendRasterPixel(ctx as RasterBuffer, x, y, fill, alpha)
+      setOrBlendRasterPixel(out, x, y, fill, alpha)
     }
   }
-  px?.flush()
+  return out
 }
 
 export type DitherSpinnerProps = {
@@ -124,7 +122,16 @@ export default function DitherSpinner(raw: DitherSpinnerProps) {
   const spin = createMemo(() => (props.seed !== undefined ? spinnerFromSeed(props.seed) : SPINNER_DEFAULT))
   const matrix = useDitherMatrix(() => props.seed)
 
-  const precompiled = createMemo(() => precompiledSrc(props.precompiled))
+  const cellsOf = () => Math.max(8, Math.round(props.size / CELL))
+  // A static spinner is its first frame, known at render: printed once at a
+  // pixel a cell (on the server too) and scaled crisp by the browser, no canvas.
+  const precompiled = createMemo(
+    () =>
+      precompiledSrc(props.precompiled) ??
+      (props.renderMode === "static"
+        ? rasterSrc(spinnerFrame(cellsOf(), fillOf(props.color), 0, matrix(), spin()))
+        : undefined),
+  )
   let canvasRef: HTMLCanvasElement | undefined
 
   let teardown: (() => void) | undefined
@@ -142,7 +149,7 @@ export default function DitherSpinner(raw: DitherSpinnerProps) {
     const ctx = canvas?.getContext("2d", { willReadFrequently: true })
     if (!canvas || !ctx) return undefined
     const fill = fillOf(props.color)
-    const cells = Math.max(8, Math.round(props.size / CELL))
+    const cells = cellsOf()
     canvas.width = cells
     canvas.height = cells
 
@@ -152,14 +159,14 @@ export default function DitherSpinner(raw: DitherSpinnerProps) {
     let imageData: ImageData | undefined
 
     const paintAt = (ms: number) => {
-      paintSpinner(buffer, cells, fill, (ms * spin().speed) % 1, matrix(), spin())
+      spinnerFrame(cells, fill, (ms * spin().speed) % 1, matrix(), spin(), buffer)
       imageData = putRasterBuffer(ctx, buffer, imageData)
     }
     paintAt(0)
 
     wake = undefined
     let unseek: (() => void) | undefined
-    if (props.renderMode !== "static" && !pixelPrefersReducedMotion()) {
+    if (!pixelPrefersReducedMotion()) {
       const frame = (now: number) => {
         raf = 0
         if (!isVisible() || isDirected()) return // off-screen or directed: no loop

@@ -240,13 +240,13 @@ describe("DitherAvatar", () => {
     expect(w.uploads).toContain(avatar.querySelector("canvas"))
   })
 
-  it("paints at once when still, again when replayed, and glows through a second canvas", () => {
-    const [token, setToken] = createSignal(0)
-    const { getByRole } = render(() => <DitherAvatar name="Ada" animate={false} replayToken={token()} bloom="low" />)
-    expect(getByRole("img").querySelectorAll("canvas").length).toBe(2)
-    expect(w.uploads.length).toBe(1)
-    setToken(1)
-    expect(w.uploads.length).toBe(2)
+  it("is an image when still, and glows through a second one", () => {
+    const { getByRole } = render(() => <DitherAvatar name="Ada" animate={false} bloom="low" />)
+    const images = [...getByRole("img").querySelectorAll("img")]
+    expect(getByRole("img").querySelectorAll("canvas").length).toBe(0)
+    expect(images.length).toBe(2)
+    expect(images[1].src).toBe(images[0].src)
+    expect(w.uploads.length).toBe(0)
   })
 })
 

@@ -22,26 +22,36 @@ import { MARK_CELLS } from "@/shared/ui/brand-mark"
 const root = new URL("../../..", import.meta.url).pathname
 const read = (f: string) => readFileSync(`${root}/${f}`, "utf8")
 
-/** A PNG the encoder wrote (8-bit RGBA, unfiltered rows) back to its pixels,
- * every chunk's CRC checked against zlib's own. */
+/** A PNG the kit's encoder wrote (`@dither-ui/kit/engine/png.ts`: indexed
+ * or 8-bit RGBA, unfiltered rows) back to its pixels, every chunk's CRC
+ * checked against zlib's own. */
 function decode(bytes: Uint8Array) {
   const view = new DataView(bytes.buffer, bytes.byteOffset)
   expect([...bytes.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10])
   const width = view.getUint32(16)
   const height = view.getUint32(20)
+  const depth = bytes[24]
+  const indexed = bytes[25] === 3
   let at = 8
   const idat: Uint8Array[] = []
+  let plte = new Uint8Array()
   while (at < bytes.length) {
     const length = view.getUint32(at)
     const type = new TextDecoder().decode(bytes.subarray(at + 4, at + 8))
     expect(view.getUint32(at + 8 + length), type).toBe(crc32(bytes.subarray(at + 4, at + 8 + length)))
     if (type === "IDAT") idat.push(bytes.subarray(at + 8, at + 8 + length))
+    if (type === "PLTE") plte = bytes.subarray(at + 8, at + 8 + length)
     at += 12 + length
   }
   const rows = inflateSync(Buffer.concat(idat))
+  const stride = indexed ? Math.ceil((width * depth) / 8) + 1 : width * 4 + 1
+  const hex = (rgb: Uint8Array) => `#${[...rgb].map((v) => v.toString(16).padStart(2, "0")).join("")}`
   const pixel = (x: number, y: number) => {
-    const i = y * (width * 4 + 1) + 1 + x * 4
-    return `#${[...rows.subarray(i, i + 3)].map((v) => v.toString(16).padStart(2, "0")).join("")}`
+    expect(rows[y * stride]).toBe(0)
+    if (!indexed) return hex(rows.subarray(y * stride + 1 + x * 4, y * stride + 4 + x * 4))
+    const bit = x * depth
+    const k = (rows[y * stride + 1 + (bit >> 3)] >> (8 - depth - (bit & 7))) & ((1 << depth) - 1)
+    return hex(plte.subarray(k * 3, k * 3 + 3))
   }
   return { width, height, pixel }
 }

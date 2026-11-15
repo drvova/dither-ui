@@ -16,6 +16,8 @@ import {
   surfaceOf,
 } from "../../src/solid"
 import * as aurora from "../../src/engine/aurora"
+import { release, seek } from "../../src/engine/clock"
+import { rasterSrc } from "../../src/engine/png"
 import { hexToRgb } from "../../src/engine/palette"
 import { SCREENS, screenMatrix } from "../../src/engine/pixel"
 import * as poster from "../../src/engine/poster"
@@ -155,16 +157,36 @@ describe("a surface holding a still frame", () => {
       </DitherScreen>
     ))
     await new Promise((done) => setTimeout(done, 5))
-    const [spinner, avatar] = [...container.querySelectorAll("canvas")]
-    const prints = (canvas: HTMLCanvasElement) => w.uploads.filter((c) => c === canvas).length
-    expect([prints(spinner), prints(avatar)]).toEqual([1, 1])
+    // Both are a frame known at render: an image at a pixel a cell, no canvas.
+    expect(container.querySelectorAll("canvas").length).toBe(1)
+    const [spinner, avatar] = [...container.querySelectorAll("img")]
+    const line = [spinner.src, avatar.src]
+    expect(line.every((src) => src.startsWith("data:image/png;base64,"))).toBe(true)
     setScreen("dot")
-    await w.frame(300)
-    expect([prints(spinner), prints(avatar)]).toEqual([2, 2])
+    expect(spinner.src).not.toBe(line[0])
+    expect(avatar.src).not.toBe(line[1])
+    setScreen("line")
+    expect([spinner.src, avatar.src]).toEqual(line)
     const before = gradient.mock.calls.length
     setSeed(2)
     expect(gradient.mock.calls.length).toBe(before + 1)
     expect(gradient.mock.lastCall?.[0].seed).toBe(2)
+    cleanup()
+    // Each image holds the bytes its canvas showed: the spinner live at its
+    // first moment, the avatar at its entrance's end.
+    seek(0)
+    const live = render(() => (
+      <DitherScreen screen="line">
+        <DitherSpinner />
+        <DitherAvatar name="Ada" />
+      </DitherScreen>
+    )).container
+    await new Promise((done) => setTimeout(done, 5))
+    const [liveSpinner, liveAvatar] = [...live.querySelectorAll("canvas")]
+    expect(rasterSrc(w.shown(liveSpinner))).toBe(line[0])
+    seek(1000)
+    release()
+    expect(rasterSrc(w.shown(liveAvatar))).toBe(line[1])
   })
 })
 

@@ -1,6 +1,7 @@
 // Files out of the page: a download, and a .zip of text files — stored, not
 // deflated (source is small; every unzip opens it), CRC-32 per entry, UTF-8
 // names, Unix rw-r--r-- modes.
+import { crc32 } from "@dither-ui/kit/engine/png.ts"
 
 /** Save a blob under a file name. */
 export function download(blob: Blob, name: string): void {
@@ -10,22 +11,6 @@ export function download(blob: Blob, name: string): void {
   a.download = name
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
-}
-
-const CRC = (() => {
-  const t = new Uint32Array(256)
-  for (let n = 0; n < 256; n++) {
-    let c = n
-    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
-    t[n] = c >>> 0
-  }
-  return t
-})()
-
-export function crc32(bytes: Uint8Array): number {
-  let c = ~0
-  for (const b of bytes) c = CRC[(c ^ b) & 255] ^ (c >>> 8)
-  return ~c >>> 0
 }
 
 /** A zip archive of text files, entries in the order given. */

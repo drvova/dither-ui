@@ -7,9 +7,8 @@
 // (`build/site-files.ts`); the shell and the Studio's route render the
 // head tags. Node-side only: the build's config loads it under Node's own
 // TypeScript, so its imports carry `.ts`.
-import { deflateSync } from "node:zlib"
+import { pngBytes } from "@dither-ui/kit/engine/png.ts"
 import { ROUTE_CARDS } from "../pages/docs/crawler-files.ts"
-import { crc32 } from "../shared/lib/files.ts"
 import { MARK_CELLS } from "../shared/ui/brand-mark.ts"
 import { OFFLINE } from "./offline.ts"
 
@@ -44,39 +43,6 @@ function iconPixels(size: number, span: number): Uint8Array {
       for (let x = 0; x < cell; x++) px.set([...ink, 255], ((at + m.y * cell + y) * size + at + m.x * cell + x) * 4)
   }
   return px
-}
-
-/** RGBA pixels as a PNG: 8 bits a channel, every row unfiltered. */
-function png(pixels: Uint8Array, width: number, height: number): Uint8Array {
-  const rows = new Uint8Array(height * (width * 4 + 1))
-  for (let y = 0; y < height; y++)
-    rows.set(pixels.subarray(y * width * 4, (y + 1) * width * 4), y * (width * 4 + 1) + 1)
-  const chunk = (type: string, data: Uint8Array) => {
-    const out = new Uint8Array(12 + data.length)
-    const view = new DataView(out.buffer)
-    view.setUint32(0, data.length)
-    out.set(new TextEncoder().encode(type), 4)
-    out.set(data, 8)
-    view.setUint32(8 + data.length, crc32(out.subarray(4, 8 + data.length)))
-    return out
-  }
-  const head = new Uint8Array(13)
-  new DataView(head.buffer).setUint32(0, width)
-  new DataView(head.buffer).setUint32(4, height)
-  head.set([8, 6, 0, 0, 0], 8)
-  const parts = [
-    new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
-    chunk("IHDR", head),
-    chunk("IDAT", deflateSync(rows)),
-    chunk("IEND", new Uint8Array()),
-  ]
-  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0))
-  let at = 0
-  for (const p of parts) {
-    out.set(p, at)
-    at += p.length
-  }
-  return out
 }
 
 /** The tab's icon as a vector: the mark on a rounded obsidian tile. */
@@ -130,7 +96,7 @@ export function installFiles(): Record<string, string | Uint8Array> {
   return {
     [MANIFEST]: webManifest(),
     "favicon.svg": faviconSvg(),
-    ...Object.fromEntries(ICONS.map((i) => [i.path, png(iconPixels(i.size, i.span), i.size, i.size)])),
+    ...Object.fromEntries(ICONS.map((i) => [i.path, pngBytes(i.size, i.size, iconPixels(i.size, i.span))])),
   }
 }
 

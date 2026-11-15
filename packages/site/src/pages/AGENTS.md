@@ -455,7 +455,7 @@ in the page's folder.
   footer's road runs on too: 3s as its card comes into view, then the
   reader's scroll); its own
   character standing on the strip's foot at the right, half over the card
-  (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, on a
+  (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, still (a print in the page's bytes, no canvas), on a
   plate of the card's ground so its ink never melts into the strip's), then
   its name chunky in the pixel face (`PixelWord.tsx`, 5px cells: "kit",
   "studio", "bridge"; its title the heading's text for screen readers),

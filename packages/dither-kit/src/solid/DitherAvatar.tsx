@@ -1,6 +1,7 @@
 import { createEffect, createMemo, type JSX, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
 import { directedTime, isDirected, onSeek } from "../engine/clock"
-import { cellCanvas } from "../engine/raster"
+import { rasterSrc } from "../engine/png"
+import { cellWriter, clearRasterBuffer, createRasterBuffer, putRasterBuffer, type RasterBuffer } from "../engine/raster"
 import { type AvatarPattern, clampGrid, normalizePattern, seededPattern } from "../engine/avatar-pattern"
 import { kitFromSeed } from "../engine/dither-paint"
 import {
@@ -48,11 +49,47 @@ function avatarModel(
 }
 
 type PaintOpts = {
-  animate: boolean
   duration: number
   cellPx: number
   boost: number // additive per-cell density bias
   offTier: number // alpha tier of unlit backing pixels
+}
+
+/** The avatar `progress` into its entrance (1: whole), a pixel a backing
+ * cell; into `out` when given (the entrance's frames reuse one). */
+function avatarFrame(
+  model: AvatarModel,
+  matrix: number[][],
+  progress: number,
+  { cellPx, boost, offTier }: Pick<PaintOpts, "cellPx" | "boost" | "offTier">,
+  out?: RasterBuffer,
+): RasterBuffer {
+  const grid = model.grid
+  const cp = Math.max(1, Math.round(cellPx))
+  const px = grid * cp
+  const raster = out?.width === px ? out : createRasterBuffer(px, px)
+  clearRasterBuffer(raster)
+  const cells = cellWriter(raster)
+  for (let r = 0; r < grid; r++) {
+    for (let c = 0; c < grid; c++) {
+      if (!model.on[r * grid + c]) continue
+      const start = matrix[r % 4][c % 4] * 0.7
+      const cellAlpha = clamp01((progress - start) / 0.3)
+      if (cellAlpha <= 0) continue
+      const density = clamp01(model.density[r * grid + c] + boost)
+      const base = 0.35 + 0.65 * density
+      for (let py = 0; py < cp; py++) {
+        for (let pxi = 0; pxi < cp; pxi++) {
+          const gx = c * cp + pxi
+          const gy = r * cp + py
+          const lit = density > matrix[gy & 3][gx & 3]
+          const alpha = (lit ? base : base * offTier) * cellAlpha
+          cells.cell(gx, gy, model.fill, alpha)
+        }
+      }
+    }
+  }
+  return raster
 }
 
 function paintAvatar(
@@ -60,50 +97,28 @@ function paintAvatar(
   bloomCanvas: HTMLCanvasElement | null,
   model: AvatarModel,
   matrix: number[][],
-  { animate, duration, cellPx, boost, offTier }: PaintOpts,
+  { duration, ...opts }: PaintOpts,
 ): (() => void) | undefined {
   const ctx = canvas.getContext("2d", { willReadFrequently: true })
   if (!ctx) return undefined
-  const grid = model.grid
-  const cp = Math.max(1, Math.round(cellPx))
-  const px = grid * cp
-  canvas.width = px
-  canvas.height = px
   const bloomCtx = bloomCanvas?.getContext("2d") ?? null
-  if (bloomCanvas) {
-    bloomCanvas.width = px
-    bloomCanvas.height = px
-  }
+  let raster: RasterBuffer | undefined
+  let image: ImageData | undefined
 
   const draw = (progress: number) => {
-    const cells = cellCanvas(ctx, px, px)
-    for (let r = 0; r < grid; r++) {
-      for (let c = 0; c < grid; c++) {
-        if (!model.on[r * grid + c]) continue
-        const start = matrix[r % 4][c % 4] * 0.7
-        const cellAlpha = clamp01((progress - start) / 0.3)
-        if (cellAlpha <= 0) continue
-        const density = clamp01(model.density[r * grid + c] + boost)
-        const base = 0.35 + 0.65 * density
-        for (let py = 0; py < cp; py++) {
-          for (let pxi = 0; pxi < cp; pxi++) {
-            const gx = c * cp + pxi
-            const gy = r * cp + py
-            const lit = density > matrix[gy & 3][gx & 3]
-            const alpha = (lit ? base : base * offTier) * cellAlpha
-            cells.cell(gx, gy, model.fill, alpha)
-          }
-        }
-      }
+    raster = avatarFrame(model, matrix, progress, opts, raster)
+    if (canvas.width !== raster.width) {
+      canvas.width = canvas.height = raster.width
+      if (bloomCanvas) bloomCanvas.width = bloomCanvas.height = raster.width
     }
-    cells.flush()
+    image = putRasterBuffer(ctx, raster, image)
     if (bloomCtx) {
-      bloomCtx.clearRect(0, 0, px, px)
+      bloomCtx.clearRect(0, 0, raster.width, raster.width)
       bloomCtx.drawImage(canvas, 0, 0)
     }
   }
 
-  if (!animate || pixelPrefersReducedMotion()) {
+  if (pixelPrefersReducedMotion()) {
     draw(1)
     return undefined
   }
@@ -188,23 +203,21 @@ export default function DitherAvatar(raw: DitherAvatarProps) {
   let bloomCanvas: HTMLCanvasElement | undefined
   const bloomStyle = createMemo(() => pixelBloomStyle(effBloom()))
 
+  const model = () => avatarModel(props.name, props.color ?? effHue(), props.mirror, props.grid, props.pattern)
+  const opts = () => ({ cellPx: props.cellPx, boost: props.density, offTier: props.offTier })
+  // An avatar that does not enter is one frame known at render: printed once
+  // at a pixel a backing cell (on the server too) and scaled crisp, no canvas.
+  const still = createMemo(() => (props.animate ? undefined : rasterSrc(avatarFrame(model(), matrix(), 1, opts()))))
+
   let teardown: (() => void) | undefined
   function paint() {
     teardown?.()
-    if (!canvas) return
-    teardown = paintAvatar(
-      canvas,
-      bloomStyle() ? (bloomCanvas ?? null) : null,
-      avatarModel(props.name, props.color ?? effHue(), props.mirror, props.grid, props.pattern),
-      matrix(),
-      {
-        animate: props.animate,
-        duration: props.animationDuration,
-        cellPx: props.cellPx,
-        boost: props.density,
-        offTier: props.offTier,
-      },
-    )
+    teardown = undefined
+    if (!canvas || still()) return
+    teardown = paintAvatar(canvas, bloomStyle() ? (bloomCanvas ?? null) : null, model(), matrix(), {
+      duration: props.animationDuration,
+      ...opts(),
+    })
   }
 
   onMount(() => {
@@ -249,18 +262,41 @@ export default function DitherAvatar(raw: DitherAvatarProps) {
       class={cn("relative", props.class)}
       style={props.size != null ? { width: `${props.size}px`, height: `${props.size}px` } : undefined}
     >
-      <canvas
-        ref={(el) => (canvas = el)}
-        class="absolute inset-0 h-full w-full"
-        style={{ "image-rendering": "pixelated" }}
-      />
-      <Show when={bloomStyle()}>
-        {(style) => (
-          <canvas
-            ref={(el) => (bloomCanvas = el)}
-            class="pointer-events-none absolute inset-0 h-full w-full"
-            style={glowStyle(style())}
-          />
+      <Show
+        when={still()}
+        fallback={
+          <>
+            <canvas
+              ref={(el) => (canvas = el)}
+              class="absolute inset-0 h-full w-full"
+              style={{ "image-rendering": "pixelated" }}
+            />
+            <Show when={bloomStyle()}>
+              {(style) => (
+                <canvas
+                  ref={(el) => (bloomCanvas = el)}
+                  class="pointer-events-none absolute inset-0 h-full w-full"
+                  style={glowStyle(style())}
+                />
+              )}
+            </Show>
+          </>
+        }
+      >
+        {(src) => (
+          <>
+            <img src={src()} alt="" class="absolute inset-0 h-full w-full" style={{ "image-rendering": "pixelated" }} />
+            <Show when={bloomStyle()}>
+              {(style) => (
+                <img
+                  src={src()}
+                  alt=""
+                  class="pointer-events-none absolute inset-0 h-full w-full"
+                  style={glowStyle(style())}
+                />
+              )}
+            </Show>
+          </>
         )}
       </Show>
     </div>
