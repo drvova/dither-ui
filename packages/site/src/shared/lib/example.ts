@@ -21,13 +21,26 @@ export type ComponentGroup = "inputs" | "navigation" | "display" | "overlays" | 
  * no), a number's bounds and step, a
  * select's options where the union's members are not them all, and its
  * value on a new frame where neither the example nor the kit's default is
- * it. */
+ * it; `boolean` the yes or no of such a union (a layer's `loop`). A
+ * generic component is named with its type argument
+ * (`DitherCardStack<string>`). */
 type Control<V> =
   | { min?: number; max?: number; step?: number; options?: readonly string[]; demo?: V }
   | { kind: "text" | "url" | "color"; demo?: string }
   | { kind: "number"; min?: number; max?: number; step?: number; demo?: number }
   | { kind: "select"; options: readonly string[]; demo?: string }
   | { kind: "list"; demo?: readonly string[] }
+  | (boolean extends V ? { kind: "boolean"; demo?: boolean } : never)
+
+/** A Studio setting that is no prop of the component: its kind and its
+ * value on a new frame, both said, since no prop's type says them. */
+type StoryControl =
+  | { kind: "text" | "url"; demo: string }
+  | { kind: "color"; demo: PixelColor }
+  | { kind: "boolean"; demo: boolean }
+  | { kind: "number"; demo: number; min?: number; max?: number; step?: number }
+  | { kind: "select"; demo: string; options: readonly string[] }
+  | { kind: "list"; demo: readonly string[] }
 
 /** The value a component binds two ways (`modelValue`, or its `prop`). */
 type ModelOf<P> = P extends { modelValue?: infer M } ? M : unknown
@@ -45,6 +58,11 @@ type ExampleMeta<P extends Record<string, any>> = {
     group: ComponentGroup
     frame: { w: number; h: number }
     controls: NoInfer<{ [K in keyof P]?: Control<NonNullable<P[K]>> }>
+    /** Settings before its props' that the component does not take: what
+     * its row's mapping reads into a prop (a bracket's `teams` into its
+     * `rounds`) or its demo hands a call of its own (the toaster's
+     * `toast()`). No key here is a prop (the build fails one). */
+    story?: Record<string, StoryControl>
     /** Its children's text on a new frame, where the example's is not it. */
     slot?: string
     /** The value it binds on a new frame, where the example binds none or
@@ -85,6 +103,9 @@ export type CatalogEntry = {
     group: ComponentGroup
     frame: { w: number; h: number }
     props: PropSpec[]
+    /** Its settings that are no prop of the component, before `props` in
+     * the row (`studio.story`). */
+    story?: PropSpec[]
     slotText?: string
     model?: { def: unknown; prop?: string; event?: string }
     field?: true

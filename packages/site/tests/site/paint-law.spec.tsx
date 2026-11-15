@@ -14,8 +14,8 @@
 // The inputs: every prop the row declares, its second value made from its
 // docs example's states (`meta.states`) where it states one, else from its
 // spec (a boolean flipped, a number halfway to its bound, the next option,
-// another colour, a list reversed, a text that reads as a value from
-// `TEXT_SAMPLES`), then the surroundings: the print screen, the theme and
+// another colour, a list reversed, a text made from its own), then the
+// surroundings: the print screen, the theme and
 // the box. First of all nothing: two copies that differ with nothing
 // changed fail as `<Component>.<none>` (it runs on a timer the kit clock
 // does not drive).
@@ -28,7 +28,7 @@ import { release, seek } from "@dither-ui/kit/engine/clock.ts"
 import { paintOf, recordPaint } from "@dither-ui/kit/testing/paint.ts"
 import { createComponent } from "@/entities/widget/model/factory"
 import type { ComponentModel } from "@/entities/widget/model/types"
-import { COMPONENT_REGISTRY, type ComponentEntry, type PropSpec, TEXT_SAMPLES } from "@/entities/widget/model/registry"
+import { COMPONENT_REGISTRY, type ComponentEntry, type PropSpec } from "@/entities/widget/model/registry"
 import { WidgetRenderer } from "../../src/widgets/frame-renderer"
 import { stated } from "./docs-api"
 
@@ -178,7 +178,7 @@ function secondValue(entry: ComponentEntry, spec: PropSpec): unknown {
     case "list":
       return spec.def.length > 1 ? [...spec.def].reverse() : [...spec.def, "Extra"]
     case "text":
-      return TEXT_SAMPLES[spec.key] ?? (spec.def ? `${spec.def} too` : "Text")
+      return spec.def ? `${spec.def} too` : "Text"
     case "url":
       return "/faces.webp"
   }

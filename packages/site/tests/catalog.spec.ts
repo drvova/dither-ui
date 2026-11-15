@@ -67,6 +67,13 @@ describe("the docs' examples catalogue", () => {
       (e.studio?.props ?? []).filter((s) => !kit.get(e.component)?.includes(s.key)).map((s) => `${e.id}: ${s.key}`),
     )
     expect(wrong).toEqual([])
+    // a story setting is one the component does not take, and its row is no copy of the example
+    const story = entries.filter((e) => e.studio?.story)
+    expect(story.map((e) => e.component)).toEqual(expect.arrayContaining(["DitherToaster", "DitherBracket"]))
+    for (const e of story) {
+      expect(e.studio!.story!.filter((s) => kit.get(e.component)?.includes(s.key))).toEqual([])
+      expect(e.studio!.faithful).toBe(false)
+    }
   })
 
   it("type-checks every meta against its component's props, and fails one that names what the props lack", () => {

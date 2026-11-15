@@ -175,7 +175,8 @@ are from the repository's.
   `exampleCatalogRsbuild` in `rstack.config.ts`) takes `virtual:` for a
   URL scheme. `tests/catalog.spec.ts` holds the type check (a setting the
   props lack, a value its prop does not take), the resolved settings to
-  the kit's props, and the stripped text.
+  the kit's props (a `story` setting to none of them), and the stripped
+  text.
 - The docs' API tables are printed off the kit's own props types, never
   typed here: `build/props.ts` reads each component's props by the
   TypeScript compiler (one row a prop the kit declares, in the type's

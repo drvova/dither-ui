@@ -228,8 +228,9 @@ around this tree (entries, routes, the build, how Solid is written) is
   the contract `shared/lib/example.ts`, `pages/AGENTS.md`) resolves each
   setting's kind from its prop's type (a union of literals a select of
   them, `PixelColor` a colour), its value from the meta's `demo`, the
-  example's props or the kit's default. The rest stay hand rows until
-  their example takes a meta. Where the example IS a new frame of the row
+  example's props or the kit's default. The swipe area and the drawer
+  indent stay hand rows, the value each binds being its demo's (`demo:
+  true`). Where the example IS a new frame of the row
   (the component alone, every prop it hands a setting at its value), the
   row names it (`example`) and an unedited frame exports the example's own
   code (`virtual-dither-catalog/sources`, `codegen.ts`); an edited one is
@@ -246,7 +247,9 @@ around this tree (entries, routes, the build, how Solid is written) is
   what it takes: a setting that is not a prop is read into one (a
   bracket's `teams` into `rounds`) or, for the toaster, into its demo's
   `toast()` call (`demoToast`, the canvas's "Show toast" and the export's
-  key). Every prop a row binds is a real prop of its component, every
+  key); its meta says such a setting in `studio.story` (its kind and its
+  value, before the props' settings; a key that is a prop fails the
+  build). Every prop a row binds is a real prop of its component, every
   setting reaches it or its demo, and the code a frame of each row
   exports, as it comes and edited, type-checks against the kit
   (`tests/site/registry-props.spec.ts`). A row holds only what the
@@ -266,9 +269,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   there or by a bespoke widget kind. A setting's second value in the
   specs (`tests/site/paint-law.spec.tsx`, the export's type check in
   `registry-props.spec.ts`) is its docs example's `states` where it states
-  one (`stated`, `tests/site/docs-api.ts`); else `TEXT_SAMPLES` beside the
-  rows gives a text prop read as a value (a currency, a CSS length) the
-  second value the paint law changes it to.
+  one (`stated`, `tests/site/docs-api.ts`), else made from its spec.
 
 ## Local Contracts
 

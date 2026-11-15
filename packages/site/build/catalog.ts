@@ -4,7 +4,8 @@
 // resolved against the kit's props types (`eachKitProp`, `props.ts`: a
 // setting's kind from its prop's type, a select's options from its union
 // of literals, its value from the meta's `demo`, else what the example hands
-// the prop, else the kit's default) into the Studio row it makes. Served
+// the prop, else the kit's default; a `story` setting, which no prop takes,
+// as the meta says it) into the Studio row it makes. Served
 // as `virtual-dither-catalog` (the entries, which the Studio's registry
 // reads) and `virtual-dither-catalog/sources` (each example's text, which
 // the code export reads), so neither loads with a page that does not ask.
@@ -100,16 +101,24 @@ function literal(node: ts.Expression): unknown {
   return undefined
 }
 
+/** A setting as the meta writes it. */
+type Control = {
+  kind?: PropSpec["kind"]
+  min?: number
+  max?: number
+  step?: number
+  options?: string[]
+  demo?: unknown
+}
+
 type Meta = {
   component: string
   title: string
   studio?: {
     group: NonNullable<CatalogEntry["studio"]>["group"]
     frame: { w: number; h: number }
-    controls: Record<
-      string,
-      { kind?: PropSpec["kind"]; min?: number; max?: number; step?: number; options?: string[]; demo?: unknown }
-    >
+    controls: Record<string, Control>
+    story?: Record<string, Control>
     slot?: string
     model?: { demo?: unknown; prop?: string; event?: string }
     field?: true
@@ -139,14 +148,19 @@ function readMeta(file: string, source: ts.SourceFile): Meta | null {
     (p): p is ts.PropertyAssignment =>
       ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && p.name.text === "component",
   )
-  if (!component || !ts.isIdentifier(component.initializer)) return fail("names no component")
+  // a generic component is named with its type argument (`DitherCardStack<string>`)
+  const named =
+    component && ts.isExpressionWithTypeArguments(component.initializer)
+      ? component.initializer.expression
+      : component?.initializer
+  if (!named || !ts.isIdentifier(named)) return fail("names no component")
   const rest = ts.factory.updateObjectLiteralExpression(
     arg,
     arg.properties.filter((p) => p !== component),
   )
   const data = literal(rest)
   if (data === undefined) return fail("holds a value that is not a literal")
-  return { ...(data as Omit<Meta, "component">), component: component.initializer.text }
+  return { ...(data as Omit<Meta, "component">), component: named.text }
 }
 
 /** What the example hands its component: the props it gives as literals,
@@ -288,6 +302,18 @@ function entryOf(
   if (!studio) return { id, component: meta.component, title: meta.title, studio: null, states: meta.states ?? [] }
   const attrs = handed?.attrs ?? new Map<string, unknown>()
   let faithful = !!handed?.alone
+  const spec = (key: string, kind: PropSpec["kind"], c: Control, def: unknown, options?: string[]): PropSpec => {
+    if (kind === "number") return { key, kind, def: def as number, min: c.min, max: c.max, step: c.step }
+    if (kind === "select") return { key, kind, def: def as string, options: c.options ?? options ?? [] }
+    return { key, kind, def } as PropSpec
+  }
+  // a setting no prop takes is read by the row's code: a new frame is not the example
+  const story = Object.entries(studio.story ?? {}).map(([key, c]): PropSpec => {
+    if (props!.has(key)) fail(`studio.story.${key} is a prop of ${meta.component}: give it in controls`)
+    if (!c.kind || !("demo" in c)) fail(`studio.story.${key}: give its kind and its demo`)
+    faithful = false
+    return spec(key, c.kind!, c, c.demo)
+  })
   const specs = Object.entries(studio.controls).map(([key, c]): PropSpec => {
     const info = props!.get(key) ?? fail(`studio.controls.${key} is not a prop of ${meta.component}`)
     const kind = c.kind ?? info.kind?.kind ?? fail(`studio.controls.${key}: its type says no kind; give one`)
@@ -295,9 +321,7 @@ function entryOf(
     const def = "demo" in c ? c.demo : handedValue !== undefined ? handedValue : info.def
     if (def === undefined) fail(`studio.controls.${key}: no value on a new frame; give a demo`)
     if (!same(def, handedValue !== undefined ? handedValue : info.def)) faithful = false
-    if (kind === "number") return { key, kind, def: def as number, min: c.min, max: c.max, step: c.step }
-    if (kind === "select") return { key, kind, def: def as string, options: c.options ?? info.kind?.options ?? [] }
-    return { key, kind, def } as PropSpec
+    return spec(key, kind, c, def, info.kind?.options)
   })
   const modelProp = studio.model?.prop ?? "modelValue"
   const modelDef = studio.model && "demo" in studio.model ? studio.model.demo : handed?.bound.get(modelProp)
@@ -323,6 +347,7 @@ function entryOf(
       group: studio.group,
       frame: studio.frame,
       props: specs,
+      ...(story.length ? { story } : {}),
       ...(slotText !== undefined ? { slotText } : {}),
       ...(model ? { model } : {}),
       ...(studio.field ? { field: true as const } : {}),
