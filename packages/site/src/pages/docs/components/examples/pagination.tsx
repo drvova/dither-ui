@@ -3,9 +3,19 @@ import { DitherPagination } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [page, setPage] = createSignal(4)
+  const [page, setPage] = createSignal(3)
 
-  return <DitherPagination total={12} page={page()} onUpdatePage={setPage} />
+  return (
+    <div class="grid gap-4">
+      {/* Centred while it fits; on the narrowest phones it scrolls. */}
+      <div class="overflow-x-auto">
+        <div class="mx-auto w-max">
+          <DitherPagination page={page()} onUpdatePage={setPage} total={12} />
+        </div>
+      </div>
+      <p class="text-center text-[12px] text-muted-foreground">on page {page()} of 12</p>
+    </div>
+  )
 }
 
 export const meta = defineExample({

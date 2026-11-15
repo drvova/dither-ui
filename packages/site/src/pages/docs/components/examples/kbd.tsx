@@ -2,7 +2,21 @@ import { DitherKbd } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherKbd>⌘K</DitherKbd>
+  return (
+    <div class="flex items-center justify-center gap-6 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="text-muted-foreground">Command menu</span>
+        <span class="flex items-center gap-1">
+          <DitherKbd>⌘</DitherKbd>
+          <DitherKbd>K</DitherKbd>
+        </span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-muted-foreground">Shortcuts</span>
+        <DitherKbd>?</DitherKbd>
+      </div>
+    </div>
+  )
 }
 
 export const meta = defineExample({
