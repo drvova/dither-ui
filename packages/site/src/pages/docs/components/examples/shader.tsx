@@ -46,7 +46,7 @@ function Source(props: { ref: (source: ChannelInput) => void; children: JSX.Elem
 
 export default function Example() {
   const [mono, setMono] = createSignal(false)
-  const [aurora, setAurora] = createSignal<ChannelInput>(null)
+  const [aurora, setAurora] = createSignal(null as ChannelInput)
 
   return (
     <div class="mx-auto max-w-md">

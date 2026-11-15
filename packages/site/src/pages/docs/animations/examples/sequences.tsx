@@ -4,7 +4,7 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   // a change of origin or easing, or Replay, rebuilds the plan and plays it again
-  const [from, setFrom] = createSignal<StaggerFrom>("center")
+  const [from, setFrom] = createSignal("center" as StaggerFrom)
   const [quantized, setQuantized] = createSignal(false)
   const [nonce, setNonce] = createSignal(0)
   const easing = createMemo(() => (quantized() ? steps(4) : linear))

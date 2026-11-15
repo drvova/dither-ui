@@ -5,7 +5,7 @@ import { defineExample } from "@/shared/lib/example"
 type Wave = "sine" | "square" | "triangle" | "saw"
 
 export default function Example() {
-  const [wave, setWave] = createSignal<Wave>("sine")
+  const [wave, setWave] = createSignal("sine" as Wave)
   const [glow, setGlow] = createSignal(60)
   const waves = (["sine", "square", "triangle", "saw"] as const).map((w) => ({ value: w, label: w }))
 

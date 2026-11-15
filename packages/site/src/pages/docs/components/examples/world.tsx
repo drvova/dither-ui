@@ -67,7 +67,7 @@ export default function Example() {
   const [build, setBuild] = createSignal(1)
   const [scatter, setScatter] = createSignal(0)
   const [engine, setEngine] = createSignal<"cpu" | "gpu">("cpu")
-  const [skin, setSkin] = createSignal<ChannelInput>(null)
+  const [skin, setSkin] = createSignal(null as ChannelInput)
   const toggles = [
     ["wire", wire, setWire],
     ["ink", ink, setInk],
