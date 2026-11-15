@@ -406,7 +406,11 @@ Default section order:
   function, `useDitherMatrix` (charts through their context's
   `matrixOf`), seeded as ever; a fill that carries a label keeps Bayer.
   `DitherPoster` prints the palette as tone through them: tiles that
-  dissolve into each other and the kit's diamond as their negative. Docs: Utils (`print-screens`), Backgrounds (`poster`). Details in
+  dissolve into each other and the kit's diamond as their negative. Docs: Utils (`print-screens`), Backgrounds (`poster`).
+  Each screen's 17 tones are also class names
+  (`@dither-ui/kit/engine/tones.css`, `dk-tone-<screen>-<level>`, generated
+  from `engine/tone.ts`): the labelled fills (button, badge, toggle, toggle
+  group) print through them on the server, no canvas. Details in
   `packages/dither-kit/AGENTS.md`.
 - Browsers and drivers: the kit is web platform only — Chromium (Chrome,
   Edge, Brave), WebKit (Safari) and Gecko (Firefox) at Tailwind v4's floor

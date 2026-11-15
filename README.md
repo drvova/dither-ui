@@ -272,7 +272,7 @@ visual difference at low opacity is imperceptible. Override per-instance with
 <DitherGradient from="blue" opacity={0.14} renderMode="static" maxCols={480} maxRows={300} />
 ```
 
-Without a packaged asset, the kit also batches gradient/button/spinner pixels
+Without a packaged asset, the kit also batches gradient and spinner pixels
 through `ImageData`, caps chart backing resolution with `cell`, pauses
 off-screen chart loops, and avoids rebuilding bloom layers when the frame is
 unchanged. Exported constants `DEFAULT_MAX_COLS` (960), `DEFAULT_MAX_ROWS`
@@ -294,9 +294,10 @@ The kit applies several main-thread optimizations that benefit every consumer:
   their initial `getBoundingClientRect()` read to a `requestAnimationFrame`
   callback, batching layout reads into one frame after layout completes
   instead of forcing a synchronous reflow per component as it mounts.
-- **`RasterBuffer` for toggle canvases.** `paintToggleCanvas` (shared by
-  DitherToggle and DitherToggleGroup) uses `createRasterBuffer` +
-  `putRasterBuffer` instead of per-pixel `fillRect`.
+- **Tone classes for labelled fills.** The button, badge, toggle and toggle
+  group print their fill as CSS (`@dither-ui/kit/engine/tones.css`: every
+  print screen's 17 tones as 4x4 tiles), rendered with the page: no canvas,
+  no paint, and a hover or press steps between tones in the stylesheet.
 - **`IntersectionObserver` visibility gating.** Chart paint loops remain
   paused until the IO reports the canvas visible. The IO callback marks the
   canvas visible before calling `onWake` so `schedule()` sees the correct
@@ -313,16 +314,14 @@ headless Chromium 141 rendering in software (SwiftShader, no GPU):
 | DitherGradient live mount | 0.10 ms | 16.6 ms | 960×120, cell=3 |
 | DitherGradient static mount | 0.10 ms | 16.6 ms | 320×200 cap, cell=4, idle-deferred |
 | DitherGradient live re-render | 0.34 ms | 16.7 ms | direction up to down |
-| DitherButton live mount | 0.17 ms | 33.3 ms | gradient variant, cell=2 |
-| DitherButton static mount | 0.14 ms | 16.6 ms | 320×200 cap, idle-deferred |
 | DitherSpinner live mount | 0.26 ms | 16.6 ms | 32px, RAF loop |
 | Raw raster gradient | 2.25 ms | 2.2 ms | 480×300, no framework |
 
 **Compute time** is mount to the next microtask (Solid's render and the
 component's `onMount`: the kit's actual work). **Full time** adds the wait for
 a `requestAnimationFrame` frame (~16.67 ms at 60 fps) before the canvas has
-visible pixels; a live button measures its box in one frame and paints in the
-next, so its first pixels take two. The raw raster benchmark has no framework
+visible pixels. The button is not among them: its fill is tone classes, printed
+with the page and never painted. The raw raster benchmark has no framework
 overhead and no RAF wait, so its full time equals compute time. Static mode
 is comparable to live mode in compute time because both use the same inlined
 pixel writes; the difference is that static mode auto-caps at 320×200 (4×

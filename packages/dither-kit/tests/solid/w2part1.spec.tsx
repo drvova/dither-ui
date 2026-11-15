@@ -414,7 +414,7 @@ describe("DitherRadioGroup", () => {
 })
 
 describe("DitherToggle", () => {
-  it("renders its label, reports the flip, and paints its fill once pressed", async () => {
+  it("renders its label, reports the flip, and prints its fill once pressed", () => {
     const [on, setOn] = createSignal(false)
     const { container } = render(() => (
       <DitherToggle modelValue={on()} onUpdateModelValue={setOn}>
@@ -422,29 +422,24 @@ describe("DitherToggle", () => {
       </DitherToggle>
     ))
     const button = screen.getByRole("button", { name: "Bold" })
-    const canvas = container.querySelector("canvas")!
     expect(button.getAttribute("aria-pressed")).toBe("false")
-    expect(canvas.style.display).toBe("none")
-    w.size()
-    await w.frame(100)
-    expect(w.uploads).toEqual([])
+    expect(container.querySelector(".dk-label-fill")).toBeNull()
     fireEvent.click(button)
     expect(button.getAttribute("aria-pressed")).toBe("true")
-    expect(canvas.style.display).toBe("")
-    await w.frame(200)
-    expect(w.uploads).toEqual([canvas])
+    expect(container.querySelector("canvas")).toBeNull()
+    expect(container.querySelector(".dk-label-image")).not.toBeNull()
   })
 })
 
 describe("DitherToggleGroup", () => {
-  it("is a radio group when single: arrows move the choice, the chosen one is painted", async () => {
+  it("is a radio group when single: arrows move the choice, the chosen one is printed", async () => {
     const [value, setValue] = createSignal<string | string[]>("a")
     const { container } = render(() => (
       <DitherToggleGroup options={OPTIONS} modelValue={value()} onUpdateModelValue={setValue} />
     ))
     expect(screen.getByRole("radiogroup")).toBeTruthy()
-    await w.frame(100)
-    expect(w.uploads).toEqual([container.querySelector("canvas")])
+    expect(container.querySelectorAll(".dk-label-fill")).toHaveLength(1)
+    expect(screen.getByRole("radio", { name: "Alpha" }).querySelector(".dk-label-fill")).not.toBeNull()
     fireEvent.keyDown(screen.getByRole("radio", { name: "Alpha" }), { key: "ArrowRight" })
     expect(value()).toBe("c")
     await Promise.resolve()

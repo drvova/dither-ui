@@ -47,8 +47,11 @@ function ground(raster: RasterBuffer, page: Rgb, band: [number, number]): number
   for (let y = band[0]; y < band[1]; y++)
     for (let x = 2; x < width - 2; x++) {
       const i = (y * width + x) * 4
-      const a = data[i + 3]! / 255
-      sum += luminance([0, 1, 2].map((k) => data[i + k]! * a + page[k]! * (1 - a)) as Rgb)
+      const a = data[i + 3]!
+      // as a browser lays it: the colour scaled by its alpha byte, then the page
+      sum += luminance(
+        [0, 1, 2].map((k) => Math.round(Math.round((data[i + k]! * a) / 255) + (page[k]! * (255 - a)) / 255)) as Rgb,
+      )
       n++
     }
   return sum / n

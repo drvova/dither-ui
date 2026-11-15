@@ -16,6 +16,18 @@ export {
 export type { ButtonRasterOptions, GradientRasterOptions } from "./precompile"
 export { createRasterBuffer, putRasterBuffer, setRasterPixel32, setOrBlendRasterPixel } from "./raster"
 export { pngBytes, rasterSrc } from "./png"
+export {
+  matchTone,
+  screenTone,
+  TONE_LEVELS,
+  toneClass,
+  toneMask,
+  tonePatterns,
+  toneTile,
+  toneVar,
+  type ToneMask,
+  type ToneMatch,
+} from "./tone"
 export { clamp, clamp01, SCREENS, SCREEN_KINDS, screenMatrix, type ScreenKind } from "./pixel"
 export type { RasterBuffer } from "./raster"
 export {

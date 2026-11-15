@@ -52,6 +52,24 @@ Every visual knob is a prop: colors accept palette names, hue numbers or hex;
 `{ blur, brightness, opacity, saturate }`; `easing` accepts presets or
 cubic-bezier points.
 
+## The dither as class names
+
+A 4x4 matrix holds 17 tones, so every print screen's tones ship as CSS:
+`src/engine/tones.css` (generated from `engine/tone.ts`) gives each one a
+class, `dk-tone-<screen>-<level>` (`bayer`, `line`, `diagonal`, `dot`,
+`cross`; 0 to 16), that prints its lit cells in `--dk-tone-ink` (else the
+text colour) at `--dk-cell` (2px), shifted `--dk-tone-x`/`--dk-tone-y`
+cells. Put one on a layer of its own (the mask hides what the layer holds):
+
+```html
+<span class="dk-tone-bayer-9" style="--dk-tone-ink: #358ff3; --dk-cell: 3px"></span>
+```
+
+`dk-tone-gaps` prints the unlit cells instead. For an SVG fill,
+`tonePatterns(cell)` writes the same tiles as `<pattern>`s
+(`fill="url(#dk-bayer-9)"`). The button, badge, toggle and toggle group
+print their fills this way, rendered with the page.
+
 ## Server precompilation
 
 `renderDitherGradient()` and `renderDitherButton()` are dependency-free
@@ -98,10 +116,8 @@ surfaces. Bloom canvases omit the flag because they only use `drawImage`.
 Standalone components defer their initial layout read (`getBoundingClientRect()`)
 to `requestAnimationFrame` so multiple components mounting simultaneously batch
 into one layout pass instead of forcing a synchronous reflow per component
-as it mounts. `DitherButton` uses the same pattern for its `resize()`
-call.
-`paintToggleCanvas` (shared by DitherToggle and DitherToggleGroup) uses
-`RasterBuffer` + `putRasterBuffer` instead of per-pixel `fillRect`.
+as it mounts. The labelled fills (button, badge, toggle, toggle group) need
+none of it: they print as tone classes (`engine/tones.css`), with the page.
 
 Keep `animate`, `sparkles`, and bloom off for static content, and use the
 precompiled path for content whose data and dimensions are known on the server.

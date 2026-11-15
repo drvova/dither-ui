@@ -5,8 +5,10 @@
 // reaches it, on a dark page and a light one alike.
 
 import { contrast, luminance, type Rgb } from "./palette"
-import { BAYER4 } from "./pixel"
+import { BAYER4, clamp } from "./pixel"
+import { rasterSrc } from "./png"
 import { createRasterBuffer, type RasterBuffer } from "./raster"
+import { matchTone, toneClass, toneTile, toneVar, type ToneMask, type ToneMatch } from "./tone"
 
 export type LabelVariant = "gradient" | "solid" | "dotted" | "hatched"
 
@@ -42,8 +44,20 @@ export const LABEL_INKS: { light: Rgb; black: Rgb; dark: Rgb } = {
 }
 
 /** A row's density: the gradient rises down the fill, the rest stand at one. */
+/** The rows of square cells a fill `height` px tall holds at `cell` px:
+ * whole cells from the top, the last one cut where the box ends. */
+export const labelRows = (height: number, cell: number): number => Math.max(1, Math.ceil(height / cell - 1e-6))
+
 export const labelDensity = (variant: LabelVariant, y: number, rows: number): number =>
   variant === "gradient" ? 0.25 + 0.75 * ((y + 0.5) / rows) : variant === "dotted" ? 0.5 : 0.75
+
+/** Whether a cell is lit: every solid cell, else a density past the cell's
+ * threshold (the press lowers it, the dotted fill more). */
+const labelLit = (variant: LabelVariant, density: number, threshold: number, intensity: number) =>
+  variant === "solid" || density > threshold - 0.1 * intensity - (variant === "dotted" ? 0.12 : 0)
+
+/** A lit cell's alpha before its tone (an unlit one's is 0.4 of it). */
+const labelK = (density: number, intensity: number) => (0.3 + density * 0.7) * (1 + 0.22 * intensity)
 
 /** A cell's alpha before its tone: lit cells at k, unlit at 0.4k, the dotted
  * and hatched gaps 0. `intensity` is the button's hover and press (0 at rest). */
@@ -56,10 +70,123 @@ export function labelAlpha(
   intensity = 0,
 ): number {
   if (variant === "hatched" && ((x + y) & 3) >= 2) return 0
-  const lit = variant === "solid" || density > threshold - 0.1 * intensity - (variant === "dotted" ? 0.12 : 0)
+  const lit = labelLit(variant, density, threshold, intensity)
   if (variant === "dotted" && !lit) return 0
-  const k = (0.3 + density * 0.7) * (1 + 0.22 * intensity)
+  const k = labelK(density, intensity)
   return lit ? k : k * 0.4
+}
+
+/** A cell's colour and alpha bytes as the fill stores them: straight (the
+ * colour as given) or premultiplied (scaled by the alpha). */
+function cellBytes(fill: Rgb, storage: LabelStorage, alpha: number): [number, number, number, number] {
+  const a = alpha > 1 ? 1 : alpha
+  if (storage === "straight") return [fill[0], fill[1], fill[2], Math.round(a * 255)]
+  return [(fill[0] * a + 0.5) | 0, (fill[1] * a + 0.5) | 0, (fill[2] * a + 0.5) | 0, (a * 255 + 0.5) | 0]
+}
+
+/** Bytes as a CSS colour, its alpha the same byte once a browser reads it. */
+const cssInk = ([r, g, b, a]: [number, number, number, number]) => `rgb(${r} ${g} ${b} / ${+(a / 255).toFixed(4)})`
+
+/** One layer of a labelled fill as a stylesheet prints it: a tone (the lit
+ * cells, or with `gaps` the unlit ones, the hatch's gaps left out with
+ * `hatch`) in one ink, or the gradient's cells as an image four cells wide
+ * and the fill's rows tall, stretched down the fill as the canvas was.
+ * `names` are its classes, for `tones.css` and the fill's stylesheet. */
+export type LabelLayer =
+  | {
+      kind: "tone"
+      names: string
+      /** The screen's tile it is, at a shift, when one is (Bayer as it
+       * stands, unseeded); a seed's jitter can make cells no tile makes. */
+      tone: ToneMatch | null
+      /** The lit cells, before `gaps` and `hatch`. */
+      mask: ToneMask
+      /** The tile as a CSS image: the root's `--dk-t-<screen>-<level>`, or
+       * the cells themselves. */
+      tile: string
+      gaps: boolean
+      hatch: boolean
+      ink: string
+    }
+  | { kind: "image"; names: "dk-label-image"; src: string }
+
+/** A labelled fill in CSS: its `labelFill` tone, its layers, bottom first, and the 1-cell edge
+ * over them (`over`, straight alpha: laid on the cells) or in their place. */
+export type LabelPaint = { tone: number; layers: LabelLayer[]; edge: string; over: boolean }
+
+const images = new Map<string, string>()
+
+/** The gradient's cells, four columns (the matrix's period) by `rows`, as
+ * the fill stores them at `tone`: the image its layer prints. */
+export function gradientCells(
+  fill: Rgb,
+  storage: LabelStorage,
+  matrix: number[][],
+  rows: number,
+  intensity: number,
+  tone: number,
+): RasterBuffer {
+  const raster = createRasterBuffer(4, rows)
+  for (let y = 0; y < rows; y++) {
+    const density = labelDensity("gradient", y, rows)
+    for (let x = 0; x < 4; x++)
+      raster.data.set(
+        cellBytes(fill, storage, labelAlpha("gradient", density, x, y, matrix[y & 3][x & 3], intensity) * tone),
+        (y * 4 + x) * 4,
+      )
+  }
+  return raster
+}
+
+/** A labelled fill as tone classes print it, cell for cell what
+ * `renderLabelFill` (straight) and `renderDitherButton` (premultiplied)
+ * paint: at the `labelFill` tone, `rows` cells tall (only the gradient
+ * reads it: its density runs down the rows), at `intensity` (the button's
+ * hover 1 and press 1.5). */
+export function labelPaint(
+  fill: Rgb,
+  variant: LabelVariant,
+  storage: LabelStorage,
+  matrix: number[][],
+  rows: number,
+  intensity = 0,
+): LabelPaint {
+  const { tone } = labelFill(fill, variant, storage, matrix)
+  const edgeAlpha = storage === "straight" ? 0.5 * tone : Math.max(0, Math.min(1, (0.5 + 0.25 * intensity) * tone))
+  const edge = cssInk(cellBytes(fill, storage, edgeAlpha))
+  const over = storage === "straight"
+  if (variant === "gradient") {
+    const key = `${fill.join()},${storage},${matrix.flat().join()},${rows},${intensity}`
+    let src = images.get(key)
+    if (!src) {
+      src = rasterSrc(gradientCells(fill, storage, matrix, rows, intensity, tone))
+      if (images.size >= 128) images.clear()
+      images.set(key, src)
+    }
+    return { tone, layers: [{ kind: "image", names: "dk-label-image", src }], edge, over }
+  }
+  const density = labelDensity(variant, 0, rows)
+  const k = labelK(density, intensity) * tone
+  const lit = matrix.flatMap((row) => row.map((threshold) => labelLit(variant, density, threshold, intensity)))
+  const match = matchTone(lit)
+  const tile = match ? `var(${toneVar(match.screen, match.level)})` : toneTile(lit)
+  const hatch = variant === "hatched"
+  const layer = (gaps: boolean, alpha: number): LabelLayer => ({
+    kind: "tone",
+    // the tile's class (else the bare `dk-tone`, its tile in its style)
+    names: [match ? toneClass(match.screen, match.level) : "dk-tone", gaps && "dk-tone-gaps", hatch && "dk-tone-hatch"]
+      .filter(Boolean)
+      .join(" "),
+    tone: match,
+    mask: lit,
+    tile,
+    gaps,
+    hatch,
+    ink: cssInk(cellBytes(fill, storage, alpha)),
+  })
+  const layers = [layer(false, k)]
+  if (variant === "hatched") layers.unshift(layer(true, k * 0.4))
+  return { tone, layers, edge, over }
 }
 
 /** The badge's and the toggle's fill at rest, straight alpha, at `tone`:
@@ -124,6 +251,7 @@ export function labelGround(
   page: Rgb,
   rows: number,
   text: number,
+  toward = 0,
 ): number {
   let sum = 0
   let n = 0
@@ -131,15 +259,16 @@ export function labelGround(
   for (let y = top; y < top + text; y++) {
     const density = labelDensity(variant, y, rows)
     for (let x = 0; x < 4; x++) {
-      // in bytes, as the raster holds it
+      // In bytes as the raster holds them, laid over the page as a browser
+      // lays them: the colour scaled by its alpha byte, then the page under
+      // it, each rounded to a byte; `toward` moves every byte that far, as
+      // an engine that rounds the other way would (a byte toward the ink).
       const a = Math.min(1, labelAlpha(variant, density, x, y, matrix[y & 3][x & 3]) * tone)
-      const shown = Math.round(a * 255) / 255
+      const alpha = Math.round(a * 255)
       const ink = (c: number) => (storage === "premultiplied" ? Math.round(c * a) : c)
-      sum += luminance([
-        ink(fill[0]) * shown + page[0] * (1 - shown),
-        ink(fill[1]) * shown + page[1] * (1 - shown),
-        ink(fill[2]) * shown + page[2] * (1 - shown),
-      ])
+      const lay = (c: number, p: number) =>
+        clamp(Math.round(Math.round((ink(c) * alpha) / 255) + (p * (255 - alpha)) / 255) + toward, 0, 255)
+      sum += luminance([lay(fill[0], page[0]), lay(fill[1], page[1]), lay(fill[2], page[2])])
       n++
     }
   }
@@ -169,12 +298,12 @@ function readsAt(
   let blackWorst = Infinity
   for (const [rows, text] of LABEL_SIZES) {
     for (const page of LABEL_GROUNDS.light)
-      if (contrast(dark, labelGround(fill, variant, storage, tone, matrix, page, rows, text)) < LABEL_CONTRAST)
+      if (contrast(dark, labelGround(fill, variant, storage, tone, matrix, page, rows, text, -1)) < LABEL_CONTRAST)
         return null
     for (const page of LABEL_GROUNDS.dark) {
-      const ground = labelGround(fill, variant, storage, tone, matrix, page, rows, text)
-      lightWorst = Math.min(lightWorst, contrast(light, ground))
-      blackWorst = Math.min(blackWorst, contrast(0, ground))
+      const ground = (toward: number) => labelGround(fill, variant, storage, tone, matrix, page, rows, text, toward)
+      lightWorst = Math.min(lightWorst, contrast(light, ground(1)))
+      blackWorst = Math.min(blackWorst, contrast(0, ground(-1)))
     }
   }
   return Math.max(lightWorst, blackWorst) < LABEL_CONTRAST ? null : { tone, darkInk: blackWorst > lightWorst }

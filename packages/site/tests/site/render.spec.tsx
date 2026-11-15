@@ -85,7 +85,9 @@ describe("the widget renderer", () => {
   it("draws each simple widget with its kit surface", () => {
     for (const kind of ["avatar", "button", "image", "gradient"] as const) {
       const { container, unmount } = render(() => <WidgetRenderer widget={createWidget(kind)} artboardId="a" />)
-      expect(container.querySelector(kind === "image" ? "canvas, img" : "canvas"), kind).not.toBeNull()
+      // the button's fill is tone classes, printed with the page
+      const surface = kind === "image" ? "canvas, img" : kind === "button" ? ".dk-label-fill" : "canvas"
+      expect(container.querySelector(surface), kind).not.toBeNull()
       unmount()
     }
     const button = createWidget("button")

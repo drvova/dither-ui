@@ -94,7 +94,7 @@ function importTarget(spec: string, name: string, env: Env): string | null {
     if (file && !env.runtime.has(file)) return `${KIT}/solid/${file}`
     return spec
   }
-  if (!deep && /^\.\/[\w-]+\.css$/.test(spec)) return `${KIT}/solid/${spec.slice(2)}`
+  if (/^\.\/[\w-]+\.css$/.test(spec)) return `${KIT}/solid/${deep ? RUNTIME : ""}${spec.slice(2)}`
   return spec
 }
 

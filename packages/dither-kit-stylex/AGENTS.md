@@ -10,7 +10,9 @@ with no Tailwind. Paths here are from this package's root.
 
 - `src/`: one generated file per component and module of the kit's Solid
   layer (`@dither-ui/kit/solid/`), the index among them, plus
-  `runtime/chart-layer.tsx` (the one runtime file that writes classes) and
+  the runtime files that write classes (`runtime/chart-layer.tsx`,
+  `runtime/fill-layers.tsx`; a runtime file's stylesheet stays the kit's,
+  `@dither-ui/kit/solid/runtime/<name>.css`) and
   `control.ts` (from `@dither-ui/kit/tailwind/control.ts`). Only `src/lib.ts`
   (`cn` over `stylex.props`, `StyleProp`) is written by hand.
 - `tests/stylex-layer-solid.spec.ts`: writes the source and fails on any

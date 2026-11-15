@@ -233,6 +233,10 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
   break into stripes, and keeps a tone its label reads on at AA: a fill
   caught between the inks moves the least tone that reaches 4.5:1, its
   label taking black or the theme's ink (`labelFill`).
+- The dither is class names where it can be: every screen's 17 tones are
+  4x4 tiles in CSS (`dk-tone-<screen>-<level>`), so a labelled fill is
+  printed with the page, no canvas, and a key's hover and press step from
+  tone to tone, never a fade.
 - The cell is the unit. Art is sized in cells, moves in cells and lands
   on whole cells.
 - **The heat**: the landing's recurring material, ink in water printed
@@ -357,7 +361,7 @@ Smoothness is part of the look, so these are design rules too:
 | The docs' materials | `packages/site/src/pages/docs/` |
 | Motion curves | `@dither-ui/kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `@dither-ui/kit/engine/spring.ts`, the hand's spring `packages/site/src/shared/lib/spring.ts` |
 | The press, scroll scenes | `packages/site/src/shared/lib/press.ts`, `scroll-scene.ts`; the landing's scenes `packages/site/src/pages/landing/scenes.ts` |
-| Print screens | `@dither-ui/kit/engine/pixel.ts` (`SCREENS`) |
+| Print screens | `@dither-ui/kit/engine/pixel.ts` (`SCREENS`); as class names `@dither-ui/kit/engine/tones.css` |
 | The heat and the plates | `packages/site/src/pages/landing/heat.ts`, `plate.ts` |
 | The display face | `packages/site/src/shared/fonts/` |
 | The sprite (glyphs, marks, brand, mascot) | `packages/site/src/shared/ui/sprite.ts`, `sprite-file.ts` |

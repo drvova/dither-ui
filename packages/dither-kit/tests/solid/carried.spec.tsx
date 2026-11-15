@@ -189,19 +189,14 @@ describe("Pressable", () => {
 describe("a surface whose precompiled image is taken away", () => {
   const IMAGE = "data:image/png;base64,AAAA"
 
-  it("the button paints its fill", async () => {
+  it("the button prints its fill", () => {
     const [image, setImage] = createSignal<string | undefined>(IMAGE)
     const { container } = render(() => <DitherButton precompiled={image()}>Deploy</DitherButton>)
     expect(container.querySelector("img")).not.toBeNull()
-    expect(container.querySelector("canvas")).toBeNull()
+    expect(container.querySelector(".dk-label-fill")).toBeNull()
     setImage(undefined)
-    await w.frame(16)
-    w.size()
-    await w.frame(32)
-    await w.frame(48)
-    const canvas = container.querySelector("canvas")!
     expect(container.querySelector("img")).toBeNull()
-    expect(w.uploads).toContain(canvas)
+    expect(container.querySelector(".dk-label-fill")).not.toBeNull()
   })
 
   it("the gradient paints its wash", async () => {

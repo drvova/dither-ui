@@ -1,37 +1,23 @@
-import { createEffect, createMemo, type JSX, mergeProps, on, onCleanup, onMount, splitProps } from "solid-js"
+import { createMemo, type JSX, mergeProps, Show, splitProps } from "solid-js"
 import { kitFromSeed } from "../engine/dither-paint"
-import { labelFill, renderLabelFill } from "../engine/label-fill"
+import { labelFill, labelPaint, type LabelPaint } from "../engine/label-fill"
 import type { Rgb } from "../engine/palette"
 import { BAYER4, fillOf, type PixelColor } from "../engine/pixel"
-import { putRasterBuffer } from "../engine/raster"
 import { cn } from "../tailwind/lib"
+import { LabelFill } from "./runtime/fill-layers"
 import { useLabelMatrix } from "./runtime/screen"
 
-const CELL = 2
+/** A toggle's fill inside its 1px border: its 18px line and 6px above and
+ * below it. */
+export const TOGGLE_HEIGHT = 30
 
 /** DitherBadge's rest gradient fill behind the pressed label (the engine's
- * `renderLabelFill` at its `labelFill` tone), sized from the host button:
- * the hue laid over the page with the density as alpha (a pastel on light,
- * a glow on dark), so the theme's own ink reads on it. Shared with
- * DitherToggleGroup. */
-export function paintToggleCanvas(
-  host: HTMLElement,
-  canvas: HTMLCanvasElement,
-  fill: Rgb,
-  matrix: number[][] = BAYER4,
-): void {
-  const ctx = canvas.getContext("2d", { willReadFrequently: true })
-  if (!ctx) return
-  const box = host.getBoundingClientRect()
-  const cols = Math.max(4, Math.round(box.width / CELL))
-  const rows = Math.max(4, Math.round(box.height / CELL))
-  canvas.width = cols
-  canvas.height = rows
-  putRasterBuffer(
-    ctx,
-    renderLabelFill(cols, rows, fill, "gradient", labelFill(fill, "gradient", "straight", matrix).tone, matrix),
-  )
-}
+ * `labelPaint` at its `labelFill` tone): the hue laid over the page with the
+ * density as alpha (a pastel on light, a glow on dark), so the theme's own
+ * ink reads on it. Shared with DitherToggleGroup. */
+export const togglePaint =
+  (fill: Rgb, matrix: number[][] = BAYER4) =>
+  (rows: number): LabelPaint[] => [labelPaint(fill, "gradient", "straight", matrix, rows)]
 
 type Own = {
   modelValue: boolean
@@ -64,42 +50,9 @@ export default function DitherToggle(raw: DitherToggleProps) {
   // A bright fill takes black ink: white on it would sink under AA.
   const darkInk = createMemo(() => labelFill(fillOf(color()), "gradient", "straight", matrix()).darkInk)
 
-  let button: HTMLButtonElement | undefined
-  let canvas: HTMLCanvasElement | undefined
-  let ro: ResizeObserver | null = null
-
-  function paint() {
-    if (!props.modelValue) return
-    if (button && canvas) paintToggleCanvas(button, canvas, fillOf(color()), matrix())
-  }
-
-  let paintRaf = 0
-  function deferredPaint() {
-    if (paintRaf) return
-    paintRaf = requestAnimationFrame(() => {
-      paintRaf = 0
-      paint()
-    })
-  }
-
-  onMount(() => {
-    if (typeof ResizeObserver !== "undefined" && button) {
-      ro = new ResizeObserver(deferredPaint)
-      ro.observe(button)
-    } else {
-      deferredPaint()
-    }
-    createEffect(on([() => props.modelValue, color, matrix], deferredPaint, { defer: true }))
-    onCleanup(() => {
-      ro?.disconnect()
-      if (paintRaf) cancelAnimationFrame(paintRaf)
-    })
-  })
-
   return (
     <button
       {...rest}
-      ref={(el) => (button = el)}
       type="button"
       aria-pressed={props.modelValue}
       disabled={props.disabled}
@@ -115,13 +68,10 @@ export default function DitherToggle(raw: DitherToggleProps) {
       // Its own listener, beside any `onClick` handed in with the rest.
       on:click={() => props.onUpdateModelValue?.(!props.modelValue)}
     >
-      <canvas
-        ref={(el) => (canvas = el)}
-        aria-hidden="true"
-        class="absolute inset-0 -z-10 h-full w-full"
-        style={{ "image-rendering": "pixelated", display: props.modelValue ? undefined : "none" }}
-      />
-      <span class="relative">{props.children}</span>
+      <Show when={props.modelValue}>
+        <LabelFill paint={togglePaint(fillOf(color()), matrix())} height={TOGGLE_HEIGHT} />
+      </Show>
+      <span class="relative block leading-[18px]">{props.children}</span>
     </button>
   )
 }

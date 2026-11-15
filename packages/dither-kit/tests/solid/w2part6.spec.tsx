@@ -251,16 +251,20 @@ describe("DitherAvatar", () => {
 })
 
 describe("DitherBadge", () => {
-  it("shows its label over a canvas it paints, and repaints for a new colour", async () => {
+  it("shows its label over a fill of tone classes, and prints a new colour", () => {
     const [color, setColor] = createSignal<"blue" | "green">("blue")
-    const { getByText } = render(() => <DitherBadge color={color()}>Beta</DitherBadge>)
-    const badge = getByText("Beta")
-    const canvas = badge.querySelector("canvas")!
-    expect(canvas.getAttribute("aria-hidden")).toBe("true")
-    await w.frame(100)
-    expect(w.uploads).toEqual([canvas])
+    const { getByText } = render(() => (
+      <DitherBadge color={color()} variant="solid">
+        Beta
+      </DitherBadge>
+    ))
+    const badge = getByText("Beta").parentElement!
+    expect(badge.querySelector("canvas")).toBeNull()
+    const layer = () => badge.querySelector<HTMLElement>(".dk-label-layer")!
+    expect(layer().className).toContain("dk-tone-bayer-16")
+    const blue = layer().style.getPropertyValue("--dk-ink")
     setColor("green")
-    expect(w.uploads.length).toBe(2)
+    expect(layer().style.getPropertyValue("--dk-ink")).not.toBe(blue)
   })
 })
 

@@ -50,7 +50,8 @@ generated twin. Inside the kit every import is relative
   (`chart-fill.ts`) and the chart family's types (`chart-types.ts`),
   timing, sequence, clock, wipe, keyframes, score, parsers and GL engines,
   `copy-text.ts`, `theme.css`, `theme.ts` and `base.css` (the scoped
-  box-model base every layer assumes). It imports only `d3-*` and itself,
+  box-model base every layer assumes), `tone.ts` and the stylesheet it
+  writes, `tones.css` (the dither as class names). It imports only `d3-*` and itself,
   never a framework or a styling layer (`tests/solid-kit.spec.ts`).
   Behaviour lives here: where a
   runtime must follow a component's lifecycle, a core holds the behaviour
@@ -75,6 +76,8 @@ generated twin. Inside the kit every import is relative
   `surface.ts` (`createDitherBackground`, the surface loop bound to a
   component), `screen.ts` (the print screen as context: `useScreen`,
   `useDitherMatrix`, `useLabelMatrix`, `useVariantMatrix`),
+  `fill-layers.tsx` (`LabelFill`: a labelled fill's layers as tone
+  classes, with `fill-layers.css`, its one stylesheet),
   `visibility.ts` and `in-view.ts` (the loop gates: `createCanvasVisibility`,
   `createInviewLoop`), `kit-time.ts` (`createKitTime`: the kit clock's
   moment as a signal for a component that changes on a cadence; see the
@@ -481,7 +484,8 @@ generated twin. Inside the kit every import is relative
   and `IntersectionObserver` guarded (no gate → play), `document.fonts`
   optional, `text-wrap`/`content-visibility`/`scrollbar-*` progressive,
   masks in both spellings (`DitherReveal` sets `mask-*` and
-  `-webkit-mask-*`),
+  `-webkit-mask-*`; `tones.css` writes `mask` and `-webkit-mask`, each
+  composite in its own keywords),
   `-webkit-background-clip` beside the standard one. `copy-text.ts`'s `copyText`
   is the one clipboard path: the async clipboard where it exists, else the
   selection + `execCommand` route (plain http, older engines, automation),
@@ -1066,17 +1070,12 @@ generated twin. Inside the kit every import is relative
   the flag (they only use `drawImage`).
 - Standalone components must defer their initial `getBoundingClientRect()` to
   `requestAnimationFrame` to avoid a forced reflow when
-  many components mount simultaneously. `DitherButton` defers `init()` via RAF
-  with a `restartToken` guard and sizes its canvas from its ResizeObserver's
-  report (`borderBoxSize`), never a read of its box, so a wall of buttons
-  starting together forces no layout (a static button, without one, reads
-  once). `DitherToggleGroup` defers `paintAll()` via RAF.
+  many components mount simultaneously.
 - The disclosure surfaces' side rail (`DitherAccordion`,
   `DitherCollapsible`, `DitherToaster`) is one painter, `paintRail`
   (`engine/rail.ts`).
 - A canvas painted cell by cell writes a raster and uploads it once: a
-  RasterBuffer + `putRasterBuffer` (`paintToggleCanvas`, the spinner's
-  loop), or `cellCanvas(ctx, cols, rows)` (`raster.ts`), whose `cell` /
+  RasterBuffer + `putRasterBuffer` (the spinner's loop), or `cellCanvas(ctx, cols, rows)` (`raster.ts`), whose `cell` /
   `rect` lay exactly the pixel an `rgb()` fillStyle and a 1x1 `fillRect`
   over the cleared canvas leave (unpremultiplied, source-over on a second
   write) and whose `flush` puts it, one raster and ImageData per context.
@@ -1152,13 +1151,62 @@ generated twin. Inside the kit every import is relative
   a fill that sits between the inks, too bright for the light ink and too
   dark for black, prints at the tone nearest the fill as drawn that reaches
   it, a hundredth at a time either way (the green gradient badge lifts to
-  1.04 and takes black, the grey solid button dims to 0.82). The tone
-  scales every cell's alpha. The badge and the toggle print through
-  `renderLabelFill` (straight alpha: a pastel on light, a glow on dark),
-  the button through `renderDitherButton` (`precompile.ts`, its colour
-  stored scaled by alpha: `"premultiplied"`), both from `labelAlpha`, the
-  one rest formula. `tests/label-fill.spec.ts` measures every colour,
+  1.05 and takes black, the grey solid button dims to 0.81). The cells are
+  read in bytes as a browser lays them over the page (the colour scaled by
+  its alpha byte, then the page, each rounded) and a byte toward the ink,
+  as an engine that rounds the other way shows them, so the page holds AA
+  in every engine. The tone scales every cell's alpha. The badge and the
+  toggle store straight alpha (a pastel on light, a glow on dark), the
+  button its colour scaled by alpha (`"premultiplied"`), both from
+  `labelAlpha`, the one rest formula; all four print as tone classes (the
+  next bullet), cell for cell what the raster forms paint,
+  `renderLabelFill` and `renderDitherButton` (`precompile.ts`), which stay
+  for packaging. `tests/label-fill.spec.ts` measures every colour,
   variant, seed and size of the three in both themes.
+- The dither as class names: a 4x4 matrix holds 17 tones, so every print
+  screen's tones are 17 tiles (`src/engine/tone.ts`). `src/engine/tones.css`
+  is written from it (never by hand: `npx rs test -u
+  packages/dither-kit/tests/tones.spec.ts`): each tile once on the root,
+  `--dk-t-<screen>-<level>`, a class per tile, `dk-tone-<screen>-<level>`,
+  that prints its lit cells through a mask in `--dk-tone-ink` (else the
+  text colour) at `--dk-cell` (2px), shifted `--dk-tone-x`/`--dk-tone-y`
+  cells, `dk-tone` for a tile in `--dk-tone-tile`, and the modifiers
+  `dk-tone-gaps` (the unlit cells) and `dk-tone-hatch` (the hatched fill's
+  gaps left out); `tonePatterns(cell)` is the same set as SVG `<pattern>`s.
+  A seeded matrix is jittered, not shifted (`screenMatrix`): `matchTone`
+  names its cells by a screen's tile and shift where one makes them, else
+  they are the layer's own tile, inline. A labelled fill (button, badge,
+  toggle, toggle group) is `labelPaint(fill, variant, storage, matrix,
+  rows, intensity)`: its layers (the lit cells' tone and, hatched, the
+  unlit cells' in their 0.4 ink) and its 1-cell edge, laid on the cells
+  (straight) or in their place (premultiplied, the cells clipped inside
+  it), rendered by `LabelFill` on the server: no canvas, no paint. The
+  gradient's density runs down its rows, which no tile holds and no
+  stylesheet can count (the rows are the box's height in cells, known only
+  after layout; an SVG dither filter measured 0-47% of cells right in
+  WebKit): its cells are an image four cells wide and its rows tall,
+  `rasterSrc`'s PNG (`png.ts`), laid in square cells from the top
+  (`--dk-rows`), the last row cut where the box ends, never stretched:
+  every cell is the unit at any height (DESIGN.md). Its rows are
+  `labelRows(height, cell)` (whole cells, rounded up): written at render
+  for the component's height at rest (the badge 20px, its label's line
+  pinned to 16px; the toggle 30px inside its border, an 18px line; the
+  button 40px, its `min-h-10`), then for the height the fill's own
+  observer reports (`watchSize`, every fill, so a variant changed in place
+  to the gradient prints as a fresh mount does; no layout read, no
+  paint), so a taller key (the landing's `min-h-12`) prints 24 rows. Until
+  that report a box taller than its rows at rest stretches them to its
+  foot (`max(100%, rows)`), never an empty band. Tone layers repeat and
+  need no rows. The edge is one cell wide on the box's border, so where a
+  cell does not divide the box (a 3px cell in 40px) it frames the cut
+  last row. The button's hover and press (intensity 1 and 1.5) are paints of
+  their own in `-1`/`-2` custom properties, which `fill-layers.css` steps
+  to on `:hover` and `:active` (not disabled, not under reduced motion,
+  not `renderMode="static"`): tone to tone, never a fade.
+  `tests/tones.spec.ts` holds the stylesheet to the screens, every tile's
+  cells, `matchTone`, and every labelled fill's layers to its raster byte
+  for byte (the straight edge laid over a cell a byte of alpha off, as it
+  rounds twice).
   Every target is 24px or spaced per WCAG 2.5.8: a legend key is a label
   unless clickable, then a button with a 24px hit (`-my-1 py-1`); a slider
   thumb is a 24px box around its 12px mark on a 24px track (`-my-1 h-6`);
@@ -1209,8 +1257,9 @@ generated twin. Inside the kit every import is relative
   `requestIdleCallback` (with `setTimeout` fallback) so decorative gradients
   never block first contentful paint. Live mode uses `DEFAULT_MAX_COLS=960`,
   `DEFAULT_MAX_ROWS=600` and paints immediately via `setTimeout(0)`.
-  `maxCols`/`maxRows` are configurable props on DitherGradient, DitherButton,
-  and DitherImage for per-instance tuning.
+  `maxCols`/`maxRows` are configurable props on DitherGradient and
+  DitherImage for per-instance tuning; the button's `renderMode="static"`
+  only holds its fill at rest.
 - Chart composition: root provides context (`cartesian-root` / `polar-root`),
   children register series via contexts. Props are declared with explicit
   runtime defaults.
@@ -1251,6 +1300,10 @@ generated twin. Inside the kit every import is relative
   hooks stay class names) and any utility input whose effect was lost;
   `packages/site/tests/site/stylex-layer.spec.tsx` mounts it on the docs' StyleX
   runtime.
+- Tone classes: `tests/tones.spec.ts` (the generated stylesheet, every
+  tile, `matchTone`, each labelled fill's layers against its raster); the
+  labelled fills' component cases in `tests/solid/kit.spec.tsx`,
+  `w2part1.spec.tsx` and `w2part6.spec.tsx`.
 - Print screens: `tests/screens.spec.ts` (each screen a permutation, the
   seeded jitter equal to Bayer's) and the `DitherScreen` cases of
   `tests/solid/carried.spec.tsx` and `tests/solid/kit.spec.tsx`

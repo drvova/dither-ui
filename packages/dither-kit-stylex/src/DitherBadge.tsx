@@ -1,16 +1,16 @@
 // Generated from @dither-ui/kit/solid/DitherBadge.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createEffect, createMemo, type JSX, on, onCleanup, onMount } from "solid-js"
+import { createMemo, type JSX } from "solid-js"
 import { kitFromSeed } from "@dither-ui/kit/engine/dither-paint.ts"
-import { labelFill, renderLabelFill, type LabelVariant } from "@dither-ui/kit/engine/label-fill.ts"
+import { labelFill, labelPaint, type LabelVariant } from "@dither-ui/kit/engine/label-fill.ts"
 import { fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
-import { putRasterBuffer, type RasterBuffer } from "@dither-ui/kit/engine/raster.ts"
 import { cn, type StyleProp } from "./lib"
+import { LabelFill } from "./runtime/fill-layers"
 import { useLabelMatrix } from "@dither-ui/kit/solid/runtime/screen.ts"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
-  canvas: { position: "absolute", inset: "0px", zIndex: "-10", height: "100%", width: "100%" },
+  text: { lineHeight: "1rem" },
   row: {
     position: "relative",
     isolation: "isolate",
@@ -29,7 +29,8 @@ const styles = stylex.create({
 
 export type BadgeVariant = LabelVariant
 
-const CELL = 2
+/** The badge's height: its 16px line and 2px above and below it. */
+const HEIGHT = 20
 
 export type DitherBadgeProps = {
   /** @default "blue" */
@@ -50,52 +51,15 @@ export default function DitherBadge(props: DitherBadgeProps) {
   const color = createMemo<PixelColor>(() => props.color ?? s()?.hue ?? "blue")
   const variant = createMemo<BadgeVariant>(() => props.variant ?? s()?.variant ?? "gradient")
   // The fill's tone and its label's ink, together at AA (a bright fill
-  // takes black ink: the theme's would sink under AA).
+  // takes black ink: the theme's would sink under AA), printed by tone
+  // classes on the server.
   const label = createMemo(() => labelFill(fillOf(color()), variant(), "straight", matrix()))
-
-  let wrap: HTMLSpanElement | undefined
-  let canvas: HTMLCanvasElement | undefined
-
-  let ro: ResizeObserver | null = null
-  let raster: RasterBuffer | undefined
-  let image: ImageData | undefined
-
-  function paint() {
-    const ctx = canvas?.getContext("2d", { willReadFrequently: true })
-    if (!wrap || !canvas || !ctx) return
-    const box = wrap.getBoundingClientRect()
-    const cols = Math.max(4, Math.round(box.width / CELL))
-    const rows = Math.max(4, Math.round(box.height / CELL))
-    canvas.width = cols
-    canvas.height = rows
-    raster = renderLabelFill(cols, rows, fillOf(color()), variant(), label().tone, matrix(), raster)
-    image = putRasterBuffer(ctx, raster, image)
-  }
-
-  onMount(() => {
-    requestAnimationFrame(() => {
-      paint()
-      if (typeof ResizeObserver !== "undefined") {
-        ro = new ResizeObserver(paint)
-        if (wrap) ro.observe(wrap)
-      }
-    })
-    createEffect(on([color, variant, matrix], paint, { defer: true }))
-  })
-  onCleanup(() => ro?.disconnect())
+  const paint = (rows: number) => [labelPaint(fillOf(color()), variant(), "straight", matrix(), rows)]
 
   return (
-    <span
-      ref={(el) => (wrap = el)}
-      class={cn(styles.row, label().darkInk && styles.textBlack, props.xstyle, props.class)}
-    >
-      <canvas
-        ref={(el) => (canvas = el)}
-        aria-hidden="true"
-        {...stylex.props(styles.canvas)}
-        style={{ "image-rendering": "pixelated" }}
-      />
-      {props.children}
+    <span class={cn(styles.row, label().darkInk && styles.textBlack, props.xstyle, props.class)}>
+      <LabelFill paint={paint} height={HEIGHT} />
+      <span {...stylex.props(styles.text)}>{props.children}</span>
     </span>
   )
 }

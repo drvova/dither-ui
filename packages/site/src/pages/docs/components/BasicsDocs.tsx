@@ -36,12 +36,7 @@ const BUTTON_COLORS: DitherColor[] = ["green", "blue", "purple", "pink", "orange
 const DIRECTIONS: GradientDirection[] = ["up", "down", "left", "right"]
 
 export const API: Record<string, PropRow[]> = {
-  button: kitTable(buttonProps, {
-    join: [
-      ["loading", "disabled"],
-      ["maxCols", "maxRows"],
-    ],
-  }),
+  button: kitTable(buttonProps, { join: [["loading", "disabled"]] }),
   avatar: kitTable(avatarProps),
   gradient: kitTable(gradientProps, { join: [["maxCols", "maxRows"]] }),
   image: kitTable(imageProps, { join: [["maxCols", "maxRows"]] }),
@@ -100,8 +95,8 @@ export default function BasicsDocs() {
       {/* Button */}
       <DocSection defer id="button">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          Canvas-filled button; density lifts on hover, blooms on press. Four fills, seven colors, optional{" "}
-          <code class="text-foreground/80">bloom</code>, and static/precompiled raster paths.
+          A button printed in tone classes with the page; its density lifts on hover and again on press. Four fills,
+          seven colors, optional <code class="text-foreground/80">bloom</code>, and static/precompiled raster paths.
         </p>
         <DemoCard code={buttonCode()}>
           <div class="grid justify-items-center gap-8">
