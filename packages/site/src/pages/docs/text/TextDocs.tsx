@@ -1,14 +1,3 @@
-import { createSignal, onCleanup, onMount } from "solid-js"
-import {
-  DitherCountUp,
-  DitherNumberFlow,
-  DitherFallingText,
-  DitherRotatingText,
-  DitherShuffle,
-  DitherSplitText,
-  DitherTextCursor,
-  DitherVariableProximity,
-} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
 import gradientTextProps from "virtual:dither-props/DitherGradientText"
@@ -68,6 +57,22 @@ import FuzzyTextExample from "./examples/fuzzy-text"
 import fuzzyTextCode from "./examples/fuzzy-text.tsx?raw"
 import AsciiTextExample from "./examples/ascii-text"
 import asciiTextCode from "./examples/ascii-text.tsx?raw"
+import SplitTextExample from "./examples/split-text"
+import splitTextCode from "./examples/split-text.tsx?raw"
+import RotatingTextExample from "./examples/rotating-text"
+import rotatingTextCode from "./examples/rotating-text.tsx?raw"
+import CountUpExample from "./examples/count-up"
+import countUpCode from "./examples/count-up.tsx?raw"
+import NumberFlowExample from "./examples/number-flow"
+import numberFlowCode from "./examples/number-flow.tsx?raw"
+import ShuffleExample from "./examples/shuffle"
+import shuffleCode from "./examples/shuffle.tsx?raw"
+import FallingTextExample from "./examples/falling-text"
+import fallingTextCode from "./examples/falling-text.tsx?raw"
+import TextCursorExample from "./examples/text-cursor"
+import textCursorCode from "./examples/text-cursor.tsx?raw"
+import VariableProximityExample from "./examples/variable-proximity"
+import variableProximityCode from "./examples/variable-proximity.tsx?raw"
 
 export const API: Record<string, PropRow[]> = {
   gradientText: kitTable(gradientTextProps),
@@ -96,56 +101,7 @@ export const API: Record<string, PropRow[]> = {
   asciiText: kitTable(asciiTextProps),
 }
 
-const SNIPPETS = {
-  splitText: `const [token, setToken] = createSignal(0)
-
-<div class="grid place-items-center gap-4">
-  <DitherSplitText text="Split into characters" replayToken={token()} class="text-3xl" />
-  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
-</div>`,
-  rotatingText: `<p>
-  Built for <DitherRotatingText texts={['Solid', 'canvas', 'the studio']} />
-</p>`,
-  countUp: `<DitherCountUp to={1984} /> renders {/* counts up when scrolled into view */}`,
-  numberFlow: `const [metric, setMetric] = createSignal(12480)
-// a live metric: the digits roll on every change
-let timer = 0
-onMount(() => {
-  timer = window.setInterval(() => (setMetric(metric() + Math.round(Math.random() * 900 - 300))), 2400)
-})
-onCleanup(() => clearInterval(timer))
-
-<div class="text-4xl">$<DitherNumberFlow value={metric()} /></div>`,
-  shuffle: `const [token, setToken] = createSignal(0)
-
-<div class="grid place-items-center gap-4">
-  <DitherShuffle text="Shuffled into place" replayToken={token()} class="text-3xl" />
-  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
-</div>`,
-  fallingText: `const [token, setToken] = createSignal(0)
-
-<div class="grid place-items-center gap-4">
-  <DitherFallingText text="Falling into place" replayToken={token()} class="text-3xl" />
-  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
-</div>`,
-  textCursor: `<div class="h-40"><DitherTextCursor text="dither" /></div>`,
-  variableProximity: `<DitherVariableProximity text="Move the cursor across this line" />`,
-}
-
 export default function TextDocs() {
-  const [splitReplay, setSplitReplay] = createSignal(0)
-  const [shuffleReplay, setShuffleReplay] = createSignal(0)
-  const [fallingReplay, setFallingReplay] = createSignal(0)
-
-  /* Number flow: a live metric that re-rolls every few seconds. */
-  const [flowValue, setFlowValue] = createSignal(12480)
-  onMount(() => {
-    const flowTimer = window.setInterval(() => {
-      setFlowValue((v) => v + Math.round(Math.random() * 900 - 300))
-    }, 2400)
-    onCleanup(() => window.clearInterval(flowTimer))
-  })
-
   return (
     <>
       {/* Gradient text */}
@@ -192,19 +148,8 @@ export default function TextDocs() {
           Each character rises and settles on a stagger. Bump <code class="text-foreground/80">replayToken</code> to run
           it again; the whole word is still one labelled node for screen readers.
         </p>
-        <DemoCard code={SNIPPETS.splitText}>
-          <div class="grid min-h-24 place-items-center gap-4">
-            <div class="text-3xl tracking-tight">
-              <DitherSplitText text="Split into characters" replayToken={splitReplay()} />
-            </div>
-            <button
-              class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-              type="button"
-              onClick={() => setSplitReplay((n) => n + 1)}
-            >
-              Replay
-            </button>
-          </div>
+        <DemoCard code={splitTextCode}>
+          <SplitTextExample />
         </DemoCard>
         <PropsTable rows={API.splitText} />
       </DocSection>
@@ -214,11 +159,8 @@ export default function TextDocs() {
           Cycles through a list of words for a headline that says several things, each sliding out as the next slides
           in.
         </p>
-        <DemoCard code={SNIPPETS.rotatingText}>
-          <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <span>Built for&nbsp;</span>
-            <DitherRotatingText class="text-foreground" texts={["Solid", "canvas", "the studio"]} />
-          </div>
+        <DemoCard code={rotatingTextCode}>
+          <RotatingTextExample />
         </DemoCard>
         <PropsTable rows={API.rotatingText} />
       </DocSection>
@@ -228,11 +170,8 @@ export default function TextDocs() {
           Eases a number from <code class="text-foreground/80">from</code> to <code class="text-foreground/80">to</code>{" "}
           when it scrolls into view. Locale-formatted, tabular figures. Reduced motion jumps to the final value.
         </p>
-        <DemoCard code={SNIPPETS.countUp}>
-          <div class="flex min-h-24 items-center justify-center gap-8 text-4xl tracking-tight tabular-nums">
-            <DitherCountUp to={1984} />
-            <DitherCountUp to={99.9} decimals={1} />
-          </div>
+        <DemoCard code={countUpCode}>
+          <CountUpExample />
         </DemoCard>
         <PropsTable rows={API.countUp} />
       </DocSection>
@@ -242,13 +181,8 @@ export default function TextDocs() {
           <code class="text-foreground/80">value</code> changes. Count up plays once; this one never stops. Reduced
           motion snaps.
         </p>
-        <DemoCard code={SNIPPETS.numberFlow}>
-          <div class="flex min-h-24 items-center justify-center gap-3 text-4xl tracking-tight">
-            <span class="text-2xl text-muted-foreground" aria-hidden="true">
-              $
-            </span>
-            <DitherNumberFlow value={flowValue()} />
-          </div>
+        <DemoCard code={numberFlowCode}>
+          <NumberFlowExample />
         </DemoCard>
         <PropsTable rows={API.numberFlow} />
       </DocSection>
@@ -309,19 +243,8 @@ export default function TextDocs() {
           Characters fly in from scattered offsets and rotations, settling into place on a stagger. Bump{" "}
           <code class="text-foreground/80">replayToken</code> to run it again.
         </p>
-        <DemoCard code={SNIPPETS.shuffle}>
-          <div class="grid min-h-24 place-items-center gap-4">
-            <div class="text-3xl tracking-tight">
-              <DitherShuffle text="Shuffled into place" replayToken={shuffleReplay()} />
-            </div>
-            <button
-              class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-              type="button"
-              onClick={() => setShuffleReplay((n) => n + 1)}
-            >
-              Replay
-            </button>
-          </div>
+        <DemoCard code={shuffleCode}>
+          <ShuffleExample />
         </DemoCard>
         <PropsTable rows={API.shuffle} />
       </DocSection>
@@ -330,19 +253,8 @@ export default function TextDocs() {
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Characters drop in from above with a little overshoot bounce, staggered across the line.
         </p>
-        <DemoCard code={SNIPPETS.fallingText}>
-          <div class="grid min-h-24 place-items-center gap-4">
-            <div class="text-3xl tracking-tight">
-              <DitherFallingText text="Falling into place" replayToken={fallingReplay()} />
-            </div>
-            <button
-              class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-              type="button"
-              onClick={() => setFallingReplay((n) => n + 1)}
-            >
-              Replay
-            </button>
-          </div>
+        <DemoCard code={fallingTextCode}>
+          <FallingTextExample />
         </DemoCard>
         <PropsTable rows={API.fallingText} />
       </DocSection>
@@ -391,10 +303,8 @@ export default function TextDocs() {
           The characters of the word trail the pointer inside the box, each lagging a little further behind for a ribbon
           of type. Move your cursor over the preview.
         </p>
-        <DemoCard code={SNIPPETS.textCursor}>
-          <div class="h-40 w-full text-xl">
-            <DitherTextCursor text="dither" />
-          </div>
+        <DemoCard code={textCursorCode}>
+          <TextCursorExample />
         </DemoCard>
         <PropsTable rows={API.textCursor} />
       </DocSection>
@@ -417,10 +327,8 @@ export default function TextDocs() {
           Each character's weight and opacity ramps with its distance to the pointer. No scaling, so a whole sentence
           stays put while the cursor lights a path through it.
         </p>
-        <DemoCard code={SNIPPETS.variableProximity}>
-          <div class="flex min-h-24 max-w-md items-center justify-center text-center text-xl leading-relaxed tracking-tight">
-            <DitherVariableProximity text="Move the cursor across this line to feel the weight shift" />
-          </div>
+        <DemoCard code={variableProximityCode}>
+          <VariableProximityExample />
         </DemoCard>
         <PropsTable rows={API.variableProximity} />
       </DocSection>

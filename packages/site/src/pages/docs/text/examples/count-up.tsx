@@ -2,10 +2,12 @@ import { DitherCountUp } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
+  // counts up when scrolled into view
   return (
-    <>
-      <DitherCountUp to={1984} /> renders {/* counts up when scrolled into view */}
-    </>
+    <div class="flex min-h-24 items-center justify-center gap-8 text-4xl tracking-tight tabular-nums">
+      <DitherCountUp to={1984} />
+      <DitherCountUp to={99.9} decimals={1} />
+    </div>
   )
 }
 

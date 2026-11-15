@@ -3,9 +3,10 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <p>
-      Built for <DitherRotatingText texts={["Solid", "canvas", "the studio"]} />
-    </p>
+    <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
+      <span>Built for&nbsp;</span>
+      <DitherRotatingText class="text-foreground" texts={["Solid", "canvas", "the studio"]} />
+    </div>
   )
 }
 

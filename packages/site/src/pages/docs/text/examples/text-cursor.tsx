@@ -3,7 +3,7 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <div class="h-40">
+    <div class="h-40 w-full text-xl">
       <DitherTextCursor text="dither" />
     </div>
   )

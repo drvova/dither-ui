@@ -3,17 +3,19 @@ import { DitherNumberFlow } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [metric, setMetric] = createSignal(12480)
-  // a live metric: the digits roll on every change
-  let timer = 0
+  const [value, setValue] = createSignal(12480)
   onMount(() => {
-    timer = window.setInterval(() => setMetric(metric() + Math.round(Math.random() * 900 - 300)), 2400)
+    const timer = window.setInterval(() => setValue((v) => v + Math.round(Math.random() * 900 - 300)), 2400)
+    onCleanup(() => window.clearInterval(timer))
   })
-  onCleanup(() => clearInterval(timer))
 
+  // a live metric: the digits roll on every change
   return (
-    <div class="text-4xl">
-      $<DitherNumberFlow value={metric()} />
+    <div class="flex min-h-24 items-center justify-center gap-3 text-4xl tracking-tight">
+      <span class="text-2xl text-muted-foreground" aria-hidden="true">
+        $
+      </span>
+      <DitherNumberFlow value={value()} />
     </div>
   )
 }

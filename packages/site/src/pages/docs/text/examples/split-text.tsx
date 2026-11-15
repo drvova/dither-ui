@@ -3,12 +3,18 @@ import { DitherSplitText } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [token, setToken] = createSignal(0)
+  const [replay, setReplay] = createSignal(0)
 
   return (
-    <div class="grid place-items-center gap-4">
-      <DitherSplitText text="Split into characters" replayToken={token()} class="text-3xl" />
-      <button type="button" onClick={() => setToken(token() + 1)}>
+    <div class="grid min-h-24 place-items-center gap-4">
+      <div class="text-3xl tracking-tight">
+        <DitherSplitText text="Split into characters" replayToken={replay()} />
+      </div>
+      <button
+        class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+        type="button"
+        onClick={() => setReplay((n) => n + 1)}
+      >
         Replay
       </button>
     </div>

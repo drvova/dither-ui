@@ -2,7 +2,11 @@ import { DitherVariableProximity } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherVariableProximity text="Move the cursor across this line" />
+  return (
+    <div class="flex min-h-24 max-w-md items-center justify-center text-center text-xl leading-relaxed tracking-tight">
+      <DitherVariableProximity text="Move the cursor across this line to feel the weight shift" />
+    </div>
+  )
 }
 
 export const meta = defineExample({
