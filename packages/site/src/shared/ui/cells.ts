@@ -31,3 +31,19 @@ export function runPaths<T extends { x: number; y: number }>(
     paths.set(r.paint, `${paths.get(r.paint) ?? ""}M${r.x} ${r.y}h${r.w}v1h-${r.w}z`)
   return [...paths].map(([paint, d]) => ({ paint, d }))
 }
+
+/** A cell picture's frames (the car's wheel turns) split into what they
+ * share, cells in every frame in the same paint, and what each frame adds
+ * to it: the shared cells drawn once and a frame's own shown in its turn,
+ * so a picture that steps draws its still part once and moves only by its
+ * stylesheet. */
+export function stepCells<T extends { x: number; y: number }>(
+  frames: readonly (readonly T[])[],
+  paintOf: (c: T) => string,
+): { still: T[]; steps: T[][] } {
+  const key = (c: T) => `${c.x},${c.y},${paintOf(c)}`
+  const sets = frames.map((f) => new Set(f.map(key)))
+  const still = (frames[0] ?? []).filter((c) => sets.every((s) => s.has(key(c))))
+  const held = new Set(still.map(key))
+  return { still, steps: frames.map((f) => f.filter((c) => !held.has(key(c)))) }
+}

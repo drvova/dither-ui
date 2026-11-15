@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, rs } from "rstack/test"
-import { directFromHyperframes, directedTime, isDirected, onSeek, release, seek } from "../src/engine/clock"
+import { directFromHyperframes, directedTime, directSmil, isDirected, onSeek, release, seek } from "../src/engine/clock"
 
 // The Web Animations a browser gives, as small as the director reads them.
 class FakeAnimation {
@@ -114,5 +114,28 @@ describe("clock — the director", () => {
     } finally {
       Object.assign(g, saved)
     }
+  })
+
+  it("holds an SVG's SMIL timeline at the directed moment and lets it play on release", () => {
+    const calls: string[] = []
+    const svg = {
+      pauseAnimations: () => calls.push("pause"),
+      unpauseAnimations: () => calls.push("play"),
+      setCurrentTime: (s: number) => calls.push(`at ${s}`),
+    }
+    seek(120)
+    const off = directSmil(svg)
+    // mounted under direction: held at once
+    expect(calls).toEqual(["pause", "at 0.12"])
+    seek(1500)
+    seek(1500)
+    release()
+    expect(calls).toEqual(["pause", "at 0.12", "pause", "at 1.5", "pause", "at 1.5", "play"])
+    off()
+    seek(10)
+    expect(calls).toHaveLength(7)
+    // a DOM without SMIL is left alone
+    const bare = { pauseAnimations: undefined, unpauseAnimations: undefined, setCurrentTime: undefined }
+    expect(() => directSmil(bare as unknown as typeof svg)()).not.toThrow()
   })
 })

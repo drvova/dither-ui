@@ -9,8 +9,8 @@ import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { COLORS } from "@/shared/config"
 import { installHand } from "@/shared/lib/hand"
 import { RISE_LIVE, RISE_WAIT } from "@/shared/lib/rise-wait"
-import { drivenCells } from "@/shared/ui/car"
-import { runPaths, toRuns } from "@/shared/ui/cells"
+import { drivenCells, WHEEL_STEPS } from "@/shared/ui/car"
+import { runPaths } from "@/shared/ui/cells"
 import { EYE, MASCOT_ROTOR_STEPS } from "@/shared/ui/mascot"
 import { BRAND_SYMBOL, MASCOT_SYMBOLS, markSymbol, spriteRef } from "@/shared/ui/sprite"
 import { BAND_INK, CLOSE_CELLS, MENU_LINKS, SEAM_HEIGHT, STUDIO_LINK, bandFill } from "@/widgets/site-header/menu"
@@ -314,27 +314,41 @@ describe("marks and the mascot", () => {
     expect(vi.getTimerCount()).toBe(0)
   })
 
-  it("turns the car's wheels only while it drives", () => {
+  it("turns the car's wheels only while it drives, by its stylesheet: no timer, every turn drawn", () => {
     vi.useFakeTimers()
-    const paint = (c: ReturnType<typeof drivenCells>[number]) =>
-      "driver" in c ? (c.ink === "ember" ? "ember" : "light") : c.ink
     const [driving, setDriving] = createSignal(false)
     const w = render(() => <MascotCar size={21} driving={driving()} />)
     const svg = w.container.querySelector("svg")!
-    const widths = () =>
-      all(svg, "rect").map((r) => `${r.getAttribute("x")}.${r.getAttribute("y")}.${r.getAttribute("width")}`)
-    const runs = (turn: number) => toRuns(drivenCells(turn), paint).map((r) => `${r.x}.${r.y}.${r.w}`)
+    /** The cells a list of paths covers. */
+    const cellsOf = (paths: Element[]) =>
+      paths.flatMap((p) =>
+        [...p.getAttribute("d")!.matchAll(/M(\d+) (-?\d+)h(\d+)/g)].flatMap((m) =>
+          Array.from({ length: Number(m[3]) }, (_, i) => `${Number(m[1]) + i}.${m[2]}`),
+        ),
+      )
+    const still = cellsOf(all(svg, ":scope > path"))
+    const turns = all(svg, "g.car-turn")
+    const at = (turn: number) =>
+      drivenCells(turn)
+        .map((c) => `${c.x}.${c.y}`)
+        .sort()
     expect(svg.getAttribute("height")).toBe("21")
     expect(svg.getAttribute("aria-hidden")).toBe("true")
-    expect(widths()).toEqual(runs(0))
-    vi.advanceTimersByTime(700)
-    expect(widths()).toEqual(runs(0))
+    // each turn is the still part and its own group, in its place of the cycle
+    expect(turns).toHaveLength(WHEEL_STEPS)
+    turns.forEach((g, turn) => {
+      expect([...still, ...cellsOf(all(g, "path"))].sort()).toEqual(at(turn))
+      expect(g.style.getPropertyValue("--turn")).toBe(String(turn))
+    })
+    // driving is an attribute the stylesheet reads; nothing steps by a timer
+    expect(svg.hasAttribute("data-driving")).toBe(false)
+    const before = svg.innerHTML
     setDriving(true)
-    vi.advanceTimersByTime(70)
-    expect(widths()).toEqual(runs(1))
-    setDriving(false)
+    expect(svg.hasAttribute("data-driving")).toBe(true)
     vi.advanceTimersByTime(700)
-    expect(widths()).toEqual(runs(1))
+    expect(svg.innerHTML).toBe(before)
+    setDriving(false)
+    expect(svg.hasAttribute("data-driving")).toBe(false)
   })
 })
 

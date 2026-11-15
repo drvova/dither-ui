@@ -123,13 +123,14 @@ export {
   directAnimation,
   directFromHyperframes,
   directedTime,
+  directSmil,
   isDirected,
   KIT_KEYFRAMES,
   onSeek,
   release,
   seek,
 } from "./clock"
-export type { SeekListener } from "./clock"
+export type { SeekListener, SmilTimeline } from "./clock"
 export { planSequence, sampleSequence, staggerDelay } from "./sequence"
 export { CONTAINER_SCALE, resolveCq, quantize } from "./containers"
 export type {

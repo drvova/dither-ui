@@ -763,6 +763,16 @@ describe("links and text", () => {
     expect(copy.style.filter).toContain(`#${filter.id}`)
   })
 
+  it("FuzzyText starts its SMIL where its still filter stands, so a frozen timeline shows the same fuzz", () => {
+    // Firefox freezes SMIL on a page without script: the first value shows
+    const { container } = render(() => <FuzzyText />)
+    const turbulence = container.querySelector("feTurbulence")!
+    const animate = turbulence.querySelector("animate")!
+    expect(animate.getAttribute("values")!.split(";")[0]).toBe(
+      turbulence.getAttribute(animate.getAttribute("attributeName")!),
+    )
+  })
+
   it("two FuzzyTexts never share a filter", () => {
     const { container } = render(() => (
       <>

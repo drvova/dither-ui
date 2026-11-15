@@ -1,7 +1,7 @@
 // DESIGN.md, the look in one readable place, states values that live in
 // the code. Each is read here from its source and must appear in the doc as
 // it is, so the doc cannot drift: a design change touches both.
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
 import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { FRAME_BUDGET_MS } from "@dither-ui/kit/engine/frame-budget.ts"
@@ -22,6 +22,22 @@ describe("DESIGN.md", () => {
     const curve = `cubic-bezier(${GLIDE_BEZIER.join(", ")})`
     expect(doc).toContain(curve)
     expect(read("packages/site/src/app/styles.css")).toContain(`--ease-settle: ${curve};`)
+  })
+
+  it("moves the cell pictures by their stylesheets, no timer, and SMIL on the clock a renderer directs", () => {
+    expect(doc).toContain("`directSmil`")
+    expect(read("packages/dither-kit/src/engine/clock.ts")).toContain("export function directSmil(")
+    for (const file of ["Mascot.tsx", "MascotCar.tsx"]) {
+      const src = read(`packages/site/src/shared/ui/${file}`)
+      expect(src, file).not.toMatch(/setInterval|setTimeout|requestAnimationFrame/)
+    }
+    // every kit component that renders SMIL hands its SVG to the clock
+    const kit = "packages/dither-kit/src/solid"
+    const smil = readdirSync(new URL(`../${kit}`, import.meta.url)).filter(
+      (f) => f.endsWith(".tsx") && /<animate/.test(read(`${kit}/${f}`)),
+    )
+    expect(smil.length).toBeGreaterThan(0)
+    for (const file of smil) expect(read(`${kit}/${file}`), file).toContain("directSmil(")
   })
 
   it("names the hand's spring and the press as the site's stylesheet sets them", () => {

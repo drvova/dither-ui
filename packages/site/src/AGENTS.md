@@ -1008,7 +1008,11 @@ around this tree (entries, routes, the build, how Solid is written) is
   brand's diamond on the door, ember tail light, bone headlight, wheels
   whose spokes turn a step a frame), `drivenCells` seats the mascot in
   its cockpit (only what stands over the door line shows);
-  `MascotCar.tsx` draws them, its wheels turning while `driving`, still
+  `MascotCar.tsx` draws them, its wheels turning while `driving` by
+  `MascotCar.css` alone, as the rotor steps: `cells.ts`'s `stepCells`
+  splits the wheel turns into what they share (drawn once) and each
+  turn's own cells (a `.car-turn` group, `--turn` its place), shown for
+  its quarter of 280ms under `data-driving`, the first turn parked and
   under reduced motion. Guarded by `tests/car.spec.ts`.
   `mascot-capture.ts` grows the table into a Gaussian capture of our own
   (a cut stone of splats, a dark eye and an ember optic on both faces, three ember orbits),

@@ -9,6 +9,8 @@
  * `hf-seek` events) and a test can drive: same seed + same time → same
  * pixels, in any order.
  *
+ * An SVG's SMIL timeline follows it through `directSmil`.
+ *
  * Surfaces subscribe with `onSeek`. A listener receives the directed moment
  * in ms, or null when direction is released and loops may resume.
  *
@@ -93,6 +95,31 @@ export function release(): void {
   directedMs = null
   directCss(null)
   for (const l of listeners) l(null)
+}
+
+/** The part of an outermost `<svg>` that holds its SMIL timeline. */
+export type SmilTimeline = Pick<SVGSVGElement, "pauseAnimations" | "unpauseAnimations" | "setCurrentTime">
+
+/**
+ * Put an SVG's SMIL animations (its `<animate>`, `<set>` and
+ * `<animateTransform>`) on kit time: directed, its timeline is paused at
+ * the moment, so a moment prints the same frame however it was reached;
+ * released, it plays on from there. Each outermost `<svg>` keeps its own
+ * timeline, so each one a part animates in is directed. Returns the
+ * unsubscribe; a DOM without the SMIL API is left alone.
+ */
+export function directSmil(svg: SmilTimeline): () => void {
+  if (typeof svg.setCurrentTime !== "function") return () => {}
+  const at = (ms: number | null) => {
+    if (ms === null) {
+      svg.unpauseAnimations()
+      return
+    }
+    svg.pauseAnimations()
+    svg.setCurrentTime(ms / 1000)
+  }
+  if (directedMs !== null) at(directedMs)
+  return onSeek(at)
 }
 
 /**

@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/FuzzyText.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createUniqueId, mergeProps } from "solid-js"
+import { createUniqueId, mergeProps, onCleanup, onMount } from "solid-js"
+import { directSmil } from "@dither-ui/kit/engine/clock.ts"
 import { cn, type StyleProp } from "./lib"
 import "@dither-ui/kit/solid/FuzzyText.css"
 import * as stylex from "@stylexjs/stylex"
@@ -22,11 +23,16 @@ export default function FuzzyText(raw: FuzzyTextProps) {
 
   // One id for the server's markup and the client's.
   const uid = `dither-fuzz-${createUniqueId()}`
+  // The filter's SMIL is on the kit's clock when a renderer directs it.
+  let host: SVGSVGElement | undefined
+  onMount(() => {
+    if (host) onCleanup(directSmil(host))
+  })
 
   return (
     <span class={cn([styles.frame, "dither-fuzzy"], props.xstyle, props.class)} aria-label={props.text}>
       {/* SVG turbulence + displacement drives an analog fuzz; native, no canvas */}
-      <svg width="0" height="0" {...stylex.props(styles.svg)} aria-hidden="true">
+      <svg ref={(el) => (host = el)} width="0" height="0" {...stylex.props(styles.svg)} aria-hidden="true">
         <defs>
           <filter id={uid} x="-20%" y="-20%" width="140%" height="140%">
             <feTurbulence type="fractalNoise" baseFrequency="0.012 0.4" numOctaves="2" seed="7" result="n">

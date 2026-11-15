@@ -1,4 +1,29 @@
+/* The car's wheels, by its stylesheet alone: parked, the first turn shows;
+   driving, each turn shows for its quarter of 280ms, a quarter step every
+   70ms, as the mascot's rotor steps; under reduced motion they rest. */
 .mascot-car-scope.mascot-car {
   flex-shrink: 0;
   overflow: visible;
+
+  & .car-turn + .car-turn {
+    visibility: hidden;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &[data-driving] .car-turn {
+      animation: car-turn 280ms steps(1, end) infinite;
+      animation-delay: calc(var(--turn) * 70ms - 280ms);
+    }
+  }
+}
+
+/* A wheel turn shows for its quarter of the cycle. */
+@keyframes car-turn {
+  0% {
+    visibility: visible;
+  }
+  25%,
+  100% {
+    visibility: hidden;
+  }
 }

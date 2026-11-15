@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/ElectricBorder.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createMemo, createUniqueId, type JSX, mergeProps } from "solid-js"
+import { createMemo, createUniqueId, type JSX, mergeProps, onCleanup, onMount } from "solid-js"
+import { directSmil } from "@dither-ui/kit/engine/clock.ts"
 import { cn, type StyleProp } from "./lib"
 import "@dither-ui/kit/solid/ElectricBorder.css"
 import * as stylex from "@stylexjs/stylex"
@@ -35,14 +36,19 @@ export default function ElectricBorder(raw: ElectricBorderProps) {
 
   const uid = `dither-electric-${createUniqueId()}`
   const dur = createMemo(() => `${2 / Math.max(0.1, props.speed)}s`)
+  // The filter's SMIL is on the kit's clock when a renderer directs it.
+  let host: SVGSVGElement | undefined
+  onMount(() => {
+    if (host) onCleanup(directSmil(host))
+  })
 
   return (
     <div class={cn([styles.frame2, "dk-electric-border"], props.xstyle, props.class)}>
       {/* 0x0 filter host: turbulence displaces the overlay border into an arc */}
-      <svg width="0" height="0" {...stylex.props(styles.svg)} aria-hidden="true">
+      <svg ref={(el) => (host = el)} width="0" height="0" {...stylex.props(styles.svg)} aria-hidden="true">
         <defs>
           <filter id={uid} x="-20%" y="-20%" width="140%" height="140%">
-            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="3" seed="3" result="n">
+            <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="3" seed="0" result="n">
               <animate attributeName="seed" from="0" to="12" dur={dur()} repeatCount="indefinite" />
             </feTurbulence>
             <feDisplacementMap in="SourceGraphic" in2="n" scale={props.thickness * 3} />

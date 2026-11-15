@@ -333,7 +333,17 @@ generated twin. Inside the kit every import is relative
   their moment exactly, proven in Chromium by
   `packages/site/tests/site/css-motion.spec.ts` (each against the JS
   driver's old model, forwards and back, mounted before the moment and
-  after it, and released). `directFromHyperframes()` takes direction from
+  after it, and released).
+  SMIL is the clock's too: `directSmil(svg)` (in `api.ts`) pauses an
+  outermost `<svg>`'s timeline at each directed moment (`setCurrentTime`)
+  and lets it play on at the release, so a filter that SVG moves itself
+  (`ElectricBorder`'s and `FuzzyText`'s turbulence) prints the same frame
+  for the same moment; every component that renders an `<animate>`
+  directs its SVG in `onMount` (`tests/design-doc.spec.ts` at the root
+  finds them), and its first value is the still attribute, so a timeline
+  that never runs (Firefox freezes SMIL on a page without script) shows the
+  same filter (the cases in `tests/solid/w2part0.spec.tsx` and
+  `w2part1.spec.tsx`). `directFromHyperframes()` takes direction from
   HyperFrames' `hf-seek` events (`detail.time` seconds): the contract the
   Studio's video export and `src/pages/play` rely on. Pinned by
   `tests/clock.spec.ts` and the directed cases in

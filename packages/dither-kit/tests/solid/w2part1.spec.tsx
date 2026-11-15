@@ -505,6 +505,14 @@ describe("DitherElectricBorder", () => {
     expect(border.style.border).toBe("3px solid red")
     expect(container.querySelector("feDisplacementMap")!.getAttribute("scale")).toBe("9")
   })
+
+  it("starts its SMIL where its still filter stands, so a frozen timeline shows the same arc", () => {
+    // Firefox freezes SMIL on a page without script: the first value shows
+    const { container } = render(() => <ElectricBorder>x</ElectricBorder>)
+    const turbulence = container.querySelector("feTurbulence")!
+    const animate = turbulence.querySelector("animate")!
+    expect(animate.getAttribute("from")).toBe(turbulence.getAttribute(animate.getAttribute("attributeName")!))
+  })
 })
 
 describe("DitherEmoji", () => {

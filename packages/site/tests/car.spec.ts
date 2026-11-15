@@ -3,7 +3,7 @@
 // showing only over the door line, the rest of it behind the body.
 import { describe, expect, it } from "rstack/test"
 import { CAR_H, CAR_W, carCells, drivenCells, SEAT, WHEEL_STEPS } from "@/shared/ui/car"
-import { toRuns } from "@/shared/ui/cells"
+import { stepCells, toRuns } from "@/shared/ui/cells"
 
 const key = (c: { x: number; y: number }) => `${c.x},${c.y}`
 
@@ -73,5 +73,17 @@ describe("the drawing", () => {
     expect(runs.length).toBeLessThan(cells.length / 3)
     const covered = runs.flatMap((r) => Array.from({ length: r.w }, (_, i) => `${r.x + i},${r.y},${r.paint}`)).sort()
     expect(covered).toEqual(cells.map((c) => `${c.x},${c.y},${paint(c)}`).sort())
+  })
+
+  it("splits the wheel turns into what they share and each turn's own cells", () => {
+    const frames = Array.from({ length: WHEEL_STEPS }, (_, t) => drivenCells(t))
+    const paint = (c: (typeof frames)[number][number]) => ("driver" in c ? "d" + c.ink : c.ink)
+    const { still, steps } = stepCells(frames, paint)
+    const keyed = (cells: readonly (typeof frames)[number][number][]) => cells.map((c) => `${c.x},${c.y},${paint(c)}`)
+    expect(steps).toHaveLength(WHEEL_STEPS)
+    steps.forEach((own, t) => expect([...keyed(still), ...keyed(own)].sort()).toEqual(keyed(frames[t]).sort()))
+    // the car stands still; only the rims' cells step
+    expect(still.length).toBeGreaterThan(frames[0].length * 0.8)
+    expect(new Set(steps.flat().map(paint))).toEqual(new Set(["light", "tyre"]))
   })
 })

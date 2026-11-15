@@ -204,6 +204,13 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
 - **One moving layer at a time** against a still ground.
 - **Stepped where it is printed**: the dither art moves in whole cells
   and at a film's cadence (stop-motion), never a smear.
+- **Shapes move by the SVG and its stylesheet**, never by a script: a cell
+  picture that steps (the mascot's rotor, blink and hop, the car's wheels)
+  draws what its frames share once and shows each frame's own cells in its
+  turn by CSS; a filter's own motion (a turbulence) is SMIL that starts
+  where its still filter stands, so a timeline frozen at its start (Firefox
+  without script) shows the same. The kit's clock holds SMIL when a
+  renderer directs it (`directSmil`); under reduced motion the pose stands.
 - **On cue**: art moves as it comes into view (under five seconds, so it
   needs no pause control), then only under the reader's hand. A loop that
   runs longer gets a pause.
