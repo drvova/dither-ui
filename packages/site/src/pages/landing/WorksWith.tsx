@@ -5,7 +5,7 @@
 // kit's order).
 import { For } from "solid-js"
 import { HARNESSES, MODEL_NAMES, WORKS } from "@/pages/landing/facts"
-import { rise, routePath } from "@/shared/lib"
+import { riseRoot, routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark"
 import RiseWords from "./RiseWords"
 import "./WorksWith.css"
@@ -13,7 +13,7 @@ import "./WorksWith.css"
 export default function WorksWith() {
   return (
     <section id="works" aria-labelledby="works-h" class="works-with-scope sec">
-      <div ref={rise} class="sec-head">
+      <div {...riseRoot} class="sec-head">
         <h2 id="works-h" class="section-title">
           <RiseWords text="Plays well with others." />
         </h2>
@@ -28,7 +28,7 @@ export default function WorksWith() {
           </a>
         </div>
       </div>
-      <div ref={rise} class="works">
+      <div {...riseRoot} class="works">
         <div data-rise>
           <h3 id="works-styling" class="works-h">
             Your styling

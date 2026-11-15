@@ -61,10 +61,42 @@ are from the repository's.
   in a browser, `entities/artboard/model/factory.ts`). In the browser the
   app takes those bytes over in place (SolidStart's `mount` in
   `entry-client.tsx` hydrates) when the address is the one they were
-  rendered at, a static host's trailing slash included (`renderedAt` in
-  `shared/lib/routes.ts`; without it every docs section was rendered anew
-  over its emptied page); at another address (the missing page's file
-  served for an unknown one) it renders the page anew over them.
+  rendered at, a static host's trailing slash and any query included
+  (`renderedAt` in `shared/lib/routes.ts`; without it every docs section
+  was rendered anew over its emptied page); at another address (the
+  missing page's file served for an unknown one) it renders the page anew
+  over them.
+- Islands (the user's call: no script where HTML and CSS can do it). The
+  landing and the docs are static pages: their route renders the page
+  through `Static` (`src/shared/lib/island.tsx`), handing it the page only
+  on a server (`const OnServer = import.meta.env.SSR ? Page : undefined`,
+  at the module's top: a condition inside JSX compiles into a memo no
+  bundler folds, and the page's code shipped), so the server renders it whole
+  without hydration keys and the browser's bundle drops the page's code,
+  keeping only its stylesheets (the package declares no module of its own
+  side-effectful but a stylesheet and a component file, whose stylesheet
+  imports stand where its component is never called, `package.json`
+  `sideEffects`: a table only the page reads leaves no code behind, and a
+  component file only its stylesheets);
+  the browser keeps the
+  bytes. What a hand
+  or the clock drives on such a page is an island: a default-exporting
+  `.tsx` module named in the page's ONE table (`islands({...})`:
+  `pages/landing/islands.ts`, `pages/docs/islands.ts`), its props JSON,
+  rendered by the server in place inside a `<dither-island>` (laid out as
+  if it were not there) with its chunk's stylesheets linked in the head
+  (read off SolidStart's client manifest), and hydrated by the browser
+  under the id the server rendered it at, inside the table's root (the
+  providers the app stands in, `shared/ui/SpriteRoot.tsx`, which both
+  sides render around the island), one at a time, when it nears the
+  view (`visible`, the default), once the page is idle (`idle`), with the
+  page (`load`), or at once under a pointer or focus. The rise of a static
+  page is set off from its bytes (`riseRoot`, `riseWithin`). The router
+  takes no link (`explicitLinks` in `app.tsx`): every page is a document
+  of its own, the page transition dithering between them. The Studio and
+  the missing page stay whole apps. `tests/site/budget.spec.ts` holds
+  that no script the build ships carries a static page's own words, and
+  that each page names its islands.
 - The missing page is `src/routes/[...404].tsx`. It answers 404 and is
   `noindex`; the build keeps it as `404.html` for a static host (the one
   route whose 404 the prerender hook lets through, `MISSING_PAGE`).
@@ -79,7 +111,8 @@ are from the repository's.
   demand.
 - Routes: `routes/index.tsx` (the landing), `routes/studio.tsx`,
   `routes/docs/index.tsx` and `routes/docs/[section].tsx` (one docs
-  section a page; the prerender list is derived from `GROUPS`, never kept
+  section a page, each a static page, its pack's chunk asked for by the
+  route's preload; the prerender list is derived from `GROUPS`, never kept
   by hand; an unknown id renders the missing page, a lazy part there so a
   section's page never carries it), `routes/[...404].tsx`.
   `routes/play.tsx` is the player (never indexed, outside the site's
@@ -95,8 +128,9 @@ are from the repository's.
   `entry-client.tsx` takes the page transition the head script parks,
   installs the press (`shared/lib/press.ts`, one listener for every page)
   and the hand (`shared/lib/hand.ts`: what the reader last reached with),
-  sends a legacy hash address (`/#/docs/<id>`, `/#/studio…`;
-  `shared/lib/legacy.ts`) to its page, and mounts once the page's
+  sends a legacy hash address (`/#/docs/<id>`, `/#/studio…`,
+  `/docs#/docs/<id>`; `shared/lib/legacy.ts`, `legacyAt`) to its page,
+  and mounts once the page's
   stylesheets stand (`app/sheets-ready.ts`: SolidStart's entry script is
   async and ran ahead of them on a busy load; `tests/sheets-ready.spec.ts`).
 - State: the editor store and the stores around it are `createMutable`;
@@ -242,7 +276,9 @@ are from the repository's.
 ## Work Guidance
 
 - Head tags go through `@solidjs/meta`, rendered on the server, never set
-  by a script after mount.
+  by a script after mount, save one: on a static page the docs' theme
+  switch (`DocsSwitches`, an island, outside the app's `MetaProvider`)
+  tints the rendered `theme-color` as the theme turns.
 - The rules of the look, the copy and the slop bans in the root `AGENTS.md` and
   `DESIGN.md` hold here as written.
 
@@ -281,9 +317,11 @@ are from the repository's.
   kit's (`packages/dither-kit/tests/solid/`).
 - A page's first load (`tests/site/budget.spec.ts`, over the built site):
   the gzipped script the landing's and a docs section's HTML start, with
-  every static import, under a budget, and neither carrying the other's
+  every static import, under a budget, neither carrying the other's
   page nor the kit's world engine, model parsers or charts, decided by the
-  modules each chunk holds (`.vite/chunks.json`), never a chunk's name.
+  modules each chunk holds (`.vite/chunks.json`), never a chunk's name, no
+  script carrying a static page's own words, and each page naming its
+  islands.
 
 ## Child DOX Index
 

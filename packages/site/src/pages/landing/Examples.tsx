@@ -32,7 +32,7 @@ import { BENTO, staggers } from "@/pages/landing/hub"
 import { spotlight } from "@/pages/landing/spotlight"
 import { SCENES } from "@/pages/landing/scenes"
 import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "@/pages/landing/stat"
-import { lazyPart, rise, routePath } from "@/shared/lib"
+import { lazyPart, riseRoot, routePath } from "@/shared/lib"
 import { railIndex, railStarts } from "./rail"
 import { scene } from "@/shared/lib/scroll-scene-ref"
 import { Area, AreaChart, Sparkline, XAxis } from "@/shared/ui/charts"
@@ -555,7 +555,7 @@ export default function Examples() {
 
   return (
     <section id="examples" aria-labelledby="examples-h" class="examples-scope examples">
-      <div ref={rise} class="sec-head">
+      <div {...riseRoot} class="sec-head">
         <h2 id="examples-h" class="section-title">
           <RiseWords text="Every component, live." />
         </h2>

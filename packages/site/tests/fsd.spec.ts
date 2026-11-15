@@ -41,8 +41,16 @@ const ENTRIES: Record<string, readonly string[]> = {
   // A page is entered where the routes, the shell and the build take it, a
   // file each: a barrel keeps every module whose stylesheet it imports, and
   // the landing once loaded the docs through one (`../AGENTS.md`).
-  "pages/docs": ["DocsPage.tsx", "PageHead.tsx", "heads.ts", "pages.ts", "pack-loaders.ts", "crawler-files.ts"],
-  "pages/landing": ["LandingPage.tsx", "MissingPage.tsx"],
+  "pages/docs": [
+    "DocsPage.tsx",
+    "islands.ts",
+    "PageHead.tsx",
+    "heads.ts",
+    "pages.ts",
+    "pack-loaders.ts",
+    "crawler-files.ts",
+  ],
+  "pages/landing": ["LandingPage.tsx", "islands.ts", "MissingPage.tsx"],
   "pages/play": ["main.ts"],
   // the frame as code (a chart's, a widget's, and the frame's over the
   // styling rewriter): never reached from what draws a frame (the player,

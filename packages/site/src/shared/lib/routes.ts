@@ -16,12 +16,14 @@ export const isLanding = (path: string): boolean => path === "/" || path === "/i
 /** The address a page's bytes were rendered at, as the reader's address
  * spells it. A page is prerendered at its slashless address (`/docs/area`)
  * and a static host serves its folder's file under a trailing slash
- * (`/docs/area/`): the same page. The app takes over the bytes in place only
- * at the address they were rendered at, and otherwise renders the page anew
- * over them, emptying it first (every docs section, on every load). */
+ * (`/docs/area/`), whatever query follows: the same page. The app takes
+ * over the bytes in place only at the address they were rendered at, and
+ * otherwise renders the page anew over them, emptying it first (every docs
+ * section, on every load; a static page, which has no components in the
+ * browser, stood empty). */
 export function renderedAt(rendered: string, pathname: string, search: string): string {
-  const here = pathname + search
-  return here !== rendered && pathname.replace(/\/+$/, "") + search === rendered ? here : rendered
+  const path = (p: string) => p.replace(/\/+$/, "")
+  return path(pathname) === path(rendered.split("?")[0]) ? pathname + search : rendered
 }
 
 export function routePath(path = "/"): string {

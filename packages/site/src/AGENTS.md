@@ -17,7 +17,7 @@ load, so the workspace's `rs test` can import it (its specs are
 `../tests/*.spec.ts`); it takes the kit's values from `@dither-ui/kit/engine`,
 never from `@dither-ui/kit`, whose index is the components. Where a
 framework-free module and its Solid binding would share a name, each has
-its own (`shared/lib/rise.ts` and `shared/lib/rise-ref.ts`,
+its own (`shared/lib/scroll-scene.ts` and `shared/lib/scroll-scene-ref.ts`,
 `widgets/source/model/snippet.ts` and `widgets/source/model/files.ts`):
 no file re-exports another to stand in its place. The SolidStart package
 around this tree (entries, routes, the build, how Solid is written) is
@@ -954,14 +954,23 @@ around this tree (entries, routes, the build, how Solid is written) is
   fetched, the cards' renderer, the player and the kit's sources never;
   Chromium only, and off under DevTools), both set by the shell
   (`src/entry-server.tsx`). `tests/first-paint.spec.ts`.
-- Docs sections are DIRECT children of `.docs-flow`: the page shows one
-  at a time by toggling `hidden` on them (`pages/AGENTS.md`, Wayfinding),
-  and each is prerendered as its own page (`routes/docs/[section].tsx`).
-  A section a pack renders is mounted only once opened (`docs/packs.ts`,
-  `packOpen`; the last `PACKS_KEPT` packs read stay mounted): a new pack
-  is a row in `DOCS` (`docs/groups.ts`) and its loader, every section a
+- Docs sections are DIRECT children of `.docs-flow` (`pages/docs/DocsPack.tsx`,
+  the flow's island): each is prerendered as its own page
+  (`routes/docs/[section].tsx`), which holds only its section's pack
+  (`docs/packs.ts`, `packOf`), the pack's other sections held back in the
+  bytes by the flow's rule (`pages/AGENTS.md`, Wayfinding): a new pack is
+  a row in `DOCS` (`docs/groups.ts`) and its loader, every section a
   pack's `DocSection`.
   New section wrappers must stay direct children of `.docs-flow`.
+- Static pages and islands (`shared/lib/island.tsx`; the contract is
+  `../AGENTS.md`'s): `Static` is the ONE boundary between a page's bytes
+  and its script, `islands({...})` the ONE table of a page's islands, and
+  an island is a module of the page's slice (`pages/landing/InsideArt.tsx`,
+  `pages/docs/DocsHeader.tsx`) or of `shared/ui` (`AdSlot`), never a
+  slice's index, since its chunk's stylesheets are read by its module's
+  id. Rendered in a browser (a spec, a page rendered anew) an island is a
+  lazy part. Islands share the page's module state (the styling, the
+  sounds, the theme) as one app does.
 - Page transitions: the routes (`/`, `/docs`, `/studio` and the section
   pages) opt into cross-document view transitions in `app/styles.css`
   (`@view-transition`, none under reduced motion), and the arriving page
@@ -979,8 +988,9 @@ around this tree (entries, routes, the build, how Solid is written) is
   the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
   runs the inline script both ways. The rise (`shared/lib/rise.ts`: a
   headline's words up one after another on the glide, 24px over 900ms,
-  60ms apart, then its blocks 90ms apart; the site's `rise(el)` is
-  `shared/lib/rise-ref.ts` over it) waits in the
+  60ms apart, then its blocks 90ms apart; what holds risers is marked in
+  the bytes, `riseRoot`, and a static page rises them all as it mounts,
+  `riseWithin`, a page rendered in the browser its own) waits in the
   prerendered bytes:
   `RISE_HEAD_SCRIPT` (`shared/lib/rise-wait.ts`, inlined after the reveal
   script) sets `rise-wait` on `<html>` unless the reader asks for reduced

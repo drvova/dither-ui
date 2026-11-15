@@ -83,3 +83,16 @@ export function rise(node: HTMLElement): { destroy(): void } {
   node.addEventListener("focusin", focused)
   return { destroy: stop }
 }
+
+/** The mark of an element that holds risers, in the bytes: a page's every
+ * rise is set off from them by `riseWithin`, never by a component. */
+const RISES = "data-rises"
+
+/** The mark as attributes: `<div {...riseRoot}>`. */
+export const riseRoot = { [RISES]: "" } as const
+
+/** Rise every marked element under `root` (`RISES`). */
+export function riseWithin(root: ParentNode): { destroy(): void } {
+  const all = [...root.querySelectorAll<HTMLElement>(`[${RISES}]`)].map(rise)
+  return { destroy: () => all.forEach((r) => r.destroy()) }
+}

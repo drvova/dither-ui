@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "sideEffects": [
+    "**/*.css",
+    "**/*.tsx"
+  ],
   "imports": {
     "#dither-facts": "./build/facts.ts"
   },

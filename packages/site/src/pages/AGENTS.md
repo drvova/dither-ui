@@ -52,6 +52,20 @@ in the page's folder.
   external one says "(opens in a new tab)" to screen readers). No space
   is left empty. Everything that moves is the kit itself (real
   components, hands on); no film player or animation runtime ships.
+- The page is static (`../AGENTS.md`, Islands): `LandingPage.tsx` is the
+  page's bytes (the skip link, the section heads, the copy, the cards'
+  names and lines, the families, what it works with, the spec sheet),
+  and what moves is a row of `LANDING` (`islands.ts`): the header,
+  the pointer's trail (idle), the hero (`Showcase`, with the page), the
+  bento (`Examples`), the plates (`Plate`, by its row's name), the build
+  (`BrandBuild`), the ask (`AgentStory`), each inside card's strip
+  (`InsideArt`, by the card's name; the cards are `inside.ts`, their
+  characters still prints in the bytes),
+  the close's heat (`CloseHeat`), the prompt's copy key (`PromptKey`,
+  idle), the install box (`InstallBlock`) and the footer (`LandingFoot`,
+  the road, the car and the brand on its art), each woken as it nears the
+  view. A new moving part is a row there and a module of its own; a
+  static part takes no state, effect or handler.
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) over the site voice (only
   `.nav-a`, `.led`, `.chrome-type` and `.key-chrome` from it): the ground
@@ -75,13 +89,13 @@ in the page's folder.
   right, on its baseline, a `.sec-lede` (two tones: the muted ink, its one
   key clause, `.lede-key`, in the full ink, so the eye finds the point
   without bold; `tests/ledes.spec.ts`) and a `.more-link`; stacked under
-  900px; it rises as it comes into view: `ref={rise}` on the head, the title's
+  900px; it rises as it comes into view: `riseRoot` on the head, the title's
   words through `RiseWords`, the lede and the link `data-rise` after them,
   the hero's statement likewise, and the blocks under a head (the three
   parts' cards, the families, what it works with, the spec sheet's rows)
   one after another, 90ms apart; the bento keeps its own reveal and the
   footer its own motion; `shared/lib/rise.ts`, and every riser
-  stands inside an element `rise` holds, `tests/rise.spec.ts`), `.lead` and `.more-link` (an underline that inks on hover, a
+  stands inside an element the bytes mark, `tests/rise.spec.ts`), `.lead` and `.more-link` (an underline that inks on hover, a
   24px target through padding cancelled by a negative margin), `.key` (a
   filled shape on `--surface`, never a ring), `.seg` (`aria-pressed`
   buttons, quiet labels, the pressed one filled with `--surface`), and
@@ -447,7 +461,7 @@ in the page's folder.
   raised ground, 20px radius, like the bento's; one column under 900px),
   each headed by a strip flush to its top (120px, 72px on a phone,
   printing in through `DitherReveal`) in its own ink and printer's screen
-  (`INSIDE`: blue in Bayer cells, the ember in lines, bone in a halftone
+  (`INSIDE`, `inside.ts`: blue in Bayer cells, the ember in lines, bone in a halftone
   dot), its `art` a union: a tone (`DitherGradient` from its ink to
   `STOCK`) for the kit and the Studio, a board (`DitherCircuit` in its
   ink, seed 11, full density on a 3-cell lattice, its signals in the
@@ -932,31 +946,30 @@ in the page's folder.
   `neighbours` for the pager, `groupOf` for the breadcrumb; pinned by
   `tests/docs-pages.spec.ts`). The URL names the section (clean
   `/docs/<id>`, its directory form `/docs/<id>/` where a static host serves
-  the section's prerendered page, or legacy `#/docs/<id>`; `/docs` itself
-  opens on the first section and keeps the docs' front, the chrome title,
-  its tags and intro, `data-docs-front`, which a section's page keeps only
-  as the screen readers' h1). `open(id)` shows that section alone (the
-  rest of `.docs-flow` hidden; a pack of sections, `packs.ts` `PACKS`, each
-  pack component and the nav naming its sections, mounts only once one of
-  its sections is opened here and stays while it is among the last
-  `PACKS_KEPT` (3) read (`visitPack`), so going back is instant and keeps
-  each demo's state, while the 300-odd others cost the page nothing:
-  27,564 nodes on a section's page became 4,115, and a long read lets the
-  oldest pack go (every section opened in one tab had kept 62k nodes and
-  461 canvases; now about 37k and 218 at worst, the three heaviest); each
-  pack is a chunk of its own (`pack-loaders.ts`: `PACK_LOADERS`, prefetched
-  at idle, so moving family stays instant; the page evaluates only the
-  pack it shows), the open section's pack loaded before the page first
-  renders (`preloadOpenPacks`, from the section route's preload), so it never shows
-  empty, and a pack's sections, arriving after the page, are hidden and
-  read for "On this page" as they come (a MutationObserver on the flow's
-  children; once missed, a family's every section showed at once);
-  every section is a pack's, DocsPage writing none (the 24 it once wrote
-  itself, a second path, held 3,000 of a section page's 4,200 nodes);
-  `tests/docs-packs.spec.ts` holds the packs kept,
-  `tests/site/docs-page.spec.tsx` every pack's sections to its nav), pushes a history
-  entry and reads from the top; back and forward walk them (`popstate`).
-  The sidebar, search, the sheet and the pager all open through it. Over
+  the section's prerendered page, or legacy `/docs#/docs/<id>`, which the
+  entry sends on; `/docs` itself opens on the first section and keeps the
+  docs' front, the chrome title, its tags and intro, `data-docs-front`,
+  which a section's page keeps only as the screen readers' h1). The page
+  is static (`../AGENTS.md`, Islands): `DocsPage.tsx` is its bytes (the
+  breadcrumb, the pager, the footer, the rails' places) and `DOCS`
+  (`docs/islands.ts`) its islands: the flow (`DocsPack.tsx`, with the page:
+  the front's title over the section's pack, `packs.ts` `PACKS`, each pack
+  component and the nav naming its sections; the pack's other sections
+  held back in the bytes by the flow's rule, a deferred one rendering
+  nothing until its own page), the header with search and the sheet
+  (`DocsHeader.tsx`), the page's switches (`DocsSwitches.tsx`), the rail
+  (`DocsNav`), On this page and Share (`DocsAside.tsx`) and the ad, the
+  switches, the rail and the aside at idle. A section's page holds only its pack: 27,564
+  nodes on a section's page became 4,115; each pack is a chunk of its
+  own (`pack-loaders.ts`: `PACK_LOADERS`), asked for by the section's
+  route as the page loads (`preloadOpenPacks`); every section is a
+  pack's, DocsPage writing none (the 24 it once wrote itself, a second
+  path, held 3,000 of a section page's 4,200 nodes);
+  `tests/docs-packs.spec.ts` holds a section's pack,
+  `tests/site/docs-page.spec.tsx` every pack's sections to its nav. The
+  sidebar, search, the sheet and the pager are links to each section's
+  own page, the browser's to follow (the page transition dithers
+  between them; back and forward are the browser's). Over
   the section a breadcrumb (the docs, then its group, linking to the
   group's first section; each link a 24px target); under it the pager, the sections either side
   in the sidebar's order, each with its group. The section's title is the

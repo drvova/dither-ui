@@ -130,7 +130,7 @@ describe("landing facts", () => {
     expect(landing("LandingPage.css")).toContain(`@container (width < ${ROAD.narrow}px)`)
     // The shader tells the same width by its cells only if a cell is CSS
     // px: at the screen's dpr a 3x phone reads three times as wide.
-    expect(landing("LandingPage.tsx")).toMatch(/cell=\{ROAD\.cell\}\s+dpr=\{1\}/)
+    expect(landing("LandingFoot.tsx")).toMatch(/cell=\{ROAD\.cell\}\s+dpr=\{1\}/)
   })
 
   it("dances by itself for under five seconds, so the road needs no pause", () => {

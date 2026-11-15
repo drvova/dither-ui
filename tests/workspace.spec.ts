@@ -59,8 +59,14 @@ const PUBLIC = "@dither-ui/kit"
 
 /** Modules a build supplies rather than a package (`restyle`'s utility map, the
  * site's kit props, `virtual:dither-props/<Component>`, the docs' examples'
- * catalogue, `virtual-dither-catalog`). */
-const VIRTUAL = new Set(["virtual-dither-utilities", "virtual:dither-props", "virtual-dither-catalog"])
+ * catalogue, `virtual-dither-catalog`, and SolidStart's client manifest, which an
+ * island reads its stylesheets from, `solid-start:get-manifest`). */
+const VIRTUAL = new Set([
+  "virtual-dither-utilities",
+  "virtual:dither-props",
+  "virtual-dither-catalog",
+  "solid-start:get-manifest",
+])
 
 /** The site's alias for its own `src/`: no other package has one. */
 const OWN_SOURCE = { package: "@dither-ui/site", prefix: "@/" }

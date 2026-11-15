@@ -3,8 +3,8 @@ import { mount, StartClient } from "@solidjs/start/client"
 import { ditherViewTransition } from "@dither-ui/kit/engine/transition.ts"
 import { pageTransitionOptions, takePageTransition } from "@/app/page-reveal"
 import { sheetsReady } from "@/app/sheets-ready"
-import { appPathname, isLanding, renderedAt, routePath } from "@/shared/lib/routes"
-import { legacyAddress } from "@/shared/lib/legacy"
+import { appPathname, renderedAt, routePath } from "@/shared/lib/routes"
+import { legacyAt } from "@/shared/lib/legacy"
 import { installHand } from "@/shared/lib/hand"
 import { installPress } from "@/shared/lib/press"
 
@@ -25,9 +25,10 @@ installHand()
 const entry = document.querySelector<HTMLScriptElement>("script[data-start-url]")
 if (entry) entry.dataset.startUrl = renderedAt(entry.dataset.startUrl ?? "", location.pathname, location.search)
 
-// An old hash link (`/#/docs/<id>`, `/#/studio/...`) leaves for the page it
-// names, in place of the entry it came by; any other address mounts, once
-// the page's stylesheets stand (this script runs async, ahead of them).
-const legacy = isLanding(appPathname()) ? legacyAddress(location.hash) : null
+// An old hash link (`/#/docs/<id>`, `/#/studio/...`, `/docs#/docs/<id>`)
+// leaves for the page it names, in place of the entry it came by; any other
+// address mounts, once the page's stylesheets stand (this script runs
+// async, ahead of them).
+const legacy = legacyAt(appPathname(), location.hash)
 if (legacy) location.replace(routePath(legacy))
 else void sheetsReady().then(() => mount(() => <StartClient />, document.getElementById("app")!))

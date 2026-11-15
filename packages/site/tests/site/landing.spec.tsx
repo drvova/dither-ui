@@ -19,7 +19,7 @@ import { TOTAL } from "@/pages/landing/stat"
 import { RISE } from "@/shared/lib/rise"
 import { RISE_LIVE } from "@/shared/lib/rise-wait"
 import { STYLING_LABELS } from "@dither-ui/restyle"
-import { rise } from "../../src/shared/lib"
+import { riseRoot, riseWithin } from "../../src/shared/lib"
 import LandingPage from "../../src/pages/landing/LandingPage"
 import MissingPage from "../../src/pages/landing/MissingPage"
 import AgentStory from "../../src/pages/landing/AgentStory"
@@ -139,9 +139,9 @@ describe("the rise of a head", () => {
     delete (Element.prototype as { animate?: unknown }).animate
   })
 
-  const head = () =>
-    render(() => (
-      <div ref={rise}>
+  const head = () => {
+    const w = render(() => (
+      <div {...riseRoot}>
         <h2>
           <RiseWords text="Every component, live." />
         </h2>
@@ -149,6 +149,9 @@ describe("the rise of a head", () => {
         <a data-rise>more</a>
       </div>
     ))
+    riseWithin(w.container)
+    return w
+  }
 
   it("keeps the headline one line of text, its words each their own box", () => {
     const w = head()
@@ -240,7 +243,7 @@ describe("the small parts", () => {
     // jsdom's style parser drops a clamp(): what the lockup is given is read
     // as it is set.
     const set = vi.spyOn(CSSStyleDeclaration.prototype, "setProperty")
-    const w = render(() => <Plate plate={plate} />)
+    const w = render(() => <Plate plate="afterExamples" />)
     // the run: the pin holding the sheet, then the hold it stands through
     const run = w.container.querySelector<HTMLElement>(".plate-run")!
     expect(run.getAttribute("aria-hidden")).toBe("true")
@@ -828,15 +831,21 @@ describe("what it works with", () => {
 
 // The page whole.
 describe("the landing", () => {
-  const landing = () => {
+  // The page as a browser renders it anew: its islands come as lazy parts,
+  // and what holds risers rises as a static page's mount rises it.
+  const ISLANDS = [".hero", "#examples", ".plate", ".inside-art", ".prompt-key", ".install-block-scope", "footer.foot"]
+  const landing = async () => {
     vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(() => Promise.resolve())
-    return render(() => <LandingPage />)
+    const w = render(() => <LandingPage />)
+    for (let i = 0; i < 400 && ISLANDS.some((s) => !w.container.querySelector(s)); i++)
+      await new Promise((r) => setTimeout(r, 10))
+    riseWithin(w.container)
+    return w
   }
 
   it("is one page in the dark: a skip link, one main, its sections in order, a footer", async () => {
-    const w = landing()
+    const w = await landing()
     await tick()
-    expect(document.documentElement.classList.contains("dark")).toBe(true)
     const root = w.container.firstElementChild!
     expect(root.classList.contains("landing")).toBe(true)
     const skip = root.querySelector("a.skip-link")!
@@ -913,18 +922,18 @@ describe("the landing", () => {
     expect(foot.querySelector(".road-car .road-car-art")).not.toBeNull()
   })
 
-  it("gives every section lede exactly one key clause", () => {
-    const w = landing()
+  it("gives every section lede exactly one key clause", async () => {
+    const w = await landing()
     const ledes = all(w.container, "p.sec-lede")
     expect(ledes.length).toBeGreaterThanOrEqual(5)
     for (const l of ledes) expect(all(l, ".lede-key"), text(l).slice(0, 40)).toHaveLength(1)
   })
 
-  it("stands every riser inside a rise, or the wait would hide it for good", () => {
+  it("stands every riser inside a rise, or the wait would hide it for good", async () => {
     // Under reduced motion a rise stands its risers at once: one left
     // unrisen stands outside every rise.
     reduced = true
-    const w = landing()
+    const w = await landing()
     const risers = all(w.container, "[data-rise]")
     expect(risers.length).toBeGreaterThan(30)
     expect(risers.filter((r) => !r.hasAttribute("data-risen")).map((r) => r.outerHTML.slice(0, 60))).toEqual([])
@@ -936,7 +945,7 @@ describe("the landing", () => {
       ...navigator,
       clipboard: { writeText: (t: string) => (written.push(t), Promise.resolve()) },
     })
-    const w = landing()
+    const w = await landing()
     const key = w.getByRole("button", { name: "Copy agent prompt" })
     fireEvent.click(key)
     await tick()

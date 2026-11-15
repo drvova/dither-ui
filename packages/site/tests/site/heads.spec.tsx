@@ -32,7 +32,7 @@ import {
   TURNS_WITH_THEME,
 } from "../../src/pages/docs/heads"
 import PageHead from "../../src/pages/docs/PageHead"
-import { legacyAddress } from "../../src/shared/lib/legacy"
+import { legacyAddress, legacyAt } from "../../src/shared/lib/legacy"
 
 const SITE = join(__dirname, "../..")
 const read = (root: string, file: string) => readFileSync(join(root, file), "utf8")
@@ -206,10 +206,22 @@ describe("the page an address opens on", () => {
     expect(legacyAddress("#/studio/")).toBe("/studio")
     expect(legacyAddress("#/studio/new/film")).toBe("/studio#new/film")
     for (const hash of ["", "#", "#build", "#docs", "#/play"]) expect(legacyAddress(hash), hash).toBeNull()
-    // the entry applies it before the app mounts, on the landing only; the
-    // app mounts once the page's stylesheets stand (its script runs async)
+    // on the landing, and on the docs' front for a section it named; the
+    // docs' front with no section, and any other page, stay where they are
+    expect(legacyAt("/", "#/docs/avatar")).toBe("/docs/avatar")
+    expect(legacyAt("/docs", "#/docs/avatar")).toBe("/docs/avatar")
+    expect(legacyAt("/docs/", "#/docs/avatar")).toBe("/docs/avatar")
+    for (const [path, hash] of [
+      ["/docs", "#/docs"],
+      ["/docs/", "#/docs/"],
+      ["/docs/area", "#/docs/avatar"],
+      ["/studio", "#/docs/avatar"],
+    ])
+      expect(legacyAt(path, hash), path + hash).toBeNull()
+    // the entry applies it before the app mounts; the app mounts once the
+    // page's stylesheets stand (its script runs async)
     const entry = read(SITE, "src/entry-client.tsx")
-    expect(entry).toMatch(/isLanding\(appPathname\(\)\) \? legacyAddress\(location\.hash\) : null/)
+    expect(entry).toMatch(/const legacy = legacyAt\(appPathname\(\), location\.hash\)/)
     expect(entry).toMatch(
       /if \(legacy\) location\.replace\(routePath\(legacy\)\)\s+else void sheetsReady\(\)\.then\(\(\) => mount\(/,
     )
@@ -358,7 +370,7 @@ describe("the shell and the routes", () => {
       ["src/routes/index.tsx", '<PageHead page="landing" />'],
       ["src/routes/studio.tsx", '<PageHead page="studio" />'],
       ["src/routes/[...404].tsx", '<PageHead page="missing" />'],
-      ["src/pages/docs/DocsPage.tsx", '<PageHead page="docs" section={meta().id} />'],
+      ["src/pages/docs/DocsPage.tsx", '<PageHead page="docs" section={meta.id} />'],
     ]) {
       const source = read(SITE, file)
       expect(source, file).toContain(use)

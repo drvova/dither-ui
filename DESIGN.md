@@ -346,6 +346,9 @@ Smoothness is part of the look, so these are design rules too:
 - A page's first load is its own page: the kit's heavy engines that art
   further down shows (the world, the charts) are chunks that come with the
   page, never before its first paint, held to a budget.
+- No script where HTML and CSS can do it: the landing and the docs are
+  their prerendered bytes, and only what a hand or the clock drives is an
+  island, loaded as it nears the view (`packages/site/src/shared/lib/island.tsx`).
 - The first paint is the prerendered page: the app mounts over it once its
   page has loaded, never empties it first; the display face comes with the
   HTML; the page a pointer rests on a link to is made ready before the

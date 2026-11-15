@@ -1,22 +1,24 @@
-import { MetaProvider, Title } from "@solidjs/meta"
+import { MetaProvider } from "@solidjs/meta"
 import { Router } from "@solidjs/router"
 import { FileRoutes } from "@solidjs/start/router"
 import { Suspense } from "solid-js"
-import { IconSprite } from "@dither-ui/kit"
-import { spriteUrl } from "@/shared/ui/sprite"
+import SpriteRoot from "@/shared/ui/SpriteRoot"
 import "./app.css"
 
+// Every link is the browser's: each page is a prerendered file of its own,
+// and a static page (`shared/lib/island`) has no components in the browser
+// to render a route with, so the router takes no link (`explicitLinks`).
+// Each route renders its page's head (`PageHead`).
 export default function App() {
   return (
     <Router
       base={import.meta.env.SERVER_BASE_URL.replace(/\/$/, "")}
+      explicitLinks
       root={(props) => (
         <MetaProvider>
-          <Title>dither-ui</Title>
-          {/* every kit glyph on the site's own pages from the site's sprite */}
-          <IconSprite.Provider value={spriteUrl()}>
+          <SpriteRoot>
             <Suspense>{props.children}</Suspense>
-          </IconSprite.Provider>
+          </SpriteRoot>
         </MetaProvider>
       )}
     >

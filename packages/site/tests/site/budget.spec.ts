@@ -7,10 +7,13 @@
 // art below the first screen. Counted here, the landing's first load went
 // from 248 KB of gzipped script to 132 and a docs section's from 248 to 136
 // (measured on a 4x-throttled phone over slow 4G: loaded 0.5 to 1.3s
-// sooner, a third to half less blocking time). A budget a little above each
+// sooner, a third to half less blocking time). Static pages and islands
+// (`shared/lib/island.tsx`) took the landing from 134 to 52 and a docs
+// section from 124 to 98: a page starts with its islands' table, never its
+// own components. A budget a little above each
 // holds it there: a page that grows past it pulled into its first load
 // something it does not show at first.
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { gzipSync } from "node:zlib"
 import { describe, expect, it } from "vitest"
@@ -20,9 +23,9 @@ const OUT = join(__dirname, "../../.output/public")
 
 /** KB of gzipped script each page may start with. */
 const BUDGET_KB: Record<string, number> = {
-  "index.html": 138,
-  "docs/button/index.html": 144,
-  "docs/area/index.html": 144,
+  "index.html": 56,
+  "docs/button/index.html": 102,
+  "docs/area/index.html": 96,
 }
 
 /** Every script a page's first load runs: the module scripts and preloads
@@ -84,6 +87,47 @@ describe.skipIf(!existsSync(join(OUT, "index.html")))("a page's first load", () 
       expect(files.length).toBeGreaterThan(1)
       expect(gzipKB(files)).toBeLessThanOrEqual(budget)
     })
+
+  it("ships a static page's own parts as bytes, never as script", () => {
+    // Words only a static page's own template holds (`shared/lib/island`):
+    // were its components in any script the browser can load, these would
+    // be in it. An island's own words (the hero's, the bento's) are in its
+    // chunk, as they should be.
+    const STATIC_ONLY = [
+      "Three parts, one engine.", // the landing's sections
+      "docs sections, the five biggest families",
+      "Previous and next sections", // the docs' pager
+      "The kit in brief", // the landing's spec sheet
+    ]
+    const scripts = readdirSync(join(OUT, "_build/assets")).filter((f) => f.endsWith(".js"))
+    const shipped = scripts.filter((f) => {
+      const code = readFileSync(join(OUT, "_build/assets", f), "utf8")
+      return STATIC_ONLY.some((words) => code.includes(words))
+    })
+    expect(shipped).toEqual([])
+    // and the pages hold them, with their islands named in place
+    const landing = readFileSync(join(OUT, "index.html"), "utf8")
+    const docs = readFileSync(join(OUT, "docs/button/index.html"), "utf8")
+    expect(landing).toContain("docs sections, the five biggest families")
+    expect(docs).toContain("Previous and next sections")
+    // and link the stylesheets of what is only bytes: a static page's
+    // components never run in the browser, so a bundler that took their
+    // modules for unused once dropped their stylesheets with them
+    const sheets = (html: string) =>
+      [...html.matchAll(/<link[^>]+href="\/([^"]+\.css)"/g)]
+        .map((m) => readFileSync(join(OUT, m[1]), "utf8"))
+        .join("\n")
+    for (const [html, rules] of [
+      [landing, [".families-list", ".sec-head", "rise-words-scope", "works-with-scope"]],
+      [docs, [".docs-nav", "@font-face"]],
+    ] as const)
+      for (const rule of rules) expect(sheets(html), rule).toContain(rule)
+    for (const [html, names] of [
+      [landing, ["header", "hero", "bento", "build", "ask", "inside", "install", "foot"]],
+      [docs, ["header", "flow", "switches", "nav", "aside"]],
+    ] as const)
+      for (const name of names) expect(html, name).toMatch(new RegExp(`<dither-island data-island="${name}"`))
+  })
 
   it("holds neither the other page nor the kit's heavy engines", () => {
     // the build's own record: each route's chunk (Vite's manifest) and the

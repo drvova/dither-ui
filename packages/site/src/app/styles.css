@@ -658,6 +658,12 @@
   opacity: 0;
 }
 
+/* An island (shared/lib/island.tsx) stands in its page as if it were not
+   there: what it holds is laid out by the page around it. */
+dither-island {
+  display: contents;
+}
+
 /* The press's travel (see `[data-pressed]`). */
 @keyframes press-down {
   from {

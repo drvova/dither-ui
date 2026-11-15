@@ -34,7 +34,7 @@ export const TRAIL = { inks: [INKS[2], INKS[1]], size: 1, cool: 0.9 } satisfies 
   cool: number
 }
 
-export type Plate = {
+type Plate = {
   /** The clear band's top and foot, as fractions of the plate's height:
    * the heat prints above and below it, a cloud each side. */
   band: readonly [number, number]

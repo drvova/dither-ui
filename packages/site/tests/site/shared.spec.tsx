@@ -15,7 +15,7 @@ import { EYE, MASCOT_ROTOR_STEPS } from "@/shared/ui/mascot"
 import { BRAND_SYMBOL, MASCOT_SYMBOLS, markSymbol, spriteRef } from "@/shared/ui/sprite"
 import { BAND_INK, CLOSE_CELLS, MENU_LINKS, SEAM_HEIGHT, STUDIO_LINK, bandFill } from "@/widgets/site-header/menu"
 import { SHEET_DRAG, SHEET_SLIDE } from "@/widgets/site-header/sheet"
-import { RISE, rise, riseDelays, useTheme } from "../../src/shared/lib"
+import { RISE, riseDelays, riseRoot, riseWithin, useTheme } from "../../src/shared/lib"
 import { CUES, play, restoreSounds, schedule, setSounds, sounds } from "../../src/shared/lib/sound"
 import {
   AdSlot,
@@ -844,9 +844,10 @@ describe("the rise", () => {
     document.documentElement.className = ""
   })
 
-  const mountHead = () =>
-    render(() => (
-      <div ref={rise}>
+  // the page's bytes mark what holds risers; the page rises them all
+  const mountHead = () => {
+    const w = render(() => (
+      <div {...riseRoot}>
         <h2>
           <span data-rise="word">Every</span> <span data-rise="word">component,</span>{" "}
           <span data-rise="word">live.</span>
@@ -855,6 +856,9 @@ describe("the rise", () => {
         <a data-rise>more</a>
       </div>
     ))
+    const rising = riseWithin(w.container)
+    return { ...w, unmount: () => (rising.destroy(), w.unmount()) }
+  }
 
   it("staggers the words, then the blocks after the last word", () => {
     expect(riseDelays(["word", "word", "word", "block", "block"])).toEqual([0, 60, 120, 240, 330])
@@ -862,7 +866,7 @@ describe("the rise", () => {
     expect(RISE.easing).toBe(`cubic-bezier(${GLIDE_BEZIER.join(", ")})`)
   })
 
-  it("rises each riser once it comes into view, on the glide, and lets go with its component", () => {
+  it("rises each riser of a marked element once it comes into view, on the glide, and lets go", () => {
     const w = mountHead()
     expect(document.documentElement.dataset.rise).toBe(RISE_LIVE)
     expect(animated).toEqual([])

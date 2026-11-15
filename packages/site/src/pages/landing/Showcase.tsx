@@ -4,7 +4,7 @@ import { STAGINGS } from "@/pages/landing/brand"
 import { COMPONENT_COUNT, MATRIX, WORKS } from "@/pages/landing/facts"
 import { INKS } from "@/pages/landing/plate"
 import { SCENES } from "@/pages/landing/scenes"
-import { rise, routePath } from "@/shared/lib"
+import { riseRoot, routePath } from "@/shared/lib"
 import { scene } from "@/shared/lib/scroll-scene-ref"
 import ToolMark from "@/shared/ui/ToolMark"
 import BrandGather from "./BrandGather"
@@ -45,7 +45,7 @@ export default function Showcase() {
       <div class="hero-in">
         {/* The statement rises as the page opens: the headline word by word,
             then the lede, the keys and what it works with. */}
-        <div ref={rise} class="statement">
+        <div {...riseRoot} class="statement">
           <h1 id="hero-h" class="hero-h">
             <RiseWords text="A dithered UI toolkit for Solid." word="chrome-type" />
           </h1>
