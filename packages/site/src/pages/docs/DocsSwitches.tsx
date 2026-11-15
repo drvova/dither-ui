@@ -1,6 +1,6 @@
 // The switches that act on the whole docs page: what its code is written
 // in, its interface sounds (Kobra's: taps, switches, copies) and its theme,
-// revealed as a circle from the toggle. The reader's own, kept across
+// printed in through the matrix. The reader's own, kept across
 // visits. The browser chrome wears the page's ground in the theme picked:
 // the head's `theme-color` (rendered with the page) is set to the ground as
 // it turns. An island of the docs.
@@ -11,7 +11,7 @@ import { restoreStyling, setStyling, STYLING_LABELS, styling, STYLINGS } from "@
 import { play, restoreSounds, setSounds, sounds } from "@/shared/lib/sound"
 
 export default function DocsSwitches() {
-  const { dark, ground, revealToggle } = useTheme()
+  const { dark, ground, turn } = useTheme()
   createEffect(() => {
     const tint = ground()
     if (tint) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", tint)
@@ -20,9 +20,9 @@ export default function DocsSwitches() {
     restoreSounds()
     restoreStyling()
   })
-  function flipTheme(e: MouseEvent) {
+  function flipTheme() {
     play("theme")
-    revealToggle(e)
+    turn()
   }
   function flipSounds() {
     setSounds(!sounds())

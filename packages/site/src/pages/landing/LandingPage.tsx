@@ -21,7 +21,6 @@ import { CLOSE } from "@/pages/landing/heat"
 import { DOCS_FAMILIES, SECTION_COUNT } from "@/pages/landing/hub"
 import { INSIDE } from "@/pages/landing/inside"
 import { assetPath, routePath } from "@/shared/lib/routes"
-import { riseRoot } from "@/shared/lib/rise"
 import { LANDING } from "./islands"
 import PixelWord from "./PixelWord"
 import RiseWords from "./RiseWords"
@@ -58,7 +57,7 @@ export default function LandingPage() {
           {/* The build: the brand itself, cell by cell, raised by the world
               engine as the page scrolls past it. */}
           <section id="build" aria-labelledby="build-h" class="sec">
-            <div {...riseRoot} class="sec-head">
+            <div class="sec-head rise">
               <h2 id="build-h" class="section-title">
                 <RiseWords text="Built from the wire up." />
               </h2>
@@ -69,7 +68,7 @@ export default function LandingPage() {
                   each cell landing hot on it and cooling to metal. Keep going and it comes apart. Point at it and the
                   cells lean away.
                 </p>
-                <a data-rise href={routePath("/docs/world")} class="more-link">
+                <a data-rise href={routePath("/docs/world")} class="more-link" style={{ "--rise-n": 1 }}>
                   See the world engine
                 </a>
               </div>
@@ -79,7 +78,7 @@ export default function LandingPage() {
 
           {/* Ask: one agent session, played as the page scrolls past it. */}
           <section id="ask" aria-labelledby="ask-h" class="sec">
-            <div {...riseRoot} class="sec-head">
+            <div class="sec-head rise">
               <h2 id="ask-h" class="section-title">
                 <RiseWords text="Your agent builds the screen." />
               </h2>
@@ -89,7 +88,7 @@ export default function LandingPage() {
                   <span class="lede-key">Each tool call lands on the canvas as a frame of kit parts</span>, and undo
                   takes it back when it gets ideas.
                 </p>
-                <a data-rise href={assetPath("/agent/SKILL.md")} class="more-link">
+                <a data-rise href={assetPath("/agent/SKILL.md")} class="more-link" style={{ "--rise-n": 1 }}>
                   Read the agent skill
                 </a>
               </div>
@@ -100,7 +99,7 @@ export default function LandingPage() {
           {/* What's inside: the kit, the Studio, the bridge; then the docs'
               big families, each with its size and a line. */}
           <section id="inside" aria-labelledby="inside-h" class="sec">
-            <div {...riseRoot} class="sec-head">
+            <div class="sec-head rise">
               <h2 id="inside-h" class="section-title">
                 <RiseWords text="Three parts, one engine." />
               </h2>
@@ -111,10 +110,10 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <ul {...riseRoot} class="inside">
+            <ul class="inside rise">
               <For each={INSIDE}>
-                {(c) => (
-                  <li data-rise data-press="card">
+                {(c, i) => (
+                  <li data-rise data-press="card" style={{ "--rise-n": i() }}>
                     <LANDING.inside name={c.name} />
                     <span class="inside-who" aria-hidden="true">
                       <DitherAvatar name={c.title} color={c.ink} size={56} animate={false} />
@@ -131,14 +130,14 @@ export default function LandingPage() {
                 )}
               </For>
             </ul>
-            <div {...riseRoot} class="families">
+            <div class="families rise">
               <h3 data-rise class="families-h">
                 {SECTION_COUNT} docs sections, the five biggest families
               </h3>
               <ul class="families-list">
                 <For each={BIGGEST}>
-                  {(f) => (
-                    <li data-rise>
+                  {(f, i) => (
+                    <li data-rise style={{ "--rise-n": i() + 1 }}>
                       <a href={routePath(`/docs/${f.first}`)} class="family-t" data-press="key">
                         <span class="family-n">
                           {f.count}
@@ -168,7 +167,7 @@ export default function LandingPage() {
         <section id="install" aria-labelledby="install-h" class="close" style={{ "--reach": `${CLOSE.reach}px` }}>
           <LANDING.heat />
           <div class="sec install">
-            <div {...riseRoot} class="install-head">
+            <div class="install-head rise">
               <h2 id="install-h" class="section-title">
                 <RiseWords text="Copy one folder. Every pixel is yours." />
               </h2>
@@ -180,7 +179,7 @@ export default function LandingPage() {
               <LANDING.prompt />
             </div>
             <LANDING.install />
-            <dl {...riseRoot} class="sheet" aria-label="The kit in brief">
+            <dl class="sheet rise" aria-label="The kit in brief">
               <For each={SPECS}>
                 {(s) => (
                   <div data-rise class="sheet-row">

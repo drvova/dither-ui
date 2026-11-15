@@ -14,7 +14,6 @@ import { type Component, createComponent, type JSX, onMount, sharedConfig } from
 import { Dynamic, getRequestEvent, hydrate, NoHydration, useAssets } from "solid-js/web"
 import { getManifest } from "solid-start:get-manifest"
 import { lazyPart } from "./lazy-part"
-import { riseWithin } from "./rise"
 
 /** A JSON value: what an island's props may hold. */
 type IslandValue = string | number | boolean | null | IslandValue[] | { [key: string]: IslandValue }
@@ -143,14 +142,13 @@ function sheetsOf(event: object | undefined): Set<string> {
 export const islandsReady = <T extends IslandRows>(table: Islands<T>): Promise<unknown> => table[READY]
 
 /** A page that is HTML and CSS once rendered: the server renders `page`
- * without hydration keys, and the browser keeps the bytes, rises what they
- * hold and wakes `islands`. The route hands `page` over only on a server,
+ * without hydration keys, and the browser keeps the bytes (what moves on
+ * them is their stylesheets', `RiseWords.css`) and wakes `islands`. The route hands `page` over only on a server,
  * chosen at its module's top (`const Page = import.meta.env.SSR ? Landing :
  * undefined`): a condition in JSX is compiled into a memo no bundler folds,
  * and the page's code shipped with it. */
 export function Static<T extends IslandRows>(props: { islands: Islands<T>; page: Component | undefined }) {
   onMount(() => {
-    riseWithin(document)
     wake(props.islands[ROWS], props.islands[ROOT])
   })
   return <NoHydration>{props.page && createComponent(props.page, {})}</NoHydration>

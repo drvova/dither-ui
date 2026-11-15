@@ -3,12 +3,10 @@ import { DitherIcon, DitherPoster, DitherReveal } from "@dither-ui/kit"
 import { STAGINGS } from "@/pages/landing/brand"
 import { COMPONENT_COUNT, MATRIX, WORKS } from "@/pages/landing/facts"
 import { INKS } from "@/pages/landing/plate"
-import { SCENES } from "@/pages/landing/scenes"
-import { riseRoot, routePath } from "@/shared/lib"
-import { scene } from "@/shared/lib/scroll-scene-ref"
+import { routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark"
 import BrandGather from "./BrandGather"
-import RiseWords from "./RiseWords"
+import RiseWords, { wordsOf } from "./RiseWords"
 import TrailerDialog from "./TrailerDialog"
 import { useDrive } from "./drive"
 import "./Showcase.css"
@@ -18,11 +16,14 @@ import "./Showcase.css"
 // pointer moves over it. Under five seconds by itself, so no pause key.
 const HERO_RUN = 4000
 
+const HEADLINE = "A dithered UI toolkit for Solid."
+
 // The hero, our own: the first screen tall, the statement beside a print
 // the kit makes (a live DitherPoster: the palette as tone, the kit's
 // diamond knocked out of it, its screen sliding inside the mark), on the
 // obsidian like a print on black stock. The film is a key away. As the page
-// leaves it the hero eases back in step with the scroll (`SCENES.hero`):
+// leaves it the hero eases back in step with the scroll (`.hero`'s view
+// timeline in `Showcase.css`):
 // the statement recedes and fades, the print drifts down behind it.
 export default function Showcase() {
   const [film, setFilm] = createSignal(false)
@@ -41,19 +42,19 @@ export default function Showcase() {
   const held = () => !driven() || !gathered()
 
   return (
-    <section ref={scene(SCENES.hero)} aria-labelledby="hero-h" class="showcase-scope hero">
+    <section aria-labelledby="hero-h" class="showcase-scope hero">
       <div class="hero-in">
         {/* The statement rises as the page opens: the headline word by word,
             then the lede, the keys and what it works with. */}
-        <div {...riseRoot} class="statement">
+        <div class="statement rise-open" style={{ "--rise-words": wordsOf(HEADLINE) }}>
           <h1 id="hero-h" class="hero-h">
-            <RiseWords text="A dithered UI toolkit for Solid." word="chrome-type" />
+            <RiseWords text={HEADLINE} word="chrome-type" />
           </h1>
           <p data-rise class="hero-lede">
             {COMPONENT_COUNT} components, from charts and controls to GLSL and 3D, each printed cell by cell through one
             seeded {MATRIX} matrix. Copy the folder into your Solid app and change what you need.
           </p>
-          <div data-rise class="hero-keys">
+          <div data-rise class="hero-keys" style={{ "--rise-n": 1 }}>
             <a href={routePath("/studio")} class="nav-a key-chrome primary">
               Open the studio
             </a>
@@ -65,7 +66,7 @@ export default function Showcase() {
               Watch the film
             </button>
           </div>
-          <div data-rise class="works">
+          <div data-rise class="works" style={{ "--rise-n": 2 }}>
             <span id="works-l">Works with</span>
             <ul aria-labelledby="works-l">
               <For each={WORKS}>

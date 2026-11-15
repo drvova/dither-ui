@@ -27,21 +27,34 @@
   position: absolute;
 }
 
-/* The scene (`SCENES.plate`): the pin stands through the hold and the
-   plate it holds scales up into place on the glide; no hold, no pin and
-   no scale under reduced motion. */
+/* The scene, on the run's own view timeline (`--plate`): the pin stands
+   in the window's middle through the hold, and the plate it holds scales
+   up into place on the glide through exactly that span (from the run's top
+   reaching the pin's line, `--pin-top`, for the hold's height); no hold,
+   no pin and no scale under reduced motion or without scroll timelines. */
+@keyframes plate-in {
+  from {
+    scale: 0.88;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  .plate-scope .plate-hold {
-    height: var(--hold);
-  }
-  .plate-scope .plate-pin {
-    position: sticky;
-    top: max(var(--head, 64px), calc(50svh - var(--plate-h) / 2));
-  }
-  .plate-scope .plate {
-    scale: calc(0.88 + 0.12 * var(--scene, 1));
-  }
-  .plate-scope.plate-run[data-scene="live"] .plate {
-    will-change: scale;
+  @supports (animation-timeline: view()) {
+    .plate-scope.plate-run {
+      --pin-top: max(var(--head, 64px), calc(50svh - var(--plate-h) / 2));
+      view-timeline: --plate block;
+    }
+    .plate-scope .plate-hold {
+      height: var(--hold);
+    }
+    .plate-scope .plate-pin {
+      position: sticky;
+      top: var(--pin-top);
+    }
+    .plate-scope .plate {
+      animation: plate-in auto var(--ease-settle) both;
+      animation-timeline: --plate;
+      animation-range: cover calc(100svh - var(--pin-top)) cover calc(100svh - var(--pin-top) + var(--hold));
+    }
   }
 }

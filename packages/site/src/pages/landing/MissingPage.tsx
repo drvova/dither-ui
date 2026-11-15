@@ -4,48 +4,43 @@
 // prints over the whole ground, so even a dead end answers the hand. It is
 // never indexed: a crawler that follows a stale link keeps nothing.
 import { Meta } from "@solidjs/meta"
-import { onCleanup, onMount } from "solid-js"
+import { onMount } from "solid-js"
 import { DitherHeatTrail } from "@dither-ui/kit"
 import "@/shared/fonts/display.css"
 import "@/pages/landing/chapters.css"
 import { TRAIL } from "@/pages/landing/plate"
-import { riseRoot, riseWithin, routePath } from "@/shared/lib"
+import { routePath } from "@/shared/lib"
 import Mascot from "@/shared/ui/Mascot"
 import { SiteHeader } from "@/widgets/site-header"
-import RiseWords from "./RiseWords"
+import RiseWords, { wordsOf } from "./RiseWords"
 import "./MissingPage.css"
+
+const HEADLINE = "This page did not print."
 
 export default function MissingPage() {
   onMount(() => {
     // Always dark, as the landing is (see LandingPage).
     document.documentElement.classList.add("dark")
-    // Rendered in the browser, so it rises what it holds itself.
-    const rising = riseWithin(root!)
-    onCleanup(() => rising.destroy())
   })
-  let root: HTMLDivElement | undefined
 
   return (
-    <div
-      ref={(el) => (root = el)}
-      class="missing-page-scope landing flex min-h-dvh flex-col bg-background text-foreground antialiased"
-    >
+    <div class="missing-page-scope landing flex min-h-dvh flex-col bg-background text-foreground antialiased">
       {/* Never indexed while it stands: the tag is the page's own, rendered
           with it, and goes with it. */}
       <Meta name="robots" content="noindex" />
       <SiteHeader current="landing" />
       <main id="main" tabindex="-1" class="lost outline-none">
         <DitherHeatTrail class="lost-trail" {...TRAIL} cell={4} />
-        <div {...riseRoot} class="lost-in">
+        <div class="lost-in rise-open" style={{ "--rise-words": wordsOf(HEADLINE) }}>
           <Mascot data-rise size={88} alive class="lost-mascot" />
           <h1 class="lost-h">
-            <RiseWords text="This page did not print." />
+            <RiseWords text={HEADLINE} />
           </h1>
-          <p data-rise class="sec-lede">
+          <p data-rise class="sec-lede" style={{ "--rise-n": 1 }}>
             The link may be old, or the cell it pointed at was never there.{" "}
             <span class="lede-key">Everything else is where you left it.</span>
           </p>
-          <div data-rise class="lost-keys">
+          <div data-rise class="lost-keys" style={{ "--rise-n": 2 }}>
             <a href={routePath("/")} class="nav-a key-chrome primary">
               Back to the start
             </a>

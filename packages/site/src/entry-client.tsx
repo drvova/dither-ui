@@ -1,20 +1,12 @@
 // @refresh reload
 import { mount, StartClient } from "@solidjs/start/client"
-import { ditherViewTransition } from "@dither-ui/kit/engine/transition.ts"
-import { pageTransitionOptions, takePageTransition } from "@/app/page-reveal"
 import { sheetsReady } from "@/app/sheets-ready"
 import { appPathname, renderedAt, routePath } from "@/shared/lib/routes"
 import { legacyAt } from "@/shared/lib/legacy"
 import { installHand } from "@/shared/lib/hand"
-import { installPress } from "@/shared/lib/press"
 
-// Arrived from another of the site's pages as a document of its own: dither
-// from it to this one (the head's script parked the transition for us).
-takePageTransition((arrival) => void ditherViewTransition(arrival, pageTransitionOptions()))
-
-// What the reader presses gives under the hand and springs back: one
-// listener for every page.
-installPress()
+// The page transition, the press and every motion of the site's own are
+// its stylesheets' (`app/styles.css`): nothing here moves anything.
 // The hand the reader reaches with, so what opens under a finger raises no
 // on-screen keyboard and rings nothing (`shared/lib/hand.ts`).
 installHand()

@@ -34,7 +34,6 @@ const MOTION_FILES = [
   "packages/site/src/pages/studio/StudioPage.css",
   "packages/site/src/widgets/toolbar/Toolbar.tsx",
   "packages/site/src/widgets/toolbar/Toolbar.css",
-  "packages/site/src/shared/lib/rise.ts",
 ]
 
 function* files(dir: string): Generator<string> {

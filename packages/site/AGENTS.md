@@ -90,8 +90,9 @@ are from the repository's.
   providers the app stands in, `shared/ui/SpriteRoot.tsx`, which both
   sides render around the island), one at a time, when it nears the
   view (`visible`, the default), once the page is idle (`idle`), with the
-  page (`load`), or at once under a pointer or focus. The rise of a static
-  page is set off from its bytes (`riseRoot`, `riseWithin`). The router
+  page (`load`), or at once under a pointer or focus. What moves on a static
+  page's bytes (the rise, the scroll scenes, the press) is their
+  stylesheets' alone, classes the server renders. The router
   takes no link (`explicitLinks` in `app.tsx`): every page is a document
   of its own, the page transition dithering between them. The Studio and
   the missing page stay whole apps. `tests/site/budget.spec.ts` holds
@@ -123,11 +124,11 @@ are from the repository's.
   the worker's registration). The shell (`entry-server.tsx`) carries what
   every site page shares: `data-page` on `<html>` from the request's
   path, the icons, the display face's preload on the pages that set it (`DISPLAY_FACE`), the stored theme on the
-  pages that turn with it (`TURNS_WITH_THEME`), the page-reveal and rise
-  scripts, the speculation rules and the `#page-end` marker.
-  `entry-client.tsx` takes the page transition the head script parks,
-  installs the press (`shared/lib/press.ts`, one listener for every page)
-  and the hand (`shared/lib/hand.ts`: what the reader last reached with),
+  pages that turn with it (`TURNS_WITH_THEME`), the expect link that holds
+  the first frame to the `#page-end` marker (the page transition's, which
+  is all `app/styles.css`), the speculation rules and the marker. No
+  script moves anything (`tests/no-js-motion.spec.ts`).
+  `entry-client.tsx` installs the hand (`shared/lib/hand.ts`: what the reader last reached with),
   sends a legacy hash address (`/#/docs/<id>`, `/#/studio…`,
   `/docs#/docs/<id>`; `shared/lib/legacy.ts`, `legacyAt`) to its page,
   and mounts once the page's

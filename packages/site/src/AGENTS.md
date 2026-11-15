@@ -17,20 +17,21 @@ load, so the workspace's `rs test` can import it (its specs are
 `../tests/*.spec.ts`); it takes the kit's values from `@dither-ui/kit/engine`,
 never from `@dither-ui/kit`, whose index is the components. Where a
 framework-free module and its Solid binding would share a name, each has
-its own (`shared/lib/scroll-scene.ts` and `shared/lib/scroll-scene-ref.ts`,
-`widgets/source/model/snippet.ts` and `widgets/source/model/files.ts`):
+its own (`widgets/source/model/snippet.ts` and `widgets/source/model/files.ts`):
 no file re-exports another to stand in its place. The SolidStart package
 around this tree (entries, routes, the build, how Solid is written) is
 `../AGENTS.md`'s.
 
 ## Ownership
 
-- `app/` — global styles/tokens (`styles.css`), the site on paper
+- `app/` — global styles/tokens and every motion of the site's own
+  (`styles.css`), the site on paper
   (`print.css`, imported after it by `app.css`: ink on white whatever the
   theme, the header, rails and keys off, links' addresses shown, the
   scroll scenes settled and the pinned runs as tall as their stage; its
-  tokens held to the landing's by `tests/design-doc.spec.ts`), the page transition's
-  hand-off (`page-reveal.ts`), the wait for the page's stylesheets before
+  tokens held to the landing's by `tests/design-doc.spec.ts`), what the
+  page transition needs in a head (`page-reveal.ts`), the wait for the
+  page's stylesheets before
   the app mounts (`sheets-ready.ts`), the install surface (`install-files.ts`)
   and the Studio's service worker (`sw.ts`, its rules in `offline.ts`).
   The entries, the shell and the routes stand at the tree's top
@@ -156,38 +157,12 @@ around this tree (entries, routes, the build, how Solid is written) is
   the click its release makes (a cancelled touch makes none, and a press on
   nothing keeps its click); a moving finger, a mouse, a text field and the
   platform's own menu (Android) are left alone (`tests/long-press.spec.ts`) —
-  `glide.ts` — the hover ground (the user's call, after a page they made):
-  one filled ground travels under the pointer from link to link in a row
-  (`ref={glide}`, `glide-ref.ts`; the header's nav), placed at once on the
-  first entry, a hand's movement on the glide, fading on a colour's time;
-  a finger never drives it, a keyboard keeps the focus ring
-  (`.glide-ground` in `app/styles.css`; `tests/site/glide.spec.tsx`) —
   `spring.ts` — the hand's spring (`HAND_SPRING`: response 0.35s, bounce
-  0.25; the user's lift of the glide for direct manipulation only):
-  `springAt` (the closed form from a position and a velocity),
+  0.25; the user's lift of the glide for a press let go only):
+  `springAt` (the closed form from a position and a velocity) and
   `springLinear` (its CSS `linear()` over `SPRING_MS`, copied into
-  `app/styles.css` as `--ease-spring` behind `@supports`) and `springTo`
-  (on the frame clock, for a drag let go; `tests/spring.spec.ts`) —
-  `press.ts` — `installPress`, set once by `entry-client.tsx`: a pointer
-  down on a key (`PRESSABLE`: `.key`, `.key-chrome`, `.nav-a`,
-  `.seg > button`, or what opts in with `data-press`, `"card"` giving
-  less) marks it `data-pressed="down"`, let go (or cancelled) `"up"` once
-  its 90ms travel has played, unmarked when its spring ends; a card only
-  where none of its controls, links or canvases took the press; nothing
-  under reduced motion; `app/styles.css` moves it, a `scale` of its own,
-  so a key's transitions and layout stay (`tests/site/press.spec.tsx`) —
-  `scroll-scene.ts` — scroll scenes: `scrollScene(el, range)`
-  (`scroll-scene-ref.ts`: `ref={scene(range)}`) writes `--scene`, 0 to 1
-  on the glide, from where the element is laid out (its own transform
-  left out) between two moments of its passage, or through the span its
-  sticky first child (never moved itself) is pinned; one driver: an
-  IntersectionObserver holds the scenes near the viewport (`SCENE_NEAR`),
-  and only while one is near does the scroll read their boxes in the
-  frame, then write; a scene gone past stands at its end above the view,
-  its start below; nothing under reduced motion, and a scene's stylesheet
-  moves only by transform and opacity under
-  `prefers-reduced-motion: no-preference` (`tests/scroll-scene.spec.ts`,
-  `tests/site/scroll-scene.spec.tsx`) —
+  `app/styles.css` as `--ease-spring` behind `@supports`, the press's way
+  back; `tests/spring.spec.ts`) —
   `files.ts` — `download()` and a stored .zip of text files, the ONE download
   path for the Studio's exports, the workbench and the source panel, and the
   zip's entries checked by the kit's one `crc32` (`@dither-ui/kit/engine/png.ts`) —
@@ -799,7 +774,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   suppress. Every page holds one h1 and one main (the Studio's h1 and the
   player's are visually hidden); what a scene keeps unseen is inert (the
   agent story's parts not laid out yet), and what the rise holds stands up
-  at once when focus comes into it (`shared/lib/rise.ts`), so Tab never
+  at once when focus comes into it (`:focus-within`, `RiseWords.css`), so Tab never
   lands on what does not show. Interactive targets are at least 24px on their short side
   (`h-6` / `min-h-6` / `size-6` on dense chrome). Pressed and selected
   chrome is `.ring-on` and every toggle carries `aria-pressed` (state is
@@ -834,10 +809,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   strokes `non-scaling`; the canvas cases of `tests/site/render.spec.tsx`). A menu
   opened at a point moves in from the window's edge (`inView`, the kit's
   engine). Keys shown on hover show on a screen without hover
-  (`[@media(hover:none)]`). A press gives under a finger as under a mouse
-  (`shared/lib/press.ts`, pointer events, so WebKit's missing `:active`
-  on a tap never matters), and the site's menu under lg is a bottom sheet
-  a finger drags down (`pages/AGENTS.md`, Header).
+  (`[@media(hover:none)]`). A press is the key's own `:active` (WebKit on
+  iOS may show no press on a quick tap: the press is feedback, never
+  state), and the site's menu under lg is a bottom sheet (`pages/AGENTS.md`,
+  Header).
 - The inspector's names (and the shared fields' it uses: NumberField,
   Segmented, Toggle, BloomField, TextureField) stand in ONE column,
   `.prop-name` (`--prop-name`, 5.5rem, `app/styles.css`, unlayered), so
@@ -893,10 +868,11 @@ around this tree (entries, routes, the build, how Solid is written) is
   `transition-*` utility glides; `tests/motion.spec.ts` holds both
   sites' copies to the kit and finds no other curve or linear wipe in the
   site's motion), `--ease-spring` and `--spring-time` (the hand's spring
-  as `linear()`, the glide where it is not supported; only what the hand
-  moves directly), `--press-time` (a press's travel down), the press's
-  rules (`[data-pressed]`, `@keyframes press-down` and `press-up`,
-  `--press-scale`), `--cut` (16px), `--display-face`
+  as `linear()`, the glide where it is not supported; only a press let
+  go), `--press-time` (a press's travel down), the press's rules (every
+  pressable's `:active`, `--press-t` the transition its own list carries
+  as `scale var(--press-t)`, `--press-scale`; `tests/css-motion.spec.ts`),
+  `--cut` (16px), `--display-face`
   (Michroma, then the mono; the `font-display` utility reads it; its
   `@font-face` is `shared/fonts/display.css`, imported by the landing and
   the docs only, never by the player, whose bundle inlines every asset).
@@ -971,39 +947,55 @@ around this tree (entries, routes, the build, how Solid is written) is
   slice's index, since its chunk's stylesheets are read by its module's
   id. Rendered in a browser (a spec, a page rendered anew) an island is a
   lazy part. Islands share the page's module state (the styling, the
-  sounds, the theme) as one app does.
+  sounds, the theme) as one app does. What moves on a static page's bytes
+  (the rise, the scroll scenes, the press) needs no island: it is the
+  classes the server renders (Motion, below).
+- Motion (the user's call: "I don't want any animations to be JS; I want
+  them to be no JS and be class names"): every motion of the site's own
+  is a class's CSS, a transition, `@keyframes` or a scroll-driven
+  animation, inside a `prefers-reduced-motion: no-preference` query (a
+  scroll timeline also inside `@supports (animation-timeline: view())`),
+  so a reader who asks for less, a browser without scroll timelines (Safari
+  before 26, Firefox) and a page with no script all see the end state, and
+  nothing waits hidden for the app. A script may toggle the class or the
+  attribute a motion keys on (the menu's `data-phase`, the car's
+  `data-driving`) and pause or play the kit's canvas art (`drive.ts`,
+  `coverPage`); it never moves anything itself. What a stylesheet cannot
+  drive alone (a sheet dragged under a finger, a spring from its velocity,
+  a ground travelling from link to link) is dropped. The kit's dithered
+  canvases draw in script, and `tests/no-js-motion.spec.ts` names every
+  other file that still runs the frame clock, plays an animation or writes
+  a transform, each with its reason (the brand's cells, the docs' demos of
+  the kit, the Studio's film, the inspect tools' canvases, placements a
+  transition then moves); `tests/css-motion.spec.ts` holds the classes.
 - Page transitions: the routes (`/`, `/docs`, `/studio` and the section
-  pages) opt into cross-document view transitions in `app/styles.css`
-  (`@view-transition`, none under reduced motion), and the arriving page
-  dithers from the old one through the kit's `ditherViewTransition`: a
-  right wipe (left going back through history) with a band of the signal
-  ink, on the glide like every motion on the site. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
-  inlined first in each site page's head by the shell
-  (`src/entry-server.tsx`, with the `PAGE_END_ID` marker at
-  the end of each body), parks the
-  `pagereveal` transition and holds the old page on screen until the app
-  takes it; arriving from one of the pages it also holds the first frame
-  to the marker (`<link rel=expect blocking=render>`), since Chromium drops
-  a transition into a page it paints mid-parse;
-  `takePageTransition` hands it to `entry-client.tsx` in either order (that hold lets
-  the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
-  runs the inline script both ways. The rise (`shared/lib/rise.ts`: a
-  headline's words up one after another on the glide, 24px over 900ms,
-  60ms apart, then its blocks 90ms apart; what holds risers is marked in
-  the bytes, `riseRoot`, and a static page rises them all as it mounts,
-  `riseWithin`, a page rendered in the browser its own) waits in the
-  prerendered bytes:
-  `RISE_HEAD_SCRIPT` (`shared/lib/rise-wait.ts`, inlined after the reveal
-  script) sets `rise-wait` on `<html>` unless the reader asks for reduced
-  motion, styles.css keeps unrisen `[data-rise]` out of sight under it,
-  and the app takes over (`data-rise="live"`) or the wait lets go after
-  3s. On a page that turns with the reader's theme (`TURNS_WITH_THEME`
+  pages) opt into cross-document view transitions of the `page` type in
+  `app/styles.css` (`@view-transition { navigation: auto; types: page }`,
+  none under reduced motion), and the arriving page wipes in from the left
+  over the old one, CSS alone: a registered `--front` runs 640ms on the
+  glide, quantized to the 32px tile, and the new page's mask is whole to
+  three strips of the kit's Bayer ranks (`--bayer-<k>`, the 4x4's cells
+  under rank k, held to `BAYER4` by `tests/css-motion.spec.ts`), the old
+  page's the same strips the other way 64px ahead, so a band of the signal
+  ink (the group's ground) leads the front. Going back through history
+  wipes the same way (no script reads the direction). Where a browser has
+  no cross-document view transitions the page arrives at once. The shell
+  holds each page's first frame to the `PAGE_END_ID` marker at the end of
+  its body (`PAGE_EXPECT` in `app/page-reveal.ts`, `<link rel=expect
+  blocking=render>`), since Chromium drops a transition into a page it
+  paints mid-parse. The rise (`pages/landing/RiseWords.css`: a headline's
+  words up one after another on the glide, 24px, then its blocks) is a
+  holder's class: `.rise` on its own view timeline as it comes into view,
+  `.rise-open` (the first screen's) 900ms as the page opens, the words 60ms
+  apart, then the blocks 90ms apart. On a page that turns with the reader's theme (`TURNS_WITH_THEME`
   in `pages/docs/heads.ts`: the docs and the Studio) `THEME_HEAD_SCRIPT`
   (`shared/lib/useTheme.ts`, reading `STORAGE_KEYS.theme`) sets the
   stored theme on `<html>` before the first paint, so a reader in light
   never meets the dark bytes until the app mounts. The theme toggle
-  (`useTheme`'s `revealToggle`) dithers the new theme in as an iris from
-  its control.
+  (`useTheme`'s `turn`) starts the one view transition of the `theme`
+  type (`THEME_TURN`; where the browser has typed view transitions and
+  motion is welcome, else it turns at once), and the stylesheet prints the
+  new theme in over the old one through the 16 ranks, 4px cells, 480ms.
 - Install and offline (the Studio is a PWA; the landing and the docs are
   not): `app/offline.ts` names the app's path (`OFFLINE.app`, `studio/`)
   that the manifest's place, the worker's scope and its kept page all

@@ -1,21 +1,26 @@
 // The site's shared slice (`src/shared/`, `src/widgets/site-header/`): the
 // header and its menu, the mascot, the fields the Studio's inspector is
-// built from, the theme, the interface sounds and the rise.
+// built from, the theme and the interface sounds.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { Meta, MetaProvider } from "@solidjs/meta"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { COLORS } from "@/shared/config"
 import { installHand } from "@/shared/lib/hand"
-import { RISE_LIVE, RISE_WAIT } from "@/shared/lib/rise-wait"
 import { drivenCells, WHEEL_STEPS } from "@/shared/ui/car"
 import { runPaths } from "@/shared/ui/cells"
 import { EYE, MASCOT_ROTOR_STEPS } from "@/shared/ui/mascot"
 import { BRAND_SYMBOL, MASCOT_SYMBOLS, markSymbol, spriteRef } from "@/shared/ui/sprite"
-import { BAND_INK, CLOSE_CELLS, MENU_LINKS, SEAM_HEIGHT, STUDIO_LINK, bandFill } from "@/widgets/site-header/menu"
-import { SHEET_DRAG, SHEET_SLIDE } from "@/widgets/site-header/sheet"
-import { RISE, riseDelays, riseRoot, riseWithin, useTheme } from "../../src/shared/lib"
+import {
+  BAND_INK,
+  CLOSE_CELLS,
+  MENU_LINKS,
+  SEAM_HEIGHT,
+  SHEET_OUT,
+  STUDIO_LINK,
+  bandFill,
+} from "@/widgets/site-header/menu"
+import { useTheme } from "../../src/shared/lib"
 import { CUES, play, restoreSounds, schedule, setSounds, sounds } from "../../src/shared/lib/sound"
 import {
   AdSlot,
@@ -106,7 +111,6 @@ describe("site header", () => {
   })
 
   it("slides the sheet back down before it shuts, from the close key, Escape and the page above it", () => {
-    vi.useFakeTimers()
     const w = render(() => <SiteHeader current="landing" />)
     const key = w.container.querySelector<HTMLElement>(".menu-key")!
     const dialog = w.container.querySelector("dialog")!
@@ -123,7 +127,9 @@ describe("site header", () => {
       expect(w.container.querySelector(".menu-sheet")).not.toBeNull()
       expect(key.getAttribute("aria-expanded")).toBe("false")
       expect(document.documentElement.style.overflow).toBe("hidden")
-      vi.advanceTimersByTime(SHEET_SLIDE.duration)
+      // Its slide down played (the stylesheet's keyframes): it shuts.
+      const slid = Object.assign(new Event("animationend", { bubbles: true }), { animationName: SHEET_OUT })
+      w.container.querySelector(".menu-sheet")!.dispatchEvent(slid)
       expect(w.container.querySelector("[data-phase]")).toBeNull()
       expect(w.container.querySelector(".menu-sheet")).toBeNull()
       expect(document.documentElement.style.overflow).toBe("")
@@ -153,86 +159,9 @@ describe("site header", () => {
       runPaths(CLOSE_CELLS, (c: { core?: boolean }) => (c.core ? "core" : "ink")).map((p) => p.d),
     )
     expect(close.hasAttribute("autofocus")).toBe(true)
-    expect(head.querySelector(".menu-handle")?.getAttribute("aria-hidden")).toBe("true")
+    // no handle: nothing drags the sheet (the user's call: no motion is JS)
+    expect(head.querySelector(".menu-handle")).toBeNull()
     expect(head.style.paddingBottom).toBe(`${8 + SEAM_HEIGHT}px`)
-  })
-
-  // The sheet under a finger: dragged down by its head it follows, and let
-  // go it closes past the distance or on a throw, else springs back.
-  describe("the sheet under the hand", () => {
-    const pointer = (el: Element, type: string, y: number, t: number) => {
-      const e = Object.assign(new Event(type, { bubbles: true, cancelable: true }), {
-        clientY: y,
-        pointerId: 1,
-        isPrimary: true,
-        button: 0,
-      })
-      Object.defineProperty(e, "timeStamp", { value: t })
-      el.dispatchEvent(e)
-    }
-    function open() {
-      vi.useFakeTimers({
-        toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame", "performance"],
-      })
-      const w = render(() => <SiteHeader current="landing" />)
-      fireEvent.click(w.container.querySelector(".menu-key")!)
-      const sheet = w.container.querySelector<HTMLElement>(".menu-sheet")!
-      Object.defineProperty(sheet, "offsetHeight", { value: 400 })
-      return { w, sheet, head: w.container.querySelector<HTMLElement>(".menu-grab")! }
-    }
-    const phase = (w: ReturnType<typeof render>) =>
-      w.container.querySelector("[data-phase]")?.getAttribute("data-phase")
-
-    it("follows a drag down and closes when let go past its share", () => {
-      const { w, sheet, head } = open()
-      pointer(head, "pointerdown", 100, 0)
-      pointer(head, "pointermove", 100 + SHEET_DRAG.slop - 1, 200)
-      expect(sheet.style.transform).toBe("")
-      pointer(head, "pointermove", 260, 400)
-      expect(sheet.style.transform).toBe("translateY(160px)")
-      pointer(head, "pointerup", 260, 600)
-      expect(phase(w)).toBe("leaving")
-      vi.advanceTimersByTime(2000)
-      expect(phase(w)).toBeUndefined()
-      expect(w.container.querySelector(".menu-sheet")).toBeNull()
-      expect(document.documentElement.style.overflow).toBe("")
-    })
-
-    it("closes on a throw, and springs back from a short slow drag or a cancel", () => {
-      const thrown = open()
-      pointer(thrown.head, "pointerdown", 100, 0)
-      pointer(thrown.head, "pointermove", 130, 20)
-      pointer(thrown.head, "pointerup", 160, 40)
-      expect(phase(thrown.w)).toBe("leaving")
-      cleanup()
-      for (const end of ["pointerup", "pointercancel"]) {
-        const { w, sheet, head } = open()
-        pointer(head, "pointerdown", 100, 0)
-        pointer(head, "pointermove", 160, 400)
-        pointer(head, end, 160, 800)
-        expect(phase(w)).toBe("open")
-        vi.advanceTimersByTime(2000)
-        expect(sheet.style.transform).toBe("")
-        expect(phase(w)).toBe("open")
-        cleanup()
-      }
-    })
-
-    it("gives a little to a pull up, and a tap on the close key stays a tap", () => {
-      const { w, sheet, head } = open()
-      pointer(head, "pointerdown", 300, 0)
-      pointer(head, "pointermove", 0, 100)
-      expect(sheet.style.transform).toBe(`translateY(-${SHEET_DRAG.reach}px)`)
-      pointer(head, "pointerup", 0, 1000)
-      vi.advanceTimersByTime(2000)
-      const close = head.querySelector<HTMLElement>('[aria-label="Close menu"]')!
-      pointer(close, "pointerdown", 100, 3000)
-      pointer(close, "pointermove", 102, 3010)
-      pointer(close, "pointerup", 102, 3020)
-      fireEvent.click(close)
-      expect(phase(w)).toBe("leaving")
-      expect(sheet.style.transform).toBe("")
-    })
   })
 
   it("heads any sheet: what it is in the middle, its close key named and first", () => {
@@ -701,9 +630,9 @@ describe("the theme", () => {
     expect(theme.dark()).toBe(true)
     expect(document.documentElement.classList.contains("dark")).toBe(true)
     // Not inside the mount (that forced a style pass over the fresh page):
-    // once the first frame has painted.
+    // once the page has loaded.
     expect(tints()).toEqual(["#08090b"])
-    await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 1)))
+    await new Promise((r) => setTimeout(r, 1))
     expect(tints()).toEqual(["rgb(8, 9, 11)"])
     document.body.style.backgroundColor = "rgb(255, 255, 255)"
     theme.toggle()
@@ -722,14 +651,34 @@ describe("the theme", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(false)
   })
 
-  it("turns from the control that asked: a plain toggle where the page cannot transition", () => {
+  it("turns through a typed view transition where the browser has one, else at once", () => {
     let theme!: ReturnType<typeof useTheme>
     const w = render(() => {
       theme = useTheme()
-      return <button onClick={(e) => theme.revealToggle(e)}>turn</button>
+      return <button onClick={() => theme.turn()}>turn</button>
     })
     fireEvent.click(w.container.querySelector("button")!)
     expect(theme.dark()).toBe(false)
+    // a browser with typed view transitions: the one call, its motion the stylesheet's
+    const started: { types: string[] }[] = []
+    vi.stubGlobal("ViewTransition", class {})
+    Object.defineProperty(ViewTransition.prototype, "types", { value: new Set(), configurable: true })
+    ;(document as unknown as { startViewTransition: unknown }).startViewTransition = (o: {
+      update: () => void
+      types: string[]
+    }) => {
+      started.push(o)
+      o.update()
+    }
+    fireEvent.click(w.container.querySelector("button")!)
+    expect(started.map((o) => o.types)).toEqual([["theme"]])
+    expect(theme.dark()).toBe(true)
+    // under reduced motion it turns at once
+    reduced = true
+    fireEvent.click(w.container.querySelector("button")!)
+    expect(started).toHaveLength(1)
+    expect(theme.dark()).toBe(false)
+    delete (document as unknown as { startViewTransition?: unknown }).startViewTransition
   })
 })
 
@@ -805,97 +754,5 @@ describe("interface sounds", () => {
     localStorage.setItem("dither-sounds", "off")
     restoreSounds()
     expect(sounds()).toBe(true)
-  })
-})
-
-// The rise: a headline's words come up one after another on the glide, then
-// what stands with it; reduced motion stands everything where it is.
-describe("the rise", () => {
-  let seen: ((entries: { isIntersecting: boolean }[]) => void) | null = null
-  let animated: { el: Element; delay: number; easing: string }[] = []
-  let disconnected = 0
-  const animate = Element.prototype.animate
-
-  beforeEach(() => {
-    seen = null
-    animated = []
-    disconnected = 0
-    vi.stubGlobal(
-      "IntersectionObserver",
-      class {
-        constructor(cb: (entries: { isIntersecting: boolean }[]) => void) {
-          seen = cb
-        }
-        observe() {}
-        disconnect() {
-          disconnected++
-        }
-      },
-    )
-    Element.prototype.animate = function (this: Element, _k: unknown, o: KeyframeAnimationOptions) {
-      animated.push({ el: this, delay: Number(o.delay), easing: String(o.easing) })
-      return {} as Animation
-    } as typeof Element.prototype.animate
-    document.documentElement.className = RISE_WAIT
-    delete document.documentElement.dataset.rise
-  })
-  afterEach(() => {
-    Element.prototype.animate = animate
-    document.documentElement.className = ""
-  })
-
-  // the page's bytes mark what holds risers; the page rises them all
-  const mountHead = () => {
-    const w = render(() => (
-      <div {...riseRoot}>
-        <h2>
-          <span data-rise="word">Every</span> <span data-rise="word">component,</span>{" "}
-          <span data-rise="word">live.</span>
-        </h2>
-        <p data-rise>lede</p>
-        <a data-rise>more</a>
-      </div>
-    ))
-    const rising = riseWithin(w.container)
-    return { ...w, unmount: () => (rising.destroy(), w.unmount()) }
-  }
-
-  it("staggers the words, then the blocks after the last word", () => {
-    expect(riseDelays(["word", "word", "word", "block", "block"])).toEqual([0, 60, 120, 240, 330])
-    expect(riseDelays(["block", "block"])).toEqual([0, RISE.block])
-    expect(RISE.easing).toBe(`cubic-bezier(${GLIDE_BEZIER.join(", ")})`)
-  })
-
-  it("rises each riser of a marked element once it comes into view, on the glide, and lets go", () => {
-    const w = mountHead()
-    expect(document.documentElement.dataset.rise).toBe(RISE_LIVE)
-    expect(animated).toEqual([])
-    seen!([{ isIntersecting: true }])
-    expect(animated.map((a) => a.delay)).toEqual([0, 60, 120, 240, 330])
-    expect(new Set(animated.map((a) => a.easing))).toEqual(new Set([RISE.easing]))
-    expect(all(w.container, "[data-rise]").every((e) => e.getAttribute("data-risen") === "")).toBe(true)
-    const before = disconnected
-    w.unmount()
-    expect(disconnected).toBe(before + 1)
-  })
-
-  it("stands everything where it is under reduced motion", () => {
-    reduced = true
-    const w = mountHead()
-    expect(seen).toBe(null)
-    expect(animated).toEqual([])
-    expect(all(w.container, "[data-rise]").every((e) => e.getAttribute("data-risen") === "")).toBe(true)
-  })
-
-  it("keeps a riser out of sight until it comes into view", () => {
-    document.documentElement.className = ""
-    const w = mountHead()
-    const items = all(w.container, "[data-rise]")
-    expect(items).toHaveLength(5)
-    expect(items.every((e) => e.style.opacity === "0")).toBe(true)
-    seen!([{ isIntersecting: false }])
-    expect(animated).toEqual([])
-    seen!([{ isIntersecting: true }])
-    expect(items.every((e) => e.style.opacity === "")).toBe(true)
   })
 })

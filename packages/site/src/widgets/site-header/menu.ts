@@ -3,7 +3,7 @@
 // signal. Where two bands meet, the lower climbs into the upper through the
 // kit's Bayer matrix, so the sheet reads as one print's tone steps; the key
 // that opens it is the same bands in miniature. The menu's sheet stands at
-// the screen's foot under the hand (`sheet.ts`); the docs' full-screen
+// the screen's foot (`site-header.css` slides it); the docs' full-screen
 // sections sheet arrives as the kit's wipe, a dithered front down the screen.
 import { wipeStyle, type WipeStyle } from "@dither-ui/kit/engine/wipe.ts"
 
@@ -79,6 +79,10 @@ export const SHEET_HEAD_FOOT = 8 + SEAM_HEIGHT
 
 /** Where the menu is: shut, up, or on its way down before it shuts. */
 export type MenuPhase = "shut" | "open" | "leaving"
+
+/** The keyframes the sheet slides down on as the menu leaves
+ * (`site-header.css`): the menu shuts once they have played. */
+export const SHEET_OUT = "menu-sheet-out"
 
 /** The seam over a band filled `fill`: the band climbing into the one above
  * it, as an inline style whole (placed, masked, filled), so any sheet's

@@ -182,23 +182,33 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
   full speed and settles long and soft, never past its mark. Every
   transition, wipe, reveal, rise, scroll scene and page transition moves
   on it.
-- **One lift, for the hand**: what the reader moves directly (a key or a
-  card pressed and let go, a sheet dragged and let go) settles on the
-  hand's spring, which may pass its mark a little and come back (the
-  user's call). One definition, a response of 0.35s and a bounce of 0.25
-  (`HAND_SPRING`, about 3% past its mark, settled in `500ms`), as CSS
+- **No motion is a script's** (the user's call: "no animations in JS;
+  class names"): the site's motion is its stylesheets', a class's
+  transition, keyframes or scroll-driven animation. The kit's dithered
+  art still draws in script (no stylesheet can draw dither); motion a
+  stylesheet cannot drive by itself (a sheet dragged under a finger, a
+  spring that follows the finger's velocity) is dropped, never kept as a
+  little script. A script may still toggle the class that starts a
+  motion (a dialog's phase, a car's driving).
+- **One lift, for the hand**: a key or a card let go after a press settles
+  on the hand's spring, which may pass its mark a little and come back
+  (the user's call). One definition, a response of 0.35s and a bounce of
+  0.25 (`HAND_SPRING`, about 3% past its mark, settled in `500ms`), as CSS
   `linear()` (`--ease-spring` over `--spring-time`, the glide where
-  `linear()` is not supported) and, for a drag let go, run from the
-  finger's own velocity. Nothing that moves by itself springs.
-- **The press**: a key gives to `0.97` in `90ms` on the glide and springs
-  back as it is let go; a card that opts in gives to `0.985`. A scale of
-  its own, so nothing is laid out again. Mouse, pen and finger alike.
+  `linear()` is not supported): the press's way back, a transition.
+  Nothing that moves by itself springs.
+- **The press**: a key gives to `0.97` in `90ms` on the glide while it is
+  held (its own `:active`) and springs back as it is let go; a card that
+  opts in gives to `0.985`, and only where none of its controls took the
+  press. A scale of its own, so nothing is laid out again.
 - **Scroll scenes**: a section's art moves in step with the scroll, on the
-  glide, then lets go: the hero eases back as the page leaves it, the
-  bento's cards slide up into place as they come in, and each plate holds
-  in the middle of the screen while it scales up into place. Transform
-  and opacity only, read only near the viewport; still under reduced
-  motion.
+  glide, on a view timeline of its own (`animation-timeline: view()`):
+  the hero eases back as the page leaves it, the bento's cards slide up
+  into place as they come in, and each plate holds in the middle of the
+  screen while it scales up into place; the headlines' words rise as they
+  come in. Transform and opacity only. Where a browser has no scroll
+  timelines, under reduced motion and with no script, everything stands
+  in its end state.
 - **Three durations**: 150ms for a colour (micro feedback), 350ms for a
   hand's movement, 500ms for a sheet.
 - **One moving layer at a time** against a still ground.
@@ -214,9 +224,11 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
 - **On cue**: art moves as it comes into view (under five seconds, so it
   needs no pause control), then only under the reader's hand. A loop that
   runs longer gets a pause.
-- **Page to page**: a cross-document view transition dithered through the
-  kit's wipe, a band of the signal ink on its front; the theme turns
-  through the same engine as an iris.
+- **Page to page**: a cross-document view transition of the stylesheet's
+  alone, the new page wiping in from the left through three strips of the
+  Bayer ranks in whole tiles, a band of the signal ink on its front; the
+  theme prints in over the old one rank by rank, the one view transition
+  its toggle starts.
 - **Class names, not scripts** (the user's call): the kit's UI moves in
   CSS, a transition or `dk-*` keyframes in each component's stylesheet
   over state it sets as an attribute, and the kit clock holds that CSS at
@@ -313,12 +325,15 @@ A floor, not a feature:
 - One focus colour everywhere: the theme's ring ink.
 - Targets of 24px, or spaced to it (WCAG 2.5.8).
 - Reduced motion and reduced transparency honoured in every change: no
-  press, no scroll scene, a sheet that comes and goes at once.
+  press, no scroll scene, no rise, a sheet that comes and goes at once,
+  each held by a `prefers-reduced-motion: no-preference` media query.
+- With no script at all every page reads whole: nothing waits hidden for
+  the app.
 - Fields read at 16px on iOS, so focusing one never zooms the page.
 - Every control a finger drags sets `touch-action` and ends on
   `pointercancel`; every right-click menu opens on a long press.
 - On a phone the site's menu is a bottom sheet: bands at least 44px tall,
-  dragged down by its head to close, Escape and the close key as ever.
+  closed by its close key, Escape or a tap above it.
 - Every operable element has a name, every page one h1 and one main; Tab
   reaches every control that shows and leaves every one, each showing its
   focus; what a scene keeps unseen is out of reach; a dialog takes focus
@@ -363,7 +378,8 @@ Smoothness is part of the look, so these are design rules too:
 | The landing's print | `packages/site/src/pages/landing/chapters.css`, `packages/site/src/pages/landing/LandingPage.tsx` |
 | The docs' materials | `packages/site/src/pages/docs/` |
 | Motion curves | `@dither-ui/kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `@dither-ui/kit/engine/spring.ts`, the hand's spring `packages/site/src/shared/lib/spring.ts` |
-| The press, scroll scenes | `packages/site/src/shared/lib/press.ts`, `scroll-scene.ts`; the landing's scenes `packages/site/src/pages/landing/scenes.ts` |
+| The press, the page and theme transitions | `packages/site/src/app/styles.css` |
+| Scroll scenes, the rise | `packages/site/src/pages/landing/Showcase.css`, `Examples.css`, `Plate.css`, `RiseWords.css` |
 | Print screens | `@dither-ui/kit/engine/pixel.ts` (`SCREENS`); as class names `@dither-ui/kit/engine/tones.css` |
 | The heat and the plates | `packages/site/src/pages/landing/heat.ts`, `plate.ts` |
 | The display face | `packages/site/src/shared/fonts/` |

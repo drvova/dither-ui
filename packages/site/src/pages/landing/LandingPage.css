@@ -327,14 +327,49 @@
 }
 
 /* The mascot's car runs along the wordmark's top, its wheels on the
-   letters' ink (`WORDMARK.TOP` of the word's own box). */
+   letters' ink (`WORDMARK.TOP` of the word's own box): in from the box's
+   left edge, out past its right, round again, a lap about 0.16px a ms at
+   the footer's width (`--car-lap`), only while it drives (`data-driving`,
+   else it parks where it stands). Never under reduced motion. */
 .landing-page-scope .mark-box {
+  --car-lap: 8.5s;
   position: relative;
+  container-type: inline-size;
 }
 .landing-page-scope .road-car {
   position: absolute;
   left: 0;
   color: var(--ink);
+}
+
+@keyframes road-car {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 100cqw 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-page-scope .road-car {
+    animation: road-car var(--car-lap) linear infinite paused;
+  }
+  .landing-page-scope .road-car[data-driving] {
+    animation-play-state: running;
+  }
+}
+
+@container (width < 1024px) {
+  .landing-page-scope .mark-box {
+    --car-lap: 6s;
+  }
+}
+
+@container (width < 640px) {
+  .landing-page-scope .mark-box {
+    --car-lap: 3.5s;
+  }
 }
 .landing-page-scope .road-car-art {
   display: block;

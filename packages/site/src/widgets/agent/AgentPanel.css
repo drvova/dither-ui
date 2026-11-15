@@ -599,7 +599,9 @@
   font-size: 11px;
   color: var(--color-foreground);
   background: color-mix(in oklab, var(--color-foreground) 8%, transparent);
-  transition: background-color 150ms var(--ease-settle);
+  transition:
+    background-color 150ms var(--ease-settle),
+    scale var(--press-t);
 }
 .agent .key:hover:not(:disabled) {
   background: color-mix(in oklab, var(--color-foreground) 14%, transparent);

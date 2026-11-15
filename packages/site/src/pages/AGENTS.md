@@ -89,13 +89,19 @@ in the page's folder.
   right, on its baseline, a `.sec-lede` (two tones: the muted ink, its one
   key clause, `.lede-key`, in the full ink, so the eye finds the point
   without bold; `tests/ledes.spec.ts`) and a `.more-link`; stacked under
-  900px; it rises as it comes into view: `riseRoot` on the head, the title's
-  words through `RiseWords`, the lede and the link `data-rise` after them,
-  the hero's statement likewise, and the blocks under a head (the three
-  parts' cards, the families, what it works with, the spec sheet's rows)
-  one after another, 90ms apart; the bento keeps its own reveal and the
-  footer its own motion; `shared/lib/rise.ts`, and every riser
-  stands inside an element the bytes mark, `tests/rise.spec.ts`), `.lead` and `.more-link` (an underline that inks on hover, a
+  900px; it rises as it comes into view (the user's call; CSS alone,
+  `RiseWords.css`, classes the server renders, so the static page
+  rises with no script): the class `rise` on the head, the title's words
+  through `RiseWords` (each its `--rise-word`), the lede and the link
+  `data-rise` after them, and the blocks under a head (the three parts'
+  cards, the families, what it works with, the spec sheet's rows), each on
+  its own view timeline, a block after its row's neighbours (`--rise-n`);
+  the hero's statement and the missing page's line are `rise-open`, played
+  as the page opens (900ms, the words 60ms apart, then the blocks 90ms
+  apart, `--rise-words` on the holder); without scroll timelines, under
+  reduced motion or with no script everything stands; the bento keeps its
+  own reveal and the footer its own motion; every riser stands inside a
+  holder, `tests/site/landing.spec.tsx`), `.lead` and `.more-link` (an underline that inks on hover, a
   24px target through padding cancelled by a negative margin), `.key` (a
   filled shape on `--surface`, never a ring), `.seg` (`aria-pressed`
   buttons, quiet labels, the pressed one filled with `--surface`), and
@@ -120,34 +126,28 @@ in the page's folder.
   `tools` (the docs' search and, under lg, its sections key under the
   Book glyph) and the `.key-chrome` "Open studio" (from md). Under lg the
   menu key (the sheet's bands in miniature + "Menu") opens the menu as a
-  BOTTOM SHEET (the user's call, after a phone's bottom sheet; `sheet.ts`):
+  BOTTOM SHEET (the user's call, after a phone's bottom sheet):
   a native modal `<dialog>` filling the window, itself clear so the page
   shows above the sheet, held still (focus on its close key, focus back
   on the key), the sheet at its foot as wide as the header's lines (the
   capsule's width and its gutters), its top a soft shell (20px) on the
-  raised ground, sliding up from the window's foot on the glide
-  (`SHEET_SLIDE`: 500ms). Every sheet's words stand on the header's lines
+  raised ground, sliding up from the window's foot on the glide (500ms,
+  `site-header.css`'s keyframes on the dialog's `data-phase`). Every sheet's words stand on the header's lines
   (`--sheet-start` and `--sheet-end` in `site-header.css`, from the
   capsule's own gutter, width and padding: the brand mark's edge and the
   key word's, centred capsule included). Its head (`.menu-grab`, the
-  sheet's first stop: a handle, "Menu", the close key, 44px, under the
-  close mark, an X on the brand diamond's 7x7 grid, `CLOSE_CELLS` drawn
-  by `BrandMark`'s `cells` (its runs inline, where the brand mark itself
-  is the site's sprite's), the ember at its crossing; `SHEET_HEAD_FOOT`
-  under it so the first band's seam never bites into it) is where a
-  finger, a pen or a mouse drags the sheet (`touch-action: none`; a drag
-  only past `SHEET_DRAG.slop`, so a tap on the close key stays a tap):
-  down it follows whole, up it gives a fifth, 24px at most (`pullOf`); let
-  go past 30% of its height or thrown down (0.5px a ms) it closes on the
-  hand's spring from the finger's velocity, else it springs back up
-  (`releaseOf`, `velocityOf`); a `pointercancel` springs it back. The
-  sheet reaches 40px under the window's foot (`--sheet-reach`), so a
-  spring past its rest never shows a gap; the dialog clips, never
-  scrolls (`overflow: clip`: WebKit scrolled a hidden overflow to the
-  focused key). The close key, Escape (the dialog's `cancel`, prevented)
-  and a tap on the page above it slide it back down from where it stands
-  before it shuts (`MenuPhase`: shut, open, leaving; at once under
-  reduced motion, and a drag let go there lands at once); a taken link
+  sheet's first stop: "Menu" and the close key, 44px, under the close
+  mark, an X on the brand diamond's 7x7 grid, `CLOSE_CELLS` drawn by
+  `BrandMark`'s `cells` (its runs inline, where the brand mark itself is
+  the site's sprite's), the ember at its crossing; `SHEET_HEAD_FOOT`
+  under it so the first band's seam never bites into it). Nothing drags
+  the sheet (the user's call: no motion is JS, and a drag that follows a
+  finger cannot be CSS): the dialog clips, never scrolls (`overflow:
+  clip`: WebKit scrolled a hidden overflow to the focused key). The close
+  key, Escape (the dialog's `cancel`, prevented) and a tap on the page
+  above it slide it back down before it shuts (`MenuPhase`: shut, open,
+  leaving; it shuts on the `animationend` of `SHEET_OUT`, at once under
+  reduced motion); a taken link
   and the window reaching lg shut it at once. While a sheet stands it
   covers the page (`coverPage`, the kit's `engine/cover.ts`): every kit
   loop under it holds its frame and wakes as the sheet starts to leave,
@@ -171,11 +171,11 @@ in the page's folder.
   (8px, 12px pressed, on the glide, 350ms; the hover only under
   `(hover: hover)`, since a tap's hover sticks on a phone) and the menu key's bands
   part on a hover (none of it under reduced motion). A focused band rings
-  in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe), `sheet.ts` (the
-  sheet under the hand) and `site-header.css` (the capsule and the sheet)
-  are the one tables and stylesheet; `tests/site/shared.spec.tsx` drags
-  it, `tests/spring.spec.ts` holds its release. The nav's links share
-  one hover ground (`shared/lib/glide.ts`, `ref={glide}`). It stays positioned
+  in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css` (the capsule and the sheet)
+  are the one tables and stylesheet; `tests/site/shared.spec.tsx` opens
+  and shuts it. A pointer on one of the nav's links fills that link's own
+  ground (`.site-nav .nav-a:hover`, a colour's time; it never travels
+  between links, which only a script could do). It stays positioned
   (`z-40`): `main` is `relative isolate`, so a positioned sibling paints
   over a static header.
 - Hero (`Showcase.tsx`, our own): the first screen's height under the
@@ -222,8 +222,9 @@ in the page's folder.
   a resting mouse (`replay`), and the print (and its floor) hold their
   frame until it is home each time (`moving` holds, `settled` frees), one
   moving layer at a time. As the page leaves it the hero eases back in
-  step with the scroll (`SCENES.hero` in `scenes.ts`, a scroll scene from
-  its top at the viewport's top to its foot leaving it, on the glide): the
+  step with the scroll (`Showcase.css`: the hero's own view timeline,
+  `animation-range: exit 0% exit 100%`, from its top at the viewport's
+  top to its foot leaving it, on the glide): the
   statement recedes (to 92%, about its left edge, inside its own box so
   no line passes the hero's clipped edge) and fades (to a fifth), the brand's
   moment in it, the print drifts down behind it (14% of its column, the
@@ -359,17 +360,21 @@ in the page's folder.
   next one's edge in view, every card the rail's height, the rail running
   out past the page's gutter), so it takes one screen on a tablet or a
   phone; one card a flick (`scroll-snap-stop: always`), and under it a
-  dot a card (`rail.ts`, the user's call): a 6px cell in the muted ink,
-  the card at the rail's start a long cell in the ink, each a 24px key
-  that takes the rail to its card. A card is the raised ground (`--surface`, no border, 20px
+  dot a card (the user's call): a 6px cell in the muted ink, each a 24px
+  link to its card (`#example-<id>`; taking it scrolls the rail there and
+  the page to the card's top), the card at the rail's start a long cell
+  in the ink, lit by the rail's own scroll timeline (`timeline-scope:
+  --rail`, each dot its share of the travel); without scroll timelines no
+  dot is lit. A card is the raised ground (`--surface`, no border, 20px
   radius) holding its art over its name at page type (17px; a card's copy
   is the page's, never the size of the UI inside it), the link into
   `/docs/<id>` (no family label). Interactive art keeps its own controls, so the card
   itself is never a link; on flush art the pause chip comes before the
   tools in the DOM, as it sits above them. From 1024px each card slides
-  up into place in step with the scroll as it comes in (`SCENES.tile`:
-  56px, from its top at the viewport's foot to six tenths of the way up,
-  on the glide; a row together); the rail moves only under the finger.
+  up into place in step with the scroll as it comes in (its own view
+  timeline, `entry 0% entry 60vh`: 56px, from its top at the viewport's
+  foot to six tenths of the way up, on the glide; a row together); the
+  rail moves only under the finger.
   A press on a card's ground gives (`data-press="card"`), never one on its
   controls, links or canvases, which take the press themselves.
 - `hub.ts` is the landing's docs data (the landing never loads the docs
@@ -582,10 +587,12 @@ in the page's folder.
   in the band, pulled in from the right edge (16px clear) where the plate
   is narrow, while the heat prints in through `DitherReveal` (0.72s on the
   glide, the lights coming on). Each holds as a scroll scene
-  (`SCENES.plate`, the user's call): a run of the plate and a hold
+  (`Plate.css`, the run's view timeline, the user's call): a run of the plate and a hold
   (`.plate-hold`, 40svh), the plate pinned mid-screen through it (sticky,
   under the header at least) and scaling up from 88% into place on the
-  glide, then let go; under reduced motion no hold, no pin, no scale. The
+  glide, through exactly the span it is pinned (`--pin-top`), then let
+  go; under reduced motion or without scroll timelines no hold, no pin,
+  no scale. The
   plate reads its height from the run's width (a size container,
   `--plate-h`). `tests/landing-facts.spec.ts` holds every
   plate's mark inside its band; `tests/heat.spec.ts` its clouds full in
@@ -656,13 +663,14 @@ in the page's folder.
 - No entrance choreography but the bento's art printing itself once as it
   nears and the brand's moment (the hero's sign-off as the page opens,
   each plate's and the footer's brand as it nears); the hero's print waits for it, and the type
-  simply is. Scroll scenes (`scenes.ts`, `shared/lib/scroll-scene.ts`)
-  move only under the reader's scroll: the hero easing back, the bento's
+  simply is. Scroll scenes (scroll-driven animations, each its class's
+  stylesheet) move only under the reader's scroll: the hero easing back, the bento's
   cards sliding in, the plates holding while they scale in; never a
   section's head or the blocks under it, which the rise moves (two
-  motions on one thing read as neither). Pressed keys and cards give and
-  spring back (`shared/lib/press.ts`: the hand's spring, the one motion
-  past its mark, the user's lift for direct manipulation). Motion is the live kit
+  motions on one thing read as neither). Pressed keys and cards give
+  while held and spring back (their own `:active` in `app/styles.css`:
+  the hand's spring, the one motion past its mark, the user's lift for a
+  press let go). Motion is the live kit
   surfaces, one moving layer at a time in the bento. Pause chips
   (`PauseChip.tsx`, WCAG 2.2.2): every surface that moves by itself for
   more than five seconds carries one in its corner, named for it ("Pause
@@ -727,8 +735,10 @@ in the page's folder.
   the one geometry the wordmark and the car read): it drives exactly
   while the art moves (the dance, a scroll, a pointer across the footer),
   so the reader drives it, parks as it settles, leaves at the right of
-  the wordmark's box and comes back in at the left; under reduced motion
-  it stays parked. A scroll drives the road only while it is on screen
+  the wordmark's box and comes back in at the left (`LandingPage.css`: a
+  lap keyframed across the box, a container, `--car-lap` by its width,
+  running only under `data-driving`; its wheels a quarter step every 70ms
+  by `MascotCar.css`); under reduced motion it stays parked. A scroll drives the road only while it is on screen
   (driven from anywhere, the car's loop ran through the whole page), and
   the car's loop reads the road's and the car's widths from a
   ResizeObserver, never from layout each frame. Decorative (`aria-hidden`); no

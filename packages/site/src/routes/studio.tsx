@@ -9,6 +9,7 @@ import { registerOffline } from "@/app/offline"
 import PageHead from "@/pages/docs/PageHead"
 import { StudioPage } from "@/pages/studio"
 import { appPathname, assetPath } from "@/shared/lib"
+import { whenLoaded } from "@/shared/lib/useTheme"
 
 export default function Studio() {
   // The browser's own chrome wears the page's ground in the theme the
@@ -21,14 +22,11 @@ export default function Studio() {
     const tint = () => setGround(getComputedStyle(document.body).backgroundColor || STUDIO_GROUND)
     const turned = new MutationObserver(tint)
     turned.observe(root, { attributes: true, attributeFilter: ["class"] })
-    // After the first frame has painted, styles are clean and the read free.
-    const frame = requestAnimationFrame(() => setTimeout(tint))
+    // Once the page has loaded, styles are clean and the read free.
+    whenLoaded(tint)
     // The Studio is an app too: installed or not, it opens offline.
     registerOffline(assetPath("/"), appPathname())
-    onCleanup(() => {
-      turned.disconnect()
-      cancelAnimationFrame(frame)
-    })
+    onCleanup(() => turned.disconnect())
   })
   return (
     <>

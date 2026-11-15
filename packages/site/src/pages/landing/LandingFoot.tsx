@@ -7,7 +7,7 @@
 // seconds on its own, so it carries no pause. It holds while the brand
 // forms (one moving layer at a time). An island of the landing: its art and
 // the mascot's car are what a hand drives.
-import { createEffect, createSignal, For, on, onCleanup, onMount, Show } from "solid-js"
+import { createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 import { STAGINGS } from "@/pages/landing/brand"
 import { DOCS_FAMILIES } from "@/pages/landing/hub"
@@ -26,8 +26,6 @@ import { DitherShader } from "./parts"
 // One row of the wordmark's screen below its ink's top: the first rows are
 // hairlines, so the wheels stand where the letters read solid.
 const carBottom = (1 - (WORDMARK.TOP + (WORDMARK.BASE - WORDMARK.TOP) / WORDMARK.ROWS) / WORDMARK.H) * 100
-const CAR_SPEED = 0.16 // px a ms
-const carStill = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
 
 // The footer's columns.
 const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
@@ -87,43 +85,15 @@ export default function LandingFoot() {
   // dance, then the reader's scroll or pointer), so the reader drives it, and
   // parks as the art settles; under reduced motion it stays parked. Its
   // wheels stand on the wordmark's top; it leaves at the right of the
-  // wordmark's box and comes back in at its left.
-  let car: HTMLDivElement | undefined
-  const [carX, setCarX] = createSignal(0)
-  let carRaf = 0
-  let carLast = 0
-  // The road's width and the car's, kept by a ResizeObserver: read in the
-  // frame loop they forced a layout every frame of the drive.
-  let roadWidth = 0
-  let carWidth = 0
+  // wordmark's box and comes back in at its left. Its travel is the
+  // stylesheet's (`LandingPage.css`, `data-driving` running it).
   const moving = () => driven() && footStill()
-  function roll(now: number) {
-    const dt = Math.min(64, now - carLast)
-    carLast = now
-    const x = carX() + dt * CAR_SPEED
-    setCarX(x > roadWidth ? -carWidth : x)
-    carRaf = moving() ? requestAnimationFrame(roll) : 0
-  }
-  createEffect(
-    on(
-      moving,
-      (now) => {
-        if (!now || carRaf || carStill()) return
-        carLast = performance.now()
-        carRaf = requestAnimationFrame(roll)
-      },
-      { defer: true },
-    ),
-  )
   onMount(() => {
     setMounted(true)
     let seen: IntersectionObserver | null = null
-    let carSizes: ResizeObserver | null = null
     onCleanup(() => {
-      cancelAnimationFrame(carRaf)
       removeEventListener("scroll", scrolled)
       seen?.disconnect()
-      carSizes?.disconnect()
     })
     addEventListener("scroll", scrolled, { passive: true })
     if (typeof IntersectionObserver === "undefined" || !road) return
@@ -138,15 +108,6 @@ export default function LandingFoot() {
       { threshold: [0, 0.5] },
     )
     seen.observe(road)
-    if (car && typeof ResizeObserver !== "undefined") {
-      const track = car.parentElement
-      carSizes = new ResizeObserver(() => {
-        roadWidth = track?.clientWidth ?? 0
-        carWidth = car?.offsetWidth ?? 0
-      })
-      if (track) carSizes.observe(track)
-      carSizes.observe(car)
-    }
   })
 
   return (
@@ -207,11 +168,7 @@ export default function LandingFoot() {
           <div aria-hidden="true" class="foot-mark">
             <div class="mark-box">
               <LineWordmark />
-              <div
-                ref={(el) => (car = el)}
-                class="road-car"
-                style={{ translate: `${carX()}px 0`, bottom: `${carBottom}%` }}
-              >
+              <div class="road-car" data-driving={moving() ? "" : undefined} style={{ bottom: `${carBottom}%` }}>
                 <MascotCar size={56} driving={moving()} class="road-car-art" />
               </div>
             </div>

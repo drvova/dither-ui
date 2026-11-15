@@ -5,8 +5,10 @@
 // voice. Each card's art prints itself once as it comes into view; of the
 // surfaces that move by themselves one plays at a time; everything that
 // moves has its pause. From 1024px each card slides up into place in step
-// with the scroll (`SCENES.tile`); a press on a card's ground gives under
-// the hand (`data-press="card"`).
+// with the scroll (`Examples.css`, a view timeline each); a press on a
+// card's ground gives under the hand (`data-press="card"`). Under 1024px
+// the bento is a rail of cards, each a flick, its dots links to each card,
+// the one at the rail's start lit by the rail's own scroll timeline.
 import { createEffect, createMemo, createSignal, For, type JSX, on, onCleanup, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import {
@@ -30,11 +32,8 @@ import {
 import { COMPONENT_COUNT } from "@/pages/landing/facts"
 import { BENTO, staggers } from "@/pages/landing/hub"
 import { spotlight } from "@/pages/landing/spotlight"
-import { SCENES } from "@/pages/landing/scenes"
 import { DAYS, FRAMES, WEEK_CHANGE, ago, shown } from "@/pages/landing/stat"
-import { lazyPart, riseRoot, routePath } from "@/shared/lib"
-import { railIndex, railStarts } from "./rail"
-import { scene } from "@/shared/lib/scroll-scene-ref"
+import { lazyPart, routePath } from "@/shared/lib"
 import { Area, AreaChart, Sparkline, XAxis } from "@/shared/ui/charts"
 import PauseChip from "./PauseChip"
 import { DitherShader, SampleWorld } from "./parts"
@@ -57,6 +56,9 @@ const FLUSH = new Set(["world", "print-screens", "silk", "shader", "ferrofluid",
 // A mouse or pen hovering a card, or keyboard focus inside it, points at
 // it; a touch chooses through the chip, since a tap (which also focuses)
 // would point at the card and then toggle what it just started.
+/** A card's address on the page, which the rail's dots lead to. */
+const cardId = (id: string) => `example-${id}`
+
 const MOVING = ["world", "shader", "ferrofluid", "silk"] as const
 type Moving = (typeof MOVING)[number]
 const isMoving = (id: string): id is Moving => (MOVING as readonly string[]).includes(id)
@@ -175,26 +177,6 @@ export default function Examples() {
   }
   const movingOf = (el: HTMLElement) => el.dataset.moving as Moving
 
-  // The rail under 1024px: the card standing at its start, and a dot that
-  // takes the reader to any other (rail.ts).
-  const [atCard, setAtCard] = createSignal(0)
-  let railFrame = 0
-  const onRail = () => {
-    if (railFrame || !bento) return
-    railFrame = requestAnimationFrame(() => {
-      railFrame = 0
-      if (!bento) return
-      const end = bento.scrollLeft + bento.clientWidth >= bento.scrollWidth - 2
-      setAtCard(railIndex(bento.scrollLeft, railStarts(bento), end))
-    })
-  }
-  onCleanup(() => railFrame && cancelAnimationFrame(railFrame))
-  const toCard = (i: number) => {
-    if (!bento) return
-    const still = matchMedia("(prefers-reduced-motion: reduce)").matches
-    bento.scrollTo({ left: railStarts(bento)[i] ?? 0, behavior: still ? "auto" : "smooth" })
-    setAtCard(i)
-  }
   // Each card's reveal delay, read from the laid-out bento before any reveal
   // plays (a reveal starts as its card comes into view, after this).
   const [delays, setDelays] = createSignal<number[]>([])
@@ -555,7 +537,7 @@ export default function Examples() {
 
   return (
     <section id="examples" aria-labelledby="examples-h" class="examples-scope examples">
-      <div {...riseRoot} class="sec-head">
+      <div class="sec-head rise">
         <h2 id="examples-h" class="section-title">
           <RiseWords text="Every component, live." />
         </h2>
@@ -564,17 +546,17 @@ export default function Examples() {
             {COMPONENT_COUNT} components on one engine. <span class="lede-key">Every card is the real thing</span>, so
             poke it, then open its docs for the props and the code.
           </p>
-          <a data-rise href={routePath("/docs")} class="more-link">
+          <a data-rise href={routePath("/docs")} class="more-link" style={{ "--rise-n": 1 }}>
             See every section in the docs
           </a>
         </div>
       </div>
 
-      <ul ref={(el) => (bento = el)} class="bento" aria-label="Examples from the docs" onScroll={onRail}>
+      <ul ref={(el) => (bento = el)} class="bento" aria-label="Examples from the docs">
         <For each={BENTO}>
           {(t, i) => (
             <li
-              ref={scene(SCENES.tile)}
+              id={cardId(t.id)}
               class={`card t-${t.id}`}
               data-press="card"
               data-lazy={LAZY.has(t.id) ? t.id : undefined}
@@ -601,17 +583,8 @@ export default function Examples() {
           )}
         </For>
       </ul>
-      <div class="rail-dots" role="group" aria-label="Go to an example">
-        <For each={BENTO}>
-          {(t, i) => (
-            <button
-              type="button"
-              aria-label={t.label}
-              aria-current={atCard() === i() ? "true" : undefined}
-              onClick={() => toCard(i())}
-            />
-          )}
-        </For>
+      <div class="rail-dots" role="group" aria-label="Go to an example" style={{ "--n": BENTO.length }}>
+        <For each={BENTO}>{(t, i) => <a href={`#${cardId(t.id)}`} aria-label={t.label} style={{ "--i": i() }} />}</For>
       </div>
     </section>
   )
