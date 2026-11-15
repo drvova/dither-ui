@@ -11,6 +11,22 @@ const strip = (a: Artboard, mutate: (json: Record<string, never>) => void): Artb
   return json as Artboard
 }
 
+describe("createArtboard", () => {
+  it("names a frame made off the browser without the clock, so a prerender writes the same page every build", () => {
+    const now = Date.now
+    try {
+      Date.now = () => 2 ** 40
+      const a = createArtboard("button").id
+      const b = createArtboard("button").id
+      expect(a).toMatch(/^ab[0-9a-z]+$/)
+      expect(b).not.toBe(a)
+      for (const id of [a, b]) expect(id).not.toContain((2 ** 40).toString(36))
+    } finally {
+      Date.now = now
+    }
+  })
+})
+
 describe("normalizeArtboard", () => {
   it("fills the avatar fields behind the reported crash (imageThreshold)", () => {
     const old = strip(createArtboard("avatar"), (j: any) => {
