@@ -3,7 +3,7 @@
 // a viewBox of the backing's cells laid over the plot, and a print's inks
 // as paths in it (`engine/chart-svg.ts`).
 
-import { createMemo, createUniqueId, Index, type JSX, Show } from "solid-js"
+import { createMemo, createUniqueId, type JSX, Show } from "solid-js"
 import type { Ink } from "../../engine/chart-svg"
 import type { ChartContextValue, PolarChartContextValue } from "../../engine/chart-types"
 import { bloomOf } from "../../engine/dither-paint"
@@ -34,20 +34,20 @@ export function Cells(props: {
   )
 }
 
-/** A print's inks: a path each, a 1-unit stroke over its runs. */
+/** A print's inks: a path each, a 1-unit stroke over its runs, written
+ * as one markup string (a chart holds hundreds; as elements each would
+ * carry its own hydration key and its own reactive attributes). The
+ * markup is digits, hex colours and path commands only. */
 export function Inks(props: { inks: Ink[] }) {
-  return (
-    <Index each={props.inks}>
-      {(ink) => (
-        <path
-          d={ink().d}
-          fill="none"
-          stroke={ink().color}
-          stroke-opacity={ink().opacity < 1 ? ink().opacity : undefined}
-        />
-      )}
-    </Index>
+  const markup = createMemo(() =>
+    props.inks
+      .map(
+        (ink) =>
+          `<path d="${ink.d}" fill="none" stroke="${ink.color}"${ink.opacity < 1 ? ` stroke-opacity="${ink.opacity}"` : ""}/>`,
+      )
+      .join(""),
   )
+  return <g innerHTML={markup()} />
 }
 
 /**

@@ -77,7 +77,7 @@ describe("the chart renderer", () => {
     expect(root()).toBe(first)
     a.chart.type = "pie"
     expect(root()).not.toBe(first)
-    expect(container.querySelector("svg.dk-chart .dk-chart-print path")).not.toBeNull()
+    expect(container.querySelector("svg.dk-chart")!.getAttribute("aria-label")).toMatch(/^Pie chart/)
   })
 })
 
@@ -225,7 +225,7 @@ describe("the reel's parts", () => {
     expect(clip.querySelector("button")).not.toBeNull()
     const chart = createArtboard("area")
     const second = render(() => <ReelClip artboard={chart} scale={1} />)
-    expect(second.container.querySelector("[data-clip] > .h-full canvas")).not.toBeNull()
+    expect(second.container.querySelector("[data-clip] > .h-full svg.dk-chart")).not.toBeNull()
   })
 
   it("prints the chapter band, the one before under the one coming in", () => {
