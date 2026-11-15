@@ -3,15 +3,13 @@
 import {
   cssColor,
   DitherAvatar,
-  DitherButton,
-  DitherGradient,
-  DitherImage,
   type ButtonVariant,
   type DitherColor,
   type GradientDirection,
   type PixelBloom,
 } from "@dither-ui/kit"
-import { createMemo, createSignal, For } from "solid-js"
+import { createSignal, For } from "solid-js"
+import { exampleCode } from "../example-code"
 import { createStore } from "solid-js/store"
 import { assetPath } from "@/shared/lib"
 import DemoCard from "../DemoCard"
@@ -23,6 +21,14 @@ import buttonProps from "virtual:dither-props/DitherButton"
 import avatarProps from "virtual:dither-props/DitherAvatar"
 import gradientProps from "virtual:dither-props/DitherGradient"
 import imageProps from "virtual:dither-props/DitherImage"
+import ButtonExample from "./examples/button"
+import buttonCode from "./examples/button.tsx?raw"
+import AvatarExample from "./examples/avatar"
+import avatarCode from "./examples/avatar.tsx?raw"
+import GradientExample from "./examples/gradient"
+import gradientCode from "./examples/gradient.tsx?raw"
+import ImageExample from "./examples/image"
+import imageCode from "./examples/image.tsx?raw"
 
 // A picked tile or chip wears the site's pressed state (ink in a ring), so
 // the pick reads on either theme, never a fill a shade off the ground.
@@ -40,14 +46,6 @@ export const API: Record<string, PropRow[]> = {
   avatar: kitTable(avatarProps),
   gradient: kitTable(gradientProps, { join: [["maxCols", "maxRows"]] }),
   image: kitTable(imageProps, { join: [["maxCols", "maxRows"]] }),
-}
-
-const SNIPPETS = {
-  image: `<DitherImage src="/sprites.webp" cell={3} focusY={0.62} fade={72}
-  alt="The dither-ui sprite sheet, re-dithered" class="h-64 w-full" />
-{/* cell: px per dither cell; fade: dithered edge dissolve;
-     focus-y: cover-crop focus (0 top to 1 bottom);
-     precompiled takes an image you dithered ahead of time, drawn as it is */}`,
 }
 
 export default function BasicsDocs() {
@@ -69,26 +67,12 @@ export default function BasicsDocs() {
   // Gradient playground.
   const [grad, setGrad] = createStore({ direction: "up" as GradientDirection, from: "blue" as DitherColor })
 
-  const buttonCode = createMemo(
-    () =>
-      `<DitherButton color="${btn.color}" variant="${btn.variant}"${btn.bloom === "off" ? "" : ` bloom="${btn.bloom}"`}>
-  Deploy
-</DitherButton>
-{/* static: drawn once; precompiled takes a raster you exported */}
-<DitherButton renderMode="static">Saved</DitherButton>`,
-  )
-  const avatarCode = createMemo(
-    () => `<DitherAvatar name="${avatarName()}" size={48} />
-{/* same name, same face, at any size */}`,
-  )
-  const gradientCode = createMemo(
-    () => `<div class="relative h-40">
-  <DitherGradient from="${grad.from}" to="transparent" direction="${grad.direction}" />
-</div>
-<div class="relative h-24">
-  <DitherGradient renderMode="static" />   {/* drawn once; precompiled takes a raster you exported */}
-</div>`,
-  )
+  // The button's picks as the example takes them: bloom off is its default, left out.
+  const buttonPicks = () => ({
+    color: btn.color,
+    variant: btn.variant,
+    bloom: btn.bloom === "off" ? undefined : btn.bloom,
+  })
 
   return (
     <>
@@ -98,11 +82,9 @@ export default function BasicsDocs() {
           A button printed in tone classes with the page; its density lifts on hover and again on press. Four fills,
           seven colors, optional <code class="text-foreground/80">bloom</code>, and static/precompiled raster paths.
         </p>
-        <DemoCard code={buttonCode()}>
+        <DemoCard code={exampleCode(buttonCode, buttonPicks())}>
           <div class="grid justify-items-center gap-8">
-            <DitherButton color={btn.color} variant={btn.variant} bloom={btn.bloom} class="px-6 py-3 text-[13px]">
-              Deploy
-            </DitherButton>
+            <ButtonExample {...buttonPicks()} />
             <div class="grid justify-items-center gap-3">
               <div class="flex flex-wrap items-center justify-center gap-1 rounded-md border border-border/60 p-1">
                 <For each={VARIANTS}>
@@ -161,13 +143,9 @@ export default function BasicsDocs() {
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A deterministic identicon: the same name always draws the same face, at any size.
         </p>
-        <DemoCard code={avatarCode()}>
-          <div class="flex items-end justify-center gap-3">
-            <DitherAvatar name={avatarName()} size={24} replayToken={avatarReplay()} />
-            <DitherAvatar name={avatarName()} size={32} replayToken={avatarReplay()} />
-            <DitherAvatar name={avatarName()} size={48} replayToken={avatarReplay()} />
-            <DitherAvatar name={avatarName()} size={64} replayToken={avatarReplay()} />
-          </div>
+        <DemoCard code={exampleCode(avatarCode, { name: avatarName() })}>
+          {/* a pick mounts the faces anew, so their pixel entrance plays again */}
+          <For each={[avatarReplay()]}>{() => <AvatarExample name={avatarName()} />}</For>
         </DemoCard>
         <h3 class="mt-8 text-[12px] text-muted-foreground">Names</h3>
         <div class="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -196,11 +174,9 @@ export default function BasicsDocs() {
           A background wash that fades through the Bayer matrix instead of alpha, in four directions and any palette
           color.
         </p>
-        <DemoCard code={gradientCode()}>
+        <DemoCard code={exampleCode(gradientCode, { ...grad })}>
           <div class="grid gap-5">
-            <div class="relative h-40 overflow-hidden rounded-md">
-              <DitherGradient from={grad.from} to="transparent" direction={grad.direction} />
-            </div>
+            <GradientExample from={grad.from} direction={grad.direction} />
             <div class="flex flex-wrap items-center justify-center gap-4">
               <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
                 <For each={DIRECTIONS}>
@@ -246,15 +222,9 @@ export default function BasicsDocs() {
           Ordered-dithers any image into chunky cells; edges can dissolve into the page. Below: the site's own sprite
           sheet run through it.
         </p>
-        <DemoCard code={SNIPPETS.image}>
-          <DitherImage
-            src={assetPath("/sprites.webp")}
-            alt="The dither-ui sprite sheet, re-dithered"
-            cell={3}
-            focusY={0.62}
-            fade={72}
-            class="h-64 w-full"
-          />
+        <DemoCard code={exampleCode(imageCode)}>
+          {/* the demo asks for the sheet under the site's base path; the code, at the root */}
+          <ImageExample src={assetPath("/sprites.webp")} />
         </DemoCard>
         <PropsTable rows={API.image} />
       </DocSection>
