@@ -1,10 +1,26 @@
-import { DitherFaultyTerminal } from "@dither-kit"
+import { DitherFaultyTerminal, type DitherColor } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
-export default function Example() {
+export default function Example(props: {
+  tint?: DitherColor
+  scale?: number
+  glitchAmount?: number
+  scanlineIntensity?: number
+  dither?: number
+  curvature?: number
+  chromaticAberration?: number
+}) {
   return (
-    <div class="relative h-56 overflow-hidden rounded-md">
-      <DitherFaultyTerminal tint="green" scale={1.5} glitchAmount={0.6} scanlineIntensity={0.8} />
+    <div class="relative h-56 overflow-hidden rounded-md border border-border/60">
+      <DitherFaultyTerminal
+        tint={props.tint ?? "green"}
+        scale={props.scale ?? 1.5}
+        glitchAmount={props.glitchAmount ?? 0.6}
+        scanlineIntensity={props.scanlineIntensity ?? 0.8}
+        dither={props.dither}
+        curvature={props.curvature}
+        chromaticAberration={props.chromaticAberration}
+      />
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <div class="relative h-64 overflow-hidden rounded-md">
+    <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
       <DitherShapeGrid />
     </div>
   )

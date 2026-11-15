@@ -1,10 +1,10 @@
 import { DitherCircuit } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
-export default function Example() {
+export default function Example(props: { density?: number; seed?: number }) {
   return (
-    <div class="relative h-64 overflow-hidden rounded-md">
-      <DitherCircuit />
+    <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+      <DitherCircuit density={props.density ?? 0.6} seed={props.seed ?? 7} />
     </div>
   )
 }

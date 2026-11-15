@@ -3,8 +3,8 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <div class="relative h-64 overflow-hidden rounded-md">
-      <DitherBeams colors={["#5227FF", "#7CFF67"]} />
+    <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+      <DitherBeams />
     </div>
   )
 }

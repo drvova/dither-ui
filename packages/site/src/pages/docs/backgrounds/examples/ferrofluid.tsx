@@ -1,10 +1,13 @@
-import { DitherFerrofluid } from "@dither-kit"
+import { DitherFerrofluid, type FlowDirection } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
-export default function Example() {
+export default function Example(props: { colors?: string[]; flowDirection?: FlowDirection }) {
   return (
-    <div class="relative h-64 overflow-hidden rounded-md">
-      <DitherFerrofluid colors={["#27FF64", "#7CFF67", "#A8FFB6"]} flowDirection="down" />
+    <div class="relative h-64 overflow-hidden rounded-md border border-border/60">
+      <DitherFerrofluid
+        colors={props.colors ?? ["#27FF64", "#7CFF67", "#A8FFB6"]}
+        flowDirection={props.flowDirection ?? "down"}
+      />
     </div>
   )
 }

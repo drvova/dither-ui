@@ -1,10 +1,10 @@
 import { DitherWaves } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
-export default function Example() {
+export default function Example(props: { colors?: string[] }) {
   return (
-    <div class="relative h-64 overflow-hidden rounded-md">
-      <DitherWaves colors={["#5227FF", "#7CFF67"]} />
+    <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+      <DitherWaves colors={props.colors ?? ["#5227FF", "#7CFF67"]} />
     </div>
   )
 }

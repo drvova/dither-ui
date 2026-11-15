@@ -3,8 +3,8 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <div class="relative h-64 overflow-hidden rounded-md">
-      <DitherRippleGrid colors={["#3DA5FF", "#7CE0FF", "#CFF6FF"]} />
+    <div class="relative h-64 overflow-hidden rounded-md border border-border/60 bg-black">
+      <DitherRippleGrid />
     </div>
   )
 }

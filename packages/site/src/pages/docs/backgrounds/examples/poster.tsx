@@ -1,10 +1,12 @@
-import { DitherPoster } from "@dither-kit"
+import { DitherPoster, type ScreenKind } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
-export default function Example() {
+export default function Example(props: { seed?: number; screen?: ScreenKind }) {
   return (
-    <div class="relative h-64 overflow-hidden rounded-md">
-      <DitherPoster inks={["blue", "orange", "grey"]} />
+    <div class="relative h-72 w-full overflow-hidden rounded-md bg-card">
+      {/* a seed lays out the tiles, their inks and ramps and the mark; inks picks
+           the palette and ground the paper the open cells show (ground="#e4e1d8") */}
+      <DitherPoster seed={props.seed ?? 7} screen={props.screen} />
     </div>
   )
 }
