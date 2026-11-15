@@ -73,6 +73,15 @@ describe("DESIGN.md", () => {
     expect(doc).toContain(`\`${title}\``)
   })
 
+  it("cuts the hardshell from one outline, as the doc says", () => {
+    const css = read("packages/site/src/app/styles.css")
+    const [, name] = css.match(/\.hardshell \{\s*(--[\w-]+):/)!
+    expect(doc).toContain(`\`${name}\``)
+    // the shell and its ring clip by the one outline; no copy of its corners
+    expect(css.match(new RegExp(`polygon\\(\\s*(evenodd,\\s*)?var\\(${name}\\)`, "g"))).toHaveLength(2)
+    expect(css.split("100% calc(100% - var(--cut))")).toHaveLength(2)
+  })
+
   it("gives the paint budget the runtime keeps", () => {
     expect(doc).toContain(`(${FRAME_BUDGET_MS}ms)`)
   })

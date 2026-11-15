@@ -156,7 +156,8 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
 
 - Soft shells against a few sharp, machined boundaries; never uniform
   pills.
-- One shaped hardshell a page (two cut corners holding a recessed well);
+- One shaped hardshell a page (two cut corners holding a recessed well,
+  the cut one outline, `--hardshell-cut`, that the shell and its rim share);
   every other panel is a `flat-shell`: the shell ground, one hairline, a
   10px radius.
 - Keys: the primary key is a satin chrome capsule; secondary keys are

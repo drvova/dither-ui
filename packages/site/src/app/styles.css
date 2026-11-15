@@ -293,18 +293,15 @@
   /* A hardshell: two opposite corners cut, a chrome-glint hairline that
      follows the cut, its ground the theme's shell material (anodized
      graphite, bone ceramic) lit from the top left. The cut clips what it
-     holds. */
+     holds. The cut's outline is written once, `--hardshell-cut`: the
+     shell clips to it and its ring is the same outline less its inner
+     edge. */
   .hardshell {
+    --hardshell-cut:
+      var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut);
     position: relative;
     background: var(--shell-ground);
-    clip-path: polygon(
-      var(--cut) 0,
-      100% 0,
-      100% calc(100% - var(--cut)),
-      calc(100% - var(--cut)) 100%,
-      0 100%,
-      0 var(--cut)
-    );
+    clip-path: polygon(var(--hardshell-cut));
   }
   /* A flat shell: the hardshell's flat sibling, for every panel that is not
      its page's hero (the user's industrial brief: one shaped hero panel, the
@@ -325,12 +322,7 @@
     /* The ring: the outline, then the same outline 1px in, the hole. */
     clip-path: polygon(
       evenodd,
-      var(--cut) 0,
-      100% 0,
-      100% calc(100% - var(--cut)),
-      calc(100% - var(--cut)) 100%,
-      0 100%,
-      0 var(--cut),
+      var(--hardshell-cut),
       var(--cut) 0,
       calc(var(--cut) + 0.414px) 1px,
       1px calc(var(--cut) + 0.414px),

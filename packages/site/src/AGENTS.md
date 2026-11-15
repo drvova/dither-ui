@@ -841,7 +841,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   `.spec` (spec label: uppercase, tracked, 10px) and `.speed-tag` (a
   slanted plate), the ONLY uppercase in the site's own chrome;
   `.hardshell` (two corners cut by `clip-path`, which clips what it
-  holds, fixed descendants included; a chrome-glint ring along the cut;
+  holds, fixed descendants included; the cut's outline written once,
+  `--hardshell-cut`, which the shell and its ring both clip by, so the
+  cut is never restated (`tests/design-doc.spec.ts`); a chrome-glint
+  ring along the cut;
   the shell ground (no fasteners or other manufacturing theater: the
   user's brief keeps one credible joint, the cut); set `--cut`
   locally for a smaller cut), only for a page's one shaped hero panel
