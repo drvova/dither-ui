@@ -3,7 +3,7 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <div class="rounded-lg border p-5">
+    <div class="mx-auto max-w-xs rounded-lg border border-border/60 p-5">
       <div class="flex items-center gap-3">
         <DitherSkeleton class="size-10 rounded-full" />
         <div class="grid flex-1 gap-2">
