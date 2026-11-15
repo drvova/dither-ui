@@ -11,7 +11,9 @@ import {
   A11Y,
   accessibleName,
   auditA11y,
+  blackShare,
   changedPixels,
+  compositeOf,
   concealed,
   DIALOG_CLOSED,
   DIALOG_FOCUS,
@@ -33,6 +35,9 @@ import {
   KEYS_READ,
   KEYS_START,
   measureContrast,
+  PAINT,
+  PAINT_SET,
+  paintFinding,
   unreached,
 } from "../src/walk-checks.mjs"
 
@@ -267,6 +272,79 @@ describe("the contrast of text as painted", () => {
   })
 })
 
+describe("what an engine composites", () => {
+  // an 8x8 shot of one fill, a box over all of it
+  const shot = (rgb: number[], at?: (x: number, y: number) => number[] | null) => {
+    const data = new Uint8Array(8 * 8 * 4)
+    for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) data.set([...(at?.(x, y) ?? rgb), 255], (y * 8 + x) * 4)
+    return { width: 8, height: 8, data }
+  }
+  const obsidian = [16, 18, 20]
+  const ground = shot(obsidian)
+  // text: a bone ink on half the box
+  const text = shot(obsidian, (x) => (x % 2 ? [228, 225, 216] : null))
+  const c = (kind: "filter" | "blend", value: string) => ({
+    i: 0,
+    kind,
+    value,
+    where: "card 1: <span>",
+    box: [0, 0, 8, 8] as [number, number, number, number],
+    within: [],
+  })
+
+  it("is an SVG filter or a blend, read off the computed style", () => {
+    expect(compositeOf({ filter: 'url("#fuzz")', mixBlendMode: "normal" })).toEqual({
+      kind: "filter",
+      value: 'url("#fuzz")',
+    })
+    expect(compositeOf({ filter: "blur(4px)", mixBlendMode: "plus-lighter" })).toEqual({
+      kind: "blend",
+      value: "plus-lighter",
+    })
+    expect(compositeOf({ filter: "none", mixBlendMode: "normal" })).toBeNull()
+    expect(compositeOf({ filter: "blur(4px)" })).toBeNull()
+  })
+
+  it("counts the black share of a box, obsidian not among it", () => {
+    expect(blackShare(shot([0, 0, 0]), [0, 0, 8, 8], 1)).toBe(1)
+    expect(blackShare(ground, [0, 0, 8, 8], 1)).toBe(0)
+    expect(
+      blackShare(
+        shot(obsidian, (x) => (x < 2 ? [3, 3, 3] : null)),
+        [0, 0, 4, 4],
+        2,
+      ),
+    ).toBe(0.25)
+  })
+
+  it("finds an element blank under its SVG filter only when letting the filter go shows it", () => {
+    const fuzz = c("filter", 'url("#fuzz")')
+    expect(paintFinding(fuzz, { on: ground, off: text, hidden: ground }, 1)).toBe(
+      'card 1: <span> renders blank under its SVG filter url("#fuzz")',
+    )
+    // drawn under its filter: no finding
+    expect(paintFinding(fuzz, { on: text, off: text, hidden: ground }, 1)).toBe("")
+    // nothing to draw at all: an empty element is not blank for its filter
+    expect(paintFinding(fuzz, { on: ground, off: ground, hidden: ground }, 1)).toBe("")
+  })
+
+  it("finds an element solid black only for its blend or filter", () => {
+    const bloom = c("blend", "plus-lighter")
+    const black = shot([0, 0, 0])
+    expect(paintFinding(bloom, { on: black, off: text }, 1)).toBe(
+      "card 1: <span> paints solid black under mix-blend-mode plus-lighter",
+    )
+    // a black ink that stays black without the blend is the page's own
+    expect(paintFinding(bloom, { on: black, off: black }, 1)).toBe("")
+    expect(paintFinding(bloom, { on: text, off: text }, 1)).toBe("")
+    expect(paintFinding(c("filter", 'url("#goo")'), { on: black, off: text, hidden: ground }, 1)).toBe(
+      'card 1: <span> paints solid black under its SVG filter url("#goo")',
+    )
+    // never judged without the shot that lets the feature go
+    expect(paintFinding(bloom, { on: black }, 1)).toBe("")
+  })
+})
+
 describe("an engine's note on a preloaded face", () => {
   const note = (url: string) =>
     `[JavaScript Warning: "The resource at “${url}” preloaded with link preload was not used within a few seconds. Make sure all attributes of the preload tag are set correctly." {file: "/docs/pie/" line: 0}]`
@@ -301,6 +379,8 @@ describe("the page scripts", () => {
       DIALOG_TABBED,
       DIALOG_CLOSED,
       HELD_FACES,
+      PAINT,
+      PAINT_SET,
     ])
       expect(() => new Function("arg", `return (async()=>{${body}\n})()`)).not.toThrow()
   })

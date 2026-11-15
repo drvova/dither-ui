@@ -968,3 +968,101 @@ const at = document.activeElement
 W.dialog = null
 return { closed: !!gone, returned: !!back, returnedTo: at && at !== document.body ? describe(at) : "" }
 `
+
+// ---------------------------------------------------------------- paint
+// What an engine composites wrong while the page is right: WebKit paints
+// HTML under an SVG filter (`filter: url(#f)`) as nothing, and a group that
+// blends (a plus-lighter bloom under a multiply) as solid black. Each such
+// element in the window is looked at on screen as it stands, then with its
+// filter or blend let go and, for a filter, hidden: a finding only when the
+// feature alone is what blanks or blackens it.
+
+/** What an element composites through, from its computed style: an SVG
+ * filter (`filter`) or a blend (`blend`), else null. */
+export function compositeOf(style) {
+  if (/url\(/.test(style.filter ?? "")) return { kind: "filter", value: style.filter }
+  const blend = style.mixBlendMode || "normal"
+  return blend !== "normal" ? { kind: "blend", value: blend } : null
+}
+
+/** The share of a box's pixels that are black (every channel at most 6;
+ * the site's darkest ground, obsidian, stands at 16), the box in CSS
+ * pixels, `scale` the device's. */
+export function blackShare(png, [x, y, w, h], scale) {
+  const x0 = Math.max(0, Math.round(x * scale))
+  const y0 = Math.max(0, Math.round(y * scale))
+  const x1 = Math.min(png.width, Math.round((x + w) * scale))
+  const y1 = Math.min(png.height, Math.round((y + h) * scale))
+  let black = 0
+  for (let py = y0; py < y1; py++)
+    for (let px = x0; px < x1; px++) {
+      const o = (py * png.width + px) * 4
+      if (png.data[o] <= 6 && png.data[o + 1] <= 6 && png.data[o + 2] <= 6) black++
+    }
+  const all = Math.max(0, x1 - x0) * Math.max(0, y1 - y0)
+  return all ? black / all : 0
+}
+
+/** One composited element (`PAINT`'s) judged off its shots: `on` as it
+ * stands, `off` with its filter or blend let go, `hidden` without it (a
+ * filter's). Black: half its box black, a tenth or less once the feature
+ * is let go. Blank: it paints nothing under its filter (on as hidden)
+ * though it paints without one (off unlike hidden). The finding, or "". */
+export function paintFinding(c, shots, scale) {
+  const { box } = c
+  if (!shots.off) return ""
+  if (blackShare(shots.on, box, scale) >= 0.5 && blackShare(shots.off, box, scale) <= 0.1)
+    return `${c.where} paints solid black under ${c.kind === "filter" ? `its SVG filter ${c.value}` : `mix-blend-mode ${c.value}`}`
+  if (c.kind !== "filter" || !shots.hidden) return ""
+  const drawn = changedPixels(shots.off, shots.hidden, box, scale)
+  const shows = changedPixels(shots.on, shots.hidden, box, scale)
+  return drawn >= 24 && shows * 10 < drawn ? `${c.where} renders blank under its SVG filter ${c.value}` : ""
+}
+
+/** Every composited element in the window (`compositeOf`), at least 16px
+ * square there, kept on `__walk.painted` for `PAINT_SET`; each names the
+ * ones it stands inside. */
+export const PAINT = `
+${WHERE}
+${compositeOf}
+const W = window.__walk
+await W.frames(2)
+const vw = document.documentElement.clientWidth, vh = innerHeight
+W.painted = []
+const found = []
+for (const el of document.body.querySelectorAll("*")) {
+  const c = compositeOf(getComputedStyle(el))
+  if (!c || !shown(el)) continue
+  const r = el.getBoundingClientRect()
+  const x = Math.max(0, r.left), y = Math.max(0, r.top)
+  const w = Math.min(vw, r.right) - x, h = Math.min(vh, r.bottom) - y
+  if (w < 16 || h < 16) continue
+  const within = found.filter((f) => W.painted[f.i].contains(el)).map((f) => f.i)
+  found.push({ i: W.painted.push(el) - 1, ...c, where: where(el), box: [x, y, w, h], within })
+  if (found.length >= 24) break
+}
+return found
+`
+
+/** One of \`PAINT\`'s elements as it stands (\`as: "on"\`), its filter or
+ * blend let go (\`"off"\`) or hidden (\`"hidden"\`), its transitions held
+ * while it is not as it stands. */
+export const PAINT_SET = `
+const W = window.__walk
+const el = W.painted[arg.i]
+if (!el) return false
+const props = ["filter", "mix-blend-mode", "visibility", "transition"]
+W.paintSaved = W.paintSaved || new Map()
+if (!W.paintSaved.has(el)) W.paintSaved.set(el, props.map((p) => [p, el.style.getPropertyValue(p), el.style.getPropertyPriority(p)]))
+for (const [p, v, pr] of W.paintSaved.get(el)) v ? el.style.setProperty(p, v, pr) : el.style.removeProperty(p)
+if (arg.as === "on") W.paintSaved.delete(el)
+else {
+  el.style.setProperty("transition", "none", "important")
+  if (arg.as === "hidden") el.style.setProperty("visibility", "hidden", "important")
+  else if (arg.kind === "filter") el.style.setProperty("filter", "none", "important")
+  else el.style.setProperty("mix-blend-mode", "normal", "important")
+}
+await W.frames(3)
+await W.sleep(120)
+return true
+`

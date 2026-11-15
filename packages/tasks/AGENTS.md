@@ -68,8 +68,9 @@ by the site's post-build. Paths here are from this package's root.
   lists the registry's components no docs example renders. Every page in
   the dark has its keyboard and screen-reader pass (`--a11y`, below).
   Flags: `--jobs`, `--only`, `--run`, `--styles`, `--light`, `--phone`,
-  `--contrast`, `--a11y`. Out: `<out>/<engine>.json`, `<engine>.md` and
-  `shots/<engine>/`.
+  `--contrast`, `--a11y`, `--paint`, `--shard k/n` (every n-th page of
+  the plan from the k-th, each shard a share of every kind of page). Out:
+  `<out>/<engine>.json`, `<engine>.md` and `shots/<engine>/`.
 - `src/walk-page.js`: the walk's own page scripts, real JavaScript the
   lint reads: one function a script on `window.__walkPage`, given `arg`,
   in every top page before its own scripts (Playwright's
@@ -131,7 +132,13 @@ by the site's post-build. Paths here are from this package's root.
   on a docs section every plain button of a demo, tried) pressed with
   Enter: focus moves in, a modal keeps Tab and Shift+Tab inside, Escape
   closes it and focus comes back to its key; at a phone's size the page is
-  read and its menu sheets walked.
+  read and its menu sheets walked. `PAINT` (`--paint on`, both themes, the
+  desktop, where the contrast is read): every element in the window
+  painted through an SVG filter or a blend (`compositeOf`), shot as it
+  stands, with the feature let go and (a filter's) hidden (`PAINT_SET`),
+  a finding when the feature alone blanks it under its filter or paints
+  half its box black (`paintFinding`, `blackShare`): WebKit's two ways to
+  lose a layer.
 - `src/walk-drivers.mjs`: what the walk stands on: the static server (a
   recorder first in every page's head, the theme set and the docs' styling
   put back to Tailwind before the app reads them, by `SITE_STORAGE`), the
@@ -140,8 +147,8 @@ by the site's post-build. Paths here are from this package's root.
   the one driver shape (`go`, `run`, `shot`, `press`, `drain`, `close`) over
   Playwright for Chromium and plain W3C WebDriver for WebKit
   (`WebKitWebDriver` + `MiniBrowser`) and
-  Firefox (`geckodriver`; with none on the machine, Playwright's own
-  Firefox build, a browser a session, its phone the viewport, ratio,
+  Firefox (`geckodriver`; with none on the machine or `--driver
+  playwright`, Playwright's own Firefox build, a browser a session, its phone the viewport, ratio,
   touch and agent), each window on an Xvfb display of its own where
   the machine has one (a window under another stops its frames, and
   headless Firefox has no GL without a GPU), and the PNG reader for its
@@ -162,9 +169,14 @@ by the site's post-build. Paths here are from this package's root.
   agent demo runs where the harness is signed in, never with borrowed
   credentials.
 - A missing Chromium is an error, never a skip.
-- The walk is run by hand, never by a build or the gate. Its checks are
-  scripts run in the page, so they hold over WebDriver; it installs no
-  browser: `--executable` and `--driver` name the ones a machine has.
+- The walk is run by hand or by its own workflow (`.github/workflows/walk.yml`:
+  nightly, on dispatch and on a pull request labelled `walk`; the site
+  built once and handed over as an artifact, every engine in three
+  shards, each job's report and shots uploaded), never by a build or the
+  gate. Its checks are scripts run in the page, so they hold over
+  WebDriver; it installs no browser: `--executable` and `--driver` name
+  the ones a machine has (the workflow installs WebKitGTK's driver and
+  Playwright's Firefox, and walks in the runner's Chrome).
   What a machine without a GPU or the walk's own hand brings about
   (`ENVIRONMENT`: its scripted pointer, its unfocused windows, where Gecko
   refuses fullscreen), a media file the
@@ -194,7 +206,8 @@ by the site's post-build. Paths here are from this package's root.
   Discord service's copy run against it.
 - `tests/walk-checks.spec.ts` (jsdom): the walk's accessibility rules, each
   on a page of its own, the contrast measured off a shot and looked at
-  twice, every page script compiling as the drivers run it, and
+  twice, the paint judged off shots (blank under a filter, black under a
+  blend, only for the feature), every page script compiling as the drivers run it, and
   `walk-page.js` standing for every page script `walk.mjs` calls. The site holds the static rules over its built pages
   (`packages/site/tests/site/page-reading.spec.tsx`).
 - Every export is imported somewhere in the workspace, a page script's

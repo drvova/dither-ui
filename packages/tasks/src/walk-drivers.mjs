@@ -553,10 +553,11 @@ export function webkitDriver({ driver = "/usr/bin/WebKitWebDriver", binary } = {
 }
 
 /** Firefox: a `firefox` behind `geckodriver` where the machine has the
- * driver (`--driver`, or one on the PATH), else Playwright's own Firefox
- * (`--executable` its binary, by default the one Playwright installed). */
+ * driver (`--driver`, or one on the PATH), else, or with `--driver
+ * playwright`, Playwright's own Firefox (`--executable` its binary, by
+ * default the one Playwright installed). */
 export function firefoxDriver({ driver, binary } = {}) {
-  const gecko = driver ?? onPath("geckodriver")
+  const gecko = driver === "playwright" ? null : (driver ?? onPath("geckodriver"))
   if (!gecko) return playwrightFirefoxDriver({ executablePath: binary })
   return webDriver({
     name: "Firefox",

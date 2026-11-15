@@ -1,11 +1,11 @@
 // The browser walk: every page of a built site visited in one engine, and
-// what a reader would meet there checked. Run by hand, never by a build or
-// the gate:
+// what a reader would meet there checked. Run by hand or by its workflow
+// (.github/workflows/walk.yml), never by a build or the gate:
 //
 //   npm run walk -- --engine chromium|webkit|firefox [--out <folder>] [--root <built site>]
 //     [--jobs 4] [--only <a path as /docs/area/, or text in one; several by commas>] [--run all|family|none]
 //     [--styles tailwind,css,modules,stylex] [--light all|<n>] [--phone on|off] [--contrast on|off]
-//     [--executable <browser>] [--driver <webdriver server>]
+//     [--a11y on|off] [--paint on|off] [--shard <k>/<n>] [--executable <browser>] [--driver <webdriver server>]
 //
 // Chromium is `CHROME_PATH` or a standard install, through Playwright.
 // WebKit is WebKitGTK (`WebKitWebDriver` and `MiniBrowser`), Firefox a
@@ -29,7 +29,12 @@
 // (`--contrast`), and every page is walked once more at an iPhone's size
 // (`--phone`): what overflows the window, targets under 24px, fields under
 // 16px, text cut off, a demo spilling out of its card; the Studio there
-// shows its notice (walk-checks.mjs).
+// shows its notice (walk-checks.mjs). Where the walk stops on the desktop,
+// every element painted through an SVG filter or a blend is looked at on
+// screen (`--paint`): blank under its filter, or solid black under its
+// blend, when letting the feature go shows it (WebKit's two ways to lose a
+// layer). `--shard k/n` walks every n-th page of the plan from the k-th,
+// so a slow engine splits over machines (CI's walk, .github/workflows/walk.yml).
 //
 // Out: `<out>/<engine>.json` (every page's record), `<out>/<engine>.md` (the
 // summary) and `<out>/shots/<engine>/` (the sampled and the flagged pages).
@@ -57,6 +62,9 @@ import {
   KEYS_READ,
   KEYS_START,
   measureContrast,
+  PAINT,
+  PAINT_SET,
+  paintFinding,
   PHONE,
 } from "./walk-checks.mjs"
 import { chromiumPath } from "./chromium.ts"
@@ -69,7 +77,7 @@ const flag = (name, fallback) => {
 }
 if (args.includes("--help")) {
   console.error(
-    "usage: npm run walk -- --engine chromium|webkit|firefox [--out <folder>] [--root <built site>] [--jobs 4] [--only <text>] [--run all|family|none] [--styles tailwind,css,modules,stylex] [--light all|<n>] [--phone on|off] [--contrast on|off] [--executable <browser>] [--driver <webdriver server>]",
+    "usage: npm run walk -- --engine chromium|webkit|firefox [--out <folder>] [--root <built site>] [--jobs 4] [--only <text>] [--run all|family|none] [--styles tailwind,css,modules,stylex] [--light all|<n>] [--phone on|off] [--contrast on|off] [--a11y on|off] [--paint on|off] [--shard <k>/<n>] [--executable <browser>] [--driver <webdriver server>]",
   )
   process.exit(0)
 }
@@ -84,6 +92,9 @@ const lightEach = lightFlag === "all" ? Infinity : Number(lightFlag) || 0
 const phone = flag("phone", "on") !== "off"
 const contrast = flag("contrast", "on") !== "off"
 const a11y = flag("a11y", "on") !== "off"
+const paint = flag("paint", "on") !== "off"
+const [shardAt, shards] = flag("shard", "1/1").split("/").map(Number)
+if (!(shards >= 1 && shardAt >= 1 && shardAt <= shards)) throw new Error("--shard takes <k>/<n>, 1 <= k <= n")
 /** The docs' styling systems each example is Run in, by the switch's labels. */
 const STYLE_LABELS = { tailwind: "Tailwind", css: "CSS", modules: "Modules", stylex: "StyleX" }
 const styles = flag("styles", Object.keys(STYLE_LABELS).join(",")).split(",").filter(Boolean)
@@ -181,9 +192,11 @@ function plan() {
     for (const p of pages.filter((x) => x.theme === "dark"))
       pages.push({ ...p, device: "phone", sample: p.kind === "section" ? p.first : true })
   const picked = only.split(",").filter(Boolean)
-  return picked.length
+  const chosen = picked.length
     ? pages.filter((p) => picked.some((t) => (t.startsWith("/") ? p.path === t : p.path.includes(t))))
     : pages
+  // a shard takes every n-th page, so each holds a share of every kind
+  return chosen.filter((_, i) => i % shards === shardAt - 1)
 }
 
 // ---------------------------------------------------------------- page scripts
@@ -371,6 +384,31 @@ async function sampleContrast(s, rec, ready, issue, at) {
   }
 }
 
+/** Every element in the window painted through an SVG filter or a blend,
+ * looked at on screen as it stands, its feature let go and (a filter's)
+ * hidden (walk-checks.mjs `paintFinding`): blank or black only for the
+ * feature is a finding. One inside an element already found is not. */
+async function samplePaint(s, rec, ready, issue, at) {
+  const list = await s.run(PAINT, null)
+  rec.painted = (rec.painted ?? 0) + (list?.length ?? 0)
+  if (!list?.length) return
+  const look = async () => decodePng(await s.shot())
+  const on = await look()
+  const scale = on.width / ready.w || ready.ratio
+  const found = []
+  for (const c of list) {
+    if (c.within.some((i) => found.includes(i))) continue
+    const shots = { on }
+    shots.off = (await s.run(PAINT_SET, { i: c.i, kind: c.kind, as: "off" })) && (await look())
+    if (c.kind === "filter") shots.hidden = (await s.run(PAINT_SET, { i: c.i, as: "hidden" })) && (await look())
+    await s.run(PAINT_SET, { i: c.i, as: "on" })
+    const finding = paintFinding(c, shots, scale)
+    if (!finding) continue
+    found.push(c.i)
+    issue("paint", `${at}: ${finding}`)
+  }
+}
+
 /** The keys a page opens a dialog with that do not say so themselves
  * (`aria-haspopup`), by their names. */
 const DIALOG_LABELS = {
@@ -540,6 +578,7 @@ async function walkPage(session, server, page) {
   // the code and its runs are walked once, on the desktop in the dark; contrast in both themes, on the desktop
   const full = page.theme === "dark" && !onPhone
   const measure = contrast && !onPhone
+  const painting = paint && !onPhone
   // what the page was refused before each Run, kept apart from what a run's own example asks for
   const held = { refused: [], failed: [], native: [] }
 
@@ -552,6 +591,7 @@ async function walkPage(session, server, page) {
       rec.cards = []
       if (page.sample) writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
       if (measure) await sampleContrast(s, rec, ready, issue, "top")
+      if (painting) await samplePaint(s, rec, ready, issue, "top")
       const wells = found.cards.map((section, n) => ({ n, section })).filter((w) => w.section)
       if (found.loose) wells.push({ n: -1, section: page.id })
       for (const { n, section } of wells) {
@@ -569,6 +609,7 @@ async function walkPage(session, server, page) {
         }
         if (page.sample && n === wells[0].n) writeFileSync(join(shots, `${slug(page)}-card.png`), await s.shot())
         if (measure && n >= 0 && !card.missing) await sampleContrast(s, rec, ready, issue, `${name} in view`)
+        if (painting && n >= 0 && !card.missing) await samplePaint(s, rec, ready, issue, `${name} in view`)
         if (n < 0 || !full || card.missing) continue
         const code = await s.run(CODE, { n })
         const example = code.files?.[0]
@@ -633,7 +674,7 @@ async function walkPage(session, server, page) {
     rec.height = read.height
     rec.canvases = read.canvases
     for (const c of read.canvases.filter(blank)) issue("canvas", `a ${c.state} canvas ${c.w}x${c.h} ${c.cls}`)
-    if (measure) {
+    if (measure || painting) {
       // the page read where a reader stops: a window at a time, top to bottom, at rest
       const stops = Math.min(16, Math.ceil(read.height / ready.h))
       for (let i = 0; i < stops; i++) {
@@ -641,7 +682,8 @@ async function walkPage(session, server, page) {
           `scrollTo(0, ${Math.round((i * (read.height - ready.h)) / Math.max(1, stops - 1))}); await window.__walk.sleep(1100)`,
           null,
         )
-        await sampleContrast(s, rec, ready, issue, `window ${i + 1}`)
+        if (measure) await sampleContrast(s, rec, ready, issue, `window ${i + 1}`)
+        if (painting) await samplePaint(s, rec, ready, issue, `window ${i + 1}`)
       }
       await s.run("scrollTo(0, 0)", null)
     }
@@ -660,6 +702,7 @@ async function walkPage(session, server, page) {
       issue("studio", `${st.name}${st.detail ? `: ${st.detail}` : ""}`)
     for (const c of (studio.canvases ?? []).filter(blank)) issue("canvas", `a ${c.state} canvas ${c.w}x${c.h} ${c.cls}`)
     if (measure) await sampleContrast(s, rec, ready, issue, "the Studio")
+    if (painting) await samplePaint(s, rec, ready, issue, "the Studio")
     writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
   } else if (page.kind === "play") {
     const play = await s.run(PLAY, null)
@@ -671,6 +714,7 @@ async function walkPage(session, server, page) {
     if (page.hash && !play.canvases.some((c) => c.state === "painted"))
       issue("canvas", "the played frame painted no canvas")
     if (measure) await sampleContrast(s, rec, ready, issue, "the player")
+    if (painting) await samplePaint(s, rec, ready, issue, "the player")
     writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
   }
 
@@ -779,6 +823,7 @@ for (const [name, body] of Object.entries({
   PLAY,
   PHONE,
   CONTRAST,
+  PAINT,
   A11Y,
   KEYS_START,
   KEYS_END,
@@ -904,6 +949,7 @@ const totals = {
     boxes: sum(phones, (r) => r.phone?.boxes),
     wells: sum(phones, (r) => r.phone?.wells),
   },
+  painted: sum(desk, (r) => r.painted),
   contrast: {
     dark: sum(
       desk.filter((r) => r.theme === "dark"),
@@ -959,10 +1005,11 @@ writeFileSync(join(out, `${engine}.json`), JSON.stringify(report, null, 1))
 const md = [
   `# The walk in ${version}`,
   "",
-  `${totals.pages} pages in ${totals.minutes} min: ${totals.sections} docs sections in dark, ${totals.light} again in light, the landing, the docs index, the Studio, the player and a missing address; ${totals.phone.pages} of them again at a phone's size.`,
+  `${shards > 1 ? `Shard ${shardAt} of ${shards}: ` : ""}${totals.pages} pages in ${totals.minutes} min: ${totals.sections} docs sections in dark, ${totals.light} again in light, the landing, the docs index, the Studio, the player and a missing address; ${totals.phone.pages} of them again at a phone's size.`,
   "",
   `- at a phone's size: ${totals.phone.targets} targets, ${totals.phone.fields} fields, ${totals.phone.boxes} boxes that hide their overflow and ${totals.phone.wells} demo wells checked`,
   `- contrast: ${totals.contrast.dark} text runs measured in dark, ${totals.contrast.light} in light`,
+  `- paint: ${totals.painted} elements under an SVG filter or a blend looked at on screen`,
   `- Run by styling system: ${Object.entries(byStyle)
     .map(([st, v]) => `${STYLE_LABELS[st]} ${v.rendered} of ${v.runs} rendered`)
     .join(", ")}`,

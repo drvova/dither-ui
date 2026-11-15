@@ -435,9 +435,10 @@ Default section order:
   `npm run walk -- --engine chromium|webkit|firefox` walks every page of a
   built site in one engine (every docs section's cards, canvases, Code tab
   and Run in each styling system, in both themes, the Studio's paths, the
-  player; the contrast of the text as painted; a keyboard and
-  screen-reader pass over every page and its dialogs; every page again at
-  an iPhone's size), by hand, outside the gate (`packages/tasks/AGENTS.md`).
+  player; the contrast of the text as painted; what an SVG filter blanks
+  or a blend paints black; a keyboard and screen-reader pass over every
+  page and its dialogs; every page again at an iPhone's size), by hand or
+  in its own workflow, outside the gate (`packages/tasks/AGENTS.md`).
 - Motion in container units: `@dither-ui/kit/engine/keyframes.ts` (lengths as unit
   terms, interpolated with their units kept, resolved to px against a box)
   drives `DitherStage` (a size query container with one kit-clock) and
@@ -527,7 +528,11 @@ Default section order:
 - CI (`.github/workflows/ci.yml`) is two jobs on one install: `check`
   (lint, format, the types of the whole repository, the framework-free
   specs and the kit's component specs) and `site` (the site's component
-  specs, the static build, the specs again over the built site).
+  specs, the static build, the specs again over the built site). The walk
+  (`.github/workflows/walk.yml`) stays out of that gate: nightly, on
+  dispatch and on a pull request labelled `walk`, one build handed as an
+  artifact to a matrix of the three engines in three shards each, every
+  job's report and shots uploaded, a finding failing its job.
 - The site's build prerenders every page so non-JS crawlers read the real
   page DOM from bytes, and its post-build draws in headless Chromium
   (`CHROME_PATH` or standard install paths, preinstalled on GitHub Actions
