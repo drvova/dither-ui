@@ -2,7 +2,11 @@ import { DitherShapeBlur } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherShapeBlur class="h-64" />
+  return (
+    <div class="h-64 w-full overflow-hidden rounded-lg border border-border/60">
+      <DitherShapeBlur />
+    </div>
+  )
 }
 
 export const meta = defineExample({

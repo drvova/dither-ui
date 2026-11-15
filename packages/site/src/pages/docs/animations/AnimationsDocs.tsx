@@ -1,53 +1,7 @@
-import { createEffect, createMemo, createSignal, For } from "solid-js"
-import {
-  DitherAnimatedContent,
-  DitherAurora,
-  DitherBlobCursor,
-  DitherClickSpark,
-  DitherCrosshair,
-  DitherContainer,
-  DitherLayer,
-  DitherStage,
-  DitherFadeContent,
-  DitherGhostCursor,
-  DitherGlareHover,
-  DitherGradualBlur,
-  DitherImageTrail,
-  DitherMagnet,
-  DitherPixelTrail,
-  DitherSplashCursor,
-  DitherTargetCursor,
-  DitherMetaBalls,
-  DitherMetallicPaint,
-  DitherNoise,
-  DitherCubes,
-  DitherRibbons,
-  DitherSequence,
-  DitherShapeBlur,
-  DitherStrands,
-  DitherLaserFlow,
-  DitherAntigravity,
-  DitherMagicRings,
-  DitherMagnetLines,
-  DitherPixelTransition,
-  DitherReveal,
-  DitherStickerPeel,
-  DitherIsland,
-  DitherCardStack,
-  DitherDock,
-  DitherPreviewRail,
-  DitherScrollProgress,
-  DitherSnapButton,
-  DitherGooeyMenu,
-  DitherBouncyAccordion,
-  DitherSlideAction,
-  DitherHoldAction,
-  DitherWalletCard,
-  DitherNotificationStack,
-} from "@dither-ui/kit"
-import { linear, quantize, steps } from "@dither-ui/kit"
-import type { StaggerFrom } from "@dither-ui/kit"
+import { createSignal, For } from "solid-js"
+import type {} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
+import { exampleCode } from "../example-code"
 import TransitionSection from "./TransitionSection"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
 import stageProps from "virtual:dither-props/DitherStage"
@@ -113,6 +67,92 @@ import ExpandTabsExample from "./examples/expand-tabs"
 import expandTabsCode from "./examples/expand-tabs.tsx?raw"
 import ExpandingArrowExample from "./examples/expanding-arrow"
 import expandingArrowCode from "./examples/expanding-arrow.tsx?raw"
+import AnimatedContentExample from "./examples/animated-content"
+import animatedContentCode from "./examples/animated-content.tsx?raw"
+import FadeContentExample from "./examples/fade-content"
+import fadeContentCode from "./examples/fade-content.tsx?raw"
+import GradualBlurExample from "./examples/gradual-blur"
+import gradualBlurCode from "./examples/gradual-blur.tsx?raw"
+import GlareHoverExample from "./examples/glare-hover"
+import glareHoverCode from "./examples/glare-hover.tsx?raw"
+import MagnetExample from "./examples/magnet"
+import magnetCode from "./examples/magnet.tsx?raw"
+import ClickSparkExample from "./examples/click-spark"
+import clickSparkCode from "./examples/click-spark.tsx?raw"
+import BlobCursorExample from "./examples/blob-cursor"
+import blobCursorCode from "./examples/blob-cursor.tsx?raw"
+import CrosshairExample from "./examples/crosshair"
+import crosshairCode from "./examples/crosshair.tsx?raw"
+import GhostCursorExample from "./examples/ghost-cursor"
+import ghostCursorCode from "./examples/ghost-cursor.tsx?raw"
+import SplashCursorExample from "./examples/splash-cursor"
+import splashCursorCode from "./examples/splash-cursor.tsx?raw"
+import TargetCursorExample from "./examples/target-cursor"
+import targetCursorCode from "./examples/target-cursor.tsx?raw"
+import PixelTrailExample from "./examples/pixel-trail"
+import pixelTrailCode from "./examples/pixel-trail.tsx?raw"
+import ImageTrailExample from "./examples/image-trail"
+import imageTrailCode from "./examples/image-trail.tsx?raw"
+import MetaBallsExample from "./examples/meta-balls"
+import metaBallsCode from "./examples/meta-balls.tsx?raw"
+import MetallicPaintExample from "./examples/metallic-paint"
+import metallicPaintCode from "./examples/metallic-paint.tsx?raw"
+import NoiseExample from "./examples/noise"
+import noiseCode from "./examples/noise.tsx?raw"
+import CubesExample from "./examples/cubes"
+import cubesCode from "./examples/cubes.tsx?raw"
+import RibbonsExample from "./examples/ribbons"
+import ribbonsCode from "./examples/ribbons.tsx?raw"
+import ShapeBlurExample from "./examples/shape-blur"
+import shapeBlurCode from "./examples/shape-blur.tsx?raw"
+import StrandsExample from "./examples/strands"
+import strandsCode from "./examples/strands.tsx?raw"
+import LaserFlowExample from "./examples/laser-flow"
+import laserFlowCode from "./examples/laser-flow.tsx?raw"
+import AntigravityExample from "./examples/antigravity"
+import antigravityCode from "./examples/antigravity.tsx?raw"
+import MagicRingsExample from "./examples/magic-rings"
+import magicRingsCode from "./examples/magic-rings.tsx?raw"
+import MagnetLinesExample from "./examples/magnet-lines"
+import magnetLinesCode from "./examples/magnet-lines.tsx?raw"
+import PixelTransitionExample from "./examples/pixel-transition"
+import pixelTransitionCode from "./examples/pixel-transition.tsx?raw"
+import DitherRevealExample from "./examples/dither-reveal"
+import ditherRevealCode from "./examples/dither-reveal.tsx?raw"
+import StickerPeelExample from "./examples/sticker-peel"
+import stickerPeelCode from "./examples/sticker-peel.tsx?raw"
+import IslandExample from "./examples/island"
+import islandCode from "./examples/island.tsx?raw"
+import CardStackExample from "./examples/card-stack"
+import cardStackCode from "./examples/card-stack.tsx?raw"
+import DockExample from "./examples/dock"
+import dockCode from "./examples/dock.tsx?raw"
+import PreviewRailExample from "./examples/preview-rail"
+import previewRailCode from "./examples/preview-rail.tsx?raw"
+import ScrollProgressExample from "./examples/scroll-progress"
+import scrollProgressCode from "./examples/scroll-progress.tsx?raw"
+import SnapButtonExample from "./examples/snap-button"
+import snapButtonCode from "./examples/snap-button.tsx?raw"
+import GooeyMenuExample from "./examples/gooey-menu"
+import gooeyMenuCode from "./examples/gooey-menu.tsx?raw"
+import BouncyAccordionExample from "./examples/bouncy-accordion"
+import bouncyAccordionCode from "./examples/bouncy-accordion.tsx?raw"
+import SlideActionExample from "./examples/slide-action"
+import slideActionCode from "./examples/slide-action.tsx?raw"
+import HoldActionExample from "./examples/hold-action"
+import holdActionCode from "./examples/hold-action.tsx?raw"
+import WalletCardExample from "./examples/wallet-card"
+import walletCardCode from "./examples/wallet-card.tsx?raw"
+import NotificationStackExample from "./examples/notification-stack"
+import notificationStackCode from "./examples/notification-stack.tsx?raw"
+import SequencesExample from "./examples/sequences"
+import sequencesCode from "./examples/sequences.tsx?raw"
+import ContainerQueriesExample from "./examples/container-queries"
+import containerQueriesCode from "./examples/container-queries.tsx?raw"
+import StageExample from "./examples/stage"
+import stageCode from "./examples/stage.tsx?raw"
+import StepTiming2Example from "./examples/step-timing-2"
+import stepTiming2Code from "./examples/step-timing-2.tsx?raw"
 
 export const API: Record<string, PropRow[]> = {
   stepTiming: [
@@ -271,364 +311,16 @@ el.style.animationTimingFunction = cssSteps(6, "jump-none") // "steps(6, jump-no
 
 // driver-level: hold the raster between wall-time frame boundaries
 const idx = frameIndex(elapsedMs, 12)    // same idx → skip the paint entirely`,
-  stepTimingAurora: `{/* the field driver's own knob: stop-motion and fewer uploads */}
-<div class="grid grid-cols-2 gap-3">
-  {/* smooth, a paint throttle near 30fps */}
-  <div class="h-36"><DitherAurora /></div>
-  {/* film: paints 8 times a second, holds between */}
-  <div class="h-36"><DitherAurora frameRate={8} /></div>
-</div>`,
-  sequences: `import { DitherSequence, steps } from "@dither-kit"
-const [key, setKey] = createSignal(0)
-const [waves, setWaves] = createSignal(0)
-
-{/* children wave in from the center, ping-pong three times, quantized; the
-     driver writes --seq-p (0 to 1) and data-seq (before, active or done) on
-     each child, and each child styles itself from them. planSequence and
-     sampleSequence run the same algebra under your own clock */}
-<DitherSequence
-  stagger={0.07} from="center" duration={0.6}
-  loop={3} yoyo easing={steps(4)}
-  restartKey={key()} onComplete={() => setWaves(waves() + 1)}
-  class="grid grid-cols-6 gap-2"
->
-  <For each={Array.from({ length: 12 }, (_, k) => k + 1)}>{(i) => <div class="h-8 rounded bg-foreground" style="opacity: var(--seq-p, 0)" />}</For>
-</DitherSequence>
-<button type="button" class="mt-3" onClick={() => setKey(key() + 1)}>Replay ({waves()} played)</button>`,
-  stage: `<DitherStage duration={8} class="h-56 rounded-lg border">
-  {(stage) => (
-    <>
-      {/* a canvas layer drifts 12% of the stage, at any size */}
-      <DitherLayer keyframes={[{ x: '-6cqw' }, { x: '6cqw' }]} duration={8} yoyo loop>
-        <DitherAurora colors={['#1f6fd6', '#9ec5ff', '#ffffff']} class="h-full" />
-      </DitherLayer>
-      {/* SVG parallax */}
-      <DitherLayer keyframes={[{ x: 0 }, { x: '-24cqw' }]} duration={8} yoyo loop>
-        <svg viewBox="0 0 148 40" preserveAspectRatio="none" class="absolute bottom-0 h-2/5 w-[124%] fill-[#0b1a3a]">
-          <path d="M0 40 V30 Q14 22 28 30 T56 24 T84 32 T112 22 T140 30 T148 26 V40 Z" />
-        </svg>
-      </DitherLayer>
-      {/* the moon places its keys with at (seconds or a percentage) */}
-      <DitherLayer
-        keyframes={[
-          { at: 0, x: '80cqw', y: '12cqh', rotate: 0 },
-          { at: '50%', easing: 'ease-in-out', rotate: '0.5turn' },
-          { x: '20cqw', y: '8cqh', rotate: '1turn' },
-        ]}
-        duration={8} loop origin="0 0" class="size-7"
-      >
-        <svg viewBox="0 0 24 24" class="size-7 fill-white"><circle cx="12" cy="12" r="10" /></svg>
-      </DitherLayer>
-      {/* the same keys, resolved to px for painters */}
-      <DitherLayer keyframes={[{ cx: '10cqw', cy: '70cqh' }, { cx: '90cqw', cy: '40cqh' }]} duration={4} yoyo loop>
-        {(at) => (
-          <svg viewBox={'0 0 ' + Math.max(1, stage.width) + ' ' + Math.max(1, stage.height)} class="size-full">
-            <circle cx={at.cx} cy={at.cy} r="4" class="fill-current" />
-          </svg>
-        )}
-      </DitherLayer>
-    </>
-  )}
-</DitherStage>
-
-{/* the engine alone: sampleKeyframes, keyframeTransform and resolveSample
-     sample the same keys, write the transform and resolve it to px */}`,
-  containerQueries: `import { DitherContainer, quantize } from "@dither-kit"
-
-{/* children read THIS box's width — not the viewport's */}
-<DitherContainer
-  scale={{ xs: 0, sm: 260, md: 360, lg: 450, xl: 530 }}
-  step={8}
-  name="card"
-  class="cq-card"
->
-  {(scope) => (
-    <>
-      <span class="readout">{scope.size} · {scope.width}px · q8 {quantize(scope.width, 8)}</span>
-      <DitherSequence
-        stagger={0.03 + scope.index * 0.02}
-        from={scope.index >= 3 ? 'center' : 'start'}
-        restartKey={scope.size}
-        class="cq-grid"
-      >
-        <For each={Array.from({ length: 12 }, (_, k) => k + 1)}>{(i) => <div class="cell" />}</For>
-      </DitherSequence>
-    </>
-  )}
-</DitherContainer>
-
-{/* the stylesheet route, the same scope with zero JS (native @container):
-       @container card (min-width: 520px) { .readout { letter-spacing: 0.12em; } }
-     the motion route, shipped keyframes that measure the container itself:
-       .scan { animation: dither-cq-traverse 2.8s ease-in-out infinite alternate; }
-     the selector route, the engine's active bucket on the host element:
-       .cq-card[data-cq="xs"] .cell { border-color: #d9a441; }
-       .cq-card[data-cq="xl"] .cell { border-color: #3f8ff3; } */}`,
-  animatedContent: `<DitherAnimatedContent distance={40} direction="vertical">
-  <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Slides up on view</div>
-</DitherAnimatedContent>`,
-  fadeContent: `<DitherFadeContent blur={true}>
-  <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Fades in on view</div>
-</DitherFadeContent>`,
-  gradualBlur: `<DitherGradualBlur position="bottom" height={72} strength={5} class="w-64">
-  <div class="grid gap-1 text-[13px] text-muted-foreground">
-    <For each={Array.from({ length: 6 }, (_, k) => k + 1)}>{(n) => <p>Row {n}: content scrolls under the blur band.</p>}</For>
-  </div>
-</DitherGradualBlur>`,
-  glareHover: `<DitherGlareHover>
-  <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Hover me</div>
-</DitherGlareHover>`,
-  magnet: `<DitherMagnet strength={0.4}><button>Magnet</button></DitherMagnet>`,
-  clickSpark: `<DitherClickSpark color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
-  Click anywhere here
-</DitherClickSpark>`,
-  blobCursor: `<DitherBlobCursor color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
-  Move your cursor here
-</DitherBlobCursor>`,
-  crosshair: `<DitherCrosshair color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
-  Move your cursor here
-</DitherCrosshair>`,
-  ghostCursor: `<DitherGhostCursor color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
-  Move your cursor here
-</DitherGhostCursor>`,
-  splashCursor: `<DitherSplashCursor color="#3DA5FF" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
-  Move your cursor here
-</DitherSplashCursor>`,
-  targetCursor: `<DitherTargetCursor color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
-  Move your cursor here
-</DitherTargetCursor>`,
-  pixelTrail: `<DitherPixelTrail color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
-  Move your cursor here
-</DitherPixelTrail>`,
-  imageTrail: `<DitherImageTrail class="grid h-44 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
-  Move your cursor here
-</DitherImageTrail>`,
-  metaBalls: `<DitherMetaBalls class="h-64" />`,
-  metallicPaint: `<DitherMetallicPaint class="h-64" />`,
-  noise: `<DitherNoise class="h-64" />`,
-  cubes: `<DitherCubes class="h-64" />`,
-  ribbons: `<DitherRibbons class="h-64" />`,
-  shapeBlur: `<DitherShapeBlur class="h-64" />`,
-  strands: `<DitherStrands class="h-64" />`,
-  laserFlow: `<DitherLaserFlow class="h-64" />`,
-  antigravity: `<DitherAntigravity class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground">Antigravity</DitherAntigravity>`,
-  magicRings: `<DitherMagicRings class="h-52 w-full">
-  <span class="grid size-12 place-items-center rounded-full border bg-card text-xs">core</span>
-</DitherMagicRings>`,
-  magnetLines: `<DitherMagnetLines class="h-52" />`,
-  pixelTransition: `<DitherPixelTransition color="#181b22" class="grid h-32 w-56 place-items-center rounded-lg border">
-  <span class="text-lg">Revealed</span>
-</DitherPixelTransition>`,
-  ditherReveal: `const [nonce, setNonce] = createSignal(0)
-
-<DitherReveal direction="right" cell={4} duration={1.4} restartKey={nonce()} class="h-32 w-56">
-  <div class="grid h-full place-items-center rounded-lg border bg-card text-lg">Revealed</div>
-</DitherReveal>
-<button type="button" class="mt-3" onClick={() => setNonce(nonce() + 1)}>Replay</button>
-
-{/* or drive it from a timeline: progress (0 to 1) sets the mask, a pure
-     function of it; wipeStyle gives any element the same mask */}`,
-  stickerPeel: `<DitherStickerPeel>
-  <div class="grid h-24 w-40 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">Peel me</div>
-</DitherStickerPeel>`,
-  island: `const [expanded, setExpanded] = createSignal(false)
-
-<DitherIsland modelValue={expanded()} onUpdateModelValue={setExpanded} label="Deploy running" color="green" live>
-  Build 214, lint ok, bundle 84kB, 3 of 5 steps done.  {/* unfolds beneath the pill */}
-</DitherIsland>`,
-  cardStack: `const cards = [
-  { title: "Prints: riso on cream" },
-  { title: "Frames: oak 24×30" },
-  { title: "Zines: issue 04" },
-  { title: "Stickers: die-cut set" },
-]
-const [top, setTop] = createSignal(0)
-
-{/* drag horizontally, a flick advances, the deck cycles */}
-<DitherCardStack items={cards} class="h-40 w-64" onAdvance={(i) => (setTop(i))}>
-  {(scope) => (
-    <article class="h-full rounded-lg border bg-card p-4">{scope.item.title}</article>
-  )}
-</DitherCardStack>
-<p class="mt-3 text-center text-[10px]">card {top() + 1} of {cards.length}</p>`,
-  dock: `const [picked, setPicked] = createSignal("none")
-
-{/* a gaussian magnify around the pointer */}
-<DitherDock items={[
-  { value: 'home', label: 'Home' },
-  { value: 'studio', label: 'Studio', color: 'purple' },
-  { value: 'docs', label: 'Docs', color: 'green' },
-  { value: 'alerts', label: 'Alerts', color: 'red' },
-]} onSelect={(value) => (setPicked(value))} />
-<p class="mt-2 text-[10px]">selected: {picked()}</p>`,
-  previewRail: `const [dest, setDest] = createSignal("inbox")
-
-{/* ticks pyramid around the pointer, the preview floats beside the rail */}
-<DitherPreviewRail modelValue={dest()} onUpdateModelValue={setDest} items={[
-  { value: 'inbox', label: 'Inbox', hint: '12 unread threads', color: 'blue' },
-  { value: 'drafts', label: 'Drafts', hint: '2 in progress', color: 'purple' },
-  { value: 'planner', label: 'Planner', hint: 'Sprint 14, day 3', color: 'green' },
-  { value: 'metrics', label: 'Metrics', hint: 'p95 latency 42ms', color: 'orange' },
-  { value: 'settings', label: 'Settings', hint: 'Workspace + theme' },
-]} />`,
-  scrollProgress: `<DitherScrollProgress />                    {/* viewport, fixed top */}
-<DitherScrollProgress attach="parent" color="purple" />  {/* nearest scrollable parent */}`,
-  snapButton: `const [deploys, setDeploys] = createSignal(0)
-
-{/* a 1:1 drag, rubber-band past the line, the border arms at the threshold;
-     release fires snap, and Enter or Space fires without the pull */}
-<DitherSnapButton threshold={64} axis="x" color="green" onSnap={() => setDeploys(deploys() + 1)}>
-  Pull to deploy
-</DitherSnapButton>
-<p class="text-[10px]">deploys fired: {deploys()}</p>`,
-  gooeyMenu: `const [expanded, setExpanded] = createSignal(false)
-const [picked, setPicked] = createSignal("none")
-
-{/* one SVG goo filter fuses the circles while they travel */}
-<DitherGooeyMenu modelValue={expanded()} onUpdateModelValue={setExpanded} items={[
-  { value: 'add', label: 'Add', color: 'green' },
-  { value: 'export', label: 'Export', color: 'blue' },
-  { value: 'share', label: 'Share', color: 'purple' },
-]} direction="up" onSelect={(value) => (setPicked(value))} />
-<p class="mt-3 text-[10px]">picked: {picked()}</p>`,
-  bouncyAccordion: `const [panel, setPanel] = createSignal("overview")
-
-{/* single-open: a spring overshoot on open, a brisk close */}
-<DitherBouncyAccordion modelValue={panel()} onUpdateModelValue={setPanel} items={[
-  { value: 'overview', label: 'Overview', hint: 'What shipped this week', icon: '▤',
-    content: 'Charts, buttons and backgrounds now share one Bayer engine.' },
-  { value: 'activity', label: 'Activity', hint: '3 deploys, 1 rollback', icon: '◷', color: 'green',
-    content: 'Build 214 settled after a weighted spring: 8% overshoot, then calm.' },
-  { value: 'alerts', label: 'Alerts', hint: 'One flapping check', icon: '◈', color: 'orange',
-    content: 'p95 latency wobbled at 04:00 and snapped back on its own.' },
-]} />`,
-  slideAction: `const [deploys, setDeploys] = createSignal(0)
-
-{/* a 1:1 thumb drag where flick momentum counts; an early release springs
-     back, and Enter or Space confirms without the slide */}
-<DitherSlideAction label="Slide to deploy" color="green" onConfirm={() => setDeploys(deploys() + 1)} />
-<p class="text-[10px]">deploys: {deploys()}</p>`,
-  holdAction: `const [completed, setCompleted] = createSignal(0)
-
-{/* a liquid fill with a dotted crest; release early to drain */}
-<DitherHoldAction duration={1200} direction="vertical" color="orange" onComplete={() => setCompleted(completed() + 1)}>
-  Hold to purge cache
-</DitherHoldAction>
-<p class="text-[10px]">completed: {completed()}</p>`,
-  walletCard: `const [account, setAccount] = createSignal("main")
-const [last, setLast] = createSignal("none")
-
-{/* the switcher and search morph from their triggers, the digits cascade,
-     privacy masks the balance, copying the address answers with a check */}
-<DitherWalletCard modelValue={account()} onUpdateModelValue={setAccount} accounts={[
-  { value: 'main', label: 'Main', address: '0x7f3a9c2e14b7d55aa93d', balance: 12480.52, change: 2.4 },
-  { value: 'savings', label: 'Savings', address: '0x8b21e0c4a6f9d1327e55', balance: 8210.11, change: -1.1, color: 'purple' },
-  { value: 'trading', label: 'Trading', address: '0x91cc4db2e87a30f6b214', balance: 3033.7, change: 0.6, color: 'orange' },
-]} recent={['gas fees', 'swap history']} notifications
-  onAction={(name) => (setLast(name))} onSubmit={(query) => (setLast('search: ' + query))}
-  onNotify={() => setLast('notifications')} class="w-full max-w-80" />
-<p class="text-[10px]">last: {last()}</p>`,
 }
 
-const cardBox =
-  "grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground"
-const cursorArea =
-  "grid h-40 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground"
-const canvasBox = "h-64 w-full overflow-hidden rounded-lg border border-border/60"
-
-const STACK_CARDS = [
-  { title: "Prints: riso on cream", color: "purple" },
-  { title: "Frames: oak 24×30", color: "blue" },
-  { title: "Zines: issue 04", color: "green" },
-  { title: "Stickers: die-cut set", color: "orange" },
-] as { title: string; color: "purple" | "blue" | "green" | "orange" }[]
 const STACK_VARIANTS = ["stack", "fan", "condensed"] as const
 const stackChip = (active: boolean) =>
   `rounded px-2.5 py-1 text-[11px] transition-colors ${active ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground"}`
-const WALLET_ACCOUNTS = [
-  { value: "main", label: "Main", address: "0x7f3a9c2e14b7d55aa93d", balance: 12480.52, change: 2.4 },
-  {
-    value: "savings",
-    label: "Savings",
-    address: "0x8b21e0c4a6f9d1327e55",
-    balance: 8210.11,
-    change: -1.1,
-    color: "purple",
-  },
-  {
-    value: "trading",
-    label: "Trading",
-    address: "0x91cc4db2e87a30f6b214",
-    balance: 3033.7,
-    change: 0.6,
-    color: "orange",
-  },
-] as { value: string; label: string; address: string; balance: number; change: number; color?: "purple" | "orange" }[]
-
-/** 1..n, what a `v-for="i in n"` walked. */
-const count = (n: number) => Array.from({ length: n }, (_, i) => i + 1)
 
 export default function AnimationsDocs() {
-  const [revealDirection, setRevealDirection] = createSignal<"none" | "right" | "down" | "iris">("none")
-  const [revealNonce, setRevealNonce] = createSignal(0)
-  const replayReveal = (direction: "none" | "right" | "down" | "iris") => {
-    setRevealDirection(direction)
-    setRevealNonce((n) => n + 1)
-  }
-  const [islandOpen, setIslandOpen] = createSignal(false)
-  const [stackIndex, setStackIndex] = createSignal(0)
-  const [dockPick, setDockPick] = createSignal("none")
-  const [railDest, setRailDest] = createSignal("inbox")
-  const [snapCount, setSnapCount] = createSignal(0)
-  const [gooeyOpen, setGooeyOpen] = createSignal(false)
-  const [bouncyPanel, setBouncyPanel] = createSignal("overview")
-  const [slideCount, setSlideCount] = createSignal(0)
-  const [holdCount, setHoldCount] = createSignal(0)
-  const [walletAccount, setWalletAccount] = createSignal("main")
-  const [walletNote, setWalletNote] = createSignal("none")
-  const [stackPinned, setStackPinned] = createSignal(false)
-  const [stackNote, setStackNote] = createSignal("none")
   const [stackVariant, setStackVariant] = createSignal<(typeof STACK_VARIANTS)[number]>("stack")
-  const stackSnippet = createMemo(
-    () => `const [pinned, setPinned] = createSignal(false)
-const [last, setLast] = createSignal("none")
-
-<DitherNotificationStack modelValue={pinned()} onUpdateModelValue={setPinned}${stackVariant() === "stack" ? "" : ` variant="${stackVariant()}"`} items={[
-  { id: 'n1', title: 'Deploy finished', body: 'dither-ui shipped to production in 42s', time: '2m', icon: '↑', color: 'green' },
-  { id: 'n2', title: 'New comment', body: 'Rei: “the drum snaps beautifully”', time: '16m', icon: '▤', color: 'blue' },
-  { id: 'n3', title: 'Build warning', body: 'chunk index.js is 447 kB', time: '1h', icon: '◈', color: 'orange' },
-]} onViewall={() => setLast('view all')} />
-<p class="text-[10px]">pinned: {pinned()}, last: {last()}</p>
-{/* stacked summary → readable list on hover, focus or tap · tap pins ·
-     spring fan-out with per-card stagger */}`,
-  )
-  const [gooeyPick, setGooeyPick] = createSignal("none")
-  // Sequence demo: control changes double as restart keys — the plan rebuilds
-  // and replays whenever origin, easing or the replay nonce shifts.
-  const [seqFrom, setSeqFrom] = createSignal<StaggerFrom>("center")
-  const [seqQuant, setSeqQuant] = createSignal(false)
-  const [seqNonce, setSeqNonce] = createSignal(0)
-  const seqEasing = createMemo(() => (seqQuant() ? steps(4) : linear))
-  const seqKey = createMemo(() => `${String(seqFrom())}|${seqQuant()}|${seqNonce()}`)
-  // Container demo: the panel is a native resize box; steppers are its
-  // keyboard path (both feed the same ResizeObserver the engine listens to).
-  // The Solid DitherContainer hands out no element, so a stepper finds the
-  // panel as the element after its own row.
-  const [stageWidth, setStageWidth] = createSignal(100)
-  function nudgeCq(stepper: HTMLElement, delta: number): void {
-    const host = stepper.parentElement?.nextElementSibling as HTMLElement | null | undefined
-    if (!host) return
-    const w = Math.round(host.getBoundingClientRect().width)
-    host.style.width = `${Math.min(580, Math.max(200, w + delta))}px`
-  }
-  // The Solid DitherStage takes no style, so the stage's width is written on
-  // its element: the one after the row that holds the slider.
-  const widen = (row: HTMLElement) =>
-    createEffect(() => {
-      const width = `${stageWidth()}%`
-      const stage = row.nextElementSibling
-      if (stage instanceof HTMLElement) stage.style.width = width
-    })
+  // the variant picker's choice as the example's prop: stack is its default, left out
+  const stackPicks = () => ({ variant: stackVariant() === "stack" ? undefined : stackVariant() })
 
   return (
     <>
@@ -640,10 +332,8 @@ const [last, setLast] = createSignal("none")
           <code class="text-foreground/80">distance="4cqw"</code> reveals from 4% of the nearest query container, so the
           motion measures its parent instead of pixels.
         </p>
-        <DemoCard code={SNIPPETS.animatedContent}>
-          <DitherAnimatedContent distance={40}>
-            <div class={cardBox}>Slides up on view</div>
-          </DitherAnimatedContent>
+        <DemoCard code={animatedContentCode}>
+          <AnimatedContentExample />
         </DemoCard>
         <PropsTable rows={API.animatedContent} />
       </DocSection>
@@ -654,10 +344,8 @@ const [last, setLast] = createSignal("none")
           A pure fade-in on view, optionally de-blurring as it appears. The lighter cousin of Animated content when you
           only want opacity.
         </p>
-        <DemoCard code={SNIPPETS.fadeContent}>
-          <DitherFadeContent blur={true}>
-            <div class={cardBox}>Fades in on view</div>
-          </DitherFadeContent>
+        <DemoCard code={fadeContentCode}>
+          <FadeContentExample />
         </DemoCard>
         <PropsTable rows={API.fadeContent} />
       </DocSection>
@@ -668,12 +356,8 @@ const [last, setLast] = createSignal("none")
           A masked <code class="text-foreground/80">backdrop-filter</code> strip that progressively blurs toward an
           edge: the iOS-style soft fade over a scroll region.
         </p>
-        <DemoCard code={SNIPPETS.gradualBlur}>
-          <DitherGradualBlur position="bottom" height={72} strength={5} class="w-64">
-            <div class="space-y-1 text-[13px] leading-relaxed text-muted-foreground">
-              <For each={count(6)}>{(n) => <p>Row {n}: content scrolls under the blur band.</p>}</For>
-            </div>
-          </DitherGradualBlur>
+        <DemoCard code={gradualBlurCode}>
+          <GradualBlurExample />
         </DemoCard>
         <PropsTable rows={API.gradualBlur} />
       </DocSection>
@@ -708,10 +392,8 @@ const [last, setLast] = createSignal("none")
           A diagonal sheen sweeps across the surface on hover: the glossy-card reflection, done with a single masked
           gradient. Hover the card.
         </p>
-        <DemoCard code={SNIPPETS.glareHover}>
-          <DitherGlareHover>
-            <div class={cardBox}>Hover me</div>
-          </DitherGlareHover>
+        <DemoCard code={glareHoverCode}>
+          <GlareHoverExample />
         </DemoCard>
         <PropsTable rows={API.glareHover} />
       </DocSection>
@@ -722,12 +404,8 @@ const [last, setLast] = createSignal("none")
           The wrapped element is pulled toward the pointer while it is within range, easing back when the cursor leaves.
           Move your cursor near the button.
         </p>
-        <DemoCard code={SNIPPETS.magnet}>
-          <DitherMagnet strength={0.4}>
-            <button type="button" class="rounded-md border border-border/60 bg-card px-4 py-2 text-sm">
-              Magnet
-            </button>
-          </DitherMagnet>
+        <DemoCard code={magnetCode}>
+          <MagnetExample />
         </DemoCard>
         <PropsTable rows={API.magnet} />
       </DocSection>
@@ -738,13 +416,8 @@ const [last, setLast] = createSignal("none")
           A burst of spark lines radiates from every click inside the area, drawn on a lightweight canvas overlay. Click
           anywhere in the preview.
         </p>
-        <DemoCard code={SNIPPETS.clickSpark}>
-          <DitherClickSpark
-            color="#7CFF67"
-            class="grid h-40 w-full place-items-center rounded-lg border border-border/60"
-          >
-            <span class="text-sm text-muted-foreground">Click anywhere here</span>
-          </DitherClickSpark>
+        <DemoCard code={clickSparkCode}>
+          <ClickSparkExample />
         </DemoCard>
         <PropsTable rows={API.clickSpark} />
       </DocSection>
@@ -755,8 +428,8 @@ const [last, setLast] = createSignal("none")
           A soft, screen-blended blob eases toward the pointer inside the area: a gooey cursor companion. Move your
           cursor over the box.
         </p>
-        <DemoCard code={SNIPPETS.blobCursor}>
-          <DitherBlobCursor class={cursorArea}>Move your cursor here</DitherBlobCursor>
+        <DemoCard code={blobCursorCode}>
+          <BlobCursorExample />
         </DemoCard>
         <PropsTable rows={API.blobCursor} />
       </DocSection>
@@ -767,8 +440,8 @@ const [last, setLast] = createSignal("none")
           Full-height and full-width guide lines track the pointer across the area: a precision reticle. Move your
           cursor over the box.
         </p>
-        <DemoCard code={SNIPPETS.crosshair}>
-          <DitherCrosshair class={cursorArea}>Move your cursor here</DitherCrosshair>
+        <DemoCard code={crosshairCode}>
+          <CrosshairExample />
         </DemoCard>
         <PropsTable rows={API.crosshair} />
       </DocSection>
@@ -778,8 +451,8 @@ const [last, setLast] = createSignal("none")
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A tapering trail of fading dots chases the pointer on a canvas overlay. Move your cursor over the box.
         </p>
-        <DemoCard code={SNIPPETS.ghostCursor}>
-          <DitherGhostCursor class={cursorArea}>Move your cursor here</DitherGhostCursor>
+        <DemoCard code={ghostCursorCode}>
+          <GhostCursorExample />
         </DemoCard>
         <PropsTable rows={API.ghostCursor} />
       </DocSection>
@@ -789,8 +462,8 @@ const [last, setLast] = createSignal("none")
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Expanding ripple rings bloom along the pointer path, like drops on water. Move your cursor over the box.
         </p>
-        <DemoCard code={SNIPPETS.splashCursor}>
-          <DitherSplashCursor class={cursorArea}>Move your cursor here</DitherSplashCursor>
+        <DemoCard code={splashCursorCode}>
+          <SplashCursorExample />
         </DemoCard>
         <PropsTable rows={API.splashCursor} />
       </DocSection>
@@ -801,8 +474,8 @@ const [last, setLast] = createSignal("none")
           A slowly rotating corner-bracket reticle locks onto the pointer: a HUD targeting frame. Move your cursor over
           the box.
         </p>
-        <DemoCard code={SNIPPETS.targetCursor}>
-          <DitherTargetCursor class={cursorArea}>Move your cursor here</DitherTargetCursor>
+        <DemoCard code={targetCursorCode}>
+          <TargetCursorExample />
         </DemoCard>
         <PropsTable rows={API.targetCursor} />
       </DocSection>
@@ -813,8 +486,8 @@ const [last, setLast] = createSignal("none")
           The pointer lights up cells of a pixel grid that then fade back out: a glowing wake across the lattice. Move
           your cursor over the box.
         </p>
-        <DemoCard code={SNIPPETS.pixelTrail}>
-          <DitherPixelTrail class={cursorArea}>Move your cursor here</DitherPixelTrail>
+        <DemoCard code={pixelTrailCode}>
+          <PixelTrailExample />
         </DemoCard>
         <PropsTable rows={API.pixelTrail} />
       </DocSection>
@@ -825,10 +498,8 @@ const [last, setLast] = createSignal("none")
           Tiles from a palette drop along the pointer path, rotating and shrinking as they fade. Pass real image URLs
           via <code class="text-foreground/80">colors</code> swapped for tiles here. Move your cursor over the box.
         </p>
-        <DemoCard code={SNIPPETS.imageTrail}>
-          <DitherImageTrail class="grid h-44 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground">
-            Move your cursor here
-          </DitherImageTrail>
+        <DemoCard code={imageTrailCode}>
+          <ImageTrailExample />
         </DemoCard>
         <PropsTable rows={API.imageTrail} />
       </DocSection>
@@ -839,10 +510,8 @@ const [last, setLast] = createSignal("none")
           Orbiting blobs fuse into a gooey metaball iso-surface, tinted and ordered-dithered through the kit engine. The
           pointer adds a blob.
         </p>
-        <DemoCard code={SNIPPETS.metaBalls}>
-          <div class={canvasBox}>
-            <DitherMetaBalls />
-          </div>
+        <DemoCard code={metaBallsCode}>
+          <MetaBallsExample />
         </DemoCard>
         <PropsTable rows={API.metaBalls} />
       </DocSection>
@@ -853,10 +522,8 @@ const [last, setLast] = createSignal("none")
           Iterative domain-warped reflections read as flowing liquid chrome. Fully opaque, dithered across a metallic
           ramp.
         </p>
-        <DemoCard code={SNIPPETS.metallicPaint}>
-          <div class={canvasBox}>
-            <DitherMetallicPaint />
-          </div>
+        <DemoCard code={metallicPaintCode}>
+          <MetallicPaintExample />
         </DemoCard>
         <PropsTable rows={API.metallicPaint} />
       </DocSection>
@@ -867,10 +534,8 @@ const [last, setLast] = createSignal("none")
           Animated hashed grain thresholded against the Bayer matrix: living static for a texture overlay. Tune{" "}
           <code class="text-foreground/80">density</code> and blend it over content.
         </p>
-        <DemoCard code={SNIPPETS.noise}>
-          <div class={canvasBox}>
-            <DitherNoise />
-          </div>
+        <DemoCard code={noiseCode}>
+          <NoiseExample />
         </DemoCard>
         <PropsTable rows={API.noise} />
       </DocSection>
@@ -881,10 +546,8 @@ const [last, setLast] = createSignal("none")
           A rhombille tiling shades into a field of isometric cubes, each face lit and pulsing on noise. Tinted and
           ordered-dithered.
         </p>
-        <DemoCard code={SNIPPETS.cubes}>
-          <div class={canvasBox}>
-            <DitherCubes />
-          </div>
+        <DemoCard code={cubesCode}>
+          <CubesExample />
         </DemoCard>
         <PropsTable rows={API.cubes} />
       </DocSection>
@@ -895,10 +558,8 @@ const [last, setLast] = createSignal("none")
           Thick flowing bands ride wavy fbm centerlines, bright at the core and tinted per ribbon. The pointer bends
           nearby ribbons toward it.
         </p>
-        <DemoCard code={SNIPPETS.ribbons}>
-          <div class={canvasBox}>
-            <DitherRibbons />
-          </div>
+        <DemoCard code={ribbonsCode}>
+          <RibbonsExample />
         </DemoCard>
         <PropsTable rows={API.ribbons} />
       </DocSection>
@@ -909,10 +570,8 @@ const [last, setLast] = createSignal("none")
           A big soft blob morphs on noise and drifts toward the pointer: a gentle out-of-focus shape. Move your cursor
           over it.
         </p>
-        <DemoCard code={SNIPPETS.shapeBlur}>
-          <div class={canvasBox}>
-            <DitherShapeBlur />
-          </div>
+        <DemoCard code={shapeBlurCode}>
+          <ShapeBlurExample />
         </DemoCard>
         <PropsTable rows={API.shapeBlur} />
       </DocSection>
@@ -923,10 +582,8 @@ const [last, setLast] = createSignal("none")
           Dozens of thin filaments sway on fbm like blown hair, tinted by depth and ordered-dithered with transparent
           gaps.
         </p>
-        <DemoCard code={SNIPPETS.strands}>
-          <div class={canvasBox}>
-            <DitherStrands />
-          </div>
+        <DemoCard code={strandsCode}>
+          <StrandsExample />
         </DemoCard>
         <PropsTable rows={API.strands} />
       </DocSection>
@@ -936,10 +593,8 @@ const [last, setLast] = createSignal("none")
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Sharp horizontal beams sweep with additive bloom and a faint jitter, tinted per beam: a scanning laser array.
         </p>
-        <DemoCard code={SNIPPETS.laserFlow}>
-          <div class={canvasBox}>
-            <DitherLaserFlow />
-          </div>
+        <DemoCard code={laserFlowCode}>
+          <LaserFlowExample />
         </DemoCard>
         <PropsTable rows={API.laserFlow} />
       </DocSection>
@@ -949,8 +604,8 @@ const [last, setLast] = createSignal("none")
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A field of motes drifts upward and wraps: gravity in reverse, layered behind your content.
         </p>
-        <DemoCard code={SNIPPETS.antigravity}>
-          <DitherAntigravity class={cursorArea}>Antigravity</DitherAntigravity>
+        <DemoCard code={antigravityCode}>
+          <AntigravityExample />
         </DemoCard>
         <PropsTable rows={API.antigravity} />
       </DocSection>
@@ -973,12 +628,8 @@ const [last, setLast] = createSignal("none")
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Concentric rings pulse outward from the center on a stagger: a radar-ping halo around whatever you wrap.
         </p>
-        <DemoCard code={SNIPPETS.magicRings}>
-          <DitherMagicRings class="h-52 w-full">
-            <span class="grid h-12 w-12 place-items-center rounded-full border border-border/60 bg-card text-xs text-muted-foreground">
-              core
-            </span>
-          </DitherMagicRings>
+        <DemoCard code={magicRingsCode}>
+          <MagicRingsExample />
         </DemoCard>
         <PropsTable rows={API.magicRings} />
       </DocSection>
@@ -989,8 +640,8 @@ const [last, setLast] = createSignal("none")
           A grid of little needles all swivel to point at the pointer, like iron filings over a magnet. Move your cursor
           over the box.
         </p>
-        <DemoCard code={SNIPPETS.magnetLines}>
-          <DitherMagnetLines class={cursorArea} />
+        <DemoCard code={magnetLinesCode}>
+          <MagnetLinesExample />
         </DemoCard>
         <PropsTable rows={API.magnetLines} />
       </DocSection>
@@ -1015,13 +666,8 @@ const [last, setLast] = createSignal("none")
           A grid of pixel cells covers the content and dissolves in a scattered order on hover, revealing what is
           underneath. Hover the card.
         </p>
-        <DemoCard code={SNIPPETS.pixelTransition}>
-          <DitherPixelTransition
-            class="grid h-32 w-56 place-items-center rounded-lg border border-border/60"
-            color="#181b22"
-          >
-            <span class="text-lg tracking-tight">Revealed</span>
-          </DitherPixelTransition>
+        <DemoCard code={pixelTransitionCode}>
+          <PixelTransitionExample />
         </DemoCard>
         <PropsTable rows={API.pixelTransition} />
       </DocSection>
@@ -1034,54 +680,8 @@ const [last, setLast] = createSignal("none")
           frame (the player, a video export) gets the same cells every time, and the Studio's reels cut between frames
           with it. Pass <code class="text-foreground/80">progress</code> to drive it from your own timeline.
         </p>
-        <DemoCard code={SNIPPETS.ditherReveal}>
-          <div class="flex flex-col items-center gap-3">
-            <DitherReveal
-              direction={revealDirection()}
-              cell={4}
-              duration={1.4}
-              restartKey={revealNonce()}
-              class="h-32 w-56"
-            >
-              <div class="grid h-full w-full place-items-center rounded-lg border border-border/60 bg-card">
-                <span class="text-lg tracking-tight">Revealed</span>
-              </div>
-            </DitherReveal>
-            <div class="flex flex-wrap items-center gap-2">
-              <For
-                each={
-                  [
-                    ["none", "Dissolve"],
-                    ["right", "Wipe right"],
-                    ["down", "Wipe down"],
-                    ["iris", "Iris"],
-                  ] as const
-                }
-              >
-                {(opt) => (
-                  <button
-                    type="button"
-                    class={`rounded border px-2 py-1 text-[11px] ${
-                      revealDirection() === opt[0]
-                        ? "border-accent bg-accent text-accent-foreground"
-                        : "border-border/60 text-muted-foreground hover:bg-accent/40"
-                    }`}
-                    aria-pressed={revealDirection() === opt[0]}
-                    onClick={() => replayReveal(opt[0])}
-                  >
-                    {opt[1]}
-                  </button>
-                )}
-              </For>
-              <button
-                type="button"
-                class="rounded border border-border/60 px-2 py-1 text-[11px] text-muted-foreground hover:bg-accent/40"
-                onClick={() => setRevealNonce((n) => n + 1)}
-              >
-                Replay
-              </button>
-            </div>
-          </div>
+        <DemoCard code={ditherRevealCode}>
+          <DitherRevealExample />
         </DemoCard>
         <PropsTable rows={API.ditherReveal} />
       </DocSection>
@@ -1094,12 +694,8 @@ const [last, setLast] = createSignal("none")
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A corner of the card peels up on hover with a soft curl shadow: the sticker lift. Hover the card.
         </p>
-        <DemoCard code={SNIPPETS.stickerPeel}>
-          <DitherStickerPeel>
-            <div class="grid h-24 w-40 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground">
-              Peel me
-            </div>
-          </DitherStickerPeel>
+        <DemoCard code={stickerPeelCode}>
+          <StickerPeelExample />
         </DemoCard>
         <PropsTable rows={API.stickerPeel} />
       </DocSection>
@@ -1122,19 +718,8 @@ const [last, setLast] = createSignal("none")
           A morphing status pill: the compact row keeps its pulse while the detail unfolds beneath. Escape collapses;
           reduced motion snaps.
         </p>
-        <DemoCard code={SNIPPETS.island}>
-          <div class="grid min-h-28 place-items-center">
-            <DitherIsland
-              modelValue={islandOpen()}
-              onUpdateModelValue={setIslandOpen}
-              label="Deploy running"
-              color="green"
-              live
-              class="w-64"
-            >
-              Build 214, lint ok, bundle 84kB, 3 of 5 steps done.
-            </DitherIsland>
-          </div>
+        <DemoCard code={islandCode}>
+          <IslandExample />
         </DemoCard>
         <PropsTable rows={API.island} />
       </DocSection>
@@ -1144,26 +729,8 @@ const [last, setLast] = createSignal("none")
           A swipe deck on the kit's own gesture math: 1:1 tracking, rubber-band past the edge, a flick or a far drag
           sends the card flying and the stack rises. Drag the top card.
         </p>
-        <DemoCard code={SNIPPETS.cardStack}>
-          <div class="grid min-h-56 place-items-center">
-            <div>
-              <DitherCardStack items={STACK_CARDS} class="h-40 w-64" onAdvance={setStackIndex}>
-                {(card) => (
-                  <article class="flex h-full flex-col justify-between rounded-lg border border-border/60 bg-card/90 p-4">
-                    <span
-                      class="size-2 rounded-[2px]"
-                      style={{ background: `var(--swatch-${card.item.color})` }}
-                      aria-hidden="true"
-                    />
-                    <p class="font-mono text-[13px] text-foreground">{card.item.title}</p>
-                  </article>
-                )}
-              </DitherCardStack>
-              <p class="mt-3 text-center text-[10px] tabular-nums text-muted-foreground">
-                card {stackIndex() + 1} of {STACK_CARDS.length}
-              </p>
-            </div>
-          </div>
+        <DemoCard code={cardStackCode}>
+          <CardStackExample />
         </DemoCard>
         <PropsTable rows={API.cardStack} />
       </DocSection>
@@ -1173,21 +740,8 @@ const [last, setLast] = createSignal("none")
           A hover-magnifying dock: items swell on a gaussian falloff around the pointer and settle when it leaves.
           Reduced motion keeps the row still.
         </p>
-        <DemoCard code={SNIPPETS.dock}>
-          <div class="grid min-h-28 place-items-end justify-center pb-2">
-            <div class="text-center">
-              <DitherDock
-                items={[
-                  { value: "home", label: "Home" },
-                  { value: "studio", label: "Studio", color: "purple" },
-                  { value: "docs", label: "Docs", color: "green" },
-                  { value: "alerts", label: "Alerts", color: "red" },
-                ]}
-                onSelect={setDockPick}
-              />
-              <p class="mt-2 text-[10px] text-muted-foreground">selected: {dockPick()}</p>
-            </div>
-          </div>
+        <DemoCard code={dockCode}>
+          <DockExample />
         </DemoCard>
         <PropsTable rows={API.dock} />
       </DocSection>
@@ -1197,21 +751,8 @@ const [last, setLast] = createSignal("none")
           A Codex app-inspired navigation rail: compact ticks form a pyramid around the pointer and reveal a floating
           destination preview beside the rail. Keyboard focus previews too; reduced motion keeps the ticks still.
         </p>
-        <DemoCard code={SNIPPETS.previewRail}>
-          <div class="flex min-h-56 items-center justify-start pl-6">
-            <DitherPreviewRail
-              modelValue={railDest()}
-              onUpdateModelValue={setRailDest}
-              items={[
-                { value: "inbox", label: "Inbox", hint: "12 unread threads", color: "blue" },
-                { value: "drafts", label: "Drafts", hint: "2 in progress", color: "purple" },
-                { value: "planner", label: "Planner", hint: "Sprint 14, day 3", color: "green" },
-                { value: "metrics", label: "Metrics", hint: "p95 latency 42ms", color: "orange" },
-                { value: "settings", label: "Settings", hint: "Workspace + theme" },
-              ]}
-            />
-            <p class="ml-10 text-[10px] text-muted-foreground">destination: {railDest()}</p>
-          </div>
+        <DemoCard code={previewRailCode}>
+          <PreviewRailExample />
         </DemoCard>
         <PropsTable rows={API.previewRail} />
       </DocSection>
@@ -1221,15 +762,8 @@ const [last, setLast] = createSignal("none")
           Reading progress as a dithered bar. It composes DitherProgress and rides the viewport edge, or the top of any
           scrollable parent. Scroll the box.
         </p>
-        <DemoCard code={SNIPPETS.scrollProgress}>
-          <div class="relative mx-auto h-48 max-w-md overflow-y-auto rounded-lg border border-border/60">
-            <DitherScrollProgress attach="parent" color="purple" />
-            <div class="grid gap-2 p-4" aria-hidden="true">
-              <For each={count(14)}>
-                {(i) => <div class={`h-2 rounded-sm bg-border/50 ${i % 3 === 0 ? "w-2/3" : "w-full"}`} />}
-              </For>
-            </div>
-          </div>
+        <DemoCard code={scrollProgressCode}>
+          <ScrollProgressExample />
         </DemoCard>
         <PropsTable rows={API.scrollProgress} />
       </DocSection>
@@ -1239,13 +773,8 @@ const [last, setLast] = createSignal("none")
           Pull to confirm: drag past the line and the border arms; release fires and the button springs home. Short
           pulls just spring. Enter and Space fire without the pull; reduced motion skips the spring.
         </p>
-        <DemoCard code={SNIPPETS.snapButton}>
-          <div class="grid min-h-28 place-items-center gap-3">
-            <DitherSnapButton threshold={64} axis="x" color="green" onSnap={() => setSnapCount((n) => n + 1)}>
-              Pull to deploy
-            </DitherSnapButton>
-            <p class="text-[10px] tabular-nums text-muted-foreground">deploys fired: {snapCount()}</p>
-          </div>
+        <DemoCard code={snapButtonCode}>
+          <SnapButtonExample />
         </DemoCard>
         <PropsTable rows={API.snapButton} />
       </DocSection>
@@ -1255,23 +784,8 @@ const [last, setLast] = createSignal("none")
           Actions that melt out of one trigger: an SVG goo filter fuses the circles while they travel, then they settle
           apart. Escape collapses; reduced motion drops the travel.
         </p>
-        <DemoCard code={SNIPPETS.gooeyMenu}>
-          <div class="grid min-h-64 place-items-end justify-center pb-4">
-            <div class="text-center">
-              <DitherGooeyMenu
-                modelValue={gooeyOpen()}
-                onUpdateModelValue={setGooeyOpen}
-                direction="up"
-                items={[
-                  { value: "add", label: "Add", color: "green" },
-                  { value: "export", label: "Export", color: "blue" },
-                  { value: "share", label: "Share", color: "purple" },
-                ]}
-                onSelect={setGooeyPick}
-              />
-              <p class="mt-3 text-[10px] text-muted-foreground">picked: {gooeyPick()}</p>
-            </div>
-          </div>
+        <DemoCard code={gooeyMenuCode}>
+          <GooeyMenuExample />
         </DemoCard>
         <PropsTable rows={API.gooeyMenu} />
       </DocSection>
@@ -1281,37 +795,8 @@ const [last, setLast] = createSignal("none")
           A single-open accordion with a weighted spring layout: panels overshoot and settle on a sampled damped-spring
           easing, icon rows lead each header, and content rises into view. Reduced motion reveals instantly.
         </p>
-        <DemoCard code={SNIPPETS.bouncyAccordion}>
-          <DitherBouncyAccordion
-            modelValue={bouncyPanel()}
-            onUpdateModelValue={setBouncyPanel}
-            class="mx-auto max-w-sm"
-            items={[
-              {
-                value: "overview",
-                label: "Overview",
-                hint: "What shipped this week",
-                icon: "▤",
-                content: "Charts, buttons and backgrounds now share one Bayer engine.",
-              },
-              {
-                value: "activity",
-                label: "Activity",
-                hint: "3 deploys, 1 rollback",
-                icon: "◷",
-                color: "green",
-                content: "Build 214 settled after a weighted spring: 8% overshoot, then calm.",
-              },
-              {
-                value: "alerts",
-                label: "Alerts",
-                hint: "One flapping check",
-                icon: "◈",
-                color: "orange",
-                content: "p95 latency wobbled at 04:00 and snapped back on its own.",
-              },
-            ]}
-          />
+        <DemoCard code={bouncyAccordionCode}>
+          <BouncyAccordionExample />
         </DemoCard>
         <PropsTable rows={API.bouncyAccordion} />
       </DocSection>
@@ -1334,11 +819,8 @@ const [last, setLast] = createSignal("none")
           Drag the thumb to the end of the track to confirm (flick momentum counts), or release early and it springs
           back. Enter or Space confirms without the slide.
         </p>
-        <DemoCard code={SNIPPETS.slideAction}>
-          <div class="flex min-h-24 flex-col items-center justify-center gap-3">
-            <DitherSlideAction label="Slide to deploy" color="green" onConfirm={() => setSlideCount((n) => n + 1)} />
-            <p class="font-mono text-[10px] text-muted-foreground">deploys: {slideCount()}</p>
-          </div>
+        <DemoCard code={slideActionCode}>
+          <SlideActionExample />
         </DemoCard>
         <PropsTable rows={API.slideAction} />
       </DocSection>
@@ -1348,23 +830,8 @@ const [last, setLast] = createSignal("none")
           Hold to complete: a liquid fill with a dotted crest rises (or slides) while you press; release early and it
           drains back. A held Enter or Space works the same way.
         </p>
-        <DemoCard code={SNIPPETS.holdAction}>
-          <div class="flex min-h-24 flex-col items-center justify-center gap-3">
-            <div class="flex items-center gap-4">
-              <DitherHoldAction color="orange" onComplete={() => setHoldCount((n) => n + 1)}>
-                Hold to purge cache
-              </DitherHoldAction>
-              <DitherHoldAction
-                direction="horizontal"
-                color="red"
-                duration={900}
-                onComplete={() => setHoldCount((n) => n + 1)}
-              >
-                Hold to delete
-              </DitherHoldAction>
-            </div>
-            <p class="font-mono text-[10px] text-muted-foreground">completed: {holdCount()}</p>
-          </div>
+        <DemoCard code={holdActionCode}>
+          <HoldActionExample />
         </DemoCard>
         <PropsTable rows={API.holdAction} />
       </DocSection>
@@ -1375,21 +842,8 @@ const [last, setLast] = createSignal("none")
           panel), the balance cascades in with a change pill and privacy toggle, the address copies with feedback, the
           bell carries an unread pulse, and Send / Deposit / Swap / Buy report through one event.
         </p>
-        <DemoCard code={SNIPPETS.walletCard}>
-          <div class="flex min-h-72 flex-col items-center justify-center gap-3">
-            <DitherWalletCard
-              modelValue={walletAccount()}
-              onUpdateModelValue={setWalletAccount}
-              accounts={WALLET_ACCOUNTS}
-              recent={["gas fees", "swap history"]}
-              notifications
-              onAction={setWalletNote}
-              onSubmit={(query) => setWalletNote("search: " + query)}
-              onNotify={() => setWalletNote("notifications")}
-              class="w-full max-w-80"
-            />
-            <p class="font-mono text-[10px] text-muted-foreground">last: {walletNote()}</p>
-          </div>
+        <DemoCard code={walletCardCode}>
+          <WalletCardExample />
         </DemoCard>
         <PropsTable rows={API.walletCard} />
       </DocSection>
@@ -1399,44 +853,8 @@ const [last, setLast] = createSignal("none")
           Compact notification cards that spring from a stacked summary into a readable list on hover, focus or tap. Tap
           pins the list open, and the view-all row appears with the expansion. Reduced motion snaps.
         </p>
-        <DemoCard code={stackSnippet()}>
-          <div class="flex min-h-72 flex-col items-center justify-center gap-4">
-            <DitherNotificationStack
-              modelValue={stackPinned()}
-              onUpdateModelValue={setStackPinned}
-              variant={stackVariant()}
-              items={[
-                {
-                  id: "n1",
-                  title: "Deploy finished",
-                  body: "dither-ui shipped to production in 42s",
-                  time: "2m",
-                  icon: "↑",
-                  color: "green",
-                },
-                {
-                  id: "n2",
-                  title: "New comment",
-                  body: "Rei: “the drum snaps beautifully”",
-                  time: "16m",
-                  icon: "▤",
-                  color: "blue",
-                },
-                {
-                  id: "n3",
-                  title: "Build warning",
-                  body: "chunk index.js is 447 kB",
-                  time: "1h",
-                  icon: "◈",
-                  color: "orange",
-                },
-              ]}
-              onViewall={() => setStackNote("view all")}
-            />
-            <p class="font-mono text-[10px] text-muted-foreground">
-              pinned: {String(stackPinned())}, last: {stackNote()}
-            </p>
-          </div>
+        <DemoCard code={exampleCode(notificationStackCode, stackPicks())}>
+          <NotificationStackExample {...stackPicks()} />
         </DemoCard>
         <h3 class="mt-8 text-[12px] text-muted-foreground">Variants</h3>
         <div class="mt-3 flex gap-1">
@@ -1484,23 +902,8 @@ const [last, setLast] = createSignal("none")
           <code class="text-foreground/80">frameRate</code> paints only on wall-time boundaries and holds the raster
           between them: stop-motion <i>and</i> fewer buffer uploads. Two Auroras, same clock source, different cadence.
         </p>
-        <DemoCard code={SNIPPETS.stepTimingAurora}>
-          <div class="grid grid-cols-2 gap-3">
-            <div class="overflow-hidden rounded-lg border border-border/60">
-              <p class="border-b border-border/60 bg-card/60 px-3 py-1.5 text-[12px] text-muted-foreground">Smooth</p>
-              <div class="h-36">
-                <DitherAurora />
-              </div>
-            </div>
-            <div class="overflow-hidden rounded-lg border border-border/60">
-              <p class="border-b border-border/60 bg-card/60 px-3 py-1.5 text-[12px] text-muted-foreground">
-                Frame-rate 8
-              </p>
-              <div class="h-36">
-                <DitherAurora frameRate={8} />
-              </div>
-            </div>
-          </div>
+        <DemoCard code={stepTiming2Code}>
+          <StepTiming2Example />
         </DemoCard>
         <PropsTable rows={API.stepTiming} />
       </DocSection>
@@ -1513,53 +916,8 @@ const [last, setLast] = createSignal("none")
           <code class="text-foreground/80">data-seq</code> onto each child. Children style themselves, the engine only
           owns time. Ease with <code class="text-foreground/80">steps()</code> and the whole wave quantizes.
         </p>
-        <DemoCard code={SNIPPETS.sequences}>
-          <div class="mb-3 flex flex-wrap items-center gap-2">
-            <For each={["start", "center", "end", "edges"] as const}>
-              {(opt) => (
-                <button
-                  class={`rounded border px-2 py-1 text-[11px] ${
-                    seqFrom() === opt
-                      ? "border-accent bg-accent text-accent-foreground"
-                      : "border-border/60 text-muted-foreground hover:bg-accent/40"
-                  }`}
-                  aria-pressed={seqFrom() === opt}
-                  onClick={() => setSeqFrom(opt)}
-                >
-                  {opt}
-                </button>
-              )}
-            </For>
-            <button
-              class={`rounded border px-2 py-1 text-[11px] ${
-                seqQuant()
-                  ? "border-accent bg-accent text-accent-foreground"
-                  : "border-border/60 text-muted-foreground hover:bg-accent/40"
-              }`}
-              aria-pressed={seqQuant()}
-              onClick={() => setSeqQuant((on) => !on)}
-            >
-              {seqQuant() ? "steps(4)" : "linear"}
-            </button>
-            <button
-              class="rounded border border-border/60 px-2 py-1 text-[11px] text-muted-foreground hover:bg-accent/40"
-              onClick={() => setSeqNonce((n) => n + 1)}
-            >
-              Replay
-            </button>
-          </div>
-          <DitherSequence
-            stagger={0.07}
-            from={seqFrom()}
-            duration={0.6}
-            loop={3}
-            yoyo
-            easing={seqEasing()}
-            restartKey={seqKey()}
-            class="grid grid-cols-6 gap-2"
-          >
-            <For each={count(12)}>{(i) => <div class="seq-cell">{i}</div>}</For>
-          </DitherSequence>
+        <DemoCard code={sequencesCode}>
+          <SequencesExample />
         </DemoCard>
         <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
           Each cell reads only its own <code class="text-foreground/80">--seq-p</code>: rise on the forward leg, sink on
@@ -1581,49 +939,8 @@ const [last, setLast] = createSignal("none")
           the same state through its function child. Children restyle themselves in CSS while animations re-parameterize
           in JS.
         </p>
-        <DemoCard code={SNIPPETS.containerQueries}>
-          <div class="mb-3 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              class="rounded border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-accent/40"
-              aria-label="Narrow the container by 40 pixels"
-              onClick={(e) => nudgeCq(e.currentTarget, -40)}
-            >
-              −
-            </button>
-            <button
-              type="button"
-              class="rounded border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-accent/40"
-              aria-label="Widen the container by 40 pixels"
-              onClick={(e) => nudgeCq(e.currentTarget, 40)}
-            >
-              +
-            </button>
-            <span class="text-[11px] text-muted-foreground">
-              drag the corner too: every child reads this box, never the viewport
-            </span>
-          </div>
-          <DitherContainer scale={{ xs: 0, sm: 260, md: 360, lg: 450, xl: 530 }} step={8} name="demo" class="cq-panel">
-            {(cq) => (
-              <>
-                <div class="cq-readout">
-                  <span class="cq-bucket">{cq.size}</span>
-                  <span>
-                    {cq.width}px, q8 {quantize(cq.width, 8)}, matches {cq.matches.join(" ")}
-                  </span>
-                </div>
-                <DitherSequence
-                  stagger={0.03 + cq.index * 0.02}
-                  from={cq.index >= 3 ? "center" : "start"}
-                  restartKey={cq.size ?? "xs"}
-                  class="cq-grid"
-                >
-                  <For each={count(12)}>{(i) => <div class="seq-cell">{i}</div>}</For>
-                </DitherSequence>
-                <div class="cq-scan" aria-hidden="true" />
-              </>
-            )}
-          </DitherContainer>
+        <DemoCard code={containerQueriesCode}>
+          <ContainerQueriesExample />
         </DemoCard>
         <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
           The grid re-columns purely from <code class="text-foreground/80">[data-cq]</code> (CSS reading the container's
@@ -1654,81 +971,8 @@ const [last, setLast] = createSignal("none")
           at any size, and the same sample resolves to px through the child for anything that paints. Shrink the stage:
           every path shrinks with it.
         </p>
-        <DemoCard code={SNIPPETS.stage}>
-          <div ref={widen} class="mb-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
-            <label class="flex items-center gap-2">
-              stage width
-              <input
-                value={stageWidth()}
-                onInput={(e) => setStageWidth(Number(e.currentTarget.value))}
-                type="range"
-                min="40"
-                max="100"
-                step="5"
-                name="stage-width"
-                class="h-6 accent-foreground"
-              />
-            </label>
-            <span class="tabular-nums">{stageWidth()}%</span>
-          </div>
-          <DitherStage duration={8} class="stage-demo">
-            {(stage) => (
-              <>
-                <DitherLayer keyframes={[{ x: "-6cqw" }, { x: "6cqw" }]} duration={8} yoyo loop class="stage-sky">
-                  <DitherAurora colors={["#1f6fd6", "#9ec5ff", "#ffffff"]} speed={0.6} class="h-full" />
-                </DitherLayer>
-                <DitherLayer keyframes={[{ x: 0 }, { x: "-10cqw" }]} duration={8} yoyo loop>
-                  <svg class="stage-hills far" viewBox="0 0 132 40" preserveAspectRatio="none" aria-hidden="true">
-                    <path d="M0 40 V26 Q12 14 24 22 T48 18 T72 24 T96 14 T120 22 T132 18 V40 Z" />
-                  </svg>
-                </DitherLayer>
-                <DitherLayer keyframes={[{ x: 0 }, { x: "-24cqw" }]} duration={8} yoyo loop>
-                  <svg class="stage-hills near" viewBox="0 0 148 40" preserveAspectRatio="none" aria-hidden="true">
-                    <path d="M0 40 V30 Q14 22 28 30 T56 24 T84 32 T112 22 T140 30 T148 26 V40 Z" />
-                  </svg>
-                </DitherLayer>
-                <DitherLayer
-                  keyframes={[
-                    { at: 0, x: "80cqw", y: "12cqh", rotate: 0 },
-                    { at: "50%", easing: "ease-in-out", rotate: "0.5turn" },
-                    { x: "20cqw", y: "8cqh", rotate: "1turn" },
-                  ]}
-                  duration={8}
-                  loop
-                  origin="0 0"
-                  class="stage-moon"
-                >
-                  <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-                    <circle cx="12" cy="12" r="10" />
-                    <circle cx="9" cy="9" r="2" class="crater" />
-                    <circle cx="15" cy="14" r="1.5" class="crater" />
-                  </svg>
-                </DitherLayer>
-                <DitherLayer
-                  keyframes={[
-                    { cx: "10cqw", cy: "70cqh" },
-                    { cx: "90cqw", cy: "40cqh" },
-                  ]}
-                  duration={4}
-                  yoyo
-                  loop
-                >
-                  {(at) => (
-                    <svg
-                      viewBox={`0 0 ${Math.max(1, stage.width)} ${Math.max(1, stage.height)}`}
-                      class="stage-dot"
-                      aria-hidden="true"
-                    >
-                      <circle cx={at.cx} cy={at.cy} r="4" />
-                      <text x={at.cx + 8} y={at.cy + 3}>
-                        {Math.round(at.cx)}, {Math.round(at.cy)}px
-                      </text>
-                    </svg>
-                  )}
-                </DitherLayer>
-              </>
-            )}
-          </DitherStage>
+        <DemoCard code={stageCode}>
+          <StageExample />
         </DemoCard>
         <p class="mt-3 text-[13px] leading-relaxed text-muted-foreground">
           The aurora is a canvas surface riding a layer: it drifts twelve percent of the stage, never twelve percent of

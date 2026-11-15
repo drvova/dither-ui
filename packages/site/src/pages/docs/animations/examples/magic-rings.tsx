@@ -4,7 +4,9 @@ import { defineExample } from "@/shared/lib/example"
 export default function Example() {
   return (
     <DitherMagicRings class="h-52 w-full">
-      <span class="grid size-12 place-items-center rounded-full border bg-card text-xs">core</span>
+      <span class="grid h-12 w-12 place-items-center rounded-full border border-border/60 bg-card text-xs text-muted-foreground">
+        core
+      </span>
     </DitherMagicRings>
   )
 }

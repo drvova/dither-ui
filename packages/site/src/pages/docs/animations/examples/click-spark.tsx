@@ -3,11 +3,8 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <DitherClickSpark
-      color="#7CFF67"
-      class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground"
-    >
-      Click anywhere here
+    <DitherClickSpark color="#7CFF67" class="grid h-40 w-full place-items-center rounded-lg border border-border/60">
+      <span class="text-sm text-muted-foreground">Click anywhere here</span>
     </DitherClickSpark>
   )
 }

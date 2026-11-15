@@ -4,7 +4,7 @@ import { defineExample } from "@/shared/lib/example"
 export default function Example() {
   return (
     <DitherFadeContent blur={true}>
-      <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">
+      <div class="grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground">
         Fades in on view
       </div>
     </DitherFadeContent>

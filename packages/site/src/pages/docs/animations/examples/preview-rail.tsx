@@ -5,9 +5,9 @@ import { defineExample } from "@/shared/lib/example"
 export default function Example() {
   const [dest, setDest] = createSignal("inbox")
 
+  // ticks pyramid around the pointer, the preview floats beside the rail
   return (
-    <>
-      {/* ticks pyramid around the pointer, the preview floats beside the rail */}
+    <div class="flex min-h-56 items-center justify-start pl-6">
       <DitherPreviewRail
         modelValue={dest()}
         onUpdateModelValue={setDest}
@@ -19,7 +19,8 @@ export default function Example() {
           { value: "settings", label: "Settings", hint: "Workspace + theme" },
         ]}
       />
-    </>
+      <p class="ml-10 text-[10px] text-muted-foreground">destination: {dest()}</p>
+    </div>
   )
 }
 

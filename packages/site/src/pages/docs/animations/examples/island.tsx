@@ -3,12 +3,22 @@ import { DitherIsland } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [expanded, setExpanded] = createSignal(false)
+  const [open, setOpen] = createSignal(false)
 
+  // unfolds beneath the pill
   return (
-    <DitherIsland modelValue={expanded()} onUpdateModelValue={setExpanded} label="Deploy running" color="green" live>
-      Build 214, lint ok, bundle 84kB, 3 of 5 steps done. {/* unfolds beneath the pill */}
-    </DitherIsland>
+    <div class="grid min-h-28 place-items-center">
+      <DitherIsland
+        modelValue={open()}
+        onUpdateModelValue={setOpen}
+        label="Deploy running"
+        color="green"
+        live
+        class="w-64"
+      >
+        Build 214, lint ok, bundle 84kB, 3 of 5 steps done.
+      </DitherIsland>
+    </div>
   )
 }
 

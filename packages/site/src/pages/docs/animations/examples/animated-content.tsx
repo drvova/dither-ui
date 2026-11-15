@@ -3,8 +3,8 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <DitherAnimatedContent distance={40} direction="vertical">
-      <div class="grid h-28 w-52 place-items-center rounded-lg border bg-card text-sm text-muted-foreground">
+    <DitherAnimatedContent distance={40}>
+      <div class="grid h-28 w-52 place-items-center rounded-lg border border-border/60 bg-card text-sm text-muted-foreground">
         Slides up on view
       </div>
     </DitherAnimatedContent>

@@ -2,7 +2,9 @@ import { DitherMagnetLines } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherMagnetLines class="h-52" />
+  return (
+    <DitherMagnetLines class="grid h-40 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground" />
+  )
 }
 
 export const meta = defineExample({

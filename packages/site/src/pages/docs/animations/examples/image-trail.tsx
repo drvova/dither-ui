@@ -3,7 +3,7 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <DitherImageTrail class="grid h-44 w-full place-items-center rounded-lg border text-sm text-muted-foreground">
+    <DitherImageTrail class="grid h-44 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground">
       Move your cursor here
     </DitherImageTrail>
   )

@@ -1,35 +1,66 @@
-import { createSignal, For } from "solid-js"
-import { DitherSequence, steps } from "@dither-kit"
+import { createMemo, createSignal, For } from "solid-js"
+import { DitherSequence, linear, steps, type StaggerFrom } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [key, setKey] = createSignal(0)
-  const [waves, setWaves] = createSignal(0)
+  // a change of origin or easing, or Replay, rebuilds the plan and plays it again
+  const [from, setFrom] = createSignal<StaggerFrom>("center")
+  const [quantized, setQuantized] = createSignal(false)
+  const [nonce, setNonce] = createSignal(0)
+  const easing = createMemo(() => (quantized() ? steps(4) : linear))
+  const key = createMemo(() => `${from()}|${quantized()}|${nonce()}`)
 
+  // children wave in from the center, ping-pong three times, quantized; the driver writes --seq-p (0
+  // to 1) and data-seq (before, active or done) on each child, and each child styles itself from
+  // them. planSequence and sampleSequence run the same algebra under your own clock
   return (
     <>
-      {/* children wave in from the center, ping-pong three times, quantized; the
-           driver writes --seq-p (0 to 1) and data-seq (before, active or done) on
-           each child, and each child styles itself from them. planSequence and
-           sampleSequence run the same algebra under your own clock */}
+      <div class="mb-3 flex flex-wrap items-center gap-2">
+        <For each={["start", "center", "end", "edges"] as const}>
+          {(opt) => (
+            <button
+              class={`rounded border px-2 py-1 text-[11px] ${
+                from() === opt
+                  ? "border-accent bg-accent text-accent-foreground"
+                  : "border-border/60 text-muted-foreground hover:bg-accent/40"
+              }`}
+              aria-pressed={from() === opt}
+              onClick={() => setFrom(opt)}
+            >
+              {opt}
+            </button>
+          )}
+        </For>
+        <button
+          class={`rounded border px-2 py-1 text-[11px] ${
+            quantized()
+              ? "border-accent bg-accent text-accent-foreground"
+              : "border-border/60 text-muted-foreground hover:bg-accent/40"
+          }`}
+          aria-pressed={quantized()}
+          onClick={() => setQuantized((on) => !on)}
+        >
+          {quantized() ? "steps(4)" : "linear"}
+        </button>
+        <button
+          class="rounded border border-border/60 px-2 py-1 text-[11px] text-muted-foreground hover:bg-accent/40"
+          onClick={() => setNonce((n) => n + 1)}
+        >
+          Replay
+        </button>
+      </div>
       <DitherSequence
         stagger={0.07}
-        from="center"
+        from={from()}
         duration={0.6}
         loop={3}
         yoyo
-        easing={steps(4)}
+        easing={easing()}
         restartKey={key()}
-        onComplete={() => setWaves(waves() + 1)}
         class="grid grid-cols-6 gap-2"
       >
-        <For each={Array.from({ length: 12 }, (_, k) => k + 1)}>
-          {() => <div class="h-8 rounded bg-foreground" style="opacity: var(--seq-p, 0)" />}
-        </For>
+        <For each={Array.from({ length: 12 }, (_, i) => i + 1)}>{(i) => <div class="seq-cell">{i}</div>}</For>
       </DitherSequence>
-      <button type="button" class="mt-3" onClick={() => setKey(key() + 1)}>
-        Replay ({waves()} played)
-      </button>
     </>
   )
 }

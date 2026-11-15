@@ -3,10 +3,7 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <DitherBlobCursor
-      color="#7CFF67"
-      class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground"
-    >
+    <DitherBlobCursor class="grid h-40 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground">
       Move your cursor here
     </DitherBlobCursor>
   )

@@ -4,7 +4,9 @@ import { defineExample } from "@/shared/lib/example"
 export default function Example() {
   return (
     <DitherMagnet strength={0.4}>
-      <button>Magnet</button>
+      <button type="button" class="rounded-md border border-border/60 bg-card px-4 py-2 text-sm">
+        Magnet
+      </button>
     </DitherMagnet>
   )
 }

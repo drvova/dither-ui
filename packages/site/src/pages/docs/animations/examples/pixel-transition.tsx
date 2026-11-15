@@ -3,8 +3,8 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <DitherPixelTransition color="#181b22" class="grid h-32 w-56 place-items-center rounded-lg border">
-      <span class="text-lg">Revealed</span>
+    <DitherPixelTransition class="grid h-32 w-56 place-items-center rounded-lg border border-border/60" color="#181b22">
+      <span class="text-lg tracking-tight">Revealed</span>
     </DitherPixelTransition>
   )
 }

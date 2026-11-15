@@ -5,8 +5,8 @@ import { defineExample } from "@/shared/lib/example"
 export default function Example() {
   return (
     <DitherGradualBlur position="bottom" height={72} strength={5} class="w-64">
-      <div class="grid gap-1 text-[13px] text-muted-foreground">
-        <For each={Array.from({ length: 6 }, (_, k) => k + 1)}>
+      <div class="space-y-1 text-[13px] leading-relaxed text-muted-foreground">
+        <For each={Array.from({ length: 6 }, (_, i) => i + 1)}>
           {(n) => <p>Row {n}: content scrolls under the blur band.</p>}
         </For>
       </div>

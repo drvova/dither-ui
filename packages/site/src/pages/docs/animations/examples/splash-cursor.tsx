@@ -3,10 +3,7 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <DitherSplashCursor
-      color="#3DA5FF"
-      class="grid h-40 w-full place-items-center rounded-lg border text-sm text-muted-foreground"
-    >
+    <DitherSplashCursor class="grid h-40 w-full place-items-center rounded-lg border border-border/60 text-sm text-muted-foreground">
       Move your cursor here
     </DitherSplashCursor>
   )

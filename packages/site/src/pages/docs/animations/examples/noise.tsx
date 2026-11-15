@@ -2,7 +2,11 @@ import { DitherNoise } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  return <DitherNoise class="h-64" />
+  return (
+    <div class="h-64 w-full overflow-hidden rounded-lg border border-border/60">
+      <DitherNoise />
+    </div>
+  )
 }
 
 export const meta = defineExample({

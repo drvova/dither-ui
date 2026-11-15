@@ -3,25 +3,27 @@ import { DitherGooeyMenu } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [expanded, setExpanded] = createSignal(false)
-  const [picked, setPicked] = createSignal("none")
+  const [open, setOpen] = createSignal(false)
+  const [pick, setPick] = createSignal("none")
 
+  // one SVG goo filter fuses the circles while they travel
   return (
-    <>
-      {/* one SVG goo filter fuses the circles while they travel */}
-      <DitherGooeyMenu
-        modelValue={expanded()}
-        onUpdateModelValue={setExpanded}
-        items={[
-          { value: "add", label: "Add", color: "green" },
-          { value: "export", label: "Export", color: "blue" },
-          { value: "share", label: "Share", color: "purple" },
-        ]}
-        direction="up"
-        onSelect={(value) => setPicked(value)}
-      />
-      <p class="mt-3 text-[10px]">picked: {picked()}</p>
-    </>
+    <div class="grid min-h-64 place-items-end justify-center pb-4">
+      <div class="text-center">
+        <DitherGooeyMenu
+          modelValue={open()}
+          onUpdateModelValue={setOpen}
+          direction="up"
+          items={[
+            { value: "add", label: "Add", color: "green" },
+            { value: "export", label: "Export", color: "blue" },
+            { value: "share", label: "Share", color: "purple" },
+          ]}
+          onSelect={setPick}
+        />
+        <p class="mt-3 text-[10px] text-muted-foreground">picked: {pick()}</p>
+      </div>
+    </div>
   )
 }
 

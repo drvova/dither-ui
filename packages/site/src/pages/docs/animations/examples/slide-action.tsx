@@ -3,15 +3,15 @@ import { DitherSlideAction } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [deploys, setDeploys] = createSignal(0)
+  const [count, setCount] = createSignal(0)
 
+  // a 1:1 thumb drag where flick momentum counts; an early release springs back, and Enter or Space
+  // confirms without the slide
   return (
-    <>
-      {/* a 1:1 thumb drag where flick momentum counts; an early release springs
-           back, and Enter or Space confirms without the slide */}
-      <DitherSlideAction label="Slide to deploy" color="green" onConfirm={() => setDeploys(deploys() + 1)} />
-      <p class="text-[10px]">deploys: {deploys()}</p>
-    </>
+    <div class="flex min-h-24 flex-col items-center justify-center gap-3">
+      <DitherSlideAction label="Slide to deploy" color="green" onConfirm={() => setCount((n) => n + 1)} />
+      <p class="font-mono text-[10px] text-muted-foreground">deploys: {count()}</p>
+    </div>
   )
 }
 
