@@ -16,13 +16,16 @@ export type ComponentGroup = "inputs" | "navigation" | "display" | "overlays" | 
  * its kind where the type is not one a control reads (`url`: an address
  * `safeUrl` keeps; `list`: labels the row's mapping reshapes; `text`: a
  * union read as words; `color`: a CSS colour as the kit's swatches;
- * `select`: a few of a wide union's words), a number's bounds and step, a
+ * `select`: a few of a wide union's words; `number`: the number of a
+ * union that takes another kind too, a `dither` that is also a yes or
+ * no), a number's bounds and step, a
  * select's options where the union's members are not them all, and its
  * value on a new frame where neither the example nor the kit's default is
  * it. */
 type Control<V> =
   | { min?: number; max?: number; step?: number; options?: readonly string[]; demo?: V }
   | { kind: "text" | "url" | "color"; demo?: string }
+  | { kind: "number"; min?: number; max?: number; step?: number; demo?: number }
   | { kind: "select"; options: readonly string[]; demo?: string }
   | { kind: "list"; demo?: readonly string[] }
 

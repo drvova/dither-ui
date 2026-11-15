@@ -267,8 +267,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   specs (`tests/site/paint-law.spec.tsx`, the export's type check in
   `registry-props.spec.ts`) is its docs example's `states` where it states
   one (`stated`, `tests/site/docs-api.ts`); else `TEXT_SAMPLES` beside the
-  rows gives a text prop read as a value (a locale, a currency, a CSS
-  length) the second value the paint law changes it to.
+  rows gives a text prop read as a value (a currency, a CSS length) the
+  second value the paint law changes it to.
 
 ## Local Contracts
 

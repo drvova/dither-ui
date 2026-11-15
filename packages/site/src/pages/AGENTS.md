@@ -902,15 +902,19 @@ in the page's folder.
   code: `export const meta = defineExample({ component, title, studio?,
   states? })` (`@/shared/lib/example`, imported last, the meta last in the
   file), its Studio row (shelf, frame, settings in order with a range, an
-  option list, a kind or a `demo` value only where the type, the
-  example's own props and the kit's default do not give it, the slot, the
+  option list, a kind (`number` too, for a union that also takes a yes
+  or no) or a `demo` value only where the type, the example's own props
+  and the kit's default do not give it, the slot, the
   model, `field`) and `states` (props a reader would set it to, the
   specs' second values). The build reads it as data (`build/catalog.ts`:
   literals only, its component by name) and strips it and its import from
   the text the card, Run and the zip show, so the reader's copy is the
   example as before. A component with an example and no `meta` keeps its
   hand row in `entities/widget/model/registry.ts`; giving it one moves
-  the row here (`../AGENTS.md`, the registry).
+  the row here (`../AGENTS.md`, the registry). Where the component's card
+  still shows a code string, its example module stands beside it in the
+  pack's `examples/` for the catalogue (its Studio row, the export's
+  code) until the card moves to it.
 - `SNIPPETS`/derived code must match what the demo renders — it now
   RUNS in the source panel, so a snippet that leaves out what the demo
   has (a chart's height: the chart snippets carry `class="h-64"`) renders
