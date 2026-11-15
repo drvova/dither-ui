@@ -57,28 +57,29 @@ export function wrapLines(text: string, size: number, max = NOTE_MAX): string[] 
 }
 
 /** Every paint a drawing can carry, written out as attributes. */
-const PAINT: Record<string, string> = {
-  fill: "rgb(0, 0, 0)",
-  "fill-opacity": "1",
-  stroke: "none",
-  "stroke-width": "1px",
-  "stroke-opacity": "1",
-  "stroke-dasharray": "none",
-  "stroke-linecap": "butt",
-  "stroke-linejoin": "miter",
-  opacity: "1",
-  "paint-order": "normal",
-  "font-family": "",
-  "font-size": "",
-  "font-weight": "",
-  "text-anchor": "start",
-  "dominant-baseline": "auto",
-}
+const PAINT = [
+  "fill",
+  "fill-opacity",
+  "fill-rule",
+  "stroke",
+  "stroke-width",
+  "stroke-opacity",
+  "stroke-dasharray",
+  "stroke-linecap",
+  "stroke-linejoin",
+  "opacity",
+  "font-family",
+  "font-size",
+  "font-weight",
+  "text-anchor",
+  "dominant-baseline",
+]
 
 /** The group `g` as a standalone SVG file `w`×`h` in stage px: a clone
  * whose classes and data are dropped and whose computed paint (theme
- * colours, the settings' swatches) is written on each element, so it
- * reads the same in any editor that opens it. Hidden parts are left out. */
+ * colours, the settings' swatches) is written on the group whole and then
+ * on each element where it differs from its parent's, so it reads the same
+ * in any editor that opens it. Hidden parts are left out. */
 export function serializeSvg(g: SVGGElement, w: number, h: number): string {
   const ns = "http://www.w3.org/2000/svg"
   const doc = g.ownerDocument
@@ -87,25 +88,28 @@ export function serializeSvg(g: SVGGElement, w: number, h: number): string {
   svg.setAttribute("height", String(Math.round(h)))
   svg.setAttribute("viewBox", `0 0 ${Math.round(w)} ${Math.round(h)}`)
   const view = doc.defaultView
-  const copy = (from: Element, to: Element) => {
-    const css = view?.getComputedStyle(from)
+  const copy = (from: Element, to: Element, parent: CSSStyleDeclaration | null) => {
+    const css = view?.getComputedStyle(from) ?? null
     for (const name of [...to.getAttributeNames()])
       if (name === "class" || name === "style" || name.startsWith("data-") || name.startsWith("aria-"))
         to.removeAttribute(name)
     if (css)
-      for (const [prop, initial] of Object.entries(PAINT)) {
+      for (const prop of PAINT) {
         const v = css.getPropertyValue(prop).trim()
-        if (v && v !== initial) to.setAttribute(prop, v.replace(/(\d)px\b/g, "$1"))
+        // Opacity is the element's own (never inherited); the rest inherit.
+        const around = prop === "opacity" ? "1" : parent?.getPropertyValue(prop).trim()
+        if (v && v !== around) to.setAttribute(prop, v.replace(/(\d)px\b/g, "$1"))
+        else to.removeAttribute(prop)
       }
     const kids = [...from.children]
     const copies = [...to.children]
     kids.forEach((k, i) => {
       if (css && view?.getComputedStyle(k).display === "none") copies[i].remove()
-      else copy(k, copies[i])
+      else copy(k, copies[i], css)
     })
   }
   const clone = g.cloneNode(true) as SVGGElement
-  copy(g, clone)
+  copy(g, clone, null)
   svg.append(clone)
   return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(svg)}\n`
 }

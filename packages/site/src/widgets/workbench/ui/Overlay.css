@@ -17,8 +17,8 @@
   vector-effect: non-scaling-stroke;
 }
 
+/* Text takes the overlay's 9px face; a label or a note sets its own size. */
 .layer-scope text {
-  font-size: 9px;
   fill: currentColor;
   stroke: none;
 }
