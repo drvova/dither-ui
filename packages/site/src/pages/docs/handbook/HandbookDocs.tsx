@@ -8,15 +8,18 @@ import { DitherButton } from "@dither-ui/kit"
 import { createSignal, For, Show } from "solid-js"
 import { lazyPart } from "@/shared/lib"
 import CodeBlock from "@/shared/ui/CodeBlock"
-import { Area, AreaChart, Bar, BarChart, Line, LineChart, XAxis } from "@/shared/ui/charts"
+import { Line, LineChart } from "@/shared/ui/charts"
 import DemoCard from "../DemoCard"
-import { config, MONTHS, rows, trafficConfig, trafficRows } from "../demo-data"
+import { MONTHS } from "../demo-data"
 import DocSection, { useOpened } from "../DocSection"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
 import lineChartProps from "virtual:dither-props/LineChart"
-import { dataCode } from "../example-code"
 import { docsCode } from "../snippet"
 import type { DitherColor } from "@dither-ui/kit"
+import SeedsExample from "./examples/seeds"
+import seedsCode from "./examples/seeds.tsx?raw"
+import MotionExample from "./examples/motion"
+import motionCode from "./examples/motion.tsx?raw"
 
 const EngineSection = lazyPart(() => import("./EngineSection"))
 const VerificationSection = lazyPart(() => import("./VerificationSection"))
@@ -28,7 +31,6 @@ export const API: Record<string, PropRow[]> = {
   }),
 }
 
-const DURATIONS = [300, 900, 2000]
 const effectData = MONTHS.map((month, i) => ({
   month,
   v: 8 + Math.sin(i * 0.7) * 3 + Math.sin(i * 1.9) * 1.5 + i * 0.4,
@@ -36,19 +38,6 @@ const effectData = MONTHS.map((month, i) => ({
 const effectConfig = { v: { label: "signal", color: "blue" as DitherColor } }
 
 const SNIPPETS = {
-  seeds: `${dataCode("rows", rows)}
-${dataCode("config", config)}
-
-{/* one integer is a complete visual personality */}
-<AreaChart data={rows} config={config} seed={1984} class="h-52">
-  <XAxis dataKey="month" maxTicks={6} />
-  <Area dataKey="expenses" variant={1985} />
-  <Area dataKey="revenue" variant={1984} />   {/* texture */}
-</AreaChart>
-{/* seed derives duration, delay, easing, stagger, sparkles and bloom
-     for every prop you leave unset; explicit props always win.
-     Seeds also work per prop: bloom, easing, variant, color (hue). */}
-<DitherButton bloom={1984}>Glow</DitherButton>`,
   styling: `/* the kit reads shadcn-style tokens: theme by overriding them */
 :root {
   --background: #08090b;   /* chart chrome: axes, legend, tooltip */
@@ -76,35 +65,9 @@ ${dataCode("config", config)}
 {/* honoured automatically, no opt-in props:
      @media (prefers-reduced-motion: reduce): entrances snap
      @media (prefers-reduced-transparency: reduce): chrome goes solid */}`,
-  motion: `${dataCode("rows", trafficRows)}
-${dataCode("config", trafficConfig)}
-const [replayToken, setReplayToken] = createSignal(0)
-
-<BarChart data={rows} config={config} class="h-48"
-  animationDuration={900} replayToken={replayToken()}>
-  <XAxis dataKey="month" />
-  <Bar dataKey="organic" />
-  <Bar dataKey="paid" />
-</BarChart>
-
-<DitherButton onClick={() => setReplayToken(replayToken() + 1)}>Replay</DitherButton>
-{/* prefers-reduced-motion is respected automatically:
-     entrances snap, sparkles hold still */}`,
 }
 
 export default function HandbookDocs() {
-  // Master-seed playground: one integer drives texture, motion, easing, bloom.
-  const [masterSeed, setMasterSeed] = createSignal(1984)
-  const [masterReplay, setMasterReplay] = createSignal(0)
-  function rollMaster() {
-    setMasterSeed(Math.floor(Math.random() * 1_000_000))
-    setMasterReplay((n) => n + 1)
-  }
-
-  // Motion demo — replay re-runs the entrance, duration is chosen live.
-  const [replayToken, setReplayToken] = createSignal(0)
-  const [motionDuration, setMotionDuration] = createSignal(900)
-
   // Generative live-edge motion — a dedicated effect seed samples an infinite
   // space of behaviors; roll for a fresh one.
   const [effectSeed, setEffectSeed] = createSignal(7)
@@ -151,30 +114,8 @@ export default function HandbookDocs() {
           and it derives a whole personality for every prop you left unset; the same seed reproduces it forever.
           Explicit props always win.
         </p>
-        <DemoCard code={SNIPPETS.seeds}>
-          <div class="grid gap-5">
-            <div class="h-52">
-              {/* a new seed is a new chart */}
-              <For each={[masterSeed()]}>
-                {(seed) => (
-                  <AreaChart data={rows} config={config} seed={seed} interactive={false} replayToken={masterReplay()}>
-                    <XAxis dataKey="month" maxTicks={6} />
-                    <Area dataKey="expenses" variant={seed + 1} />
-                    <Area dataKey="revenue" variant={seed} />
-                  </AreaChart>
-                )}
-              </For>
-            </div>
-            <div class="flex flex-wrap items-center justify-center gap-3">
-              <DitherButton color="blue" variant="gradient" onClick={rollMaster}>
-                Roll a personality
-              </DitherButton>
-              <span class="font-mono text-[11px] text-muted-foreground tabular-nums">seed: {masterSeed()}</span>
-              <DitherButton color="purple" variant="dotted" bloom={masterSeed()}>
-                seeded bloom
-              </DitherButton>
-            </div>
-          </div>
+        <DemoCard code={seedsCode}>
+          <SeedsExample />
         </DemoCard>
       </DocSection>
 
@@ -194,47 +135,8 @@ export default function HandbookDocs() {
           Entrances draw the dither field in; bump <code class="text-foreground/80">replayToken</code> to run one again.
           When the OS asks for reduced motion, entrances snap and sparkles hold still. No opt-in needed.
         </p>
-        <DemoCard code={SNIPPETS.motion}>
-          <div class="grid gap-5">
-            <div class="h-48">
-              <BarChart
-                data={trafficRows}
-                config={trafficConfig}
-                interactive={false}
-                animationDuration={motionDuration()}
-                replayToken={replayToken()}
-              >
-                <XAxis dataKey="month" />
-                <Bar dataKey="organic" />
-                <Bar dataKey="paid" />
-              </BarChart>
-            </div>
-            <div class="flex flex-wrap items-center justify-center gap-3">
-              <DitherButton color="blue" variant="gradient" onClick={() => setReplayToken((n) => n + 1)}>
-                Replay
-              </DitherButton>
-              <div class="flex items-center gap-1 rounded-md border border-border/60 p-1">
-                <For each={DURATIONS}>
-                  {(d) => (
-                    <button
-                      type="button"
-                      class={`rounded px-2.5 py-1 text-[11px] tabular-nums transition-colors ${
-                        motionDuration() === d
-                          ? "bg-card text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      onClick={() => {
-                        setMotionDuration(d)
-                        setReplayToken((n) => n + 1)
-                      }}
-                    >
-                      {d}ms
-                    </button>
-                  )}
-                </For>
-              </div>
-            </div>
-          </div>
+        <DemoCard code={motionCode}>
+          <MotionExample />
         </DemoCard>
         <h3 class="mt-8 text-[12px] text-muted-foreground">Live-edge motion</h3>
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
