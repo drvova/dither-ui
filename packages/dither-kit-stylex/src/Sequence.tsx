@@ -119,23 +119,29 @@ export default function Sequence(raw: SequenceProps) {
     if (count === 0 || pixelPrefersReducedMotion()) complete()
   }
 
-  /** Where a child stands, read off its animation as its phase turns (a
-   * seek back turns it too), or off the event where the browser keeps no
-   * animation list. */
-  function place(e: AnimationEvent): void {
-    const child = e.target as HTMLElement
-    if (e.animationName !== "dk-seq" || child.parentElement !== root) return
+  /** Where a child stands, read off its animation (a seek back turns it
+   * too), or off the event where the browser keeps no animation list. */
+  function stateOf(child: Element, e: AnimationEvent): string {
     const run = child.getAnimations?.().find((a) => (a as CSSAnimation).animationName === "dk-seq")
-    let state = e.type === "animationstart" ? "active" : "done"
-    if (run?.effect) {
-      const timing = run.effect.getComputedTiming()
-      const local = Number(timing.localTime)
-      const delay = Number(run.effect.getTiming().delay) || 0
-      state = local < delay ? "before" : local >= Number(timing.endTime) ? "done" : "active"
+    if (!run?.effect) return child === e.target ? (e.type === "animationstart" ? "active" : "done") : ""
+    const timing = run.effect.getComputedTiming()
+    const local = Number(timing.localTime)
+    const delay = Number(run.effect.getTiming().delay) || 0
+    return local < delay ? "before" : local >= Number(timing.endTime) ? "done" : "active"
+  }
+
+  /** As any child's phase turns, every child says where it stands now:
+   * events come with the frame after the change, so one may arrive after
+   * the moment has moved on. */
+  function place(e: AnimationEvent): void {
+    if (e.animationName !== "dk-seq" || (e.target as Element).parentElement !== root) return
+    for (const child of children()) {
+      const state = stateOf(child, e)
+      if (!state) continue
+      child.setAttribute("data-seq", state)
+      if (state === "done") ended.add(child)
+      else ended.delete(child)
     }
-    child.setAttribute("data-seq", state)
-    if (state === "done") ended.add(child)
-    else ended.delete(child)
     if (!told && ended.size === count) {
       told = true
       props.onComplete?.()

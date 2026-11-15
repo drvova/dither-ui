@@ -4,18 +4,21 @@
    motion shows the end. */
 .dk-count-cell {
   display: inline-block;
-  height: 1lh;
+  height: 1.25em;
+  line-height: 1.25em;
   overflow: hidden;
   vertical-align: bottom;
 }
 .dk-count-column {
   display: block;
+  /* every row exactly the window's height, whatever font draws it */
+  line-height: 1.25em;
   white-space: pre;
-  transform: translateY(calc(-1lh * var(--dk-end)));
+  transform: translateY(calc(-1.25em * var(--dk-end)));
 }
 @media (prefers-reduced-motion: no-preference) {
   .dk-count-up[data-count="wait"] .dk-count-column {
-    transform: translateY(calc(-1lh * var(--dk-start)));
+    transform: translateY(calc(-1.25em * var(--dk-start)));
   }
   .dk-count-up[data-count="run"] .dk-count-column {
     animation: dk-count var(--dk-count-dur) cubic-bezier(0.33, 1, 0.68, 1) both;
@@ -23,9 +26,9 @@
 }
 @keyframes dk-count {
   from {
-    transform: translateY(calc(-1lh * var(--dk-start)));
+    transform: translateY(calc(-1.25em * var(--dk-start)));
   }
   to {
-    transform: translateY(calc(-1lh * var(--dk-end)));
+    transform: translateY(calc(-1.25em * var(--dk-end)));
   }
 }

@@ -27,7 +27,11 @@ beforeAll(async () => {
     build: {
       write: false,
       cssCodeSplit: false,
-      lib: { entry: join(HERE, "css-motion-page.tsx"), formats: ["es"], fileName: "page" },
+      lib: {
+        entry: join(HERE, "css-motion-page.tsx"),
+        formats: ["es"],
+        fileName: "page",
+      },
     },
   })
   const output = [built].flat().flatMap((r) => ("output" in r ? r.output : []))
@@ -40,7 +44,10 @@ beforeAll(async () => {
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>${css}
 body { margin: 0; font: 16px/20px monospace } .cell { width: 10px; height: 10px }</style></head>
 <body><div id="stage"></div><script type="module" src="/page.js"></script></body></html>`
-  browser = await chromium.launch({ executablePath: findChromium(), args: ["--no-sandbox"] })
+  browser = await chromium.launch({
+    executablePath: findChromium(),
+    args: ["--no-sandbox"],
+  })
   page = await browser.newPage({ reducedMotion: "no-preference" })
   await page.route(`${ORIGIN}/**`, (route) =>
     new URL(route.request().url()).pathname === "/page.js"
@@ -55,6 +62,9 @@ afterAll(async () => {
   await browser?.close()
 })
 
+/** A digit's or a letter's row, px: 1.25em at the page's 16px. */
+const ROW = 20
+
 /** Mount a piece and let it start (its observers fire, its CSS begins). */
 async function mount(name: string) {
   await page.evaluate((n) => window.kit.mount(n), name)
@@ -62,6 +72,12 @@ async function mount(name: string) {
 }
 const seek = (ms: number) => page.evaluate((t) => window.kit.seek(t), ms)
 const read = <T>(fn: () => T) => page.evaluate(fn)
+/** How far up each column stands, px. */
+const shifts = (selector: string) =>
+  page.evaluate(
+    (sel) => [...document.querySelectorAll(sel)].map((c) => -new DOMMatrix(getComputedStyle(c).transform).m42),
+    selector,
+  )
 
 /** The old TextType driver's model: what is typed `ms` into the run. */
 function typedAt(texts: string[], type: number, del: number, pause: number, ms: number): string {
@@ -137,6 +153,7 @@ describe("the kit's CSS motion under the kit clock", () => {
     expect(a).toBe(1)
     expect(b).toBeCloseTo(0.4, 3)
     expect(c).toBe(0)
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(r)))
     await seek(100)
     expect((await progress())[0]).toBeCloseTo(0.2, 3)
     // its place is told by its animation's events, dispatched with the next frame
@@ -150,12 +167,7 @@ describe("the kit's CSS motion under the kit clock", () => {
 
   it("CountUp: the columns stand where the ease-out puts them at the moment", async () => {
     await mount("count")
-    const rows = () =>
-      read(() =>
-        [...document.querySelectorAll<HTMLElement>(".dk-count-column")].map(
-          (c) => -new DOMMatrix(getComputedStyle(c).transform).m42 / 20,
-        ),
-      )
+    const rows = async () => (await shifts(".dk-count-column")).map((px) => px / ROW)
     const ease = (p: number) => 1 - (1 - p) ** 3
     await seek(400)
     const ends = await read(() =>
@@ -171,12 +183,7 @@ describe("the kit's CSS motion under the kit clock", () => {
 
   it("DecryptedText: a glyph a frame, the letters settled by the moment", async () => {
     await mount("decrypt")
-    const rows = () =>
-      read(() =>
-        [...document.querySelectorAll<HTMLElement>(".dk-decrypt-column")].map((c) =>
-          Math.round(-new DOMMatrix(getComputedStyle(c).transform).m42 / 20),
-        ),
-      )
+    const rows = async () => (await shifts(".dk-decrypt-column")).map((px) => Math.round(px / ROW))
     // a letter a frame at speed 3; the column's rows are frames, settled on the last
     await seek(1000 / 60 + 1)
     expect(await rows()).toEqual([2, 2, 2])
