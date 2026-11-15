@@ -10,7 +10,8 @@ result to a coding agent, on the live preview — a real tool, never a mock.
 ## Ownership
 
 The components and the controller live in this folder; `model/` beside
-them holds the framework-free model (see `../../AGENTS.md`).
+them holds the framework-free model (see `../../AGENTS.md`) and the
+controller's Solid-bound parts (below).
 
 - `Workbench.tsx` — the root: creates the controller, provides it
   (`context.ts` → `useBench()`), portals the overlay into the preview
@@ -22,7 +23,19 @@ them holds the framework-free model (see `../../AGENTS.md`).
   panel with the selection; `feedbackVerb` names which on K's key and the
   readout's; the feedback cases of
   `tests/site/workbench.spec.tsx`). Components render from it
-  and call into it.
+  and call into it. It is composed from its Solid-bound parts in
+  `model/`, each a `create*(state, deps)` over the one state: `state.ts`
+  (the options, settings, the tool in hand, the undoable workspace and its
+  saving, every overlay signal, and which preview holds the keys:
+  `ownKeys`/`hasKeys`/`dropKeys`), `measuring.ts` (the per-frame loop),
+  `selection.ts` (hit tests, the selection box, move / scale / rotate),
+  `notes.ts` (notes and comment threads), `pixels.ts` (the snapshot, the
+  loupe's and the sampler's pixels), `recorder.ts` (stills, recordings,
+  video and GIF export; `GIF`), `gestures.ts` (every pointer gesture) and
+  `keys.ts` (the keyboard and its listeners); a part names what it takes
+  from another by that part's type (`Pick<Selection, …>`), never by an
+  import of `bench.ts`. `bench.ts` keeps the tool switch, the agent
+  hand-off and start / stop, and returns the same surface.
 - The DOM readings live a layer down, in `shared/lib/inspect/` (the
   agent's `inspect` reads with them too): `color.ts` (parse every computed
   form, print hex/rgb/hsl/oklch, WCAG contrast), `geometry.ts` (boxes,
