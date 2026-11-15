@@ -673,25 +673,20 @@ describe("RelativeTime", () => {
 })
 
 describe("ScrollReveal", () => {
-  it("names its sentence for readers, and reveals its words once measured", async () => {
+  it("names its sentence for readers, and lays each word on its share of the block's rise", () => {
     const { getByLabelText } = render(() => <ScrollReveal text="Read me" />)
     const block = getByLabelText("Read me")
     const words = [...block.children] as HTMLElement[]
-    expect(words.map((word) => word.textContent)).toEqual(["Read", " ", "me"])
+    expect(words.map((word) => word.textContent)).toEqual(["Read", "\u00a0", "me"])
     expect(words.every((word) => word.getAttribute("aria-hidden") === "true")).toBe(true)
-    expect(words[0].style.opacity).toBe("0.06")
-    await w.frame(100)
-    expect(words[0].style.opacity).toBe("1")
+    expect(words.map((word) => word.style.getPropertyValue("--dk-i"))).toEqual(["0", "1", "2"])
+    expect(block.style.getPropertyValue("--dk-n")).toBe("3")
   })
 
-  it("stops listening to the page when it leaves", async () => {
-    const { unmount } = render(() => <ScrollReveal />)
-    await w.frame(100)
-    const measured = vi.spyOn(Element.prototype, "getBoundingClientRect")
-    unmount()
-    fireEvent.scroll(window)
-    await w.frame(200)
-    expect(measured).not.toHaveBeenCalled()
+  it("listens to nothing on the page: its stylesheet reads the scroll", () => {
+    const listen = vi.spyOn(window, "addEventListener")
+    render(() => <ScrollReveal />)
+    expect(listen).not.toHaveBeenCalledWith("scroll", expect.anything(), expect.anything())
   })
 })
 
@@ -722,32 +717,40 @@ describe("ShinyText", () => {
 })
 
 describe("TextType", () => {
-  it("types its first line, deletes it, then types the next, on the kit clock", async () => {
+  const shown = (host: Element, ms: number) =>
+    [...host.querySelectorAll<HTMLElement>(".dk-type-char")]
+      .filter(
+        (c) => Number(c.style.getPropertyValue("--dk-from")) <= ms && ms < Number(c.style.getPropertyValue("--dk-to")),
+      )
+      .map((c) => c.textContent)
+      .join("")
+
+  it("types its first line, deletes it, then types the next: each letter's time laid out for its stylesheet", () => {
     const { container } = render(() => (
       <TextType texts={["Hi", "Yo"]} typingSpeed={10} deletingSpeed={10} pause={100} />
     ))
-    const [typed, caret] = [...container.firstElementChild!.children]
+    const host = container.firstElementChild as HTMLElement
+    const caret = host.lastElementChild!
     expect(caret.getAttribute("aria-hidden")).toBe("true")
-    expect(typed.textContent).toBe("")
-    w.show()
-    await w.run(0, 290, 10)
-    expect(typed.textContent).toBe("")
-    await w.frame(300)
-    expect(typed.textContent).toBe("H")
-    await w.frame(310)
-    expect(typed.textContent).toBe("Hi")
-    await w.run(320, 440, 10)
-    expect(typed.textContent).toBe("")
-    await w.run(450, 680, 10)
-    expect(typed.textContent).toBe("Yo")
+    expect(host.getAttribute("aria-label")).toBe("Hi Yo")
+    // ms after the lead: a letter every 10, held 100, a letter gone every 10, 220, the next
+    expect(shown(host, 0)).toBe("H")
+    expect(shown(host, 10)).toBe("Hi")
+    expect(shown(host, 119)).toBe("Hi")
+    expect(shown(host, 120)).toBe("H")
+    expect(shown(host, 130)).toBe("")
+    expect(shown(host, 360)).toBe("Y")
+    expect(shown(host, 370)).toBe("Yo")
+    expect(host.style.getPropertyValue("--dk-type-period")).toBe("720ms")
+    expect(host.style.getPropertyValue("--dk-type-lead")).toBe("300ms")
+    expect(host.style.getPropertyValue("--dk-type-loops")).toBe("infinite")
   })
 
-  it("stops after its last line without a loop, and stops typing when it leaves", async () => {
-    const { container, unmount } = render(() => <TextType texts={["Hi"]} loop={false} cursor={false} />)
-    w.show()
-    await w.run(0, 5000, 100)
-    expect(container.textContent).toBe("Hi")
-    unmount()
-    expect(w.queued()).toBe(0)
+  it("keeps its last line without a loop", () => {
+    const { container } = render(() => <TextType texts={["Hi"]} loop={false} cursor={false} />)
+    const host = container.firstElementChild as HTMLElement
+    expect(shown(host, 5000)).toBe("Hi")
+    expect(host.style.getPropertyValue("--dk-type-loops")).toBe("1")
+    expect(host.querySelector(".dither-caret")).toBeNull()
   })
 })

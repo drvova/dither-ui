@@ -1,12 +1,42 @@
-.dither-caret {
-  animation: dither-blink 1s steps(1) infinite;
+/* Typing in CSS: the host runs one clock, --dk-type-p from 0 to 1 over the
+   run's period after its lead, and each letter is on the page while the
+   clock's ms stand inside its own time (--dk-from to --dk-to); off, it
+   takes no room. Before the lead the clock stands at -1: nothing typed.
+   Reduced motion holds it where the first line stands whole. */
+@property --dk-type-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: -1;
 }
-@keyframes dither-blink {
+@keyframes dk-type {
+  from {
+    --dk-type-p: 0;
+  }
+  to {
+    --dk-type-p: 1;
+  }
+}
+.dk-text-type {
+  animation: dk-type var(--dk-type-period) linear var(--dk-type-lead) var(--dk-type-loops) forwards;
+}
+.dk-type-char {
+  --dk-type-ms: calc(var(--dk-type-p) * var(--dk-type-span));
+  --dk-type-on: min(clamp(0, var(--dk-type-ms) - var(--dk-from) + 1, 1), clamp(0, var(--dk-to) - var(--dk-type-ms), 1));
+  font-size: calc(var(--dk-type-on) * 1em);
+}
+.dither-caret {
+  animation: dk-blink 1s steps(1) infinite;
+}
+@keyframes dk-blink {
   50% {
     opacity: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .dk-text-type {
+    animation: none;
+    --dk-type-p: var(--dk-type-rest);
+  }
   .dither-caret {
     animation: none;
   }

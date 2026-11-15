@@ -1,0 +1,33 @@
+/* The dock's swell: the item under the pointer (or holding the keyboard's
+   focus) at --dk-dock-0, its neighbours at --dk-dock-1, theirs at
+   --dk-dock-2, every scale settling back when the pointer leaves. Reduced
+   motion keeps the row still. */
+.dk-dock-item {
+  transition: transform 150ms ease-out;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dk-dock-item:focus-visible {
+    transform: scale(var(--dk-dock-0));
+  }
+  .dk-dock-item:focus-visible + .dk-dock-item,
+  .dk-dock-item:has(+ .dk-dock-item:focus-visible) {
+    transform: scale(var(--dk-dock-1));
+  }
+  .dk-dock-item:focus-visible + .dk-dock-item + .dk-dock-item,
+  .dk-dock-item:has(+ .dk-dock-item + .dk-dock-item:focus-visible) {
+    transform: scale(var(--dk-dock-2));
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .dk-dock-item:hover {
+    transform: scale(var(--dk-dock-0));
+  }
+  .dk-dock-item:hover + .dk-dock-item,
+  .dk-dock-item:has(+ .dk-dock-item:hover) {
+    transform: scale(var(--dk-dock-1));
+  }
+  .dk-dock-item:hover + .dk-dock-item + .dk-dock-item,
+  .dk-dock-item:has(+ .dk-dock-item + .dk-dock-item:hover) {
+    transform: scale(var(--dk-dock-2));
+  }
+}

@@ -1,12 +1,12 @@
 // Generated from @dither-ui/kit/solid/ScrambleText.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createMemo, createSignal, mergeProps, onCleanup, onMount } from "solid-js"
-import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
-import { cn, type StyleProp } from "./lib"
+import { mergeProps } from "solid-js"
+import { type StyleProp } from "./lib"
+import DecryptedText from "./DecryptedText"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
-  text: { display: "inline-block", cursor: "default", fontFamily: "var(--font-mono)", whiteSpace: "pre" },
+  decryptedText: { cursor: "default" },
 })
 
 export type ScrambleTextProps = {
@@ -17,50 +17,18 @@ export type ScrambleTextProps = {
 }
 
 const CHARS = "!<>-_\\/[]{}=+*^?#$%&ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-const rand = () => CHARS[Math.floor(Math.random() * CHARS.length)]
 
+/** Text that scrambles under the pointer and settles left to right: the
+ * decrypt run on hover, over a wider glyph set and a quicker settle. */
 export default function ScrambleText(raw: ScrambleTextProps) {
   const props = mergeProps({ text: "Hover to scramble", speed: 1 }, raw)
-
-  const target = createMemo(() => props.text)
-  // A burst's frame while one runs; the text itself the rest of the time.
-  const [burst, setBurst] = createSignal<string | null>(null)
-  let raf = 0
-  let running = false
-
-  // A hover burst: every char randomises, then settles left-to-right.
-  function scramble() {
-    if (pixelPrefersReducedMotion() || running) return
-    running = true
-    const t = target()
-    const settleEvery = Math.max(1, Math.round(2 / Math.max(0.1, props.speed)))
-    const total = t.length * settleEvery + 6
-    let frame = 0
-    const tick = () => {
-      frame++
-      const settled = Math.floor(frame / settleEvery)
-      let out = ""
-      for (let i = 0; i < t.length; i++) out += i < settled ? t[i] : t[i] === " " ? " " : rand()
-      if (frame < total) {
-        setBurst(out)
-        raf = requestAnimationFrame(tick)
-      } else {
-        setBurst(null)
-        running = false
-      }
-    }
-    raf = requestAnimationFrame(tick)
-  }
-
-  onMount(() => {
-    onCleanup(() => {
-      if (raf) cancelAnimationFrame(raf)
-    })
-  })
-
   return (
-    <span class={cn(styles.text, props.xstyle, props.class)} aria-label={props.text} onMouseEnter={scramble}>
-      {burst() ?? target()}
-    </span>
+    <DecryptedText
+      text={props.text}
+      speed={props.speed * 1.5}
+      trigger="hover"
+      chars={CHARS}
+      xstyle={[styles.decryptedText, props.xstyle, props.class]}
+    />
   )
 }

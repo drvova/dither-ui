@@ -2,7 +2,7 @@
 // (css-easing-1) and pinned here against MDN's documented step graphs — if a
 // refactor moves a boundary or an endpoint, this table fails first.
 import { describe, expect, it } from "rstack/test"
-import { cssSteps, frameIndex, frameSteps, linear, steps } from "../src/engine/timing"
+import { cssEasing, cssSteps, frameIndex, frameSteps, linear, steps } from "../src/engine/timing"
 
 describe("steps() — MDN step-graph parity", () => {
   // steps(4, jump-end): segments (0,0) (0.25,0.25) (0.5,0.5) (0.75,0.75),
@@ -158,5 +158,15 @@ describe("cssSteps() — one config, both surfaces", () => {
 describe("linear()", () => {
   it("is the identity baseline", () => {
     for (const p of [0, 0.3, 0.5, 1]) expect(linear(p)).toBe(p)
+  })
+})
+
+describe("cssEasing()", () => {
+  it("spells an easing made here as the CSS a stylesheet plays, and no other function", () => {
+    expect(cssEasing(linear)).toBe("linear")
+    expect(cssEasing(steps(4))).toBe("steps(4, jump-end)")
+    expect(cssEasing(steps(3.7, "jump-none"))).toBe("steps(3, jump-none)")
+    expect(cssEasing(frameSteps(24, 500))).toBe("steps(12, jump-end)")
+    expect(cssEasing((p) => p * p)).toBeUndefined()
   })
 })

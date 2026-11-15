@@ -11,8 +11,17 @@ export type Easing = (p: number) => number
 /** Step positions, spelled exactly as the CSS `steps()` keyword. */
 export type StepPosition = "jump-end" | "jump-start" | "jump-none" | "jump-both"
 
+/** The CSS timing function an easing made here is, for a driver that hands
+ * its motion to a stylesheet. */
+const CSS_OF = new WeakMap<Easing, string>()
+
+/** The CSS spelling of an easing made here (`linear`, `steps()`), or
+ * undefined for any other function. */
+export const cssEasing = (easing: Easing): string | undefined => CSS_OF.get(easing)
+
 /** Identity — the smooth baseline every quantized easing is compared against. */
 export const linear: Easing = (p) => p
+CSS_OF.set(linear, "linear")
 
 /**
  * CSS-compatible `steps(n, position)`:
@@ -30,16 +39,16 @@ export function steps(n: number, position: StepPosition = "jump-end"): Easing {
     throw new RangeError(`steps(jump-none): n must be ≥ 2, got ${n}`)
   }
   const at = (p: number): number => (p <= 0 ? 0 : p >= 1 ? 1 : p)
-  switch (position) {
-    case "jump-start":
-      return (p) => Math.min(1, (Math.floor(at(p) * k) + 1) / k)
-    case "jump-none":
-      return (p) => Math.min(1, Math.floor(at(p) * k) / (k - 1))
-    case "jump-both":
-      return (p) => (Math.floor(at(p) * k) + 1) / (k + 1)
-    default:
-      return (p) => Math.floor(at(p) * k) / k
-  }
+  const easing: Easing =
+    position === "jump-start"
+      ? (p) => Math.min(1, (Math.floor(at(p) * k) + 1) / k)
+      : position === "jump-none"
+        ? (p) => Math.min(1, Math.floor(at(p) * k) / (k - 1))
+        : position === "jump-both"
+          ? (p) => (Math.floor(at(p) * k) + 1) / (k + 1)
+          : (p) => Math.floor(at(p) * k) / k
+  CSS_OF.set(easing, `steps(${k}, ${position})`)
+  return easing
 }
 
 /**
@@ -69,6 +78,6 @@ export function frameIndex(elapsedMs: number, fps: number): number {
  * disagree on validity or spelling.
  */
 export function cssSteps(n: number, position: StepPosition = "jump-end"): string {
-  steps(n, position) // shared validation — throws on the same inputs CSS invalidates
-  return `steps(${Math.floor(n)}, ${position})`
+  // shared validation — throws on the same inputs CSS invalidates
+  return cssEasing(steps(n, position))!
 }

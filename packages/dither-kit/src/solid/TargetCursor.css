@@ -1,5 +1,5 @@
 .dither-target {
-  animation: dither-target-spin 6s linear infinite;
+  animation: dk-target-spin 6s linear infinite;
 }
 .dk-target-cursor .corner {
   position: absolute;
@@ -31,7 +31,7 @@
   border-left: 0;
   border-top: 0;
 }
-@keyframes dither-target-spin {
+@keyframes dk-target-spin {
   to {
     rotate: 360deg;
   }

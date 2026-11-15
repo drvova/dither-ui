@@ -1,10 +1,7 @@
 // Generated from @dither-ui/kit/solid/RotatingText.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createEffect, createMemo, createSignal, mergeProps, on, onCleanup, untrack } from "solid-js"
-import { isDirected } from "@dither-ui/kit/engine/clock.ts"
+import { createMemo, Index, mergeProps } from "solid-js"
 import { cn, type StyleProp } from "./lib"
-import { createKitTime } from "@dither-ui/kit/solid/runtime/kit-time.ts"
-import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
 import "@dither-ui/kit/solid/RotatingText.css"
 import * as stylex from "@stylexjs/stylex"
 
@@ -22,54 +19,39 @@ export type RotatingTextProps = {
   xstyle?: StyleProp
 }
 
+/** The rise from one word to the next, ms (at most half a slot). */
+const RISE = 300
+
+/** The next word every `interval`, rising in as the last rises out: the turn
+ * is a CSS animation (`RotatingText.css`) the kit clock holds when it is
+ * directed. Every word stands in the page, so the box is the widest. */
 export default function RotatingText(raw: RotatingTextProps) {
   const props = mergeProps({ texts: ["Solid", "canvas", "dither"], interval: 2000 }, raw)
 
-  let host: HTMLSpanElement | undefined
   const list = createMemo(() => (props.texts.length ? props.texts : [""]))
-  // The word of the moment: the next one every `interval` of the kit
-  // clock. Its crossfade stays calm under reduced motion, so the words
-  // turn there too.
-  const { time } = createKitTime(() => host, "run")
-  const idx = createMemo(() =>
-    list().length < 2 ? 0 : Math.floor(time() / Math.max(300, props.interval)) % list().length,
-  )
-
-  // Out, then in: the word on show leaves, and only once it is gone does
-  // the next one (whichever `idx` names by then) arrive. Directed, the
-  // moment's word stands at once.
-  const [shown, setShown] = createSignal(untrack(idx))
-  const [present, setPresent] = createSignal(true)
-  let gone = false
-  const Word = () => {
-    onCleanup(() =>
-      queueMicrotask(() => {
-        if (gone) return
-        setShown(idx())
-        setPresent(true)
-      }),
-    )
-    return <span {...stylex.props(styles.text)}>{list()[shown()]}</span>
-  }
-
-  createEffect(
-    on(
-      idx,
-      (i) => {
-        if (!isDirected()) return setPresent(false)
-        setShown(i)
-        setPresent(true)
-      },
-      { defer: true },
-    ),
-  )
-  onCleanup(() => (gone = true))
+  const interval = () => Math.max(300, props.interval)
 
   return (
-    <span ref={(el) => (host = el)} class={cn("dither-rotating", props.xstyle, props.class)}>
-      <Presence when={present()} name="dither-rot">
-        <Word />
-      </Presence>
+    <span
+      class={cn("dither-rotating", props.xstyle, props.class)}
+      style={{
+        "--dk-n": String(list().length),
+        "--dk-interval": `${interval()}ms`,
+        "--dk-fade": String(Math.min(0.5, RISE / interval())),
+      }}
+      data-turn={list().length > 1 ? "" : undefined}
+    >
+      <Index each={list()}>
+        {(word, i) => (
+          <span
+            class={cn(styles.text, "dither-rot-word")}
+            style={{ "--dk-i": String(i) }}
+            aria-hidden={i > 0 || undefined}
+          >
+            {word()}
+          </span>
+        )}
+      </Index>
     </span>
   )
 }

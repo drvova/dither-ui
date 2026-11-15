@@ -1,0 +1,31 @@
+/* The stagger in CSS: once the run is on, every child plays one cycle of
+   --seq-p from 0 to 1 per loop on the group's easing, its own start put
+   off by --seq-delay (its place in the stagger), alternating when the group
+   yoyos, holding the start before and the end after. Paused or out of view
+   it holds where it stands. Reduced motion: every child at its end. */
+@property --seq-p {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+@keyframes dk-seq {
+  from {
+    --seq-p: 0;
+  }
+  to {
+    --seq-p: 1;
+  }
+}
+.dither-sequence[data-seq-run] > * {
+  animation: dk-seq var(--seq-dur) var(--seq-ease) var(--seq-delay, 0s) var(--seq-loops) var(--seq-dir) both;
+}
+.dither-sequence[data-paused] > * {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dither-sequence > *,
+  .dither-sequence[data-seq-run] > * {
+    animation: none;
+    --seq-p: var(--seq-end);
+  }
+}

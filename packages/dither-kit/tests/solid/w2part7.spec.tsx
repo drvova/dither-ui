@@ -545,29 +545,43 @@ describe("HoldAction", () => {
     expect(screen.getByRole("button", { name: "Delete" }).getAttribute("aria-describedby")).toBe("why")
   })
 
-  it("completes once when held for its duration, by key too", async () => {
-    await clockAt(0)
+  /** The fill's transition ends: the browser's word that it is full or drained. */
+  const fillEnds = (fill: Element, propertyName = "height") => {
+    const end = new Event("transitionend", { bubbles: true })
+    Object.defineProperty(end, "propertyName", { value: propertyName })
+    fill.dispatchEvent(end)
+  }
+
+  it("completes once when its fill ends held, by key too", () => {
+    vi.useFakeTimers()
     const complete = vi.fn()
     render(() => <HoldAction duration={100} onComplete={complete} />)
     const button = screen.getByRole("button")
+    const fill = button.querySelector<HTMLElement>(".dk-hold-fill")!
+    expect(fill.style.getPropertyValue("--dk-hold-ms")).toBe("100ms")
     fireEvent.keyDown(button, { key: "Enter" })
-    for (let t = 50; t <= 250; t += 50) await w.frame(t)
+    expect(fill.getAttribute("data-hold")).toBe("hold")
+    fillEnds(fill)
+    fillEnds(fill)
     expect(complete).toHaveBeenCalledTimes(1)
+    expect(fill.getAttribute("data-hold")).toBe("done")
     expect(screen.getByRole("status").textContent).toBe("completed")
+    vi.advanceTimersByTime(900)
+    expect(fill.hasAttribute("data-hold")).toBe(false)
+    vi.useRealTimers()
   })
 
-  it("drains back when released early", async () => {
-    await clockAt(0)
+  it("drains back when released early", () => {
     const complete = vi.fn()
-    render(() => <HoldAction duration={1000} onComplete={complete} />)
+    render(() => <HoldAction duration={1000} direction="horizontal" onComplete={complete} />)
     const button = screen.getByRole("button")
-    const fill = button.querySelector<HTMLElement>("span[aria-hidden]")!
+    const fill = button.querySelector<HTMLElement>(".dk-hold-fill")!
+    expect(fill.getAttribute("data-axis")).toBe("x")
     fireEvent.pointerDown(button)
-    await w.frame(50)
-    expect(fill.style.height).toBe("5%")
+    expect(fill.getAttribute("data-hold")).toBe("hold")
     fireEvent.pointerUp(button)
-    for (let t = 50; t <= 250; t += 50) await w.frame(t)
-    expect(fill.style.height).toBe("0%")
+    expect(fill.hasAttribute("data-hold")).toBe(false)
+    fillEnds(fill, "width") // drained: not a completion
     expect(complete).not.toHaveBeenCalled()
   })
 })

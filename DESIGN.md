@@ -210,6 +210,11 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
 - **Page to page**: a cross-document view transition dithered through the
   kit's wipe, a band of the signal ink on its front; the theme turns
   through the same engine as an iris.
+- **Class names, not scripts** (the user's call): the kit's UI moves in
+  CSS, a transition or `dk-*` keyframes in each component's stylesheet
+  over state it sets as an attribute, and the kit clock holds that CSS at
+  a directed moment so a frame exports exact. Only the dither on a canvas
+  is drawn in script; a drag is read as it is let go, never followed.
 - **Reduced motion** is honoured everywhere: still frames, no rolls, no
   smooth scrolling, the final state shown at once.
 

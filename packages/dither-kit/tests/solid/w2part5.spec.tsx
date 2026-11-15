@@ -316,8 +316,8 @@ describe("BouncyAccordion", () => {
     const shut = document.getElementById(beta.getAttribute("aria-controls")!)!
     expect(open.textContent).toBe("Alpha text")
     expect(shut.textContent).toBe("Beta slot")
-    expect(open.style.height).toBe("auto")
-    expect(shut.style.height).toBe("0px")
+    expect(open.hasAttribute("data-open")).toBe(true)
+    expect(shut.hasAttribute("data-open")).toBe(false)
     expect(shut.inert).toBe(true)
     fireEvent.click(beta)
     expect(onUpdate).toHaveBeenLastCalledWith("b")
@@ -325,15 +325,16 @@ describe("BouncyAccordion", () => {
     expect(onUpdate).toHaveBeenLastCalledWith("")
   })
 
-  it("springs a panel's height when the open one changes", async () => {
+  it("opens the panel the value names, its stylesheet springing it, and asks no frames", () => {
+    const frame = vi.spyOn(window, "requestAnimationFrame")
     const [value, setValue] = createSignal("a")
     render(() => <BouncyAccordion items={items} modelValue={value()} />)
     const shut = document.getElementById(screen.getByRole("button", { name: "Beta" }).getAttribute("aria-controls")!)!
-    vi.spyOn(shut, "scrollHeight", "get").mockReturnValue(80)
     setValue("b")
-    await w.frame(16)
-    expect(shut.style.height).toMatch(/px$/)
+    expect(shut.hasAttribute("data-open")).toBe(true)
+    expect(shut.className).toContain("dk-bouncy-panel")
     expect(shut.inert).toBe(false)
+    expect(frame).not.toHaveBeenCalled()
   })
 })
 
@@ -532,8 +533,7 @@ describe("DitherDrawer", () => {
     expect(document.activeElement).toBe(opener)
   })
 
-  it("swipes away past half its width", async () => {
-    vi.useFakeTimers()
+  it("swipes away past half its width as it is let go, never following the finger", () => {
     const onClose = vi.fn()
     render(() => (
       <DitherDrawer open title="Swipe" onClose={onClose}>
@@ -546,13 +546,13 @@ describe("DitherDrawer", () => {
     const at = (type: string, clientX: number) =>
       dialog.dispatchEvent(Object.assign(new Event(type, { bubbles: true }), { clientX, clientY: 0, pointerId: 1 }))
     at("pointerdown", 0)
+    at("pointerup", 100)
+    expect(onClose).not.toHaveBeenCalled() // under half: it stays
+    at("pointerdown", 0)
     at("pointermove", 200)
-    expect(dialog.style.transform).toBe("translateX(200px)")
+    expect(dialog.style.transform).toBe("")
     at("pointerup", 200)
-    expect(dialog.style.transform).toBe("translateX(336px)")
-    vi.runAllTimers()
     expect(onClose).toHaveBeenCalledOnce()
-    vi.useRealTimers()
   })
 })
 
@@ -779,7 +779,11 @@ describe("WheelPicker", () => {
     render(() => <WheelPicker options={options} modelValue="two" label="Count" />)
     const wheel = screen.getByRole("spinbutton", { name: "Count" })
     expect(wheel.scrollTop).toBe(28)
+    expect(wheel.hasAttribute("data-ready")).toBe(true)
     expect(wheel.getAttribute("aria-valuenow")).toBe("1")
+    // the drum is the rows' own stylesheet, over the rows' place in the scroll
+    expect(wheel.style.getPropertyValue("--dk-wheel-d")).toBe("3")
+    expect([...wheel.children].every((c) => c.classList.contains("dk-wheel-row"))).toBe(true)
     expect(wheel.getAttribute("aria-valuetext")).toBe("two")
     expect(wheel.getAttribute("aria-valuemax")).toBe("2")
     expect(wheel.style.height).toBe("140px")
@@ -792,7 +796,7 @@ describe("WheelPicker", () => {
     const wheel = screen.getByRole("spinbutton", { name: "Wheel picker" })
     expect(fireEvent.keyDown(wheel, { key: "ArrowDown" })).toBe(false)
     expect(onUpdate).toHaveBeenLastCalledWith("3")
-    expect(wheel.scrollTo).toHaveBeenLastCalledWith({ top: 56, behavior: "smooth" })
+    expect(wheel.scrollTo).toHaveBeenLastCalledWith({ top: 56 }) // the glide is the stylesheet's
     fireEvent.keyDown(wheel, { key: "Home" })
     expect(onUpdate).toHaveBeenLastCalledWith("one")
     fireEvent.keyDown(wheel, { key: "End" })

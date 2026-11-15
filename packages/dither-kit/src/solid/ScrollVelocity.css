@@ -1,0 +1,20 @@
+/* The drift: the track slides a quarter of its width (two copies of the
+   line) and starts over, seamlessly. The push: where the page has a scroll timeline,
+   the track's holder slides another quarter four times over the page's
+   scroll, so moving the page moves the line on. Reduced motion holds both. */
+@keyframes dk-sv-drift {
+  to {
+    transform: translateX(-25%);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dk-sv-track {
+    animation: dk-sv-drift var(--dk-sv-drift, 20s) linear infinite;
+  }
+  @supports (animation-timeline: scroll()) {
+    .dk-sv-push {
+      animation: dk-sv-drift linear 4 both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}

@@ -1,13 +1,13 @@
 // Generated from @dither-ui/kit/solid/Sequence.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createEffect, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
+import { createEffect, createSignal, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
-import { planSequence, sampleSequence, type SequencePlan, type StaggerFrom } from "@dither-ui/kit/engine/sequence.ts"
-import { frameIndex, linear, type Easing } from "@dither-ui/kit/engine/timing.ts"
-import { cn, type StyleProp } from "./lib"
+import { staggerDelay, type StaggerFrom } from "@dither-ui/kit/engine/sequence.ts"
+import { cssEasing, cssSteps, type Easing } from "@dither-ui/kit/engine/timing.ts"
 import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
+import { cn, type StyleProp } from "./lib"
+import "@dither-ui/kit/solid/Sequence.css"
 
 export type SequenceProps = {
   /** Seconds between neighbouring children's starts.
@@ -19,10 +19,11 @@ export type SequenceProps = {
   /** One child's cycle, seconds.
    * @docs number (s per cycle) */
   duration?: number
-  /** Progress easing per cycle — timing.ts (`steps(4)` quantizes).
-   * @docs (p) => number from timing.ts
+  /** Progress easing per cycle: a CSS timing function, or one of timing.ts
+   * (`linear`, `steps(4)` quantizes) — another function plays linear.
+   * @docs CSS timing function | linear / steps(n) from timing.ts
    * @default linear */
-  easing?: Easing
+  easing?: Easing | string
   /** Whole cycles per child. */
   loop?: number
   /** Odd cycles play in reverse (an even loop settles back at 0). */
@@ -33,8 +34,9 @@ export type SequenceProps = {
   paused?: boolean
   /** Replay whenever the group scrolls back into view. */
   restartOnView?: boolean
-  /** Stop-motion cadence in fps (0 = smooth) — the kit-wide knob.
-   * @docs fps cadence */
+  /** Stop-motion cadence in fps (0 = smooth) — the kit-wide knob: a cycle
+   * steps at it, in place of the easing.
+   * @docs fps cadence (steps a cycle, in place of easing) */
   frameRate?: number
   /** Bump to rebuild (children changed) and replay from the start.
    * @docs string | number (bump rebuilds and replays) */
@@ -47,6 +49,12 @@ export type SequenceProps = {
   children?: JSX.Element
 }
 
+/** A stagger of its children, in CSS: each child plays `dk-seq`
+ * (`Sequence.css`), writing its eased progress to `--seq-p`, its start put
+ * off by its place in the stagger, and reports where it stands in
+ * `data-seq` (before, active, done) from its animation's events. It starts
+ * as it comes into view and holds while out of it; the kit clock holds it
+ * when directed. Reduced motion shows every child settled. */
 export default function Sequence(raw: SequenceProps) {
   const props = mergeProps(
     {
@@ -65,179 +73,90 @@ export default function Sequence(raw: SequenceProps) {
   )
 
   let root: HTMLElement | undefined
-  let children: HTMLElement[] = []
-  let plan: SequencePlan = { tracks: [], duration: 0 }
-  let raf = 0
-  let elapsed = 0
-  let lastDt = -1 // -1 sentinel: fake clocks legitimately start at 0
-  let lastPaint = 0
-  let lastFrame = -1
-  let started = false
-  let finished = false
-  /** Last values written per child — skip style work when nothing changed. */
-  let written: { p: string; s: string }[] = []
+  const [started, setStarted] = createSignal(false)
+  const [hidden, setHidden] = createSignal(false)
+  let count = 0
+  /** The children whose run is done, and whether the group said so. */
+  let ended = new Set<Element>()
+  let told = false
 
-  function write(progress: number, state: string, i: number): void {
-    const child = children[i]
-    if (!child) return
-    const p = progress.toFixed(4)
-    const prev = written[i]
-    if (prev && prev.p === p && prev.s === state) return
-    written[i] = { p, s: state }
-    child.style.setProperty("--seq-p", p)
-    child.setAttribute("data-seq", state)
+  const loops = () => Math.max(1, Math.floor(props.loop))
+  const ease = () => {
+    if (props.frameRate > 0) return cssSteps(Math.max(1, Math.round(props.duration * props.frameRate)))
+    const e = props.easing
+    return typeof e === "string" ? e : ((e && cssEasing(e)) ?? "linear")
   }
+  /** Where a child settles: an even yoyo lands back at 0. */
+  const end = () => (props.yoyo && loops() % 2 === 0 ? 0 : 1)
 
-  function paint(t: number): void {
-    for (const s of sampleSequence(plan, t)) write(s.progress, s.state, s.index)
+  function children(): HTMLElement[] {
+    return root ? (Array.from(root.children) as HTMLElement[]) : []
   }
 
   function complete(): void {
-    if (finished) return
-    finished = true
-    stop()
-    paint(plan.duration) // settle every child at its terminal value
+    for (const child of children()) child.setAttribute("data-seq", "done")
     props.onComplete?.()
   }
 
-  function frame(now: number): void {
-    raf = 0
-    if (props.paused || isDirected()) return
-    // The clock ticks EVERY frame; the gates below only decide whether to write.
-    // (Gating the clock itself would freeze the gate's own input.)
-    const fps = props.frameRate
-    const cap = fps && fps > 0 ? Math.max(0.1, 2 / fps) : 0.1
-    const dt = lastDt >= 0 ? Math.min(cap, (now - lastDt) / 1000) : 0
-    lastDt = now
-    elapsed += dt
-    const t = elapsed - props.delay
-    if (t >= plan.duration) {
-      complete()
-      return
-    }
-    const gate = fps && fps > 0 ? frameIndex(elapsed * 1000, fps) : -1
-    if (fps && fps > 0 ? gate === lastFrame : now - lastPaint < 33) {
-      raf = requestAnimationFrame(frame)
-      return
-    }
-    lastFrame = gate
-    lastPaint = now
-    paint(t)
-    raf = requestAnimationFrame(frame)
-  }
-
-  function stop(): void {
-    if (raf) cancelAnimationFrame(raf)
-    raf = 0
-  }
-
-  /** Directed (clock.ts): the group sits at the given moment, no frames. */
-  function seekTo(ms: number): void {
-    stop()
-    if (!started) return
-    elapsed = ms / 1000
-    const t = elapsed - props.delay
-    paint(Math.min(t, plan.duration))
-  }
-
+  /** Lay the stagger on the children as they stand, and play from 0. */
   function start(): void {
-    stop()
-    children = root ? Array.from(root.children).map((el) => el as HTMLElement) : []
-    written = children.map(() => ({ p: "", s: "" }))
-    plan = planSequence({
-      kind: "stagger",
-      count: children.length,
-      stagger: props.stagger,
-      from: props.from,
-      node: (i) => ({
-        kind: "track",
-        id: String(i),
-        duration: props.duration,
-        easing: props.easing ?? linear,
-        loop: props.loop,
-        yoyo: props.yoyo,
-      }),
+    const node = root
+    if (!node) return
+    const kids = children()
+    count = kids.length
+    ended = new Set()
+    told = false
+    kids.forEach((child, i) => {
+      child.style.setProperty("--seq-delay", `${props.delay + staggerDelay(i, count, props.stagger, props.from)}s`)
+      child.setAttribute("data-seq", "before")
     })
-    elapsed = 0
-    lastDt = -1
-    lastPaint = 0
-    lastFrame = -1
-    started = true
-    finished = false
-    if (children.length === 0) {
-      finished = true
-      props.onComplete?.()
-      return
-    }
-    if (pixelPrefersReducedMotion()) {
-      complete() // reduced motion: settled end state, no frames requested
-      return
-    }
-    if (props.paused) {
-      paint(0 - props.delay) // hold at the start state until released
-      return
-    }
-    if (isDirected()) {
-      seekTo(directedTime() ?? 0)
-      return
-    }
-    raf = requestAnimationFrame(frame)
+    // A replay: the run is dropped and set again on a fresh style, so every
+    // child's animation starts over.
+    node.removeAttribute("data-seq-run")
+    void node.offsetWidth
+    setStarted(true)
+    node.setAttribute("data-seq-run", "")
+    if (count === 0 || pixelPrefersReducedMotion()) complete()
   }
 
-  function wake(): void {
-    if (isDirected()) {
-      seekTo(directedTime() ?? 0)
-      return
+  /** Where a child stands, read off its animation as its phase turns (a
+   * seek back turns it too), or off the event where the browser keeps no
+   * animation list. */
+  function place(e: AnimationEvent): void {
+    const child = e.target as HTMLElement
+    if (e.animationName !== "dk-seq" || child.parentElement !== root) return
+    const run = child.getAnimations?.().find((a) => (a as CSSAnimation).animationName === "dk-seq")
+    let state = e.type === "animationstart" ? "active" : "done"
+    if (run?.effect) {
+      const timing = run.effect.getComputedTiming()
+      const local = Number(timing.localTime)
+      const delay = Number(run.effect.getTiming().delay) || 0
+      state = local < delay ? "before" : local >= Number(timing.endTime) ? "done" : "active"
     }
-    if (!raf && started && !finished && !props.paused) {
-      lastDt = -1 // resume: the first frame back contributes dt 0 (no jump)
-      raf = requestAnimationFrame(frame)
+    child.setAttribute("data-seq", state)
+    if (state === "done") ended.add(child)
+    else ended.delete(child)
+    if (!told && ended.size === count) {
+      told = true
+      props.onComplete?.()
     }
   }
 
   onMount(() => {
-    const unseek = onSeek((ms) => (ms === null ? wake() : seekTo(ms)))
-    createEffect(
-      on(
-        () => props.restartKey,
-        () => start(),
-        { defer: true },
-      ),
-    )
-    createEffect(
-      on(
-        () => props.paused,
-        (paused) => {
-          if (paused) stop()
-          else if (started && !finished && !pixelPrefersReducedMotion()) wake()
-        },
-        { defer: true },
-      ),
-    )
-    let io: IntersectionObserver | null = null
+    createEffect(on(() => props.restartKey, start, { defer: true }))
     if (typeof IntersectionObserver === "undefined") {
-      start() // no gate available — play on mount (AnimatedContent's floor)
-    } else {
-      // The observer doubles as start trigger AND visibility gate (loop-visibility
-      // contract: no offscreen rAF). Leaving mid-play pauses the clock; re-entry
-      // wakes with lastDt=-1, so no time jumps across the pause.
-      io = new IntersectionObserver((entries) => {
-        const entry = latestEntry(entries)
-        const visible = entry?.isIntersecting ?? true
-        if (visible) {
-          if (!started || props.restartOnView) start()
-          else wake()
-        } else if (started && !finished) {
-          stop()
-        }
-      })
-      if (root) io.observe(root)
+      start() // no gate available: play on mount
+      return
     }
-    onCleanup(() => {
-      unseek()
-      stop()
-      io?.disconnect()
+    // The observer starts the run and gates it: out of view it holds where
+    // it stands, back in view it goes on (or replays, with restartOnView).
+    const io = new IntersectionObserver((entries) => {
+      const visible = latestEntry(entries)?.isIntersecting ?? true
+      setHidden(!visible)
+      if (visible && (!started() || props.restartOnView)) start()
     })
+    if (root) io.observe(root)
+    onCleanup(() => io.disconnect())
   })
 
   return (
@@ -245,6 +164,16 @@ export default function Sequence(raw: SequenceProps) {
       component={props.as}
       ref={(el: HTMLElement) => (root = el)}
       class={cn("dither-sequence", props.xstyle, props.class)}
+      style={{
+        "--seq-dur": `${Math.max(0.001, props.duration)}s`,
+        "--seq-ease": ease(),
+        "--seq-loops": String(loops()),
+        "--seq-dir": props.yoyo ? "alternate" : "normal",
+        "--seq-end": String(end()),
+      }}
+      data-paused={props.paused || hidden() ? "" : undefined}
+      on:animationstart={place}
+      on:animationend={place}
     >
       {props.children}
     </Dynamic>

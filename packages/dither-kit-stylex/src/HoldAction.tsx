@@ -5,6 +5,7 @@ import { cssColor } from "@dither-ui/kit/engine/palette.ts"
 import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { CONTROL_BUTTON } from "./control"
 import { cn, type StyleProp } from "./lib"
+import "@dither-ui/kit/solid/HoldAction.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -54,7 +55,9 @@ const styles = stylex.create({
 
 /** Hold-to-complete — press and hold while a liquid fill with a dotted crest
  * rises (or slides) toward full; release early and it drains back. Works with
- * pointer or a held Enter/Space; completion fires exactly once per fill. */
+ * pointer or a held Enter/Space; completion fires exactly once per fill. The
+ * fill is a CSS transition over `duration` (`HoldAction.css`): its end is
+ * the completion, so the hold is timed by what the reader sees. */
 type Own = {
   /** Hold time to complete, ms.
    * @docs number (ms): hold time to complete */
@@ -90,47 +93,24 @@ export default function HoldAction(raw: HoldActionProps) {
   )
   const [props, rest] = splitProps(merged, OWN)
 
-  const [progress, setProgress] = createSignal(0)
   const [holding, setHolding] = createSignal(false)
   const [done, setDone] = createSignal(false)
-  let raf = 0
-  let dir = 0
-  let last = 0
   let resetTimer: ReturnType<typeof setTimeout> | undefined
 
-  function tick(now: number) {
-    const dt = Math.min(0.05, (now - last) / 1000)
-    last = now
-    const rate = dir > 0 ? 1000 / props.duration : -1000 / (props.duration * 0.35)
-    setProgress(Math.max(0, Math.min(1, progress() + rate * dt)))
-    if (dir > 0 && progress() >= 1) {
-      setHolding(false)
-      setDone(true)
-      props.onComplete?.()
-      resetTimer = setTimeout(() => {
-        setDone(false)
-        setProgress(0)
-      }, 900)
-      return
-    }
-    if (dir < 0 && progress() <= 0) return
-    raf = requestAnimationFrame(tick)
-  }
   function start() {
     if (props.disabled || done() || holding()) return
     setHolding(true)
-    dir = 1
-    last = performance.now()
-    cancelAnimationFrame(raf)
-    raf = requestAnimationFrame(tick)
   }
   function release() {
-    if (!holding()) return
     setHolding(false)
-    dir = -1
-    last = performance.now()
-    cancelAnimationFrame(raf)
-    raf = requestAnimationFrame(tick)
+  }
+  /** The fill reached full while held: complete, once. */
+  function filled(e: TransitionEvent) {
+    if (!holding() || e.target !== e.currentTarget || !/^(height|width)$/.test(e.propertyName)) return
+    setHolding(false)
+    setDone(true)
+    props.onComplete?.()
+    resetTimer = setTimeout(() => setDone(false), 900)
   }
   function keydown(e: KeyboardEvent) {
     if (e.repeat) return
@@ -142,10 +122,7 @@ export default function HoldAction(raw: HoldActionProps) {
   function keyup(e: KeyboardEvent) {
     if (e.key === "Enter" || e.key === " ") release()
   }
-  onCleanup(() => {
-    cancelAnimationFrame(raf)
-    clearTimeout(resetTimer)
-  })
+  onCleanup(() => clearTimeout(resetTimer))
 
   const vertical = () => props.direction === "vertical"
 
@@ -173,8 +150,11 @@ export default function HoldAction(raw: HoldActionProps) {
     >
       <span
         aria-hidden="true"
-        class={cn([styles.absolute, vertical() ? styles.insetX0 : styles.insetY0])}
-        style={vertical() ? { height: `${progress() * 100}%` } : { width: `${progress() * 100}%` }}
+        class={cn([[styles.absolute, "dk-hold-fill"], vertical() ? styles.insetX0 : styles.insetY0])}
+        data-axis={vertical() ? "y" : "x"}
+        data-hold={done() ? "done" : holding() ? "hold" : undefined}
+        style={{ "--dk-hold-ms": `${Math.max(1, props.duration)}ms` }}
+        on:transitionend={filled}
       >
         <span {...stylex.props(styles.layer)} style={{ background: cssColor(props.color) }} />
         <span

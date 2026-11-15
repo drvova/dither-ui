@@ -774,15 +774,12 @@ describe("links and text", () => {
     expect(new Set(ids).size).toBe(2)
   })
 
-  it("ScrambleText scrambles on hover and settles back on its text", async () => {
+  it("ScrambleText rests on its text and scrambles under the pointer", () => {
     render(() => <ScrambleText text="ab" />)
     const span = screen.getByLabelText("ab")
-    expect(span.textContent).toBe("ab")
-    fireEvent.mouseEnter(span)
-    await w.frame(16)
-    expect(span.textContent?.length).toBe(2)
-    for (let i = 0; i < 12; i++) await w.frame(32 + i * 16)
-    expect(span.textContent).toBe("ab")
+    expect(span.getAttribute("data-decrypt")).toBe("hover")
+    const cols = [...span.querySelectorAll(".dk-decrypt-column")].map((c) => c.textContent!.split("\n").at(-1))
+    expect(cols.join("")).toBe("ab")
   })
 })
 

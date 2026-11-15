@@ -1,0 +1,8 @@
+/* The top card's flight: off the way the swipe went, turning as it goes,
+   on the card's own transition. */
+.dk-card[data-fly="right"] {
+  transform: translateX(140%) rotate(12deg);
+}
+.dk-card[data-fly="left"] {
+  transform: translateX(-140%) rotate(-12deg);
+}

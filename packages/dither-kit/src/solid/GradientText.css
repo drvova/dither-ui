@@ -4,9 +4,9 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: dither-gt linear infinite;
+  animation: dk-gt linear infinite;
 }
-@keyframes dither-gt {
+@keyframes dk-gt {
   to {
     background-position: 300% center;
   }

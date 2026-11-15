@@ -1,7 +1,33 @@
+/* Letters float up as the line rises through the page, in CSS: the line is
+   a view timeline, and letter i of n rises from --dk-float below and
+   lights over its share of the line's rise (from a quarter of the way in
+   to four fifths), each starting half a share after the one before.
+   Without scroll timelines, or under reduced motion, every letter stands
+   in place. */
 .dither-float-char {
   display: inline-block;
   white-space: pre;
-  transition:
-    opacity 120ms linear,
-    transform 120ms linear;
+}
+@keyframes dk-float-char {
+  from {
+    opacity: 0.15;
+    transform: translateY(var(--dk-float));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .dk-scroll-float {
+      view-timeline: --dk-float-line block;
+    }
+    .dither-float-char {
+      animation: dk-float-char linear both;
+      animation-timeline: --dk-float-line;
+      animation-range: cover calc(25% + 55% * var(--dk-i) * 0.5 / var(--dk-n)) cover
+        calc(25% + 55% * (var(--dk-i) * 0.5 + 1) / var(--dk-n));
+    }
+  }
 }

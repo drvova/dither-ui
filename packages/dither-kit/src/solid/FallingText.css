@@ -1,10 +1,10 @@
 .dither-fall-char {
   display: inline-block;
   white-space: pre;
-  animation: dither-fall cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  animation: dk-fall cubic-bezier(0.3, 1.4, 0.5, 1) both;
   will-change: transform, opacity;
 }
-@keyframes dither-fall {
+@keyframes dk-fall {
   0% {
     opacity: 0;
     transform: translateY(-0.9em) rotate(-9deg);

@@ -118,8 +118,17 @@ export {
 } from "./transition"
 export { scoreCut, wavBytes, type ScoreAudio, type ScorePlan } from "./score"
 export { ICONS, ICON_NAMES, type IconName } from "./icons"
-export { linear, steps, frameSteps, frameIndex, cssSteps } from "./timing"
-export { directFromHyperframes, directedTime, isDirected, onSeek, release, seek } from "./clock"
+export { linear, steps, frameSteps, frameIndex, cssSteps, cssEasing } from "./timing"
+export {
+  directAnimation,
+  directFromHyperframes,
+  directedTime,
+  isDirected,
+  KIT_KEYFRAMES,
+  onSeek,
+  release,
+  seek,
+} from "./clock"
 export type { SeekListener } from "./clock"
 export { planSequence, sampleSequence, staggerDelay } from "./sequence"
 export { CONTAINER_SCALE, resolveCq, quantize } from "./containers"

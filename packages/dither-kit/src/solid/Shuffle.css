@@ -1,10 +1,10 @@
 .dither-shuffle-char {
   display: inline-block;
   white-space: pre;
-  animation: dither-shuffle-in cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: dk-shuffle-in cubic-bezier(0.2, 0.8, 0.2, 1) both;
   will-change: transform, opacity;
 }
-@keyframes dither-shuffle-in {
+@keyframes dk-shuffle-in {
   from {
     opacity: 0;
     transform: translate(var(--dx), var(--dy)) rotate(var(--rot));

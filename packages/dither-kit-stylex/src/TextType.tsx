@@ -1,9 +1,7 @@
 // Generated from @dither-ui/kit/solid/TextType.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createMemo, mergeProps, Show } from "solid-js"
-import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
+import { createMemo, For, Index, mergeProps, Show } from "solid-js"
 import { cn, type StyleProp } from "./lib"
-import { createKitTime } from "@dither-ui/kit/solid/runtime/kit-time.ts"
 import "@dither-ui/kit/solid/TextType.css"
 import * as stylex from "@stylexjs/stylex"
 
@@ -27,39 +25,44 @@ export type TextTypeProps = {
 }
 
 /** The wait before the first letter, ms. */
-const LEAD = 300
+export const TYPE_LEAD = 300
 /** The wait between a line deleted and the next one's first letter, ms. */
-const GAP = 220
+export const TYPE_GAP = 220
 
-type Typing = { texts: string[]; typingSpeed: number; deletingSpeed: number; pause: number; loop: boolean }
+export type Typing = { texts: string[]; typingSpeed: number; deletingSpeed: number; pause: number; loop: boolean }
 
-/** What is typed `ms` into the run: a letter every `typingSpeed`, the line
- * held `pause`, a letter gone every `deletingSpeed`, `GAP`, the next line;
+/** A letter's time on the page, ms into the run after the lead: shown from
+ * `from` until `to`. */
+export type TypedLetter = { char: string; from: number; to: number }
+
+/** Every letter of every line with its time on the page, and the run's
+ * period: a letter every `typingSpeed`, the line held `pause`, a letter
+ * gone every `deletingSpeed` from the end, `TYPE_GAP`, the next line;
  * without a loop the last line stays. */
-function typedAt(t: Typing, ms: number): string {
+export function typedLetters(t: Typing): { lines: TypedLetter[][]; period: number } {
   const type = Math.max(1, t.typingSpeed)
   const del = Math.max(1, t.deletingSpeed)
   const pause = Math.max(0, t.pause)
-  const cycle = (s: string) => s.length * (type + del) + pause + GAP
-  let u = ms - LEAD
-  if (u < 0) return ""
-  const period = t.texts.reduce((sum, s) => sum + cycle(s), 0)
-  if (t.loop) u %= period
-  for (let i = 0; i < t.texts.length; i++) {
-    const s = t.texts[i]!
-    const last = i === t.texts.length - 1
-    if (!t.loop && last) return s.slice(0, Math.floor(u / type) + 1)
-    if (u >= cycle(s)) {
-      u -= cycle(s)
-      continue
-    }
-    const typed = s.length * type + pause
-    if (u < typed) return s.slice(0, Math.floor(u / type) + 1)
-    return s.slice(0, Math.max(0, s.length - Math.floor((u - typed) / del) - 1))
-  }
-  return ""
+  let start = 0
+  const lines = t.texts.map((s, k) => {
+    const chars = [...s]
+    const stays = !t.loop && k === t.texts.length - 1
+    const typed = chars.length * type + pause
+    const line = chars.map((char, j) => ({
+      char,
+      from: start + j * type,
+      to: stays ? Number.POSITIVE_INFINITY : start + typed + (chars.length - 1 - j) * del,
+    }))
+    start += stays ? chars.length * type : chars.length * (type + del) + pause + TYPE_GAP
+    return line
+  })
+  return { lines, period: Math.max(1, start) }
 }
 
+/** Lines typed out, held, deleted and the next typed, in CSS: one clock on
+ * the host (`TextType.css`) and every letter shown inside its own time, so
+ * the kit clock holds it when directed. Reduced motion shows the first
+ * line whole. */
 export default function TextType(raw: TextTypeProps) {
   const props = mergeProps(
     {
@@ -73,27 +76,53 @@ export default function TextType(raw: TextTypeProps) {
     raw,
   )
 
-  let host: HTMLSpanElement | undefined
-  const { time } = createKitTime(() => host)
   const list = createMemo(() => (props.texts.length ? props.texts : [""]))
-  const shown = createMemo(() =>
-    pixelPrefersReducedMotion()
-      ? list()[0]!
-      : typedAt(
-          {
-            texts: list(),
-            typingSpeed: props.typingSpeed,
-            deletingSpeed: props.deletingSpeed,
-            pause: props.pause,
-            loop: props.loop,
-          },
-          time(),
-        ),
+  const run = createMemo(() =>
+    typedLetters({
+      texts: list(),
+      typingSpeed: props.typingSpeed,
+      deletingSpeed: props.deletingSpeed,
+      pause: props.pause,
+      loop: props.loop,
+    }),
   )
+  /** Where the first line stands whole, ms: what reduced motion shows. */
+  const rest = createMemo(() => {
+    const first = run().lines[0] ?? []
+    return first.length ? first[first.length - 1]!.from : 0
+  })
 
   return (
-    <span ref={(el) => (host = el)} class={cn(styles.text, props.xstyle, props.class)}>
-      <span>{shown()}</span>
+    <span
+      class={cn([styles.text, "dk-text-type"], props.xstyle, props.class)}
+      style={{
+        "--dk-type-period": `${run().period}ms`,
+        "--dk-type-span": String(run().period),
+        "--dk-type-rest": String(rest() / run().period),
+        "--dk-type-lead": `${TYPE_LEAD}ms`,
+        "--dk-type-loops": props.loop ? "infinite" : "1",
+      }}
+      aria-label={list().join(" ")}
+    >
+      <span aria-hidden="true">
+        <For each={run().lines}>
+          {(line) => (
+            <Index each={line}>
+              {(letter) => (
+                <span
+                  class="dk-type-char"
+                  style={{
+                    "--dk-from": String(letter().from),
+                    "--dk-to": String(Number.isFinite(letter().to) ? letter().to : 1e9),
+                  }}
+                >
+                  {letter().char}
+                </span>
+              )}
+            </Index>
+          )}
+        </For>
+      </span>
       <Show when={props.cursor}>
         <span class="dither-caret" aria-hidden="true">
           |

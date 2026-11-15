@@ -144,6 +144,35 @@ generated twin. Inside the kit every import is relative
   view and wake as the cover lifts; loops inside the covering layer run on.
   `tests/surface-loop.spec.ts` and the cover's cases in
   `tests/solid/carried.spec.tsx`.
+- UI motion is class names (the user's call: "no JS, class names"): what
+  a component's DOM does as it moves (a panel's height, an overlay's
+  entrance, a word turning, letters typed or decrypted, a count rolling, a
+  stagger, a marquee, a hold's fill, a swell under the pointer) is a CSS
+  transition or `@keyframes` in the component's own stylesheet, its state
+  an attribute or a class the component sets (`data-open`, `data-hold`,
+  `data-decrypt`, `data-turn`, ...), its numbers custom properties written
+  once per state (`--dk-interval`, `--dk-from`), and
+  `prefers-reduced-motion` turning it off in the stylesheet. A cadence the
+  stylesheet cannot count runs on one registered custom property per
+  component animated from 0 to 1 (`--dk-focus-p`, `--dk-rot-p`,
+  `--dk-type-p`, `--seq-p`) and read in `calc()`, a registered
+  `<integer>` flooring its wrap. Every keyframe is named `dk-*` (the clock
+  holds them by that name). What runs frames in JS is only: the dither on
+  a canvas, the wipe's dithered mask (`DitherReveal`), the scene clock its
+  painters read (`DitherStage`), a pointer the product follows
+  (`BlobCursor`, `TextCursor`, `TextPressure`, `VariableProximity`; the
+  pointer-driven `Magnet`, `MagnetLines`, `SnapButton`, `Crosshair`,
+  `TargetCursor` and controls a finger moves, `SlideAction`,
+  `DitherSlider`, `Knob`, write a transform from the pointer and run no
+  loop), a frame that moves nothing, and `CurvedLoop` (left for the
+  user's decision: text riding an SVG curve is textPath's `startOffset`,
+  which CSS cannot animate). Following a drag is dropped where it was
+  decoration (`DitherDrawer`, `CardStack`, `WheelPicker`'s mouse drag): the
+  swipe is read as it is let go and CSS carries the rest. Scroll-linked
+  motion (`ScrollReveal`, `ScrollFloat`, the `WheelPicker` drum,
+  `ScrollVelocity`'s push) is a scroll or view timeline, standing still
+  where the browser has none. Held by `tests/css-motion.spec.ts` (each
+  piece still running frames listed with why; every keyframe `dk-*`).
 - Motion: `src/engine/spring.ts` is Apple's smooth spring (critically damped,
   from rest, settling to within a thousandth by its end, never past its
   mark; one shape at every duration), the `"spring"` easing name in
@@ -249,16 +278,19 @@ generated twin. Inside the kit every import is relative
   `steps()` composes into a sequence. Stagger origins (`start`/`center`/`end`/
   `edges`/index) live in the exported `staggerDelay`. Yoyo settling is
   continuous with the active legs: odd `loop` ends at 1, even at 0 — never
-  jump a settled track. `Sequence.tsx` is the shared driver: it snapshots
-  its children at start (rebuild via `restartKey`), writes `--seq-p` (eased,
-  `toFixed(4)`) + `data-seq` per child with change-skipping, and owns an
-  rAF clock whose first frame is dt 0 and whose wake has no time jump —
-  the surface loop's semantics. IO gate and reduced-motion floor mirror
-  `AnimatedContent`; the `frameRate` gate mirrors the background runtime with
-  completion checked BEFORE the gate. `tests/sequence.spec.ts` (algebra) and
-  the `Sequence` cases of `tests/solid/carried-motion.spec.tsx`
-  (driver, hand-stepped frames — respect the 100ms dt cap when stepping
-  fake time) pin both halves.
+  jump a settled track. `Sequence.tsx` is the same stagger in CSS
+  (`Sequence.css`): at start (again on `restartKey`) it lays each child's
+  `staggerDelay` as `--seq-delay` and the group's duration, loops, yoyo
+  (`alternate`) and easing as custom properties, and every child plays
+  `dk-seq`, the registered `--seq-p` from 0 to 1 a cycle; `data-seq`
+  (before/active/done) is read off the child's animation as its events
+  fire, and `onComplete` once every child is done. The easing is a CSS
+  timing function or one of `timing.ts`'s (`cssEasing`: `linear` and
+  `steps()` know their CSS; another function plays linear); `frameRate`
+  steps a cycle in its place. It starts on view, holds while paused or out
+  of view; reduced motion stands every child at its end (`--seq-end`).
+  `tests/sequence.spec.ts` (algebra) and the `Sequence` cases of
+  `tests/solid/carried-motion.spec.tsx` pin both halves.
 - `clock.ts` is the director — external ownership of time. Free-running,
   every animated surface owns its own rAF loop on wall time. `seek(ms)`
   directs them: the loops stand down and each surface paints exactly the
@@ -275,27 +307,33 @@ generated twin. Inside the kit every import is relative
   first frame (clock 0) whatever the moment, and prints the moment again
   when what its frame read changes (`holds()` is true while directed); the chart canvases run the entrance from
   composition time 0 and derive the sparkle tick from the moment;
-  `Sequence` samples its plan at the moment; spinner, skeleton, progress,
-  avatar, `CountUp` and `CurvedLoop` are pure functions of the moment;
-  `DecryptedText` runs its reveal at 60 frames per second of the moment with
-  a hashed glyph instead of `Math.random`. A component that changes on a
-  cadence reads the moment from `src/solid/runtime/kit-time.ts`
-  (`createKitTime(host, reduced)`: the run's own ms, advanced by frames
-  while in view, a step at most 100ms, at 0 under reduced motion unless
-  `"run"`; the directed moment, no frames, while directed; on release the
-  run goes on from where it stood) and derives what it shows from it,
-  never a `setInterval` or `setTimeout` chain: `RotatingText` (a word an
-  `interval`; directed, the moment's word stands without its crossfade),
-  `TrueFocus` (a word in focus an `interval`), `TextType` (`typedAt`: the
-  lead, letters typed, the hold, letters deleted, the gap, line by line),
-  `Antigravity` (`moteAt`: hashed motes rising, drifting and swaying in
-  closed form, coming back under the box at a hashed place each lap) and
-  `ScrollVelocity`'s drift (`baseSpeed` px a second of the moment; the
-  scroll's push is the reader's hand, added free-running only). Pointer-
-  and scroll-driven motion (hover lifts, cursors, `HoldAction`) stays free:
-  a renderer has no input. CSS
-  keyframe and transition motion is not the clock's — HyperFrames seeks it
-  itself through WAAPI. `directFromHyperframes()` takes direction from
+  spinner, skeleton, progress, avatar and `CurvedLoop` are pure functions
+  of the moment. A canvas that changes on a cadence reads the moment from
+  `src/solid/runtime/kit-time.ts` (`createKitTime(host, reduced)`: the
+  run's own ms, advanced by frames while in view, a step at most 100ms, at
+  0 under reduced motion unless `"run"`; the directed moment, no frames,
+  while directed; on release the run goes on from where it stood), never a
+  `setInterval` or `setTimeout` chain: `Antigravity` (`moteAt`: hashed
+  motes rising, drifting and swaying in closed form, coming back under the
+  box at a hashed place each lap). The kit's CSS motion is the clock's
+  too, held in one place, `clock.ts`'s `directAnimation` (exported for
+  every piece that animates in CSS, the charts' entrance included): on
+  every `seek`, each CSS animation in the document named `dk-*`
+  (`KIT_KEYFRAMES`) is paused with its `currentTime` at the moment (delay
+  included, so a stagger lands where a free run puts it then; an
+  animation that starts on view runs from the composition's 0, as a
+  surface does), every running CSS transition is finished (a fresh mount
+  has none in flight), and one started while directed is held as its
+  `animationstart`/`transitionrun` fires; release plays the held ones on
+  from the moment. Scroll-driven animations are left alone (their time is
+  the scroll). HyperFrames seeks a page's animations through the same Web
+  Animations API to the same moment, so the two agree. So `RotatingText`,
+  `TrueFocus`, `TextType`, `DecryptedText` (a hashed glyph a frame at
+  60 a second), `CountUp`, `Sequence` and `ScrollVelocity`'s drift show
+  their moment exactly, proven in Chromium by
+  `packages/site/tests/site/css-motion.spec.ts` (each against the JS
+  driver's old model, forwards and back, mounted before the moment and
+  after it, and released). `directFromHyperframes()` takes direction from
   HyperFrames' `hf-seek` events (`detail.time` seconds): the contract the
   Studio's video export and `src/pages/play` rely on. Pinned by
   `tests/clock.spec.ts` and the directed cases in
@@ -942,8 +980,9 @@ generated twin. Inside the kit every import is relative
   one around it, else Bayer. Pinned by `tests/poster.spec.ts`.
 - `format-number.ts` (`formatFixed`) is how a counter
   prints a number with its decimals fixed: one `Intl.NumberFormat` a
-  precision, made once (`toLocaleString` with options built one a call, a
-  rolling `CountUp` one a frame); `CountUp` and `NumberFlow` use it.
+  precision, made once; `CountUp` (an odometer column a digit, rolling from
+  where `from` stands to `to` on an ease-out, `countPlaces`) and
+  `NumberFlow` use it.
 - `noise.ts` is the single source for the 2D value-noise/fbm those surfaces use;
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never
@@ -955,16 +994,12 @@ generated twin. Inside the kit every import is relative
   a column alone (an aurora's curtain edge) is worked out once per column
   a frame, never once per cell.
 - Perf seams (measured on the docs page, 6x-throttled mobile):
-  `ScrollReveal` measures via `getBoundingClientRect` at most once per frame
-  (rAF-coalesced; its first measure lands before first paint — a direct
-  mount-time call measured the whole dirty document for ~2s), and
   `DitherImage` defers its `src` fetch behind an IntersectionObserver
   (400px rootMargin, eager fallback when the observer or element is missing) —
   never pull the source at mount when the frame is offscreen.
 - Loop visibility contract: self-scheduling rAF loops in the text/animation
   family (CurvedLoop, TextCursor, TextPressure, VariableProximity,
-  GhostCursor, BlobCursor; and through `createKitTime` RotatingText,
-  TrueFocus, TextType, ScrollVelocity, Antigravity) run through
+  GhostCursor, BlobCursor; and through `createKitTime` Antigravity) run through
   `src/solid/runtime/in-view.ts` (`createInviewLoop`) — `start` only on the
   first IntersectionObserver hit,
   `stop` when the host leaves, `start` idempotent, never an optimistic start
@@ -977,8 +1012,8 @@ generated twin. Inside the kit every import is relative
   `\u00a0`), so a sentence breaks between words, never inside one, and
   the letters stay the root's only element children for the frame walk.
 - Text animations (`GradientText`, `ShinyText`, `GlitchText`, `SplitText`,
-  `RotatingText`, `CountUp`, ...) are a separate family: pure DOM/CSS (or a small
-  rAF for counting), NOT canvas/Bayer. They still ship as `Dither*` exports,
+  `RotatingText`, `CountUp`, ...) are a separate family: DOM and CSS, NOT
+  canvas/Bayer. They still ship as `Dither*` exports,
   register in `COMPONENT_REGISTRY`, and must honour `prefers-reduced-motion`
   (CSS `@media` or `pixelPrefersReducedMotion`). Wrapping effects take arbitrary
   text as children; char/number effects take a `text`/`to` prop. Docs live in
@@ -1182,7 +1217,11 @@ generated twin. Inside the kit every import is relative
 
 ## Work Guidance
 
-- A new time-driven surface subscribes to the clock: paint the moment on
+- New UI motion is a class name: a transition or `dk-*` keyframes in the
+  component's stylesheet, state as an attribute, reduced motion in the
+  stylesheet; the clock holds it with nothing more. Only a canvas runs
+  frames.
+- A new time-driven canvas subscribes to the clock: paint the moment on
   seek, request no frames while directed, resume on release, and show what
   its inputs and that moment give (the paint law). One that changes on a
   cadence takes its moment from `createKitTime`, never a timer.

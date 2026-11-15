@@ -80,13 +80,35 @@ describe("Code", () => {
 })
 
 describe("CountUp", () => {
-  it("waits at its start, then counts to its end once in view", async () => {
+  it("waits at its start, then rolls to its end once in view, read out as its end", async () => {
     const { container } = render(() => <CountUp to={42} from={7} decimals={1} />)
-    const el = container.firstElementChild!
-    expect(el.textContent).toBe("7.0")
+    const el = container.firstElementChild as HTMLElement
+    expect(el.querySelector(".sr-only")!.textContent).toBe("42.0")
+    expect(el.getAttribute("data-count")).toBe("wait")
+    const cols = [...el.querySelectorAll<HTMLElement>(".dk-count-column")]
+    // every digit a column of 0-9 that rolls from where 7.0 stands to 42.0
+    const at = (c: HTMLElement) => [c.style.getPropertyValue("--dk-start"), c.style.getPropertyValue("--dk-end")]
+    expect(cols.map(at)).toEqual([
+      ["0", "4"],
+      ["7", "32"],
+      ["0", "30"],
+    ])
+    for (const c of cols) {
+      const rows = c.textContent!.split("\n")
+      expect(rows[Number(at(c)[1])]).toBe(c === cols[0] ? "4" : c === cols[1] ? "2" : "0")
+    }
     w.show()
-    await w.frame(100)
-    expect(el.textContent).toBe("42.0")
+    await w.frame(16)
+    expect(el.getAttribute("data-count")).toBe("run")
+  })
+
+  it("rolls down as well as up", () => {
+    const { container } = render(() => <CountUp to={3} from={9} />)
+    const col = container.querySelector<HTMLElement>(".dk-count-column")!
+    expect(Number(col.style.getPropertyValue("--dk-start"))).toBeGreaterThan(
+      Number(col.style.getPropertyValue("--dk-end")),
+    )
+    expect(col.textContent!.split("\n")[Number(col.style.getPropertyValue("--dk-end"))]).toBe("3")
   })
 })
 
@@ -687,68 +709,56 @@ describe("PixelTransition", () => {
 })
 
 describe("ScrollFloat", () => {
-  it("names its text once and floats each character in as the page scrolls to it", () => {
-    vi.stubGlobal("innerHeight", 1000)
-    const top = vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({ top: 750 } as DOMRect)
-    const { getByLabelText, unmount } = render(() => <ScrollFloat text="a b" />)
-    const chars = [...getByLabelText("a b").children] as HTMLElement[]
-    expect(chars.map((c) => c.textContent)).toEqual(["a", " ", "b"])
-    expect(chars[0].style.opacity).toBe("0.15")
-    top.mockReturnValue({ top: 200 } as DOMRect)
-    fireEvent.scroll(window)
-    expect(chars[2].style.opacity).toBe("1")
-    expect(chars[2].style.transform).toBe("translateY(0em)")
-    unmount()
-    top.mockClear()
-    fireEvent.scroll(window)
-    expect(top).not.toHaveBeenCalled()
+  it("names its text once and places each character on its share of the line's rise", () => {
+    const { getByLabelText } = render(() => <ScrollFloat text="a b" amount={2} />)
+    const line = getByLabelText("a b")
+    const chars = [...line.children] as HTMLElement[]
+    expect(chars.map((c) => c.textContent)).toEqual(["a", " ", "b"])
+    expect(chars.map((c) => c.getAttribute("aria-hidden"))).toEqual(["true", "true", "true"])
+    expect(chars.map((c) => c.style.getPropertyValue("--dk-i"))).toEqual(["0", "1", "2"])
+    expect(line.style.getPropertyValue("--dk-n")).toBe("3")
+    expect(line.style.getPropertyValue("--dk-float")).toBe("1.4em")
   })
 })
 
 describe("Sequence", () => {
-  const mount = (props: { paused?: boolean; onComplete?: () => void } = {}) =>
-    render(() => (
-      <Sequence as="ul" duration={0.1} stagger={0} {...props}>
+  it("plays its children once in view, and says when it is done", async () => {
+    const done = vi.fn()
+    const { getByText } = render(() => (
+      <Sequence as="ul" duration={0.1} stagger={0} onComplete={done}>
         <li>One</li>
         <li>Two</li>
       </Sequence>
     ))
-
-  it("plays its children once in view, and says when it is done", async () => {
-    const done = vi.fn()
-    const { getByText } = mount({ onComplete: done })
     const one = getByText("One")
-    expect(one.parentElement!.tagName).toBe("UL")
-    expect(one.parentElement!.className).toContain("dither-sequence")
-    expect(one.hasAttribute("data-seq")).toBe(false)
+    const list = one.parentElement!
+    expect(list.tagName).toBe("UL")
+    expect(list.className).toContain("dither-sequence")
+    expect(list.hasAttribute("data-seq-run")).toBe(false)
     w.show()
-    await w.frame(100)
-    expect(one.style.getPropertyValue("--seq-p")).toBe("0.0000")
-    expect(done).not.toHaveBeenCalled()
-    await w.frame(150)
-    await w.frame(250)
+    await w.frame(16)
+    expect(list.hasAttribute("data-seq-run")).toBe(true)
+    expect(one.getAttribute("data-seq")).toBe("before")
+    for (const li of list.children) {
+      const end = new Event("animationend", { bubbles: true })
+      Object.defineProperty(end, "animationName", { value: "dk-seq" })
+      li.dispatchEvent(end)
+    }
     expect(done).toHaveBeenCalledTimes(1)
-    expect(one.style.getPropertyValue("--seq-p")).toBe("1.0000")
-    expect(getByText("Two").style.getPropertyValue("--seq-p")).toBe("1.0000")
+    expect(getByText("Two").getAttribute("data-seq")).toBe("done")
   })
 
-  it("holds at its start while paused, and runs when the pause lifts", async () => {
+  it("holds at its start while paused, and runs when the pause lifts", () => {
     const [paused, setPaused] = createSignal(true)
-    const done = vi.fn()
     const { getByText } = render(() => (
-      <Sequence duration={0.1} stagger={0} paused={paused()} onComplete={done}>
+      <Sequence duration={0.1} stagger={0} paused={paused()}>
         <p>One</p>
       </Sequence>
     ))
-    w.show()
-    await w.frame(100)
-    await w.frame(400)
-    expect(getByText("One").style.getPropertyValue("--seq-p")).toBe("0.0000")
+    const group = getByText("One").parentElement!
+    expect(group.hasAttribute("data-paused")).toBe(true)
     setPaused(false)
-    await w.frame(500)
-    await w.frame(600)
-    await w.frame(700)
-    expect(done).toHaveBeenCalledTimes(1)
+    expect(group.hasAttribute("data-paused")).toBe(false)
   })
 })
 

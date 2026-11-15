@@ -12,13 +12,13 @@
 }
 .dither-glitch::before {
   color: #ff2f6a;
-  animation: dither-glitch-a var(--dither-glitch-dur) steps(2, jump-none) infinite;
+  animation: dk-glitch-a var(--dither-glitch-dur) steps(2, jump-none) infinite;
 }
 .dither-glitch::after {
   color: #2fd6ff;
-  animation: dither-glitch-b var(--dither-glitch-dur) steps(2, jump-none) infinite;
+  animation: dk-glitch-b var(--dither-glitch-dur) steps(2, jump-none) infinite;
 }
-@keyframes dither-glitch-a {
+@keyframes dk-glitch-a {
   0%,
   100% {
     transform: translate(0);
@@ -41,7 +41,7 @@
     clip-path: inset(8% 0 70% 0);
   }
 }
-@keyframes dither-glitch-b {
+@keyframes dk-glitch-b {
   0%,
   100% {
     transform: translate(0);

@@ -1,8 +1,8 @@
 .dither-circular-svg {
-  animation: dither-spin linear infinite;
+  animation: dk-spin linear infinite;
   transform-origin: center;
 }
-@keyframes dither-spin {
+@keyframes dk-spin {
   to {
     transform: rotate(360deg);
   }
