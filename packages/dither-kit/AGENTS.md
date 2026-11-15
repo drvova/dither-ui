@@ -586,7 +586,14 @@ generated twin. Inside the kit every import is relative
   whole cells and lets go of what leaves). Not `PixelTrail` (coarse blocks fading by alpha,
   one cell per event). Guarded by `tests/heat-trail.spec.ts`.
 - `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.tsx` are the 3D
-  surface. `models.ts` parses model files into a `World`, bounded against
+  surface. `models.ts` is the parsers' entry (`MODEL_FORMATS`, `formatOf`,
+  `sniffFormat`, `externalResources`, `parseWorld`) over one file a format
+  in `models/` (`vrml-grammar.ts`: the tokenizer, the node grammar and a
+  node's field readers; `vrml.ts`: VRML97 / X3D classic and 1.0 nodes into
+  a world; `x3d.ts`, `gltf.ts`, `obj.ts`, `stl.ts`, `ply.ts`, `off.ts`;
+  `shared.ts`: bytes and text, the default grey, a ring's mean colour,
+  `MAX_NODES`, `splatWorld`), every public name handed on from
+  `models.ts` as before. It parses model files into a `World`, bounded against
   a hostile file: a scene graph is walked for at most `MAX_NODES` (shared
   DEF/USE instances counted each time), a list or face a file declares is
   held to the tokens it carries, an ElevationGrid to 1024 posts a side;
