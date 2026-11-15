@@ -1,4 +1,4 @@
-import { type Artboard, artboardPng } from "@/entities/artboard"
+import { type Artboard, artboardPng, fileBase } from "@/entities/artboard"
 
 /** Download an artboard as a PNG named after it. */
 export async function exportArtboardPng(artboard: Artboard, scale = 2): Promise<boolean> {
@@ -6,7 +6,7 @@ export async function exportArtboardPng(artboard: Artboard, scale = 2): Promise<
   if (!url) return false
   const a = document.createElement("a")
   a.href = url
-  a.download = `${artboard.name.replace(/[^\w-]+/g, "-").toLowerCase() || "artboard"}.png`
+  a.download = `${fileBase(artboard.name)}.png`
   a.click()
   return true
 }

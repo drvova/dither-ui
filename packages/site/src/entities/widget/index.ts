@@ -36,6 +36,8 @@ export {
   type ScreenCell,
   type ScreenModel,
   type ScreenRow,
+  screenLayerId,
+  screenLayers,
 } from "./model/screen"
 export { modelOf, slotChildren } from "./model/model"
 export {

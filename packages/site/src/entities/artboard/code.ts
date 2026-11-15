@@ -5,15 +5,13 @@
 import { restyleSolid, type Sheet, type Styling } from "@dither-ui/restyle"
 import { chartCode } from "@/entities/chart/model/codegen"
 import { widgetCode } from "@/entities/widget/model/codegen"
+import { fileBase } from "./model/name"
 import type { Artboard } from "./model/types"
 
 type FrameCode = { file: string; code: string; sheet: Sheet | null }
 
-/** The frame's name as a file's: `Sign in` is `sign-in`. */
-const baseName = (a: Artboard): string => a.name.replace(/[^\w-]+/g, "-").toLowerCase() || "artboard"
-
 export function frameCode(a: Artboard, system: Styling): FrameCode {
-  const base = baseName(a)
+  const base = fileBase(a.name)
   const plain = a.widget ? widgetCode(a.widget, { w: a.w, h: a.h }) : chartCode(a.chart)
   return { file: `${base}.tsx`, ...restyleSolid(plain, system, base) }
 }

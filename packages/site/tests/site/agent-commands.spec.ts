@@ -114,6 +114,7 @@ const MALFORMED: Record<CommandType, (c: Canvas) => unknown[]> = {
   view: () => [{ id: "nope" }, { zoom: -1 }, { zoom: "x" }, { to: "side" }],
   inspect: () => [{ id: "nope" }],
   "image.export": (c) => [{ id: "nope" }, { id: c.chart, scale: 5 }, { id: c.chart, scale: "2" }],
+  "svg.export": (c) => [{ id: "nope" }, { id: 3 }, { ids: "x" }, { ids: [c.chart, 2] }, { ids: [c.chart, "nope"] }],
   "code.get": (c) => [{}, { id: "nope" }, { id: c.chart, styling: "sass" }],
   "document.get": () => [],
   "document.set": () => [{}, { document: 7 }, { document: { artboards: [] } }, { document: { artboards: "x" } }],

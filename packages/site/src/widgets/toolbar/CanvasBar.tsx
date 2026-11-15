@@ -1,7 +1,8 @@
-import { createMemo, createSignal, Index } from "solid-js"
+import { createMemo, createSignal, Index, onCleanup } from "solid-js"
 import { DitherIcon, type IconName } from "@dither-ui/kit"
 import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
+import { copyFramesSvg, SVG_COPY_SAID, saveFramesSvg, type SvgCopy } from "@/entities/artboard"
 import { exportArtboardPng } from "@/features/export-image"
 import {
   actualSize,
@@ -55,10 +56,16 @@ export default function CanvasBar(props: CanvasBarProps) {
     editor.selectedIds.some((id) => editor.artboards.find((a) => a.id === id)?.widget?.kind !== "reel"),
   )
   const canData = createMemo(() => !!selectedArtboard.value && !selectedArtboard.value.widget)
+  // What the last copy did, said in the bar's live label for a moment.
+  const [copied, setCopied] = createSignal<SvgCopy | null>(null)
+  let copiedTimer: ReturnType<typeof setTimeout> | undefined
+  onCleanup(() => clearTimeout(copiedTimer))
   const label = createMemo(() =>
-    editor.selectedIds.length > 1
-      ? `${editor.selectedIds.length} selected`
-      : (selectedArtboard.value?.name ?? "Nothing selected"),
+    copied()
+      ? SVG_COPY_SAID[copied()!]
+      : editor.selectedIds.length > 1
+        ? `${editor.selectedIds.length} selected`
+        : (selectedArtboard.value?.name ?? "Nothing selected"),
   )
 
   async function savePng() {
@@ -67,6 +74,13 @@ export default function CanvasBar(props: CanvasBarProps) {
     setPngBusy(true)
     await exportArtboardPng(a, 2)
     setPngBusy(false)
+  }
+  /** The selected frames as drawn, in the canvas's order. */
+  const selectedFrames = () => editor.artboards.filter((a) => editor.selectedIds.includes(a.id) && !a.hidden)
+  async function copySvg() {
+    setCopied(await copyFramesSvg(selectedFrames()))
+    clearTimeout(copiedTimer)
+    copiedTimer = setTimeout(() => setCopied(null), 1800)
   }
   function toggleGroup() {
     const a = selectedArtboard.value
@@ -150,6 +164,22 @@ export default function CanvasBar(props: CanvasBarProps) {
         name: pngBusy() ? "Saving the PNG" : "Save as PNG",
         run: savePng,
         off: none() || pngBusy(),
+      },
+      {
+        id: "svg-copy",
+        agent: "export_svg",
+        icon: "Layers",
+        name: "Copy as SVG for a design tool",
+        run: copySvg,
+        off: none(),
+      },
+      {
+        id: "svg",
+        agent: "export_svg",
+        icon: "Download",
+        name: "Save as SVG",
+        run: () => saveFramesSvg(selectedFrames()),
+        off: none(),
       },
       {
         id: "video",

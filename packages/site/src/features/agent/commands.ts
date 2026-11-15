@@ -16,7 +16,14 @@
 // agent can only produce documents the inspector could have produced.
 import { modifyMutable, reconcile } from "solid-js/store"
 import { type IconName, release, seek } from "@dither-ui/kit"
-import { type Artboard, type ArtboardKind, createArtboard, normalizeArtboard } from "@/entities/artboard"
+import {
+  type Artboard,
+  type ArtboardKind,
+  createArtboard,
+  framesSvg,
+  normalizeArtboard,
+  svgFileOf,
+} from "@/entities/artboard"
 import { frameCode } from "@/entities/artboard/code"
 import {
   actualSize,
@@ -179,6 +186,7 @@ export type StudioCommand =
   | { type: "replay" }
   | { type: "view"; to?: ViewTo; zoom?: number; id?: string }
   | { type: "image.export"; id?: string; scale?: number }
+  | { type: "svg.export"; id?: string; ids?: string[] }
   | { type: "inspect"; id?: string }
   | { type: "code.get"; id: string; styling?: Styling }
   | { type: "registry.get"; is?: string; brief?: boolean }
@@ -990,6 +998,36 @@ export const COMMANDS = {
         }),
       },
       step: { verb: "Saved a picture of", ask: "Save a frame as a PNG", icon: "Image", mutates: false },
+    },
+  }),
+  "svg.export": command({
+    parse: (raw): { ids: string[] } | Refusal => {
+      if (raw.id !== undefined && typeof raw.id !== "string") return refuse("id must be an artboard id")
+      if (raw.ids !== undefined && (!Array.isArray(raw.ids) || raw.ids.some((i) => typeof i !== "string")))
+        return refuse("ids must be a list of artboard ids")
+      return { ids: namedIds(raw) }
+    },
+    run: (cmd) => {
+      const named = cmd.ids.length ? cmd.ids : editor.selectedIds
+      const missing = named.filter((i) => !find(i))
+      if (missing.length) return fail(`no artboard ${missing.join(", ")}`)
+      if (!named.length) return fail("select frames or pass { id } or { ids }")
+      const frames = editor.artboards.filter((a) => named.includes(a.id))
+      const svg = framesSvg(frames)
+      if (!svg) return fail(`${frames.map((a) => a.name).join(", ")} not drawn on the canvas (hidden?)`)
+      return ok({ ids: frames.map((a) => a.id), file: `svg/${svgFileOf(frames)}`, svg })
+    },
+    doc: "{ id?, ids? }: the frame (or the frames, at their places) as a layered SVG a design tool keeps editing: one group a layer named after it, text as <text>, shapes as vector, the dither as cells merged into runs one path an ink, canvas art with no vector form (3D, shaders, photos) as a PNG <image>; { ids, file, svg }",
+    skill:
+      "`id?` or `ids?` (the selection by default): the frames as drawn, as a layered SVG for Figma, Illustrator, Sketch or Penpot, `{ ids, file, svg }`: one group a layer named after it (a chart's grid, axes, series and legend; a screen's rows and cells), text as `<text>` in the frame's faces, the dither as cells merged into runs, art with no vector form as a PNG `<image>`",
+    tool: {
+      def: {
+        name: "export_svg",
+        description:
+          "Export frames as a layered SVG for a design tool (Figma, Illustrator, Sketch, Penpot): one group a layer named after it, text as text, shapes as vector, the dither as cells, 3D, shaders and photos as embedded PNGs. Returns the SVG text.",
+        parameters: obj({ id: str("artboard id; defaults to the selection"), ids }),
+      },
+      step: { verb: "Drew as SVG", ask: "Export frames as SVG", icon: "Layers", mutates: false },
     },
   }),
   "code.get": command({
