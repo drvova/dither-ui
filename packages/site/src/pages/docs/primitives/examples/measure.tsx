@@ -3,12 +3,16 @@ import { DitherMeasure } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [size, setSize] = createSignal({ width: 0, height: 0 })
+  const [measured, setMeasured] = createSignal("not measured yet")
+  const onMeasure = (size: { width: number; height: number }) => setMeasured(size.width + " × " + size.height)
 
   return (
-    <DitherMeasure class="w-48 rounded-md bg-muted p-4 text-[12px]" onResize={setSize}>
-      {size().width} by {size().height}
-    </DitherMeasure>
+    <div class="grid justify-items-center gap-3">
+      <DitherMeasure class="w-48" onResize={onMeasure}>
+        <div class="h-20 w-full rounded-md border border-border/60 bg-card/40" />
+      </DitherMeasure>
+      <span class="text-[11px] tabular-nums text-muted-foreground">{measured()}</span>
+    </div>
   )
 }
 

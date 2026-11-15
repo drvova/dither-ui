@@ -3,8 +3,16 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <DitherInView rootMargin="200px" once>
-      {(scope) => <p class="text-[13px]">{scope.inView ? "In view" : "Reveals in view"}</p>}
+    <DitherInView class="grid h-40 place-items-center" once={true}>
+      {(scope) => (
+        <div
+          class={`grid h-full w-full place-items-center rounded-md border border-border/60 transition-opacity duration-500 ${scope.inView ? "bg-card/40 opacity-100" : "opacity-0"}`}
+        >
+          <span class="text-[12px] text-muted-foreground">
+            {scope.inView ? "in view ✓" : "waiting for the viewport…"}
+          </span>
+        </div>
+      )}
     </DitherInView>
   )
 }

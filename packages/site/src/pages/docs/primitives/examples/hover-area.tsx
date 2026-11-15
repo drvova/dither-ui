@@ -3,10 +3,12 @@ import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   return (
-    <DitherHoverArea>
+    <DitherHoverArea class="mx-auto max-w-sm">
       {(scope) => (
-        <div class="rounded-md bg-muted p-4 text-[13px]">
-          {scope.hovered || scope.focused ? "Shown on hover or focus" : "Hover or focus"}
+        <div
+          class={`rounded-md border p-4 text-center text-[12px] transition-colors ${scope.hovered || scope.focused ? "border-foreground text-foreground" : "border-border/60 text-muted-foreground"}`}
+        >
+          {scope.hovered || scope.focused ? "revealed" : "hover or tab onto this"}
         </div>
       )}
     </DitherHoverArea>
