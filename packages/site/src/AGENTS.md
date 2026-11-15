@@ -25,7 +25,11 @@ around this tree (entries, routes, the build, how Solid is written) is
 
 ## Ownership
 
-- `app/` — global styles/tokens (`styles.css`), the page transition's
+- `app/` — global styles/tokens (`styles.css`), the site on paper
+  (`print.css`, imported after it by `app.css`: ink on white whatever the
+  theme, the header, rails and keys off, links' addresses shown, the
+  scroll scenes settled and the pinned runs as tall as their stage; its
+  tokens held to the landing's by `tests/design-doc.spec.ts`), the page transition's
   hand-off (`page-reveal.ts`), the wait for the page's stylesheets before
   the app mounts (`sheets-ready.ts`), the install surface (`install-files.ts`)
   and the Studio's service worker (`sw.ts`, its rules in `offline.ts`).

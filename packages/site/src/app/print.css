@@ -1,0 +1,123 @@
+/* The site on paper: ink on a white sheet, whatever the screen's theme (the
+   printed landing included), the header, the rails and the keys left off,
+   every link's address beside it, the kit's art printed as it stands
+   (vector SVG sharp, a canvas cell by cell), and the scroll scenes stood in
+   their settled places so a pinned run never prints as pages of nothing. */
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+
+  :root,
+  :root:is([data-page]),
+  .dark,
+  .docs-root,
+  .landing {
+    color-scheme: light;
+    --background: #fff !important;
+    --foreground: #111 !important;
+    --card: #fff !important;
+    --card-foreground: #111 !important;
+    --popover: #fff !important;
+    --popover-foreground: #111 !important;
+    --muted: #f1f1f1 !important;
+    --muted-foreground: #444 !important;
+    --placeholder: #555 !important;
+    --border: #bbb !important;
+    --ink: #111 !important;
+    --ink-3: #444 !important;
+    --surface: #f1f1f1 !important;
+    --shell-ground: #fff !important;
+    --well: #fff !important;
+    --smoke: #fff !important;
+    --grain: none !important;
+    --float-shadow: none !important;
+    --recess: none !important;
+    --recess-sm: none !important;
+  }
+  body,
+  .landing {
+    background: #fff !important;
+    color: #111;
+  }
+
+  /* The chrome: the header, the docs' rails and their next and previous
+     links, the keys; a demo's own controls are the demo, and stay. */
+  .site-head,
+  .skip-link,
+  .docs-root aside,
+  nav[aria-label="Previous and next sections"],
+  button:not(.demo-well *) {
+    display: none !important;
+  }
+
+  /* Display type in plain ink: the chrome finish is a screen's. */
+  .chrome-type {
+    -webkit-text-fill-color: currentColor;
+    background: none;
+  }
+
+  /* A link says where it goes. */
+  main a[href]:not([href^="#"], [href^="javascript"])::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: var(--muted-foreground);
+    word-break: break-all;
+  }
+
+  /* The art: a canvas prints its cells, never a smear; colour is kept
+     where the kit's art carries it. */
+  canvas {
+    image-rendering: pixelated;
+  }
+  canvas,
+  svg {
+    print-color-adjust: exact;
+  }
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+  pre,
+  figure,
+  canvas,
+  svg,
+  .demo-well {
+    break-inside: avoid;
+  }
+
+  /* What rises as it comes into view stands risen: a page prints whole,
+     not only the screenful the reader reached. */
+  [data-rise] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* The scroll scenes, settled: the hero where the page opens, the bento's
+     cards and the plates in place, the pinned runs as tall as their stage. */
+  .showcase-scope,
+  .showcase-scope * {
+    --scene: 0 !important;
+  }
+  .examples-scope .card,
+  .plate-scope,
+  .plate-scope * {
+    --scene: 1 !important;
+  }
+  .brand-build-scope.build-run,
+  .agent-story-scope.story.pinned,
+  .plate-scope .plate-hold {
+    height: auto !important;
+  }
+  .brand-build-scope .build-stage,
+  .agent-story-scope.pinned .pin,
+  .plate-scope .plate-pin,
+  .sticky {
+    position: relative !important;
+    top: 0 !important;
+  }
+  .brand-build-scope .build-stage {
+    height: 30rem;
+  }
+}

@@ -65,6 +65,14 @@ Rules:
 - A lede is two-tone: the muted ink, with the one clause that carries its
   point stepped up to the full ink. One clause a lede, never bold.
 
+### On paper
+
+Printed, every page is ink on a white sheet, the landing included: `#111`
+on `#fff` with `#444` for the muted ink, display type plain, the header,
+the rails and the keys left off, each link's address beside it, the kit's
+art printed as it stands (SVG sharp, a canvas cell by cell) and the scroll
+scenes settled in place (`packages/site/src/app/print.css`).
+
 ### The kit's swatches
 
 The kit's own colours (`@dither-ui/kit/engine/palette.ts`, mirrored as

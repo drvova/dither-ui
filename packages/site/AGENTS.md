@@ -46,7 +46,7 @@ are from the repository's.
   because SolidStart's prerender imports them from the app's own folder,
   and Solid's older copy would answer otherwise.
 - One stylesheet: `src/app.css` imports the site's own
-  (`src/app/styles.css`) and tells Tailwind where this app's and the Solid
+  (`src/app/styles.css`, then its print sheet `src/app/print.css`) and tells Tailwind where this app's and the Solid
   kit's classes are, and what in this package is not a source of classes
   (the framework-free specs, `public/`, the docs beside the source). No
   token or material is restated here.

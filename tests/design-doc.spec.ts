@@ -73,6 +73,20 @@ describe("DESIGN.md", () => {
     expect(doc).toContain(`\`${title}\``)
   })
 
+  it("prints on paper every ground and ink the landing's dark print sets", () => {
+    const dark = block(
+      read("packages/site/src/pages/landing/chapters.css"),
+      ':root:is([data-page="landing"], [data-page="missing"])',
+    )
+    const css = read("packages/site/src/app/print.css")
+    const paper = Object.fromEntries(
+      [...css.matchAll(/(--[\w-]+):\s*([^;]+?)\s*!important;/g)].map((m) => [m[1], m[2]]),
+    )
+    for (const token of Object.keys(dark)) expect(paper[token], token).toBeTruthy()
+    expect([paper["--background"], paper["--foreground"]]).toEqual(["#fff", "#111"])
+    expect(doc).toContain("On paper")
+  })
+
   it("cuts the hardshell from one outline, as the doc says", () => {
     const css = read("packages/site/src/app/styles.css")
     const [, name] = css.match(/\.hardshell \{\s*(--[\w-]+):/)!
