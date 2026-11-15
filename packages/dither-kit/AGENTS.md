@@ -637,14 +637,18 @@ generated twin. Inside the kit every import is relative
   chain (also X3D's `<ROUTE>`) makes that Transform a `WorldNode` whose
   tracks hold keys in seconds (key × cycleInterval, loop, startTime);
   everything static between nodes folds into the node's `pre` matrix and
-  static meshes stay baked. `world.ts` is the engine: column-major mat4 +
-  quaternion math (`composeTransform` = T·C·R·SR·S·-SR·-C), the VRML
-  primitives (y up, CCW outward), `addMesh` (bakes the matrix, reverses
+  static meshes stay baked. `world.ts` is the engine, standing on files of
+  its own that it re-exports under the names it always exported:
+  `world-math.ts`, column-major mat4 +
+  quaternion math (`composeTransform` = T·C·R·SR·S·-SR·-C); `world-shapes.ts`,
+  the VRML primitives (y up, CCW outward); `world-scene.ts`, the `World`
+  and its types, `addMesh` (bakes the matrix, reverses
   rings for `ccw FALSE` or a mirroring matrix, fan-triangulates, keeps
   polygon outline edges with their owning triangle, registers colours),
   `sampleTrack` (lerp / step / shortest-path slerp, looping or clamped),
   `nodeMatrices(world, t)` (cached per time), `posedPositions`,
-  `finishWorld`, `cameraOf` (orbit camera around the sphere: `yaw`/`pitch`
+  `finishWorld`; `world-sample.ts`, `sampleWorld` (below). `world.ts`
+  itself holds `cameraOf` (orbit camera around the sphere: `yaw`/`pitch`
   degrees, `zoom` 1 frames the sphere, eye never inside it, camera-space
   lights) and the two-stage renderer: stage one fills a `WorldTarget`
   (shade 0-1, depth from the eye, palette index + 1) — `rasterizeWorld` is
