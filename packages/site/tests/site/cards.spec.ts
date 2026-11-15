@@ -1,10 +1,10 @@
 // @vitest-environment node
 // The post-build's pure parts (`build/postbuild.mjs`, on the `tasks` package): the Chromium it
 // draws with, the server it draws from, the renderer page it builds, what a
-// section's embed says, the cards' cache marker, the registry's file, and
+// section's embed says, the cards' cache, the registry's file, and
 // the kit's standalone stylesheet. The browser's parts are held by the build
 // itself, which fails when a card or the registry does.
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterAll, describe, expect, it } from "vitest"
@@ -13,12 +13,13 @@ import { SECTIONS } from "@/pages/docs/groups"
 import {
   buildKitCss,
   type CardPage,
-  cardsHash,
+  cardKey,
   embedLine,
   findChromium,
   listen,
   refinedEmbed,
   renderOgCards,
+  rendererHash,
   servedFile,
   writeAgentRegistry,
 } from "@dither-ui/tasks"
@@ -153,15 +154,34 @@ describe("a section's embed", () => {
 })
 
 describe("the cards on disk", () => {
-  const bytes = (s: string) => new TextEncoder().encode(s)
+  const key = { renderer: "r", browser: "chromium 1", id: "avatar", entry: { id: "avatar" }, lede: "A face." }
 
-  it("are current only for the same renderer, manifest and ledes", () => {
-    const hash = cardsHash(bytes("page"), bytes("[]"), { a: "one" })
-    expect(hash).toMatch(/^[0-9a-f]{16}$/)
-    expect(cardsHash(bytes("page"), bytes("[]"), { a: "one" })).toBe(hash)
-    expect(cardsHash(bytes("page2"), bytes("[]"), { a: "one" })).not.toBe(hash)
-    expect(cardsHash(bytes("page"), bytes("[1]"), { a: "one" })).not.toBe(hash)
-    expect(cardsHash(bytes("page"), bytes("[]"), { a: "two" })).not.toBe(hash)
+  it("are keyed by the renderer, the browser and the card's own data", () => {
+    const k = cardKey(key)
+    expect(k).toMatch(/^[0-9a-f]{64}$/)
+    expect(cardKey({ ...key })).toBe(k)
+    for (const change of [
+      { renderer: "r2" },
+      { browser: "chromium 2" },
+      { id: "button" },
+      { entry: { id: "avatar", label: "Avatar" } },
+      { lede: "Another." },
+      { lede: undefined },
+    ])
+      expect(cardKey({ ...key, ...change })).not.toBe(k)
+  })
+
+  it("hash the renderer by its page and every asset's name and bytes", async () => {
+    const dist = distOf("hashed")
+    mkdirSync(join(dist, "og", "assets"), { recursive: true })
+    writeFileSync(join(dist, "og", "assets", "og-a.js"), "draw()")
+    const hash = await rendererHash(dist)
+    expect(await rendererHash(dist)).toBe(hash)
+    writeFileSync(join(dist, "og", "assets", "og-a.js"), "draw(1)")
+    const changed = await rendererHash(dist)
+    expect(changed).not.toBe(hash)
+    writeFileSync(join(dist, "og", "assets", "face.woff2"), "face")
+    expect(await rendererHash(dist)).not.toBe(changed)
   })
 
   it("has a card for each route and each section, no id shared", () => {
@@ -191,17 +211,45 @@ describe("the cards on disk", () => {
   }
   const quiet = { origin: "http://x", ledes: { avatar: "A face." }, log: () => {} }
 
-  it("writes each card's still and loop and the ledes the renderer reads, then skips while they are current", async () => {
+  // a stand-in browser that counts the cards it draws
+  const counting = () => {
+    const drawn: string[] = []
+    const browser = { newPage: async () => pageOf("og-ready", (id) => (drawn.push(id), { png, gif })) }
+    return { browser, drawn }
+  }
+
+  it("writes each card's still and loop and the ledes the renderer reads, drawing every card without a cache", async () => {
     const dist = distOf("drawn")
-    const browser = { newPage: async () => pageOf("og-ready", () => ({ png, gif })) }
+    const { browser, drawn } = counting()
     expect(await renderOgCards({ browser, dist, ...quiet })).toBe(2)
     for (const id of ["home", "avatar"]) {
       expect(readFileSync(join(dist, "og", `${id}.png`), "utf8")).toBe("png")
       expect(readFileSync(join(dist, "og", `${id}.gif`), "utf8")).toBe("gif")
     }
     expect(JSON.parse(readFileSync(join(dist, "og", "ledes.json"), "utf8"))).toEqual({ avatar: "A face." })
-    expect(await renderOgCards({ browser, dist, ...quiet })).toBe(0)
-    expect(await renderOgCards({ browser, dist, ...quiet, ledes: { avatar: "Another." } })).toBe(2)
+    expect(await renderOgCards({ browser, dist, ...quiet })).toBe(2)
+    expect(drawn).toEqual(["home", "avatar", "home", "avatar"])
+  })
+
+  it("copy a card from the cache while its key holds, and draw again only the card whose data changed", async () => {
+    const cache = join(scratch, "cache")
+    const { browser, drawn } = counting()
+    expect(await renderOgCards({ browser, dist: distOf("cold"), cache, ...quiet })).toBe(2)
+    expect(readdirSync(cache)).toHaveLength(4)
+    // a fresh build's folder, nothing changed: every card from the cache
+    const warm = distOf("warm")
+    expect(await renderOgCards({ browser, dist: warm, cache, ...quiet })).toBe(0)
+    for (const id of ["home", "avatar"])
+      for (const ext of ["png", "gif"]) expect(readFileSync(join(warm, "og", `${id}.${ext}`), "utf8")).toBe(ext)
+    // one lede changed: that card alone, and the entry it replaced removed
+    const ledes = { avatar: "Another." }
+    expect(await renderOgCards({ browser, dist: distOf("lede"), cache, ...quiet, ledes })).toBe(1)
+    expect(drawn).toEqual(["home", "avatar", "avatar"])
+    expect(readdirSync(cache)).toHaveLength(4)
+    // the renderer changed: every card
+    const rebuilt = distOf("renderer")
+    writeFileSync(join(rebuilt, "og", "index.html"), "renderer 2")
+    expect(await renderOgCards({ browser, dist: rebuilt, cache, ...quiet, ledes })).toBe(2)
   })
 
   it("fails the build when the renderer does not load, a card throws or a card comes out empty", async () => {

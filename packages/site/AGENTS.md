@@ -53,7 +53,10 @@ are from the repository's.
 - Every page is server-rendered to a real file at build (`nitro.prerender`,
   links crawled, a link to nothing fails the build). Components therefore
   render on a server: nothing touches `window`, `document` or a canvas
-  outside `onMount`, an effect or an event handler. In the browser the
+  outside `onMount`, an effect or an event handler, and nothing a page
+  renders there reads the clock or a random source, so a build with no
+  change writes the same bytes (the Studio's frame ids stamp the clock only
+  in a browser, `entities/artboard/model/factory.ts`). In the browser the
   app takes those bytes over in place (SolidStart's `mount` in
   `entry-client.tsx` hydrates) when the address is the one they were
   rendered at, a static host's trailing slash included (`renderedAt` in
@@ -199,7 +202,8 @@ are from the repository's.
   nested builds: `sw.js` (the Studio's worker, `@/app/sw`, its install set
   the Studio route's own files from the finished build) and
   `play/player.js` with its stylesheet (one self-contained file the video
-  export inlines).
+  export inlines). `chunk-modules.ts` writes `.vite/chunks.json` beside
+  Vite's manifest: every browser chunk and the source modules in it.
 - `npm run build` is `vite build` (into `.output/public`), then
   `build/postbuild.mjs`, which needs Chromium (`CHROME_PATH` or a standard
   path) and fails loudly without it: it compiles `kit/dither-kit.css`
@@ -207,8 +211,13 @@ are from the repository's.
   (`og/index.html`, `build/og-page.ts` over `build/og-shell.html`), draws
   every card (`og/<id>.png`, `.gif`), rewrites each section's embed with the
   lede its page prints, and writes `agent/registry.json` off the mounted
-  Studio. The drawing code is the `@dither-ui/tasks` package's
-  (`packages/tasks/src/cards.ts`). `MADE_AFTER_THE_PAGES` in
+  Studio, printing each step's time. The drawing code is the
+  `@dither-ui/tasks` package's (`packages/tasks/src/cards.ts`). Each card is
+  kept in the root's `node_modules/.cache/dither-ui/og/` under a hash of
+  what it is drawn from (`cardKey` there), so a build that changed nothing
+  a card shows copies it, byte for byte, and one section's new lede draws
+  that card alone; CI and Pages restore the folder with `actions/cache`,
+  safe because a stale entry never answers a key. `MADE_AFTER_THE_PAGES` in
   `vite.config.ts` lists the files the crawl must not ask for because the
   post-build makes them.
 
@@ -251,7 +260,8 @@ are from the repository's.
 - A page's first load (`tests/site/budget.spec.ts`, over the built site):
   the gzipped script the landing's and a docs section's HTML start, with
   every static import, under a budget, and neither carrying the other's
-  page nor the kit's world engine, model parsers or charts.
+  page nor the kit's world engine, model parsers or charts, decided by the
+  modules each chunk holds (`.vite/chunks.json`), never a chunk's name.
 
 ## Child DOX Index
 

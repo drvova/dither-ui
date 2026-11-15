@@ -23,9 +23,18 @@ by the site's post-build. Paths here are from this package's root.
   service keeps a copy (`packages/discord/AGENTS.md`), held to it by the
   workspace's `tests/chromium.spec.ts`.
 - `src/cards.ts`: what the site's post-build does in a browser once the
-  pages stand: the server it draws from (`listen`), every share card (`renderOgCards`), each
-  section's embed with its own lede (`refineEmbed`) and the agent registry
-  (`writeAgentRegistry`).
+  pages stand: the server it draws from (`listen`), every share card
+  (`renderOgCards`), each section's embed with its own lede
+  (`refineEmbed`) and the agent registry (`writeAgentRegistry`). Given a
+  cache folder, `renderOgCards` keeps each card there under `cardKey`: a
+  hash of the renderer as built (`rendererHash`: `og/index.html` and every
+  file under `og/assets/`, so the card code, the kit engine it prints
+  with, the route cards' copy, the kit's counts and the display face), the
+  browser that draws (its version and the first frame it paints, which
+  changes with any fallback face), and the card's own data (its manifest
+  entry and lede). A card whose key is kept is copied, never drawn; what a
+  run did not use is removed. A new input a card is drawn from goes into
+  the key, or `CARD_CACHE_VERSION` is bumped.
 - `src/readme-art.ts`: `brandSvg`, the README's banner as one SVG: the
   lockup's cells and each one's path through the brand's moment in (the
   site hands them over), a CSS animation stepping whole cells out (CSS,

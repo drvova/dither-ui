@@ -55,6 +55,16 @@ jobs:
       # the sandbox spec runs in the runner's Chromium
       - name: Component tests
         run: npm test -w @dither-ui/site
+      # The share cards the last build drew, each kept under a hash of what
+      # it is drawn from (the renderer as built, the browser, its own copy):
+      # an entry answers only a card drawn from the same, so a restored
+      # cache never ships a stale one. Restored after the install, which
+      # empties node_modules.
+      - uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/dither-ui
+          key: share-cards-${{ runner.os }}-${{ hashFiles('package-lock.json', 'packages/*/src/**', 'packages/site/build/**') }}
+          restore-keys: share-cards-${{ runner.os }}-
       # the build ends by drawing the share cards in the runner's Chromium
       - name: Static build
         run: npm run build

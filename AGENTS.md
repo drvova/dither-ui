@@ -152,7 +152,9 @@ Default section order:
   Run needs to load Solid's compiler in a browser). Then
   `build/postbuild.mjs`, which needs a Chromium (`CHROME_PATH` or a
   standard install) and fails loudly without one: the kit stylesheet, the
-  share card renderer and every card, each section's embed with its own
+  share card renderer and every card (each kept in
+  `node_modules/.cache/dither-ui/og/` under a hash of what it is drawn
+  from, so an unchanged card is copied, never redrawn), each section's embed with its own
   lede, and the agent registry read off the mounted Studio. Details in
   `packages/site/AGENTS.md`.
 - Aliases: one, the site's own source: `@/` → `packages/site/src/`
