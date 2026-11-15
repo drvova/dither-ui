@@ -311,6 +311,10 @@ Smoothness is part of the look, so these are design rules too:
 - A page holds only what it shows and what was just read: the docs mount
   the open family and the last ones read, never all of them.
 - Art that is not on screen does not move.
+- Turning the theme repaints no art: a canvas prints the kit's own fills
+  over a clear ground, never the theme's inks, which are CSS (tokens,
+  tone classes, SVG in `currentColor`) and turn with the class on the
+  root alone.
 - A page's first load is its own page: the kit's heavy engines that art
   further down shows (the world, the charts) are chunks that come with the
   page, never before its first paint, held to a budget.

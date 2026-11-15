@@ -313,3 +313,24 @@ describe("the paint law: changed in place, a component paints what a fresh mount
     expect(failures).toEqual([])
   })
 })
+
+/** The theme input, alone: `.dark` on the root, nothing else. */
+const THEME = inputsOf(COMPONENT_REGISTRY[0]).find((i) => i.name === "<theme>")!
+
+// A canvas is printed in the kit's own fills over a clear ground, never in
+// the theme's inks (those are CSS: tokens, tone classes, SVG), so turning
+// the theme repaints nothing: the same pixels before and after the turn.
+describe("the theme costs no paint: a canvas shows the same pixels in both themes", () => {
+  it.for(COMPONENT_REGISTRY.map((entry) => [entry.is, entry] as const))("%s", { timeout: 30000 }, async ([, entry]) => {
+    const kept = copy(entry)
+    try {
+      await vi.advanceTimersByTimeAsync(SETTLE)
+      const light = kept.shows().canvases
+      kept.apply(THEME)
+      await vi.advanceTimersByTimeAsync(SETTLE)
+      expect(kept.shows().canvases).toBe(light)
+    } finally {
+      kept.dispose()
+    }
+  })
+})

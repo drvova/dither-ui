@@ -302,6 +302,16 @@ generated twin. Inside the kit every import is relative
   the screen, the theme and the box changed in place against a fresh
   mount, both directed to one moment; `tests/support/paint.ts` reads what
   a canvas shows).
+- The theme is CSS, never a canvas's input: a canvas paints the palette's
+  fills (`fillOf`, a series' colour, a ramp) over a clear ground and reads
+  no theme token, class or scheme, so a theme turn repaints nothing (the
+  measured toggle: no paint beyond what was already moving, on the
+  landing, the docs and the Studio). Art in the theme's inks is DOM or
+  SVG (`currentColor`, `var(--foreground)`) and turns with the root's
+  class. A component that needs a theme ink in a canvas is a CSS layer
+  over it instead. Pinned by the "theme costs no paint" case of
+  `packages/site/tests/site/paint-law.spec.tsx` (every registry row the
+  same pixels before and after `.dark`).
 - `wipe.ts` is the wipe engine — ordered-dither reveal masks for any DOM.
   `wipeStyle(progress, { cell, seed?, direction, band, width, height })`
   turns a progress into CSS `mask-image/size/repeat/position` values: a
