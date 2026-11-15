@@ -6,33 +6,32 @@ export default function Example() {
   const [min, setMin] = createSignal(140)
 
   return (
-    <>
-      <label class="flex items-center gap-2 text-[11px]">
+    <div class="mx-auto max-w-lg">
+      <label class="flex items-center gap-2 text-[11px] text-muted-foreground">
         min card width
         <input
           value={min()}
-          onInput={(e) => setMin(Number(e.currentTarget.value))}
+          onInput={(e) => setMin(e.currentTarget.valueAsNumber)}
           type="range"
           min="100"
           max="240"
           step="10"
+          class="h-6 w-40 accent-[var(--accent)]"
         />
-        {min()}px
+        <span class="tabular-nums">{min()}px</span>
       </label>
-
-      {/* auto-fit by min card width */}
+      {/* as many columns as fit at min px each */}
       <DitherGrid min={min()} class="mt-3">
-        <For each={Array.from({ length: 6 }, (_, k) => k + 1)}>
-          {(i) => <div class="rounded-md border p-3 text-[10px]">Card {i}</div>}
+        <For each={[1, 2, 3, 4, 5, 6]}>
+          {(i) => (
+            <div class="rounded-md border border-border/60 bg-background/60 p-3">
+              <div class="text-[10px] text-muted-foreground">Card {i}</div>
+              <div class="mt-1 h-2 w-2/3 rounded-sm bg-border/50" aria-hidden="true" />
+            </div>
+          )}
         </For>
       </DitherGrid>
-
-      {/* or a deliberate fixed count */}
-      <DitherGrid cols={3} gap="1rem" class="mt-3">
-        <div class="col-span-2 rounded-md border p-3">wide</div>
-        <div class="rounded-md border p-3">narrow</div>
-      </DitherGrid>
-    </>
+    </div>
   )
 }
 

@@ -1,47 +1,34 @@
-import { createSignal, For } from "solid-js"
-import { DitherRail, DitherTooltip, DitherSidebarItem, DitherAvatar } from "@dither-kit"
+import { For } from "solid-js"
+import { DitherAvatar, DitherRail, DitherSidebarItem, DitherTooltip } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const items = [
-    { label: "Home", color: "blue" },
-    { label: "Library", color: "blue", badge: 3 },
-    { label: "Exports", color: "purple" },
-  ]
-  const [active, setActive] = createSignal("Home")
-
   return (
-    <>
-      {/* the rail provides the sidebar's collapsed context:
-           DitherSidebarItem folds its label with zero extra props */}
-      <div class="flex h-72 overflow-hidden rounded-lg border">
-        <DitherRail
-          label="Primary"
-          header={
-            <div class="grid h-8 place-items-center">
-              <span class="size-2.5 rounded-[2px] bg-foreground" />
-            </div>
-          }
-          footer={<DitherAvatar name="Ada Byte" size={22} />}
-        >
-          {/* labels ride tooltips */}
-          <For each={items}>
-            {(i) => (
-              <DitherTooltip text={i.label}>
-                <DitherSidebarItem
-                  label={i.label}
-                  badge={i.badge}
-                  color={i.color}
-                  active={active() === i.label}
-                  onSelect={() => setActive(i.label)}
-                />
-              </DitherTooltip>
-            )}
-          </For>
-        </DitherRail>
-        <div class="grid flex-1 place-items-center text-[12px]">{active()}</div>
-      </div>
-    </>
+    <div class="mx-auto flex h-72 max-w-sm overflow-hidden rounded-lg border border-border/60">
+      {/* icons only: each item's name rides in a tooltip */}
+      <DitherRail
+        label="Demo rail"
+        header={
+          <div class="grid h-8 place-items-center">
+            <span class="inline-block size-2.5 rounded-[2px] bg-foreground" />
+          </div>
+        }
+        footer={
+          <div class="grid place-items-center border-t border-border/60 pt-2">
+            <DitherAvatar name="Ada Byte" size={22} />
+          </div>
+        }
+      >
+        <For each={["Home", "Library", "Exports"]}>
+          {(i) => (
+            <DitherTooltip text={i}>
+              <DitherSidebarItem label={i} active={i === "Home"} />
+            </DitherTooltip>
+          )}
+        </For>
+      </DitherRail>
+      <div class="grid min-w-0 flex-1 place-items-center text-[12px] text-muted-foreground">Content</div>
+    </div>
   )
 }
 

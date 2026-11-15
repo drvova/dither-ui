@@ -6,19 +6,28 @@ export default function Example() {
   const [zoom, setZoom] = createSignal(1)
 
   return (
-    <>
-      {/* drag pans, the wheel zooms toward the cursor, and the dot field
-           rides the same transform, so space feels real */}
-      <p class="text-[11px]">drag to pan, wheel to zoom: {Math.round(zoom() * 100)}%</p>
-      <DitherInfiniteCanvas zoom={zoom()} onUpdateZoom={setZoom} class="mt-2 h-64 rounded-lg border">
-        <div class="absolute w-40 rounded-md border bg-background/80 p-3 text-[12px]" style="left: 32px; top: 32px">
-          Artboard A
+    <div class="mx-auto max-w-lg">
+      <div class="flex items-center justify-between text-[11px] text-muted-foreground">
+        <span>drag to pan, wheel to zoom</span>
+        <span class="tabular-nums">{Math.round(zoom() * 100)}%</span>
+      </div>
+      <DitherInfiniteCanvas zoom={zoom()} onUpdateZoom={setZoom} class="mt-2 h-64 rounded-lg border border-border/60">
+        <div
+          class="absolute w-40 rounded-md border border-border/60 bg-background/80 p-3"
+          style={{ left: "32px", top: "32px" }}
+        >
+          <div class="text-[12px] text-muted-foreground">Artboard A</div>
+          <div class="mt-1 text-[12px] text-foreground">Drag the field</div>
         </div>
-        <div class="absolute w-40 rounded-md border bg-background/80 p-3 text-[12px]" style="left: 280px; top: 150px">
-          Artboard B
+        <div
+          class="absolute w-40 rounded-md border border-border/60 bg-background/80 p-3"
+          style={{ left: "280px", top: "150px" }}
+        >
+          <div class="text-[12px] text-muted-foreground">Artboard B</div>
+          <div class="mt-1 text-[12px] text-foreground">Zoom finds me</div>
         </div>
       </DitherInfiniteCanvas>
-    </>
+    </div>
   )
 }
 
