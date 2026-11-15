@@ -7,7 +7,7 @@ export default function Example() {
   const [website, setWebsite] = createSignal("")
 
   return (
-    <div class="grid gap-5">
+    <div class="mx-auto grid max-w-sm gap-5">
       <DitherField label="Handle" description="Lowercase, no spaces.">
         <DitherInput modelValue={handle()} onUpdateModelValue={setHandle} placeholder="ada" />
       </DitherField>

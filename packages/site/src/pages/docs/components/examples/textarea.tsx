@@ -3,11 +3,11 @@ import { DitherField, DitherTextarea } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [note, setNote] = createSignal("")
+  const [bio, setBio] = createSignal("Dithered interfaces, composed with Solid.")
 
   return (
-    <DitherField label="Note">
-      <DitherTextarea placeholder="Write a note…" modelValue={note()} onUpdateModelValue={setNote} />
+    <DitherField label="Bio" description="A short introduction.">
+      <DitherTextarea modelValue={bio()} onUpdateModelValue={setBio} placeholder="Tell us what you make…" />
     </DitherField>
   )
 }

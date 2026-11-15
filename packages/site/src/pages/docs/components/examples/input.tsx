@@ -1,14 +1,22 @@
 import { createSignal } from "solid-js"
-import { DitherField, DitherInput } from "@dither-kit"
+import { DitherInput } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [name, setName] = createSignal("")
+  const [email, setEmail] = createSignal("not-an-email")
 
   return (
-    <DitherField label="Name">
-      <DitherInput placeholder="Type here…" modelValue={name()} onUpdateModelValue={setName} />
-    </DitherField>
+    <div class="mx-auto grid max-w-md gap-3 sm:grid-cols-2">
+      <DitherInput modelValue={name()} onUpdateModelValue={setName} placeholder="Ada Byte" />
+      <DitherInput
+        modelValue={email()}
+        onUpdateModelValue={setEmail}
+        type="email"
+        invalid
+        placeholder="you@dither-ui.com"
+      />
+    </div>
   )
 }
 

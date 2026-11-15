@@ -1,11 +1,21 @@
-import { createSignal } from "solid-js"
-import { DitherOtpField } from "@dither-kit"
+import { createSignal, Show } from "solid-js"
+import { cssColor, DitherOtpField } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [code, setCode] = createSignal("")
+  const [otp, setOtp] = createSignal("")
+  const [complete, setComplete] = createSignal(false)
 
-  return <DitherOtpField modelValue={code()} onUpdateModelValue={setCode} />
+  return (
+    <div class="mx-auto grid max-w-sm justify-items-center gap-3">
+      <DitherOtpField modelValue={otp()} onUpdateModelValue={setOtp} length={6} onComplete={() => setComplete(true)} />
+      <Show when={complete()}>
+        <p class="text-[11px]" style={{ color: cssColor("green") }}>
+          complete!
+        </p>
+      </Show>
+    </div>
+  )
 }
 
 export const meta = defineExample({

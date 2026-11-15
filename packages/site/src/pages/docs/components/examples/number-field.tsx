@@ -3,9 +3,14 @@ import { DitherNumberField } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [count, setCount] = createSignal(24)
+  const [qty, setQty] = createSignal(3)
 
-  return <DitherNumberField min={0} max={100} modelValue={count()} onUpdateModelValue={setCount} />
+  return (
+    <div class="mx-auto flex max-w-sm items-center justify-center gap-4">
+      <DitherNumberField modelValue={qty()} onUpdateModelValue={setQty} min={0} max={10} label="Quantity" />
+      <span class="text-[13px] tabular-nums">{qty()} / 10</span>
+    </div>
+  )
 }
 
 export const meta = defineExample({
