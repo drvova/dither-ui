@@ -1157,9 +1157,10 @@ in the page's folder.
   palette, then `ScreensSection.tsx`).
   `docs/examples/` = Examples packs (`PageExamples.tsx`, the whole
   screens: dashboard, app shell, monitoring, team, usage, sign in; the
-  sidebar pack's app windows,
-  `AppFrame`, keep a desktop's width and scroll in their card on a phone,
-  as the bracket does, rather than crush the page beside the sidebar),
+  sidebar pack's app windows, each example's own frame, keep a desktop's
+  width and scroll in their card on a phone, as the bracket does, rather
+  than crush the page beside the sidebar; the page beside a sidebar is a
+  plain block, as a page holds one main),
   `docs/components/` = component-doc
   packs (`ChartDocs.tsx`: the charts and the sparkline; `BasicsDocs.tsx`:
   button, avatar, gradient, image; form/feedback/structure, ...),
