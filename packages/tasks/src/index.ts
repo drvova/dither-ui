@@ -6,3 +6,5 @@
 export * from "./cards.ts"
 export { chromiumCandidates, chromiumPath, findChromium } from "./chromium.ts"
 export { buildKitCss } from "./kit-css.mjs"
+export { brandSvg } from "./readme-art.ts"
+export type { BrandArt } from "./readme-art.ts"

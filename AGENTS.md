@@ -190,7 +190,10 @@ Default section order:
   1458,24,20,47; 1334,23,40,40. Regenerate from the sheet, don't
   hand-draw. They decorate the README. The README's screenshots live in
   `.github/readme/` (WebP, never shipped with the site), taken from a
-  production build: retake the one whose page changes.
+  production build: retake the one whose page changes. Its banner,
+  `.github/readme/brand.svg`, is generated: the hero's moment of the
+  brand forming, written from the brand's cells (`npm run readme:art`,
+  `packages/tasks/AGENTS.md`), never edited by hand.
 - Landing surfaces: everything that moves on the landing is the kit
   itself (the user's call after the trailer: show the real components,
   hands on, never drawings of them). The page is printed: one obsidian

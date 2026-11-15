@@ -175,6 +175,10 @@ are from the repository's.
   film read them; adding a component or a section touches no count. Text
   shipped as written (the README, `public/agent/SKILL.md`) keeps its
   figures, pinned to them by `tests/landing-facts.spec.ts`.
+- The README's banner (`.github/readme/brand.svg`) is the hero's moment
+  (`choreograph`, the hero's staging, the install surface's inks) written
+  by `@dither-ui/tasks`'s `brandSvg`: `tests/readme-art.spec.ts` writes it
+  (`npm run readme:art` at the root) and fails while the file drifts.
 - Vite plugins, each a file in `build/`: `facts.ts` (above), `props.ts`
   (the kit's props for the API tables, above), `catalog.ts` (the docs'
   examples' catalogue, above; also in the player's nested build),

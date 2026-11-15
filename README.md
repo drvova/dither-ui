@@ -9,7 +9,7 @@
   <img src="packages/site/public/emotes/emote-dots.webp" alt="" width="51" height="49">
 </p>
 
-![dither-ui: a dithered UI toolkit for Solid, the statement beside a live print the kit makes](.github/readme/banner.webp)
+![dither-ui: the brand's diamond and wordmark forming cell by cell out of the open field](.github/readme/brand.svg)
 
 <p align="center">
   <img src="packages/site/public/emotes/face-neutral.webp" alt="Neutral dither face" width="97" height="126">

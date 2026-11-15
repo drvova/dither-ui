@@ -26,7 +26,14 @@ by the site's post-build. Paths here are from this package's root.
   pages stand: the server it draws from (`listen`), every share card (`renderOgCards`), each
   section's embed with its own lede (`refineEmbed`) and the agent registry
   (`writeAgentRegistry`).
-- `src/index.ts`: the package's entry, those three modules' exports.
+- `src/readme-art.ts`: `brandSvg`, the README's banner as one SVG: the
+  lockup's cells and each one's path through the brand's moment in (the
+  site hands them over), a CSS animation stepping whole cells out (CSS,
+  not SMIL, so the file's own `prefers-reduced-motion` query settles it),
+  the brand at rest as merged runs on the obsidian. The emotes and faces
+  stay WebP: their crops of the lossy sheet hold nearly a colour a pixel,
+  so an SVG of them is twelve to twenty-one times the bytes.
+- `src/index.ts`: the package's entry, those four modules' exports.
 - `src/render-frames.mjs` (`npm run frames`): a composition as PNG frames
   or an MP4, in Chromium, WebKit or Firefox, without CDP.
 - `src/agent-demo.mjs` (`npm run demo:agent`): records the Studio's agent
@@ -185,6 +192,8 @@ by the site's post-build. Paths here are from this package's root.
 - The drawing code's pure parts are held where they run, by the site
   (`packages/site/tests/site/cards.spec.ts`), and its browser parts by the
   site's build, which fails when a card or the registry does.
+- `brandSvg` is held by the site's `tests/readme-art.spec.ts`, which
+  writes the committed banner (`npm run readme:art`) and fails on drift.
 
 ## Child DOX Index
 
