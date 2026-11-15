@@ -16,7 +16,7 @@ import {
   DitherTooltip,
 } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import { dataCode } from "../snippet"
+import { dataCode } from "../example-code"
 import DocSection from "../DocSection"
 
 const CAT_COUNTS: Record<string, number> = { Prints: 125, Frames: 89, Zines: 34, Stickers: 67 }

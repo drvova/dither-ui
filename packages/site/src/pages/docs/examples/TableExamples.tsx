@@ -1,7 +1,7 @@
 import { createMemo, createSignal, For, Show } from "solid-js"
 import { DitherButton, DitherCheckbox, DitherInput, DitherPagination } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import { dataCode } from "../snippet"
+import { dataCode } from "../example-code"
 import DocSection from "../DocSection"
 
 type Member = { name: string; email: string; role: string; status: "active" | "away" | "offline"; joined: string }

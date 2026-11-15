@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js"
-import { DitherInput, DitherInputGroup } from "@dither-kit"
+import { DitherInputGroup, DitherInput } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
@@ -11,7 +11,7 @@ export default function Example() {
         modelValue={host()}
         onUpdateModelValue={setHost}
         aria-label="Site address"
-        class="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+        class="min-h-8 border-0 bg-transparent px-0 py-1 shadow-none hover:border-0 focus-visible:ring-0"
       />
     </DitherInputGroup>
   )

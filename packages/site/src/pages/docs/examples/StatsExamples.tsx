@@ -1,7 +1,7 @@
 import { createMemo, createSignal, For } from "solid-js"
 import { DitherMeter, Sparkline } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import { dataCode } from "../snippet"
+import { dataCode } from "../example-code"
 import DocSection from "../DocSection"
 
 type Kpi = { label: string; icon: string; value: string; delta: number; note: string }

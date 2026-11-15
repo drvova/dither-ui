@@ -22,7 +22,7 @@ import {
 import DemoCard from "../DemoCard"
 import { config, MONTHS, pieConfig, pieRows, radarConfig, radarRows, rows, STAT_ROWS, STATS, trend } from "../demo-data"
 import DocSection from "../DocSection"
-import { dataCode } from "../snippet"
+import { dataCode } from "../example-code"
 
 // App shell example.
 const SHELL_NAV = ["Overview", "Reports", "Alerts", "Settings"]

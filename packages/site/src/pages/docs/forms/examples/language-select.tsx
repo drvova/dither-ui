@@ -3,9 +3,9 @@ import { DitherLanguageSelect } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [language, setLanguage] = createSignal("ja")
+  const [locale, setLocale] = createSignal("ja")
 
-  return <DitherLanguageSelect modelValue={language()} onUpdateModelValue={setLanguage} />
+  return <DitherLanguageSelect modelValue={locale()} onUpdateModelValue={setLocale} includeDefault />
 }
 
 export const meta = defineExample({

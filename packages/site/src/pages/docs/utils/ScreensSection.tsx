@@ -9,7 +9,7 @@ import {
 } from "@dither-ui/kit"
 import { Area, AreaChart } from "@/shared/ui/charts"
 import DemoCard from "../DemoCard"
-import { dataCode } from "../snippet"
+import { dataCode } from "../example-code"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
 import screenProps from "virtual:dither-props/DitherScreen"
 import DocSection from "../DocSection"

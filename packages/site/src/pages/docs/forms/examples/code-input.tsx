@@ -5,7 +5,7 @@ import { defineExample } from "@/shared/lib/example"
 export default function Example() {
   const [snippet, setSnippet] = createSignal("const dither = bayer(4)")
 
-  return <DitherCodeInput modelValue={snippet()} onUpdateModelValue={setSnippet} />
+  return <DitherCodeInput modelValue={snippet()} onUpdateModelValue={setSnippet} rows={4} />
 }
 
 export const meta = defineExample({

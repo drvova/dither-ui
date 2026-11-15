@@ -1,15 +1,11 @@
 import { createSignal } from "solid-js"
-import { DitherField, DitherSearchInput } from "@dither-kit"
+import { DitherSearchInput } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  const [query, setQuery] = createSignal("dither")
+  const [q, setQ] = createSignal("dither")
 
-  return (
-    <DitherField label="Search">
-      <DitherSearchInput placeholder="Search…" modelValue={query()} onUpdateModelValue={setQuery} />
-    </DitherField>
-  )
+  return <DitherSearchInput modelValue={q()} onUpdateModelValue={setQ} />
 }
 
 export const meta = defineExample({

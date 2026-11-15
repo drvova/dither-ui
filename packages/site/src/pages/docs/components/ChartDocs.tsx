@@ -51,7 +51,7 @@ import barProps from "virtual:dither-props/Bar"
 import pieChartProps from "virtual:dither-props/PieChart"
 import radarChartProps from "virtual:dither-props/RadarChart"
 import sparklineProps from "virtual:dither-props/Sparkline"
-import { dataCode } from "../snippet"
+import { dataCode } from "../example-code"
 import type { AreaVariant } from "@dither-ui/kit"
 
 const DOT_VARIANTS: DotVariant[] = ["border", "colored-border", "filled"]

@@ -1,14 +1,4 @@
-import {
-  DitherCheckboxCard,
-  DitherCodeInput,
-  DitherColorSwatch,
-  DitherInputGroup,
-  DitherKnob,
-  DitherLanguageSelect,
-  DitherSearchInput,
-  DitherSignaturePad,
-} from "@dither-ui/kit"
-import { DitherInput } from "@dither-ui/kit"
+import { DitherCheckboxCard, DitherKnob } from "@dither-ui/kit"
 import { createSignal } from "solid-js"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
@@ -90,51 +80,18 @@ import ColorPickerExample from "./examples/color-picker"
 import colorPickerCode from "./examples/color-picker.tsx?raw"
 import KnobExample from "./examples/knob"
 import knobCode from "./examples/knob.tsx?raw"
-
-const SNIPPET_SEARCH_INPUT = `const [q, setQ] = createSignal("dither")
-const [results, setResults] = createSignal<string[]>(["DitherButton", "DitherImage"])
-
-<DitherSearchInput modelValue={q()} onUpdateModelValue={setQ} onClear={() => setResults([])} />`
-
-const SNIPPET_CODE_INPUT = `const [snippet, setSnippet] = createSignal("const dither = bayer(4)")
-const [submitted, setSubmitted] = createSignal("")
-
-<DitherCodeInput modelValue={snippet()} onUpdateModelValue={setSnippet} onSubmit={() => setSubmitted(snippet())} rows={4} />`
-
-const SNIPPET_INPUT_GROUP = `const [host, setHost] = createSignal("dither-ui.com")
-
-<DitherInputGroup
-  prefix="https://"
-  suffix="/docs"
->
-  <DitherInput modelValue={host()} onUpdateModelValue={setHost} aria-label="Site address" class="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" />
-</DitherInputGroup>`
-
-const SNIPPET_LANGUAGE_SELECT = `const [locale, setLocale] = createSignal("ja")
-
-<DitherLanguageSelect modelValue={locale()} onUpdateModelValue={setLocale} includeDefault />`
-
-const SNIPPET_COLOR_SWATCH = `const palette = [
-  { color: "#5227FF", label: "Iris" },
-  { color: "#7CFF67", label: "Mint" },
-  { color: "#FFB454", label: "Amber" },
-  { color: "#FF5C7A", label: "Rose" },
-  { color: "#4CC2FF", label: "Sky" },
-]
-const [active, setActive] = createSignal("#5227FF")
-
-<div class="flex gap-2">
-  <For each={palette}>
-    {(c) => (
-      <DitherColorSwatch color={c.color} label={c.label}
-        selected={c.color === active()} onSelect={() => setActive(c.color)} />
-    )}
-  </For>
-</div>`
-
-const SNIPPET_SIGNATURE_PAD = `const [sig, setSig] = createSignal("")
-
-<DitherSignaturePad modelValue={sig()} onUpdateModelValue={setSig} height={140} />`
+import SearchInputExample from "./examples/search-input"
+import searchInputCode from "./examples/search-input.tsx?raw"
+import CodeInputExample from "./examples/code-input"
+import codeInputCode from "./examples/code-input.tsx?raw"
+import InputGroupExample from "./examples/input-group"
+import inputGroupCode from "./examples/input-group.tsx?raw"
+import LanguageSelectExample from "./examples/language-select"
+import languageSelectCode from "./examples/language-select.tsx?raw"
+import ColorSwatchExample from "./examples/color-swatch"
+import colorSwatchCode from "./examples/color-swatch.tsx?raw"
+import SignaturePadExample from "./examples/signature-pad"
+import signaturePadCode from "./examples/signature-pad.tsx?raw"
 
 export const API: Record<string, PropRow[]> = {
   passwordInput: kitTable(passwordInputProps),
@@ -192,9 +149,9 @@ export default function FormsDocs() {
           Leading glyph, one-click clear (only when there is something to clear) and Escape empties the field. Either
           way it fires a <code class="text-foreground/80">clear</code> event so results can reset in the same beat.
         </p>
-        <DemoCard code={SNIPPET_SEARCH_INPUT}>
+        <DemoCard code={searchInputCode}>
           <div class="mx-auto w-full max-w-xs">
-            <DitherSearchInput modelValue="dither" />
+            <SearchInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.searchInput} />
@@ -277,9 +234,9 @@ export default function FormsDocs() {
           <code class="text-foreground/80">submit</code>. The browser's tab trap is handled once, here: Escape lets go,
           and the Tab after it moves on.
         </p>
-        <DemoCard code={SNIPPET_CODE_INPUT}>
+        <DemoCard code={codeInputCode}>
           <div class="mx-auto w-full max-w-md">
-            <DitherCodeInput modelValue="const dither = bayer(4)" rows={4} />
+            <CodeInputExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.codeInput} />
@@ -290,15 +247,9 @@ export default function FormsDocs() {
           Addon props around a control in one bordered group: the group owns the border and the focus-within ring, the
           inner control drops its own chrome (the code tab shows the exact class set).
         </p>
-        <DemoCard code={SNIPPET_INPUT_GROUP}>
+        <DemoCard code={inputGroupCode}>
           <div class="mx-auto w-full max-w-sm">
-            <DitherInputGroup prefix="https://" suffix="/docs">
-              <DitherInput
-                class="min-h-8 border-0 bg-transparent px-0 py-1 shadow-none hover:border-0 focus-visible:ring-0"
-                modelValue="dither-ui.com"
-                aria-label="Site address"
-              />
-            </DitherInputGroup>
+            <InputGroupExample />
           </div>
         </DemoCard>
         {/* no props: slots and the focus ring are the API */}
@@ -462,9 +413,9 @@ export default function FormsDocs() {
           Language picker over a curated BCP 47 list: the label is the human name, the value is the tag, and{" "}
           <code class="text-foreground/80">includeDefault</code> keeps the opt-out one option away.
         </p>
-        <DemoCard code={SNIPPET_LANGUAGE_SELECT}>
+        <DemoCard code={languageSelectCode}>
           <div class="mx-auto w-full max-w-xs">
-            <DitherLanguageSelect modelValue="ja" />
+            <LanguageSelectExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.languageSelect} />
@@ -542,14 +493,8 @@ export default function FormsDocs() {
           One color as a pickable chip: a real button with the color in its accessible name, a selected ring, a keyboard
           focus ring. Reads as pure display when nothing listens to <code class="text-foreground/80">select</code>.
         </p>
-        <DemoCard code={SNIPPET_COLOR_SWATCH}>
-          <div class="flex justify-center gap-2">
-            <DitherColorSwatch color="#5227FF" selected label="Iris" />
-            <DitherColorSwatch color="#7CFF67" label="Mint" />
-            <DitherColorSwatch color="#FFB454" label="Amber" />
-            <DitherColorSwatch color="#FF5C7A" label="Rose" />
-            <DitherColorSwatch color="#4CC2FF" label="Sky" />
-          </div>
+        <DemoCard code={colorSwatchCode}>
+          <ColorSwatchExample />
         </DemoCard>
         <PropsTable rows={API.colorSwatch} />
       </DocSection>
@@ -589,9 +534,9 @@ export default function FormsDocs() {
           every stroke and on clear. A context-less environment refuses strokes instead of throwing, so degraded engines
           degrade visibly.
         </p>
-        <DemoCard code={SNIPPET_SIGNATURE_PAD}>
+        <DemoCard code={signaturePadCode}>
           <div class="mx-auto w-full max-w-md">
-            <DitherSignaturePad height={140} />
+            <SignaturePadExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.signaturePad} />

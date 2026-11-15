@@ -14,7 +14,8 @@ import { config, MONTHS, rows, trafficConfig, trafficRows } from "../demo-data"
 import DocSection, { useOpened } from "../DocSection"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
 import lineChartProps from "virtual:dither-props/LineChart"
-import { dataCode, docsCode } from "../snippet"
+import { dataCode } from "../example-code"
+import { docsCode } from "../snippet"
 import type { DitherColor } from "@dither-ui/kit"
 
 const EngineSection = lazyPart(() => import("./EngineSection"))
