@@ -38,7 +38,8 @@ const ALLOWED: Record<string, string> = {
   "widgets/frame-renderer/ReelRenderer.tsx": "a reel's clips played on the kit clock: the Studio's film",
   "widgets/frame-renderer/ReelClip.tsx": "a clip's camera on the kit clock: the Studio's film",
   // tools that draw on a canvas or read what moves
-  "widgets/workbench/bench.ts": "the inspect tools' overlays, drawn on a canvas each frame they are open",
+  "widgets/workbench/model/measuring.ts": "the inspect tools' overlays, drawn on a canvas each frame they are open",
+  "widgets/workbench/model/recorder.ts": "waits for the preview's frames to paint before it captures them",
   "widgets/workbench/model/capture.ts": "records a preview into a canvas, frame by frame",
   "widgets/workbench/ui/Loupe.tsx": "the loupe's magnified canvas",
   "widgets/workbench/ui/Motion.tsx": "the motion inspector lists the page's animations; it plays none",
