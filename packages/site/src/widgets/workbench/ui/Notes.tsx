@@ -24,7 +24,7 @@ export function NoteShapes() {
         return (
           <g class="note notes-scope" data-note={n().id} style={{ color: n().color }}>
             <rect x={n().at.x + 0.5} y={n().at.y + 0.5} width={w() - 1} height={h() - 1} rx={4} />
-            <text font-size={n().size}>
+            <text font-size={String(n().size)}>
               <Index each={lines()}>
                 {(l, i) => (
                   <tspan x={n().at.x + NOTE_PAD} y={n().at.y + 2 + (i + 0.5) * lead()} dominant-baseline="central">

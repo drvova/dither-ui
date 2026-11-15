@@ -34,7 +34,7 @@ export default function Label(props: LabelProps) {
       <text
         x={box().x + box().w / 2}
         y={box().y + box().h / 2}
-        font-size={box().size}
+        font-size={String(box().size)}
         text-anchor="middle"
         dominant-baseline="central"
       >
