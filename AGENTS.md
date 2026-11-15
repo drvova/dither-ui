@@ -88,19 +88,21 @@ Default section order:
   Studio, player; its Vite plugins and post-build in `build/`, its static
   files in `public/`), `packages/tasks/` (the repository's tasks: the kit
   stylesheet, the share cards, the frame renderer, the agent demo
-  recorder), `packages/bridge/` and `packages/discord/`.
+  recorder), `packages/add/` (the add command a reader runs),
+  `packages/bridge/` and `packages/discord/`.
 - Dependencies point one way: `@dither-ui/kit` depends on no package here;
   `@dither-ui/restyle` and `@dither-ui/tasks` on `@dither-ui/kit`;
   `@dither-ui/kit-stylex` on `@dither-ui/kit` (and on `@dither-ui/restyle`
   for the spec that generates it, never in its source); `@dither-ui/site`
-  on those four and on `@dither-ui/bridge`; `@dither-ui/bridge` and
-  `@dither-ui/discord` on nothing here. A package imports another by its
+  on those four and on `@dither-ui/bridge` and `@dither-ui/add`;
+  `@dither-ui/bridge`, `@dither-ui/add` and `@dither-ui/discord` on
+  nothing here. A package imports another by its
   name, only what that package's `exports` declare, and only when its own
   manifest declares the dependency; no relative path leaves a package.
 - Every package is named under the `@dither-ui/` scope, whatever its
   folder (`packages/dither-kit` is `@dither-ui/kit`, `dither-kit-stylex`
   `@dither-ui/kit-stylex`, the rest their folder's name): the bare names
-  (`dither-kit`, `tasks`, `@dither-ui/restyle`, `site`, `bridge`, `discord`) are
+  (`dither-kit`, `tasks`, `restyle`, `site`, `bridge`, `add`, `discord`) are
   other people's packages on the npm registry, so none is ever written as
   a dependency or an import. A manifest takes a package of the workspace
   as `file:../<folder>` (npm has no `workspace:` protocol), which no
@@ -146,12 +148,14 @@ Default section order:
   (the crawler files, the cards' manifest and embeds, the install surface,
   the mascot's capture, the bridge), `kit-sources.ts` (the kit's own
   source at `kit/src/solid/` with a `files.json` listing: what the docs'
-  source panel shows, runs and zips), `standalone.ts` (`sw.js` and the
+  source panel shows, runs and zips), `kit-add.ts` (the add command, its
+  manifest and the files only it reads, and the kit stylesheet
+  `kit/dither-kit.css`), `standalone.ts` (`sw.js` and the
   single-file player `play/player.js` + `player.css`), `utilities.ts` (the
   styling rewriter's utility map) and `run-compiler.ts` (what the docs'
   Run needs to load Solid's compiler in a browser). Then
   `build/postbuild.mjs`, which needs a Chromium (`CHROME_PATH` or a
-  standard install) and fails loudly without one: the kit stylesheet, the
+  standard install) and fails loudly without one: the
   share card renderer and every card (each kept in
   `node_modules/.cache/dither-ui/og/` under a hash of what it is drawn
   from, so an unchanged card is copied, never redrawn), each section's embed with its own
@@ -348,13 +352,13 @@ Default section order:
   packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts` rewrites its
   StyleX twin, and the spec fails on any drift). The tokens live in
   `@dither-ui/kit/engine/theme.css` (plain custom properties the site's
-  `packages/site/src/app/styles.css` imports under Tailwind); the post-build
-  (and `npm run build:css`, `packages/tasks/src/kit-css.mjs`, alone)
+  `packages/site/src/app/styles.css` imports under Tailwind); the site's
+  build (`kitAdd`; `npm run build:css`, `packages/tasks/src/kit-css.mjs`, alone)
   compiles `@dither-ui/kit/tailwind/kit.css` (tokens, the `.dither-kit`-scoped
   base, every utility the kit uses) into `kit/dither-kit.css` in the build,
   so apps on UnoCSS, vanilla CSS or CSS-in-JS run the Solid layer without
-  Tailwind; StyleX apps copy the StyleX package beside the kit and alias
-  `@dither-kit` to it; `@dither-ui/kit/engine/theme.ts` themes from JS. Details
+  Tailwind; StyleX apps take the StyleX twin beside the kit and alias
+  `@dither-kit` to it (the add command writes it so, below); `@dither-ui/kit/engine/theme.ts` themes from JS. Details
   in `packages/dither-kit/AGENTS.md` and
   `packages/dither-kit-stylex/AGENTS.md`. What the site writes for a reader
   is Solid (the docs' tables, prose and snippets, the Studio's code export
@@ -368,6 +372,26 @@ Default section order:
   docs' styling switch, the Studio's export dialog and `code.get { styling
   }` all go through it, and the docs' Run plays a Solid example in the page
   (see `packages/site/src/widgets/source/AGENTS.md`).
+- Add command: a reader adds kit components to their project with one
+  line, `curl -fsSL https://dither-ui.com/add/dither-add.mjs | node
+  --input-type=module - add <component...>` (the `@dither-ui/add`
+  package's one zero-dependency script, served as written at
+  `add/dither-add.mjs` the way the bridge is; nothing on npm). It reads
+  `add/manifest.json`, which the site's build derives
+  (`packages/site/build/kit-add.ts`) from the kit's sources, its StyleX
+  twin (its imports of the kit made relative, so a copy holds both) and
+  the import graph read off every file: each component the kit's index
+  exports with its whole file set per layer, every file's hash, each
+  styling system's own files (`tailwind`: the Tailwind layer's
+  `tailwind/kit.css`; `css` and `modules`: the standalone stylesheet;
+  `stylex`: the twin and the tokens). It writes the set into one folder
+  (`src/dither-kit` by default) with an index of just what was added,
+  never replaces a file the reader changed without `--force` (it shows
+  the diff and writes nothing), and says the one alias to set,
+  `@dither-kit`. `list`, `diff`, `--dry-run`. Every docs section with demos
+  shows the line for the kit components they use, in the reader's
+  styling system; the Quick start, `llms.txt` and `agent/SKILL.md` carry
+  it. Details in `packages/add/AGENTS.md` and `packages/site/AGENTS.md`.
 - Print screens: every kit surface thresholds its density through a 4x4
   matrix, the Bayer one unless a `DitherScreen` around it picks a
   printer's screen (`line`, `diagonal`, `dot`, `cross`; `SCREENS` in
@@ -715,6 +739,9 @@ Default section order:
       workbench
     - `packages/site/src/widgets/source/AGENTS.md` — the docs previews'
       source files and Run
+- `packages/add/AGENTS.md` — the add command: the zero-dependency script
+  that copies kit components into a reader's project, its guard and its
+  settings
 - `packages/tasks/AGENTS.md` — the repository's tasks: the kit stylesheet,
   the share cards' drawing code, the frame renderer, the agent demo
   recorder

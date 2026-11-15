@@ -1,0 +1,14 @@
+{
+  "name": "@dither-ui/add",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The add command: a zero-dependency script that copies dither-kit components into a project, in its styling system.",
+  "type": "module",
+  "bin": {
+    "dither-add": "./src/dither-add.mjs"
+  },
+  "exports": {
+    "./dither-add.mjs": "./src/dither-add.mjs"
+  },
+  "license": "MIT"
+}

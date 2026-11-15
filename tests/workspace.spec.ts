@@ -26,12 +26,13 @@ const FOLDER: Record<string, string> = {
   "@dither-ui/kit-stylex": "dither-kit-stylex",
   "@dither-ui/tasks": "tasks",
   "@dither-ui/bridge": "bridge",
+  "@dither-ui/add": "add",
   "@dither-ui/discord": "discord",
   "@dither-ui/site": "site",
 }
 
 /** Every package, and the packages it may depend on. The kit depends on
- * none; the bridge and the Discord service stand alone; the StyleX twin
+ * none; the bridge, the add command and the Discord service stand alone; the StyleX twin
  * takes the rewriter for the spec that generates it, never in its source. */
 const MAY_USE: Record<string, readonly string[]> = {
   "@dither-ui/kit": [],
@@ -39,6 +40,7 @@ const MAY_USE: Record<string, readonly string[]> = {
   "@dither-ui/kit-stylex": ["@dither-ui/kit", "@dither-ui/restyle"],
   "@dither-ui/tasks": ["@dither-ui/kit"],
   "@dither-ui/bridge": [],
+  "@dither-ui/add": [],
   "@dither-ui/discord": [],
   "@dither-ui/site": [
     "@dither-ui/kit",
@@ -46,6 +48,7 @@ const MAY_USE: Record<string, readonly string[]> = {
     "@dither-ui/restyle",
     "@dither-ui/tasks",
     "@dither-ui/bridge",
+    "@dither-ui/add",
   ],
 }
 const NAMES = Object.keys(MAY_USE)

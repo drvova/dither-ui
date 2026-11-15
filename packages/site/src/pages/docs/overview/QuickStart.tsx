@@ -1,9 +1,12 @@
 // The Quick start: the kit is a folder, so installing it is a few steps a
 // reader takes one at a time, each with its own copy (`@/pages/docs/install`
-// holds them). Then the question a reader asks next, under its own
-// heading: the kit without Tailwind.
-import { For, Show } from "solid-js"
+// holds them). Then the questions a reader asks next, each under its own
+// heading: one component at a time (the add command), and the kit without
+// Tailwind.
+import { createSignal, For, onMount, Show } from "solid-js"
 import { INSTALL_DEPS, INSTALL_STEPS } from "@/pages/docs/install"
+import { addCommand } from "@/shared/lib/add-command"
+import { assetPath } from "@/shared/lib/routes"
 import CodeBlock from "@/shared/ui/CodeBlock"
 import DocSection from "../DocSection"
 import "./QuickStart.css"
@@ -23,12 +26,21 @@ const THEME = `import { applyTheme, themeCss } from "@dither-kit"
 applyTheme({ accent: "#3f8ff3", radius: "4px" })  // on <html>, returns the undo
 themeCss({ background: "#000" }, ".dark")          // a rule for your stylesheet`
 
+/** What else the add command does, after the line that runs it. */
+const ADD_USES = `add DitherButton AreaChart Area   # components and every kit file they need
+add DitherWorld --styling stylex  # tailwind, css, modules or stylex
+add DitherButton --dry-run        # what would change, nothing written
+diff DitherButton                 # what differs between your copy and the site
+list                              # every component you can add`
+
 const LINK =
   "text-foreground/80 underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground/60"
 const CODE = "text-foreground/80"
 
 export default function QuickStart() {
   const deps = COUNT[INSTALL_DEPS.length] ?? String(INSTALL_DEPS.length)
+  const [site, setSite] = createSignal<string>()
+  onMount(() => setSite(new URL(assetPath(""), location.origin).href))
 
   return (
     <DocSection id="getting-started" class="quick-start-scope">
@@ -60,6 +72,24 @@ export default function QuickStart() {
           )}
         </For>
       </ol>
+
+      <h3 class="mt-10 text-[13px] text-foreground">One component at a time</h3>
+      <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+        Rather take only what you use? One line copies a component and every kit file it imports into{" "}
+        <code class={CODE}>src/dither-kit/</code>, in your styling system, with an index of just what you added. Run it
+        again to add more; it never replaces a file you changed, it shows you the difference instead. Every component's
+        page carries its own line.
+      </p>
+      <div class="mt-3">
+        <CodeBlock code={addCommand(["DitherButton"], { site: site() })} />
+      </div>
+      <p class="mt-4 text-[13px] leading-relaxed text-muted-foreground">
+        Each of these goes after the same <code class={CODE}>node --input-type=module -</code>, and the script keeps
+        your choices in <code class={CODE}>dither-kit.json</code> for the next run:
+      </p>
+      <div class="mt-3">
+        <CodeBlock code={ADD_USES} />
+      </div>
 
       <h3 class="mt-10 text-[13px] text-foreground">Without Tailwind</h3>
       <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">

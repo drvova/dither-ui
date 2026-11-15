@@ -1,6 +1,5 @@
 // What the build makes once its pages stand (`npm run build`, after
-// `vite build`), into the same `.output/public`: the kit's standalone
-// stylesheet (kit/dither-kit.css), the share card renderer (og/index.html),
+// `vite build`), into the same `.output/public`: the share card renderer (og/index.html),
 // every share card drawn in headless Chromium (og/<id>.png + .gif for the
 // three routes and each docs section), each section's Discord embed saying
 // its own lede, and the agent registry read off the mounted Studio
@@ -11,11 +10,11 @@
 // (`cardKey` in the tasks' cards.ts), so a build that changed nothing a card
 // shows copies it instead of drawing it. Every step prints its time.
 import { existsSync } from "node:fs"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { readFile, writeFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { chromium } from "playwright-core"
-import { buildKitCss, findChromium, listen, refineEmbed, renderOgCards, writeAgentRegistry } from "@dither-ui/tasks"
+import { findChromium, listen, refineEmbed, renderOgCards, writeAgentRegistry } from "@dither-ui/tasks"
 import { ROUTE_CARDS, sectionsManifest } from "../src/pages/docs/crawler-files.ts"
 import { buildOgPage } from "./og-page.ts"
 
@@ -36,13 +35,6 @@ if (!existsSync(join(OUT, "index.html"))) throw new Error(`postbuild: no pages i
 
 // Before anything is drawn: a build with no browser stops here.
 const executablePath = findChromium()
-
-await step("kit css", async () => {
-  const css = await buildKitCss()
-  await mkdir(join(OUT, "kit"), { recursive: true })
-  await writeFile(join(OUT, "kit", "dither-kit.css"), css)
-  console.log(`kit css: ${(css.length / 1024).toFixed(1)} kB -> kit/dither-kit.css`)
-})
 
 // The renderer and its data: the section manifest is the crawler plugin's
 // file, written here from the same builder when a build has not made it.

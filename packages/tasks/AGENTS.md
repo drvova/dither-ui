@@ -10,7 +10,9 @@ by the site's post-build. Paths here are from this package's root.
 
 - `src/kit-css.mjs` (types in `kit-css.d.mts`): `buildKitCss()` compiles
   the kit's standalone stylesheet from `@dither-ui/kit/tailwind/kit.css` with
-  Tailwind's compiler and scanner, the kit's folders the only sources. Run
+  Tailwind's compiler and scanner, the kit's folders the only sources.
+  Its own entry, `@dither-ui/tasks/kit-css`, is what the site's build
+  (`kitAdd`) loads to emit `kit/dither-kit.css`. Run
   alone it writes the file it is given (`npm run build:css` at the root
   writes `kit/dither-kit.css` into the site's build).
 - `src/chromium.ts`: the ONE list of where a Chromium stands
@@ -42,7 +44,8 @@ by the site's post-build. Paths here are from this package's root.
   the brand at rest as merged runs on the obsidian. The emotes and faces
   stay WebP: their crops of the lossy sheet hold nearly a colour a pixel,
   so an SVG of them is twelve to twenty-one times the bytes.
-- `src/index.ts`: the package's entry, those four modules' exports.
+- `src/index.ts`: the package's entry, the cards', the Chromium's and the
+  banner's exports.
 - `src/render-frames.mjs` (`npm run frames`): a composition as PNG frames
   or an MP4, in Chromium, WebKit or Firefox, without CDP.
 - `src/agent-demo.mjs` (`npm run demo:agent`): records the Studio's agent

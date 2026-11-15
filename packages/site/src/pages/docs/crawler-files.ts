@@ -1,3 +1,4 @@
+import { ADD_FILE, addCommand } from "../../shared/lib/add-command.ts"
 import { GROUPS, SECTIONS } from "./groups.ts"
 import { docsBreadcrumb, docsMeta, REPO_URL, SITE_URL } from "./seo.ts"
 import { sectionTags, type ShareCard, tagHtml } from "./share-cards.ts"
@@ -188,6 +189,11 @@ const LLMS_GROUPS: LlmsGroup[] = [
         desc: "Copy the kit folder, install the four runtime dependencies, alias it, and render the first component.",
       },
       {
+        title: "Add command",
+        href: `${SITE_URL}/${ADD_FILE}`,
+        desc: "A zero-dependency Node script: add, list and diff kit components in a project, in its styling system.",
+      },
+      {
         title: "Landing page",
         href: `${SITE_URL}/`,
         desc: "Product overview, the dither identity, and links into docs and studio.",
@@ -338,8 +344,13 @@ const LLMS_CONTEXT =
   "dither-ui is not published to a package registry. Install by copying the `dither-kit` folder " +
   "from the GitHub repository into your project, installing " +
   "four small runtime dependencies (d3-scale, d3-shape, clsx, tailwind-merge) beside solid-js, and aliasing " +
-  "the folder. The documentation site is served as prerendered static HTML, so every page below " +
-  "can be fetched directly without a browser."
+  "the folder. Or add components one at a time: `" +
+  addCommand(["DitherButton", "AreaChart", "Area"]) +
+  "` copies each component with every kit file it imports into src/dither-kit, in the project's " +
+  "styling system (`--styling tailwind|css|modules|stylex`), refuses to replace a file the project " +
+  "changed (`--force` does, `diff` shows the difference, `--dry-run` writes nothing), and prints " +
+  "the one alias to set, `@dither-kit`. The documentation site is served as prerendered static HTML, " +
+  "so every page below can be fetched directly without a browser."
 
 export function llmsTxt(): string {
   const groups = LLMS_GROUPS.map((g) => {

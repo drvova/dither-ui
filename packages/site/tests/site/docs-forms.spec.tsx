@@ -10,6 +10,7 @@ import { FORMS_NAV } from "@/pages/docs/forms/forms-nav"
 import { SECTIONS } from "@/pages/docs/groups"
 import { CHECKS } from "@/pages/docs/handbook/lab"
 import { INSTALL_STEPS } from "@/pages/docs/install"
+import { addCommand } from "@/shared/lib/add-command"
 import { PRIMITIVES_NAV } from "@/pages/docs/primitives/primitives-nav"
 import { TEXT_NAV } from "@/pages/docs/text/text-nav"
 import { TYPOGRAPHY_NAV } from "@/pages/docs/typography/typography-nav"
@@ -261,7 +262,13 @@ describe("the Quick start", () => {
     expect(lede).toBe(
       "The kit is a folder, not a package. Copy dither-kit/ from the GitHub repo (opens in a new tab), install four small runtime deps and alias it. You already have Solid, and Tailwind if you use it.",
     )
-    expect([...section.querySelectorAll("h3")].map((h) => h.textContent)).toEqual(["Without Tailwind"])
+    expect([...section.querySelectorAll("h3")].map((h) => h.textContent)).toEqual([
+      "One component at a time",
+      "Without Tailwind",
+    ])
+    // one component at a time: the add command's line, from the page's own site
+    const add = [...section.querySelectorAll("pre")].map((p) => p.textContent!)
+    expect(add).toContain(addCommand(["DitherButton"], { site: new URL("/", location.origin).href }))
     expect(section.querySelector<HTMLAnchorElement>("p:last-of-type a")!.href).toBe(
       "https://github.com/drvova/dither-ui/tree/master/dither-kit",
     )

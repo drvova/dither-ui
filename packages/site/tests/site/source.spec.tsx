@@ -7,6 +7,7 @@ import { join } from "node:path"
 import ts from "typescript"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
+import { addCommand, kitNamesIn } from "@/shared/lib/add-command"
 import { KIT_SRC } from "@/shared/lib/kit-sources"
 import { restyleSolid, STYLINGS } from "@dither-ui/restyle"
 import { kitFiles } from "../../build/kit-sources"
@@ -35,7 +36,7 @@ import { PACKAGES } from "../../src/widgets/source/model/run"
 import { asTsx, snippetKind } from "../../src/widgets/source/model/snippet"
 import { world } from "@dither-ui/kit/testing/world.ts"
 import { createSignal } from "solid-js"
-import { SHOWN_SECTION } from "../../src/pages/docs/DocSection"
+import DocSection, { SHOWN_SECTION } from "../../src/pages/docs/DocSection"
 import { PACK_LOADERS } from "../../src/pages/docs/pack-loaders"
 import { PACK_NAMES, PACKS } from "../../src/pages/docs/packs"
 
@@ -610,7 +611,10 @@ export const mode = import.meta.env.MODE`,
     const built = await siteFileList()
     const failures: string[] = []
     const unbound = freeNames(new Map(examples.map((e, i) => [`/examples/${i}.tsx`, e.tsx])))
-    examples.forEach(({ where, tsx }, i) => {
+    examples.forEach(({ where, tsx, code }, i) => {
+      // what its section's add line names is the kit's
+      for (const name of kitNamesIn(code))
+        if (!KIT_NAMES.has(name)) failures.push(`${where} puts ${name}, no kit component, on its add line`)
       const free = unbound.get(`/examples/${i}.tsx`)
       if (free) failures.push(`${where} reads what it never declares: ${free.join(", ")}`)
       const cut = elisions(tsx)
@@ -699,6 +703,27 @@ describe("the source panel on a docs preview", () => {
     localStorage.clear()
     w.restore()
     vi.unstubAllGlobals()
+  })
+
+  it("puts the line that adds what a section's demos use under them, in the reader's styling system", async () => {
+    w = world()
+    setStyling("css")
+    const view = render(() => (
+      <DocSection id="button">
+        <DemoCard code={SWITCH} />
+        <DemoCard code={"<DitherButton>Go</DitherButton>\n<DitherSwitch />"} />
+      </DocSection>
+    ))
+    await settle()
+    const line = view.container.querySelector("[data-add-line]")!
+    const site = new URL("/", location.origin).href
+    expect(line.querySelector("pre")!.textContent).toBe(
+      addCommand(["DitherSwitch", "DitherButton"], { styling: "css", site }),
+    )
+    expect(line.textContent).toContain("Add it to your project")
+    // a section with no demo has no line
+    cleanup()
+    expect(render(() => <DocSection id="button" />).container.querySelector("[data-add-line]")).toBeNull()
   })
 
   it("mounts the demo as the card nears the viewport, and keeps it", async () => {

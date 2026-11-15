@@ -2,7 +2,7 @@
 // The post-build's pure parts (`build/postbuild.mjs`, on the `tasks` package): the Chromium it
 // draws with, the server it draws from, the renderer page it builds, what a
 // section's embed says, the cards' cache, the registry's file, and
-// the kit's standalone stylesheet. The browser's parts are held by the build
+// the kit's standalone stylesheet (the build's, `kitAdd`). The browser's parts are held by the build
 // itself, which fails when a card or the registry does.
 import { mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -11,7 +11,6 @@ import { afterAll, describe, expect, it } from "vitest"
 import { ROUTE_CARDS, componentEmbed, sectionCard, sectionsManifest } from "@/pages/docs/crawler-files"
 import { SECTIONS } from "@/pages/docs/groups"
 import {
-  buildKitCss,
   type CardPage,
   cardKey,
   embedLine,
@@ -23,6 +22,7 @@ import {
   servedFile,
   writeAgentRegistry,
 } from "@dither-ui/tasks"
+import { buildKitCss } from "@dither-ui/tasks/kit-css"
 import { ogPage } from "../../build/og-page"
 
 const root = new URL("../../../..", import.meta.url).pathname
@@ -47,7 +47,7 @@ describe("the build's browser", () => {
     expect(pkg.scripts.build).toBe("vite build && node build/postbuild.mjs")
     const script = read("packages/site/build/postbuild.mjs")
     expect(script.indexOf("findChromium()")).toBeGreaterThan(0)
-    expect(script.indexOf("findChromium()")).toBeLessThan(script.indexOf("buildKitCss()"))
+    expect(script.indexOf("findChromium()")).toBeLessThan(script.indexOf("buildOgPage(OUT)"))
     // Nothing swallows a failure: the one `try` only closes what it opened.
     expect(script).not.toMatch(/catch\s*[({]/)
   })

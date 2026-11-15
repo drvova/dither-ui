@@ -22,8 +22,10 @@ are from the repository's.
   a framework-free module (no Solid, no DOM at load) is what the
   workspace's `rs test` can import.
 - Does not own the kit (`packages/dither-kit/AGENTS.md`), its StyleX twin,
-  the styling rewriter (`packages/restyle/AGENTS.md`) or the tasks its
-  post-build calls (`packages/tasks/AGENTS.md`): it imports each by its
+  the styling rewriter (`packages/restyle/AGENTS.md`), the tasks its
+  build and post-build call (`packages/tasks/AGENTS.md`), the bridge or
+  the add command it serves (`packages/bridge/AGENTS.md`,
+  `packages/add/AGENTS.md`): it imports each by its
   package name and declares it in `package.json`.
 
 ## Local Contracts
@@ -191,7 +193,8 @@ are from the repository's.
   reads too), `kit-sources.ts` (the kit's own source at `kit/src/solid/`
   with `files.json`, read from the `@dither-ui/kit` package wherever the
   workspace keeps it, by the one rule and the one path, `KIT_SRC`, in
-  `@/shared/lib/kit-sources`), `run-compiler.ts` (what the Solid compiler
+  `@/shared/lib/kit-sources`), `kit-add.ts` (`kitAdd`: what the add
+  command reads, below), `run-compiler.ts` (what the Solid compiler
   needs to load in a browser). Nitro copies `public/` into the build.
   `site-files.ts` emits the crawler files (`sitemap.xml`, `robots.txt`,
   `llms.txt`, `embed/`, `oembed/`, `og/sections.json`), the install files
@@ -204,10 +207,25 @@ are from the repository's.
   `play/player.js` with its stylesheet (one self-contained file the video
   export inlines). `chunk-modules.ts` writes `.vite/chunks.json` beside
   Vite's manifest: every browser chunk and the source modules in it.
+- The add command (`@dither-ui/add`, `packages/add/AGENTS.md`): `kitAdd`
+  serves and emits the script as written at `add/dither-add.mjs`, its
+  manifest `add/manifest.json` (`AddManifest`, `addFileList`), the files
+  only it reads under `add/files/` (the StyleX twin with its imports of
+  `@dither-ui/kit/<layer>/` made relative to the copy, and the Tailwind
+  layer's `tailwind/kit.css`) and the kit's standalone stylesheet
+  `kit/dither-kit.css` (`buildKitCss`, `@dither-ui/tasks/kit-css`); the
+  kit's own files it lists where `kitSources` serves them. Everything is
+  derived: the files from `kitFiles` and the twin's folder, the graph off
+  each file (TypeScript's `preProcessFile`, a worker's `new URL`, a
+  stylesheet's `@import`; an import that resolves to no file of a copy
+  fails the build), the components from the kit's and the twin's
+  indexes (`isComponentName`). The paths and the line that runs it are
+  `src/shared/lib/add-command.ts` (`ADD_FILE`, `ADD_MANIFEST`,
+  `ADD_FILES`, `ADD_SITE`, `addCommand`), which imports nothing, so the
+  config, the crawler files and the docs read the one table.
 - `npm run build` is `vite build` (into `.output/public`), then
   `build/postbuild.mjs`, which needs Chromium (`CHROME_PATH` or a standard
-  path) and fails loudly without it: it compiles `kit/dither-kit.css`
-  (`buildKitCss` of the `@dither-ui/tasks` package), builds the share-card renderer
+  path) and fails loudly without it: it builds the share-card renderer
   (`og/index.html`, `build/og-page.ts` over `build/og-shell.html`), draws
   every card (`og/<id>.png`, `.gif`), rewrites each section's embed with the
   lede its page prints, and writes `agent/registry.json` off the mounted
@@ -245,7 +263,10 @@ are from the repository's.
   `npm test` again after the build. Offline use
   and the video export are checked in a browser.
 - A spec that crosses packages lives here, the highest package it touches
-  (`tests/bridge.spec.ts`, `tests/exports.spec.ts`: no export of the
+  (`tests/bridge.spec.ts`, `tests/kit-add.spec.ts`: the add command's
+  manifest, every component's file set complete in every styling system,
+  the twin made relative, and the real script run against it,
+  `tests/exports.spec.ts`: no export of the
   site's, the rewriter's or the tasks' modules that nothing in the
   workspace imports, specs counting, `tests/focus-ring.spec.ts`,
   `tests/observer-entries.spec.ts`: every visibility observer in the kit

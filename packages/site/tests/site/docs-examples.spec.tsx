@@ -77,9 +77,12 @@ describe.each(PACKS)("%s", (_name, Pack, nav) => {
       expect(s.className).toBe("mt-16 scroll-mt-24")
       expect(s.querySelector("h2")?.className).toBe("text-lg tracking-tight")
       expect(s.firstElementChild?.tagName).toBe("H2")
-      // an example is a heading, a line and one preview
+      // an example is a heading, a line and one preview, then the line that adds the kit
+      // components it uses (none when it is built of plain elements)
       expect(cards(s)).toHaveLength(1)
-      expect(s.lastElementChild).toBe(cards(s)[0])
+      const line = s.querySelector(":scope > [data-add-line]")
+      expect(line ? line.previousElementSibling : s.lastElementChild).toBe(cards(s)[0])
+      if (line) expect(s.lastElementChild).toBe(line)
     }
   })
 

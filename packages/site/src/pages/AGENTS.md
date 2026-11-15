@@ -1063,6 +1063,15 @@ in the page's folder.
   packs that were DocsPage's own sections (charts, basics, the example
   pages, the Handbook, Utils) keep their siblings' demos out of a page,
   as before (all rendered hidden, a chart's page held twice its nodes).
+  Under its contents a section with demos prints its add line ("Add it to
+  your project", a `CodeBlock`): the add command for the kit components
+  its cards' code uses (each `DemoCard` hands its code up through
+  `SECTION_KIT`; `kitNamesIn` reads the names it imports from
+  `@dither-kit` and the tags it renders, less Solid's and its own), in
+  the reader's styling system, from the site the page is served by
+  (`--from` once mounted on another). Its text is no `<p>`, so a section's
+  lede stays its own first paragraph. `tests/site/source.spec.tsx` holds
+  every card's names to the kit's.
   No docs source writes a `<section id>` or the
   section heading by hand (`tests/site/docs-page.spec.tsx`, which also
   renders every pack and holds each section's id and heading to its nav
@@ -1138,7 +1147,9 @@ in the page's folder.
   steps from `docs/install.ts` (`INSTALL_STEPS`; `INSTALL_DEPS`, the packages the kit needs), one at a
   time, each its title, why where a reader would ask, and its own
   `CodeBlock` (full width on a phone), then
-  "Without Tailwind" (the kit stylesheet, then theming), short under
+  "One component at a time" (the add command's line and the commands
+  after it, `shared/lib/add-command.ts`), then
+  "Without Tailwind" (the kit stylesheet, then theming), each short under
   its own heading; `INSTALL` is the same steps as the one
   commented script the source panel's prompt.md carries. `docs/primitives/` =
   the Primitives pack (Box, Text, Divider, VisuallyHidden — the paste-list

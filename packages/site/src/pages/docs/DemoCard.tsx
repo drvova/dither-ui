@@ -19,6 +19,7 @@ import { restoreStyling, setStyling, STYLING_LABELS, styling, STYLINGS } from "@
 import { play } from "@/shared/lib/sound"
 import type { RunResult, SourceContext } from "@/widgets/source"
 import { INSTALL } from "@/pages/docs/install"
+import { SECTION_KIT } from "./DocSection"
 import { docsFiles } from "./snippet"
 import "./DemoCard.css"
 
@@ -50,6 +51,8 @@ function chip(apply: () => void, already: boolean) {
 
 export default function DemoCard(props: DemoCardProps) {
   const familyFit = useContext(DEMO_FIT)
+  // the section's add line names the kit components this card's code uses
+  useContext(SECTION_KIT)?.code(() => props.code)
   const fit = createMemo(() => props.fit ?? familyFit)
   const [tab, setTab] = createSignal<"preview" | "code">("preview")
   let root: HTMLDivElement | undefined

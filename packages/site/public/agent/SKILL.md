@@ -264,3 +264,27 @@ and the requested time (Node 22 + FFmpeg: `npx hyperframes render`).
   `hf-seek` DOM event and screenshots it with Playwright, then assembles the
   MP4 with ffmpeg — no CDP needed. The player also exposes
   `window.ditherClock.seek(seconds)` / `.release()` for any `evaluate` call.
+
+## 6. Add the kit to the user's project
+
+The code the Studio exports (`code.get`, the export dialog) imports the kit
+as `@dither-kit`. Put the components it imports into the user's project
+with the add command, a zero-dependency Node script the site serves, run
+from the project's root:
+
+```sh
+curl -fsSL https://dither-ui.com/add/dither-add.mjs | node --input-type=module - add DitherButton AreaChart Area
+```
+
+It copies each component with every kit file it imports (the engine's
+included) into `src/dither-kit` (`--dir <path>`), in the project's styling
+system (`--styling tailwind|css|modules|stylex`, the values `code.get`
+takes), with an index of just what was added, writes `dither-kit.json`
+with those choices for later runs, and prints the one alias to set:
+`@dither-kit` to the copy's `solid/` folder (`stylex/` for StyleX), in the
+bundler and the tsconfig. `list` names every component it can add, and
+`diff <component>` shows what differs between the copy and the site. It
+never replaces a file the user changed: the run stops, shows the
+difference and writes nothing, unless `--force`; `--dry-run` says what
+would change and writes nothing. Name the components the exported file
+imports from `@dither-kit`.

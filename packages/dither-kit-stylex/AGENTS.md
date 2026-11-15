@@ -38,7 +38,11 @@ with no Tailwind. Paths here are from this package's root.
   `src/` imports it (`tests/workspace.spec.ts` at the root).
 - A reader who copies folders instead of installing takes this `src/`
   beside the kit's, aliases `@dither-kit` to it and `@dither-ui/kit` to their
-  copy of the kit (`README.md`).
+  copy of the kit (`README.md`). The add command (`--styling stylex`,
+  `packages/add/AGENTS.md`) takes only the files a component needs and
+  serves this source with its imports of `@dither-ui/kit/<layer>/` made
+  relative (`packages/site/build/kit-add.ts`), so its copy needs the one
+  alias, `@dither-kit` to its `stylex/` folder.
 
 ## Work Guidance
 

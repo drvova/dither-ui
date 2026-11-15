@@ -11,6 +11,7 @@ import { ALIASES } from "./build/aliases.ts"
 import { exampleCatalog } from "./build/catalog.ts"
 import { chunkModules } from "./build/chunk-modules.ts"
 import { siteFacts } from "./build/facts.ts"
+import { kitAdd } from "./build/kit-add.ts"
 import { kitSources } from "./build/kit-sources.ts"
 import { kitProps } from "./build/props.ts"
 import { runCompiler } from "./build/run-compiler.ts"
@@ -43,6 +44,7 @@ export default defineConfig({
     tailwindcss(),
     utilityMap(),
     kitSources(),
+    kitAdd(),
     kitProps(),
     exampleCatalog(),
     runCompiler(),

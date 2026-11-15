@@ -76,8 +76,10 @@ describe.each(PACKS)("%s", (_name, Pack, nav) => {
       expect(s.querySelector("h2")?.className).toBe("text-lg tracking-tight")
       expect(s.firstElementChild?.tagName).toBe("H2")
       expect(cards(s).length).toBeGreaterThan(0)
-      // the API table closes the section
-      expect(s.lastElementChild?.tagName).toBe("DL")
+      // the API table closes the section's own content, the line that adds its components after it
+      expect(s.lastElementChild?.hasAttribute("data-add-line")).toBe(true)
+      expect(s.lastElementChild?.previousElementSibling?.tagName).toBe("DL")
+      expect(s.lastElementChild?.querySelector("pre")?.textContent).toMatch(/ add Dither\w+/)
     }
   })
 

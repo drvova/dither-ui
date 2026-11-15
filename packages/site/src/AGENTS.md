@@ -191,7 +191,11 @@ around this tree (entries, routes, the build, how Solid is written) is
   choice of styling system, kept across visits, over the `@dither-ui/restyle` package (a
   snippet in that system, the node-side utility map and the kit's StyleX
   generator: see `packages/restyle/AGENTS.md`); `kit-sources.ts` — the one
-  rule for which kit files the build serves; `gif.ts` — the ONE GIF encoder
+  rule for which kit files the build serves; `add-command.ts` — the add
+  command as the site hands it out (where the build serves the script,
+  its manifest and files, the line that runs it, `addCommand`, and the
+  kit components a snippet uses, `kitNamesIn`), import-free so the
+  build's config and the crawler files read it too; `gif.ts` — the ONE GIF encoder
   (one palette, `keep` colours held exact, optional ordered dither, delta
   frames), import-free because the share-card renderer carries its source
   inline: the workbench's captures and the share cards both go through it);

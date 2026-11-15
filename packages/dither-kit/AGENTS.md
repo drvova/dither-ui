@@ -407,7 +407,7 @@ generated twin. Inside the kit every import is relative
   Tailwind's utilities with `source(none)` and `@source` limited to
   `@dither-ui/kit/tailwind/` and `@dither-ui/kit/solid/`, in the
   `dither-kit.theme/base/utilities` layers; `packages/tasks/src/kit-css.mjs`
-  (`buildKitCss`, called by the site's post-build; `npm run build:css` writes
+  (`buildKitCss`, called by the site's build, `kitAdd`; `npm run build:css` writes
   the file alone) compiles it with `@tailwindcss/node` + `oxide` into
   `kit/dither-kit.css` in the site's build (served at `/kit/dither-kit.css`),
   so an app on UnoCSS, vanilla CSS or any CSS-in-JS runs the Solid layer by
