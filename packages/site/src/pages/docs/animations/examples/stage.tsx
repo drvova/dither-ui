@@ -13,7 +13,6 @@ export default function Example() {
     })
 
   // a canvas layer drifts 12% of the stage, at any size
-  // SVG parallax
   // the moon places its keys with at (seconds or a percentage)
   // the same keys, resolved to px for painters
   // the engine alone: sampleKeyframes, keyframeTransform and resolveSample sample the same keys,

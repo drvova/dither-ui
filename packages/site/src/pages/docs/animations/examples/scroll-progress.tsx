@@ -3,8 +3,6 @@ import { DitherScrollProgress } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  // viewport, fixed top
-  // nearest scrollable parent
   return (
     <div class="relative mx-auto h-48 max-w-md overflow-y-auto rounded-lg border border-border/60">
       <DitherScrollProgress attach="parent" color="purple" />

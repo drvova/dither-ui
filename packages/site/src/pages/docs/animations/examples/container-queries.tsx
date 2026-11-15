@@ -18,7 +18,6 @@ export default function Example() {
   // that measure the container itself: .scan { animation: dither-cq-traverse 2.8s ease-in-out
   // infinite alternate; } the selector route, the engine's active bucket on the host element:
   // .cq-card[data-cq="xs"] .cell { border-color: #d9a441; } .cq-card[data-cq="xl"] .cell {
-  // border-color: #3f8ff3; }
   return (
     <>
       <div class="mb-3 flex flex-wrap items-center gap-2">

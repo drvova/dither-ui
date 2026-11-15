@@ -3,7 +3,6 @@ import { DitherIcon, ICON_NAMES } from "@dither-kit"
 import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
-  // decorative by default
   // labeled: promoted to role=img with a name
   // currentColor inherits; weight rides on stroke-width
   return (
