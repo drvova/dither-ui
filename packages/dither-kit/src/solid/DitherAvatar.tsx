@@ -1,4 +1,5 @@
 import { createEffect, createMemo, type JSX, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
+import { bakedSettled } from "../engine/baked"
 import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { rasterSrc } from "../engine/png"
 import { cellWriter, clearRasterBuffer, createRasterBuffer, putRasterBuffer, type RasterBuffer } from "../engine/raster"
@@ -118,7 +119,8 @@ function paintAvatar(
     }
   }
 
-  if (pixelPrefersReducedMotion()) {
+  // A canvas showing the build's settled frame starts where its entrance ends.
+  if (pixelPrefersReducedMotion() || bakedSettled(canvas)) {
     draw(1)
     return undefined
   }

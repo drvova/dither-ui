@@ -368,6 +368,11 @@ Smoothness is part of the look, so these are design rules too:
   page has loaded, never empties it first; the display face comes with the
   HTML; the page a pointer rests on a link to is made ready before the
   click.
+- The dither is in that first paint: every kit canvas a built page carries
+  shows the frame the kit's engine paints it, baked into the page at a
+  pixel a cell, and the canvas takes over with the same pixels. A still
+  surface shows its settled frame and skips its entrance; a moving one in
+  the first window shows its first frame and moves on from it.
 
 ## Where it lives
 

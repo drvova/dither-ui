@@ -264,13 +264,17 @@ are from the repository's.
   path) and fails loudly without it: it builds the share-card renderer
   (`og/index.html`, `build/og-page.ts` over `build/og-shell.html`), draws
   every card (`og/<id>.png`, `.gif`), rewrites each section's embed with the
-  lede its page prints, and writes `agent/registry.json` off the mounted
-  Studio, printing each step's time. The drawing code is the
-  `@dither-ui/tasks` package's (`packages/tasks/src/cards.ts`). Each card is
+  lede its page prints, writes `agent/registry.json` off the mounted
+  Studio, and last bakes the kit canvases of the landing, the missing page
+  and every docs page into their HTML (`bakeFrames`,
+  `packages/tasks/src/bake-frames.ts`), printing each step's time. The
+  drawing code is the `@dither-ui/tasks` package's
+  (`packages/tasks/src/cards.ts`). Each card is
   kept in the root's `node_modules/.cache/dither-ui/og/` under a hash of
   what it is drawn from (`cardKey` there), so a build that changed nothing
   a card shows copies it, byte for byte, and one section's new lede draws
-  that card alone; CI and Pages restore the folder with `actions/cache`,
+  that card alone; each page's bakes in `node_modules/.cache/dither-ui/bake/`
+  under a hash of its bytes; CI and Pages restore the folder with `actions/cache`,
   safe because a stale entry never answers a key. `MADE_AFTER_THE_PAGES` in
   `vite.config.ts` lists the files the crawl must not ask for because the
   post-build makes them.

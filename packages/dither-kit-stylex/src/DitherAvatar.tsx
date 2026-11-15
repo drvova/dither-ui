@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/DitherAvatar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, type JSX, mergeProps, on, onCleanup, onMount, Show } from "solid-js"
+import { bakedSettled } from "@dither-ui/kit/engine/baked.ts"
 import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
 import { rasterSrc } from "@dither-ui/kit/engine/png.ts"
 import {
@@ -133,7 +134,8 @@ function paintAvatar(
     }
   }
 
-  if (pixelPrefersReducedMotion()) {
+  // A canvas showing the build's settled frame starts where its entrance ends.
+  if (pixelPrefersReducedMotion() || bakedSettled(canvas)) {
     draw(1)
     return undefined
   }

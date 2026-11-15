@@ -77,3 +77,73 @@ it("keeps painting through an entrance's delay until the entrance is done", () =
   for (let t = 16; t <= 1000 && frames.length; t += 16) frames.shift()!(t)
   expect(done).toBe(true)
 })
+
+it("starts where its entrance ends on a canvas showing the build's settled frame", () => {
+  globalThis.requestAnimationFrame = (cb) => frames.push(cb)
+  globalThis.cancelAnimationFrame = () => {}
+  const ctx = {
+    clearRect() {},
+    putImageData() {},
+    createImageData: (w: number, h: number) => ({ width: w, height: h, data: new Uint8ClampedArray(w * h * 4) }),
+  }
+  const attrs = new Map([["data-dk-baked", "s:abc"]])
+  const canvas = {
+    getContext: () => ctx,
+    width: 0,
+    height: 0,
+    getAttribute: (n: string) => attrs.get(n) ?? null,
+    hasAttribute: (n: string) => attrs.has(n),
+    removeAttribute: (n: string) => attrs.delete(n),
+  } as unknown as HTMLCanvasElement
+  Object.assign(ctx, { canvas })
+  let done = false
+  const state = {
+    ready: true,
+    animate: true,
+    animationDuration: 400,
+    animationDelay: 200,
+    revision: 0,
+    configKeys: [],
+    config: {},
+    seriesSpecs: {},
+    sparkles: false,
+    hoverLift: false,
+    hoverStrength: 0,
+    isMouseInChart: false,
+    hovered: false,
+    hoverIndex: null,
+    markerIndex: null,
+    selectedDataKey: null,
+    focusDataKey: null,
+    crosshair: false,
+    bloom: "off",
+    bloomOnHover: false,
+    dimOpacity: 1,
+    sparkleSpeed: 1,
+    stackType: "default",
+    chartType: "area",
+    easing: "glide",
+    dataLength: 0,
+    markEntranceDone: () => (done = true),
+  }
+  const box = <T>(current: T) => ({ current })
+  startCartesianLoop({
+    canvas,
+    bloomCanvas: null,
+    visible: () => true,
+    cols: 8,
+    rows: 4,
+    state: box(state) as never,
+    targets: box({}),
+    stars: box([]),
+    spark: box({} as never),
+    effect: box({} as never),
+    glyph: box({} as never),
+  })
+  // One frame paints the settled chart and takes the bake off.
+  frames.shift()!(16)
+  expect(attrs.has("data-dk-baked")).toBe(false)
+  expect(frames).toHaveLength(0)
+  // ...and reports its entrance done, so what waits on it (the dots) shows.
+  expect(done).toBe(true)
+})

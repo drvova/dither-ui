@@ -87,9 +87,9 @@ Default section order:
   StyleX generator), `packages/site/` (the SolidStart app: landing, docs,
   Studio, player; its Vite plugins and post-build in `build/`, its static
   files in `public/`), `packages/tasks/` (the repository's tasks: the kit
-  stylesheet, the share cards, the frame renderer, the agent demo
-  recorder), `packages/add/` (the add command a reader runs),
-  `packages/bridge/` and `packages/discord/`.
+  stylesheet, the share cards, the pages' baked frames, the frame
+  renderer, the agent demo recorder), `packages/add/` (the add command a
+  reader runs), `packages/bridge/` and `packages/discord/`.
 - Dependencies point one way: `@dither-ui/kit` depends on no package here;
   `@dither-ui/restyle` and `@dither-ui/tasks` on `@dither-ui/kit`;
   `@dither-ui/kit-stylex` on `@dither-ui/kit` (and on `@dither-ui/restyle`
@@ -159,8 +159,10 @@ Default section order:
   share card renderer and every card (each kept in
   `node_modules/.cache/dither-ui/og/` under a hash of what it is drawn
   from, so an unchanged card is copied, never redrawn), each section's embed with its own
-  lede, and the agent registry read off the mounted Studio. Details in
-  `packages/site/AGENTS.md`.
+  lede, the agent registry read off the mounted Studio, and last every
+  page's kit canvases baked into its HTML (the engine's own frame at a
+  pixel a cell, shown before any script; `packages/tasks/AGENTS.md`).
+  Details in `packages/site/AGENTS.md`.
 - Aliases: one, the site's own source: `@/` → `packages/site/src/`
   (`packages/site/build/aliases.ts` for the build and the component specs,
   the root `tsconfig.json` `paths` for the type checker, `rstack.config.ts`
@@ -766,8 +768,8 @@ Default section order:
   that copies kit components into a reader's project, its guard and its
   settings
 - `packages/tasks/AGENTS.md` — the repository's tasks: the kit stylesheet,
-  the share cards' drawing code, the frame renderer, the agent demo
-  recorder
+  the share cards' drawing code, the pages' baked frames, the frame
+  renderer, the agent demo recorder
 - `packages/bridge/AGENTS.md` — the local ACP bridge: zero-dep relay between a
   Studio tab and the user's own coding agent, Studio tools as an MCP server
 - `packages/discord/AGENTS.md` — the Discord interactions service: a

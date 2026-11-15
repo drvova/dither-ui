@@ -1,3 +1,4 @@
+import { releaseBaked } from "./baked"
 import type { Rgb } from "./palette"
 
 /** A portable RGBA backing store usable in browsers, SSR, and Node workers. */
@@ -70,13 +71,16 @@ export function setOrBlendRasterPixel(buffer: RasterBuffer, x: number, y: number
   buffer.data[i + 3] = Math.round(outA * 255)
 }
 
-/** Upload a portable raster in one browser call. */
+/** Upload a portable raster in one browser call. A frame the build baked
+ * into the page for this canvas (`baked.ts`) comes off in the same task, so
+ * the canvas's own pixels take its place. */
 export function putRasterBuffer(ctx: CanvasRenderingContext2D, buffer: RasterBuffer, image?: ImageData): ImageData {
   const target =
     image?.width === buffer.width && image.height === buffer.height
       ? image
       : ctx.createImageData(buffer.width, buffer.height)
   target.data.set(buffer.data)
+  if (ctx.canvas) releaseBaked(ctx.canvas)
   ctx.putImageData(target, 0, 0)
   return target
 }

@@ -2,6 +2,7 @@
 // through `state.current`. A binding's canvas (`solid/runtime/cartesian-canvas.tsx`)
 // mounts the canvases and starts it.
 
+import { bakedSettled } from "./baked"
 import { seriesFill } from "./chart-fill"
 import type { Box, ChartContextValue } from "./chart-types"
 import {
@@ -116,7 +117,9 @@ export function startCartesianLoop({
 
   let tick = 0
   let last = 0
-  const entrance = chartEntrance(state, reduce)
+  // A canvas showing the build's settled frame starts where its entrance ends.
+  const entered = reduce || bakedSettled(canvas)
+  const entrance = chartEntrance(state, entered)
   let entranceReported = !(state.current.animate && !reduce)
   let intensity = 0
   let needsFill = true

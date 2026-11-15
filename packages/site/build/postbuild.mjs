@@ -3,7 +3,9 @@
 // every share card drawn in headless Chromium (og/<id>.png + .gif for the
 // three routes and each docs section), each section's Discord embed saying
 // its own lede, and the agent registry read off the mounted Studio
-// (agent/registry.json). The pages themselves are SolidStart's. It needs a
+// (agent/registry.json), then each page's kit canvases baked into it (the
+// frame the engine paints them, shown before any script). The pages
+// themselves are SolidStart's. It needs a
 // Chromium (`CHROME_PATH` or a standard install) and fails loudly without
 // one, or when a card or the registry fails. Each card is kept in
 // `node_modules/.cache/dither-ui/og/` under a hash of what it is drawn from
@@ -14,7 +16,7 @@ import { readFile, writeFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { chromium } from "playwright-core"
-import { findChromium, listen, refineEmbed, renderOgCards, writeAgentRegistry } from "@dither-ui/tasks"
+import { bakeFrames, findChromium, listen, refineEmbed, renderOgCards, writeAgentRegistry } from "@dither-ui/tasks"
 import { ROUTE_CARDS, sectionsManifest } from "../src/pages/docs/crawler-files.ts"
 import { buildOgPage } from "./og-page.ts"
 
@@ -22,6 +24,7 @@ import { buildOgPage } from "./og-page.ts"
 const OUT = resolve(process.argv[2] ?? fileURLToPath(new URL("../.output/public", import.meta.url)))
 const BASE = process.env.BASE_PATH ?? "/"
 const CARD_CACHE = fileURLToPath(new URL("../../../node_modules/.cache/dither-ui/og", import.meta.url))
+const BAKE_CACHE = fileURLToPath(new URL("../../../node_modules/.cache/dither-ui/bake", import.meta.url))
 
 /** Runs one step of the post-build and prints how long it took. */
 async function step(name, run) {
@@ -94,6 +97,25 @@ try {
   })
   if (!components) throw new Error("agent: the mounted Studio exposed no registry")
   console.log(`agent: wrote ${components} components -> agent/registry.json`)
+
+  // Last, once nothing else reads the pages: each page's kit canvases with
+  // the frame the engine paints them, in the HTML (packages/tasks'
+  // bake-frames.ts), kept by the page's bytes between builds.
+  const baked = await step("baked frames", () =>
+    bakeFrames({
+      browser,
+      origin,
+      base: BASE,
+      dist: OUT,
+      pages: ["index.html", "404.html", "docs/index.html", ...sections.map((s) => `docs/${s.id}/index.html`)],
+      cache: BAKE_CACHE,
+    }),
+  )
+  const sum = (k) => baked.reduce((s, p) => s + p[k], 0)
+  console.log(
+    `bake: ${baked.length} pages (${baked.filter((p) => p.cached).length} cached), ${sum("canvases")} canvases: ` +
+      `${sum("settled")} settled, ${sum("first")} first frames, ${sum("live")} live, ${sum("refused")} refused`,
+  )
 } finally {
   await browser.close()
   server.close()

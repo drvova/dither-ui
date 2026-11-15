@@ -4,6 +4,7 @@
 // radar charts the whole draw around a family's own `paint`. The cartesian
 // loop (`cartesian-loop.ts`) takes the parts and draws its own frame.
 
+import { bakedSettled } from "./baked"
 import type { ChartContextValue, PolarChartContextValue, Box } from "./chart-types"
 import { directedTime, isDirected, onSeek } from "./clock"
 import { prefersReducedMotion } from "./dither-paint"
@@ -175,7 +176,8 @@ export function startChartLoop<S extends LoopedChart>(args: ChartLoopArgs<S>): C
   if (!canvases) return undefined
   const { state } = args
   const reduce = prefersReducedMotion()
-  const entrance = chartEntrance(state, reduce)
+  // A canvas showing the build's settled frame starts where its entrance ends.
+  const entrance = chartEntrance(state, reduce || bakedSettled(args.canvas))
   let intensity = 0
   let needsFill = true
   let lastFill = ""

@@ -44,8 +44,30 @@ by the site's post-build. Paths here are from this package's root.
   the brand at rest as merged runs on the obsidian. The emotes and faces
   stay WebP: their crops of the lossy sheet hold nearly a colour a pixel,
   so an SVG of them is twelve to twenty-one times the bytes.
-- `src/index.ts`: the package's entry, the cards', the Chromium's and the
-  banner's exports.
+- `src/bake-frames.ts`: `bakeFrames`, the post-build's last step. Each
+  built page with a `<canvas` in its markup is loaded twice in the build's
+  Chromium (1440x900, one device pixel a CSS pixel, every
+  IntersectionObserver reporting its target in view): the first load
+  reads every 2D canvas drawn only by whole-canvas `putImageData` (and
+  `clearRect`), baking one that stopped uploading and shows the same once
+  the page is scrolled through as `settled` (what it last uploaded, never
+  a read back, which rounds a translucent cell) and one still moving that
+  stood in the first window as `first` (its first upload); the second
+  load serves the page with those bakes and keeps only the ones the
+  canvas's own first upload matches byte for byte, released by it. The
+  page gets `data-dk-baked` on each kept canvas and one
+  `<style data-dk-bakes>` (a rule an image, a PNG from the kit's
+  `pngBytes`, under the theme class it was painted in; a canvas the server
+  sized 0x0 placed by its insets): a frame in the first window or up to
+  1.5 kB inline, a larger one further down a file, `baked/<id>.png` under
+  the base, shared by every page showing it. A page's bakes are kept in
+  the cache folder by the hash of this module, the window and the page's
+  bytes.
+  Pure parts (numbering, attributes, the stylesheet, inline or file) in
+  `tests/bake-frames.spec.ts`; the browser parts are held by the build,
+  whose check refuses any bake the canvas does not repaint exactly.
+- `src/index.ts`: the package's entry, the cards', the baked frames', the
+  Chromium's and the banner's exports.
 - `src/render-frames.mjs` (`npm run frames`): a composition as PNG frames
   or an MP4, in Chromium, WebKit or Firefox, without CDP.
 - `src/agent-demo.mjs` (`npm run demo:agent`): records the Studio's agent
@@ -159,10 +181,11 @@ by the site's post-build. Paths here are from this package's root.
 - Depends on `@dither-ui/kit` only, for the stylesheet's entry, found through
   the kit's `exports`, and for WCAG's contrast, which the walk measures by
   the kit's own reading (`@dither-ui/kit/engine/palette.ts`, a file Node
-  loads as it is). It never imports the site: the site's post-build
+  loads as it is), and for the baked frames' encoder and attribute
+  (`engine/png.ts`, `engine/baked.ts`, the same way). It never imports the site: the site's post-build
   imports this package and hands it the folder and the browser to work in
   (`tests/workspace.spec.ts` at the root).
-- `cards.ts`, `chromium.ts` and `index.ts` are loaded by Node as they are
+- `cards.ts`, `bake-frames.ts`, `chromium.ts` and `index.ts` are loaded by Node as they are
   (type stripping): erasable syntax only, relative imports with their
   extension.
 - The recorders take a URL or a file and write where they are told; the

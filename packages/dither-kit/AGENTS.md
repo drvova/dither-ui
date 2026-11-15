@@ -1249,6 +1249,19 @@ generated twin. Inside the kit every import is relative
   background on the surface loop, whose cell count is the box over
   `cell / dpr`) or on time stays a canvas: its grid is not known until
   the page lays it out.
+- Such a canvas still shows its dither at first paint on a built page: the
+  site's post-build bakes the frame the engine painted into it as its
+  background (`packages/tasks/src/bake-frames.ts`). `baked.ts` is the
+  runtime's half: the canvas carries `data-dk-baked="s:<id>"` (its settled
+  frame) or `"f:<id>"` (its first); `putRasterBuffer`, the one upload of
+  every raster surface (`cellCanvas` included), takes it off
+  (`releaseBaked`) in the call that puts the canvas's own pixels, so the
+  same pixels replace it and nothing shows twice; `bakedSettled(canvas)`
+  starts a surface whose frame the bake shows with its entrance played
+  (the cartesian and the bar, pie and radar loops, `DitherAvatar`), so its
+  first paint is the bake's own bytes. A canvas drawn any other way
+  (`drawImage`, `fillRect`, a GL context) is never baked. Nothing in the
+  kit writes the attribute (`tests/baked.spec.ts`).
 - `precompiled` replaces only the dither plot/surface image; surrounding chart
   composition remains available. `renderMode="static"` disables animation and
   resize observation for standalone surfaces, auto-uses lower backing-resolution
