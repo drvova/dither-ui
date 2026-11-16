@@ -4,12 +4,15 @@ import { cn } from "../tailwind/lib"
 import DitherTextarea, { type DitherTextareaProps } from "./DitherTextarea"
 
 type Own = {
+  /** @docs string (with onUpdateModelValue)
+   * @default "" */
   modelValue?: string
   placeholder?: string
   rows?: number
   disabled?: boolean
   class?: string
   onUpdateModelValue?: (value: string) => void
+  /** @docs Ctrl/Cmd + Enter */
   onSubmit?: () => void
 }
 const OWN = [

@@ -7,7 +7,7 @@ import { createMemo } from "solid-js"
 import { isTab } from "@dither-ui/kit/engine"
 import "./Editor.css"
 
-export type EditorProps = {
+type EditorProps = {
   label: string
   describedby?: string
   modelValue: string

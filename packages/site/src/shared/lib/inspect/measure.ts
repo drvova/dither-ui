@@ -6,7 +6,7 @@
 import { contrast, grade, hex, over, parseColor, type RGBA } from "./color"
 import { bottom, right, type Box } from "./geometry"
 
-export type Sides = [number, number, number, number]
+type Sides = [number, number, number, number]
 
 export type Reading = {
   label: string
@@ -59,7 +59,7 @@ const shown = (el: Element) => {
 
 /** The bands between a flex or grid container's children: the space its
  * `gap` (or its distribution) leaves, across the content box. */
-export function gapsOf(el: Element, frame: Element): Box[] {
+function gapsOf(el: Element, frame: Element): Box[] {
   const cs = getComputedStyle(el)
   if (!/flex|grid/.test(cs.display)) return []
   const outer = boxOf(el, frame)
@@ -246,7 +246,7 @@ function context2d(): CanvasRenderingContext2D | null {
 
 /** The first family in a CSS font stack that is really there: a generic
  * family, or a named face whose glyphs measure apart from two fallbacks. */
-export function renderedFamily(stack: string): string {
+function renderedFamily(stack: string): string {
   const families = stack.split(",").map((f) => f.trim().replace(/^["']|["']$/g, ""))
   const ctx = context2d()
   for (const f of families) {
@@ -267,7 +267,7 @@ export function renderedFamily(stack: string): string {
 /** The colour actually behind an element: its and its ancestors'
  * backgrounds laid over each other until one is opaque; null when an image
  * or gradient sits in the way (the colour is not knowable from styles). */
-export function backgroundBehind(el: Element): RGBA | null {
+function backgroundBehind(el: Element): RGBA | null {
   let acc: RGBA = { r: 0, g: 0, b: 0, a: 0 }
   for (let n: Element | null = el; n; n = n.parentElement) {
     const cs = getComputedStyle(n)
@@ -291,7 +291,7 @@ export function textHolder(el: Element, root: Element): Element | null {
 }
 
 /** One box per rendered line of the element's own text. */
-export function lineBoxes(el: Element, frame: Element): Box[] {
+function lineBoxes(el: Element, frame: Element): Box[] {
   const f = frame.getBoundingClientRect()
   const rects: DOMRect[] = []
   for (const node of el.childNodes) {
@@ -451,7 +451,7 @@ export function nameOf(el: Element): string {
 
 /** A field named by its placeholder alone: a name that goes as soon as
  * someone types, read where the visible label (if any) is not tied to it. */
-export const namedByPlaceholder = (el: Element): boolean => !lastingName(el) && !!clean(el.getAttribute("placeholder"))
+const namedByPlaceholder = (el: Element): boolean => !lastingName(el) && !!clean(el.getAttribute("placeholder"))
 
 /** Every source of a name but the placeholder. */
 function lastingName(el: Element): string {

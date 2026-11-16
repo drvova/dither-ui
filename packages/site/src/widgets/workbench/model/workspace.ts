@@ -9,16 +9,16 @@ import type { InkPoint } from "./ink"
 import { readJson, storage, writeJson } from "@/shared/lib/storage"
 import { STORAGE_PREFIXES } from "@/shared/config/storage"
 
-export type Guide = { id: string; axis: "x" | "y"; at: number }
-export type Arrow = { id: string; from: Point; to: Point; color: string; width: number }
-export type Stroke = { id: string; kind: "ink" | "marker"; color: string; width: number; points: InkPoint[] }
-export type Note = { id: string; at: Point; text: string; color: string; size: number }
-export type Endpoint = { label: string; box: Box }
-export type Measure = { id: string; from: Endpoint; to: Endpoint }
-export type Message = { id: string; text: string; at: number }
+type Guide = { id: string; axis: "x" | "y"; at: number }
+type Arrow = { id: string; from: Point; to: Point; color: string; width: number }
+type Stroke = { id: string; kind: "ink" | "marker"; color: string; width: number; points: InkPoint[] }
+type Note = { id: string; at: Point; text: string; color: string; size: number }
+type Endpoint = { label: string; box: Box }
+type Measure = { id: string; from: Endpoint; to: Endpoint }
+type Message = { id: string; text: string; at: number }
 export type Anchor = { path: number[]; selector: string; label: string; box: Box; offset: Point }
-export type Thread = { id: string; n: number; anchor: Anchor; messages: Message[]; resolved: boolean }
-export type Grid = {
+type Thread = { id: string; n: number; anchor: Anchor; messages: Message[]; resolved: boolean }
+type Grid = {
   columns: number
   gutter: number
   margin: number
@@ -38,10 +38,10 @@ export type Workspace = {
 }
 
 /** The annotation kinds a selection can hold. */
-export type Kind = "guides" | "arrows" | "strokes" | "notes" | "measures"
+type Kind = "guides" | "arrows" | "strokes" | "notes" | "measures"
 export type Item = { kind: Kind; id: string }
 
-export const emptyGrid = (): Grid => ({
+const emptyGrid = (): Grid => ({
   columns: 12,
   gutter: 16,
   margin: 24,
@@ -64,7 +64,7 @@ export const emptyWorkspace = (): Workspace => ({
 let seq = 0
 export const uid = (prefix: string) => `${prefix}${Date.now().toString(36)}${(seq++).toString(36)}`
 
-export const isEmpty = (ws: Workspace) =>
+const isEmpty = (ws: Workspace) =>
   !ws.guides.length &&
   !ws.arrows.length &&
   !ws.strokes.length &&
@@ -81,7 +81,7 @@ const fin = (v: unknown, fallback = 0, lo = -1e5, hi = 1e5) =>
 const str = (v: unknown, max = 2000) => (typeof v === "string" ? v.slice(0, max) : "")
 const id = (v: unknown, prefix: string) => (typeof v === "string" && /^[\w-]{1,40}$/.test(v) ? v : uid(prefix))
 /** Colours a reader can pick: hex, a theme token, or a CSS keyword. */
-export const safeColor = (v: unknown, fallback: string) =>
+const safeColor = (v: unknown, fallback: string) =>
   typeof v === "string" && /^(#[0-9a-f]{3,8}|var\(--[\w-]+\)|[a-z]{3,20})$/i.test(v) ? v : fallback
 const arr = <T>(v: unknown, each: (x: unknown) => T | null, max = LIMIT): T[] =>
   Array.isArray(v)
@@ -243,7 +243,7 @@ export function saveWorkspace(key: string, ws: Workspace): void {
 
 // --- agent hand-off ---------------------------------------------------------
 
-export type FeedbackContext = { title: string; url: string; stage: { w: number; h: number }; theme: string }
+type FeedbackContext = { title: string; url: string; stage: { w: number; h: number }; theme: string }
 
 const at = (b: Box) => `${b.x},${b.y} ${b.w}×${b.h}`
 

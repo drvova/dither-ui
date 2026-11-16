@@ -4,7 +4,7 @@
 // with anything but Tailwind. The same compiler and scanner the build's
 // Tailwind plugin runs, with no app around: the kit folders are the only
 // sources, so the file holds exactly the classes the components use. The
-// site's post-build calls `buildKitCss`; `npm run build:css` at the
+// site's build calls `buildKitCss` (its `kitAdd` plugin); `npm run build:css` at the
 // workspace root writes the file alone, into the site's build.
 import { compile, optimize } from "@tailwindcss/node"
 import { Scanner } from "@tailwindcss/oxide"

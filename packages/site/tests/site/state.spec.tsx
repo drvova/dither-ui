@@ -2273,6 +2273,7 @@ describe("the agent's tools", () => {
         "set_view",
         "inspect",
         "export_png",
+        "export_svg",
         "get_code",
         "get_document",
         "seek_clock",

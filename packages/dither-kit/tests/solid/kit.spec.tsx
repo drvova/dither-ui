@@ -16,6 +16,8 @@ import {
   surfaceOf,
 } from "../../src/solid"
 import * as aurora from "../../src/engine/aurora"
+import { release, seek } from "../../src/engine/clock"
+import { rasterSrc } from "../../src/engine/png"
 import { hexToRgb } from "../../src/engine/palette"
 import { SCREENS, screenMatrix } from "../../src/engine/pixel"
 import * as poster from "../../src/engine/poster"
@@ -155,16 +157,36 @@ describe("a surface holding a still frame", () => {
       </DitherScreen>
     ))
     await new Promise((done) => setTimeout(done, 5))
-    const [spinner, avatar] = [...container.querySelectorAll("canvas")]
-    const prints = (canvas: HTMLCanvasElement) => w.uploads.filter((c) => c === canvas).length
-    expect([prints(spinner), prints(avatar)]).toEqual([1, 1])
+    // Both are a frame known at render: an image at a pixel a cell, no canvas.
+    expect(container.querySelectorAll("canvas").length).toBe(1)
+    const [spinner, avatar] = [...container.querySelectorAll("img")]
+    const line = [spinner.src, avatar.src]
+    expect(line.every((src) => src.startsWith("data:image/png;base64,"))).toBe(true)
     setScreen("dot")
-    await w.frame(300)
-    expect([prints(spinner), prints(avatar)]).toEqual([2, 2])
+    expect(spinner.src).not.toBe(line[0])
+    expect(avatar.src).not.toBe(line[1])
+    setScreen("line")
+    expect([spinner.src, avatar.src]).toEqual(line)
     const before = gradient.mock.calls.length
     setSeed(2)
     expect(gradient.mock.calls.length).toBe(before + 1)
     expect(gradient.mock.lastCall?.[0].seed).toBe(2)
+    cleanup()
+    // Each image holds the bytes its canvas showed: the spinner live at its
+    // first moment, the avatar at its entrance's end.
+    seek(0)
+    const live = render(() => (
+      <DitherScreen screen="line">
+        <DitherSpinner />
+        <DitherAvatar name="Ada" />
+      </DitherScreen>
+    )).container
+    await new Promise((done) => setTimeout(done, 5))
+    const [liveSpinner, liveAvatar] = [...live.querySelectorAll("canvas")]
+    expect(rasterSrc(w.shown(liveSpinner))).toBe(line[0])
+    seek(1000)
+    release()
+    expect(rasterSrc(w.shown(liveAvatar))).toBe(line[1])
   })
 })
 
@@ -253,45 +275,59 @@ describe("DitherButton", () => {
     expect(pressed).not.toHaveBeenCalled()
   })
 
-  it("prints its fill at the size the observer reports, never from a layout read", async () => {
-    const { getByRole } = render(() => <DitherButton cell={2}>Save</DitherButton>)
-    const button = getByRole("button")
-    const read = vi.spyOn(button, "getBoundingClientRect")
-    await w.frame(16)
-    w.size()
-    const canvas = button.querySelector("canvas")!
-    expect([canvas.width, canvas.height]).toEqual([48, 20])
-    expect(w.uploads).toContain(canvas)
-    expect(read).not.toHaveBeenCalled()
-  })
-
-  it("sizes its canvas to the capped raster, so none of it is left unpainted", async () => {
+  it("prints its fill with tone classes, no canvas: a tile and an ink a layer", () => {
     const { getByRole } = render(() => (
-      <DitherButton cell={2} maxCols={16} maxRows={8}>
+      <DitherButton color="blue" variant="dotted" cell={2}>
         Save
       </DitherButton>
     ))
-    await w.frame(16)
-    w.size()
-    const canvas = getByRole("button").querySelector("canvas")!
-    expect([canvas.width, canvas.height]).toEqual([16, 8])
+    const button = getByRole("button")
+    expect(button.querySelector("canvas")).toBeNull()
+    const fill = button.querySelector<HTMLElement>(".dk-label-fill")!
+    expect(fill.getAttribute("aria-hidden")).toBe("true")
+    const layer = fill.querySelector<HTMLElement>(".dk-label-layer")!
+    // the dotted fill at rest: Bayer's level 10, the press its own
+    expect(layer.className).toContain("dk-tone-bayer-10")
+    expect(layer.style.getPropertyValue("--dk-ink")).toMatch(/^rgb\(/)
+    expect(layer.style.getPropertyValue("--dk-tile-1")).toBe("var(--dk-t-bayer-12)")
+    expect(fill.style.getPropertyValue("--dk-edge-2")).toMatch(/^rgb\(/)
   })
 
-  it("prints again when only its seed changes", async () => {
+  it("prints its gradient in square cells for the rows its box reports", async () => {
+    const { getByRole } = render(() => (
+      <DitherButton color="blue" variant="gradient" cell={2}>
+        Save
+      </DitherButton>
+    ))
+    const fill = getByRole("button").querySelector<HTMLElement>(".dk-label-fill")!
+    const image = () => fill.querySelector<HTMLElement>(".dk-label-image")!.style.getPropertyValue("--dk-img")
+    // at rest, its 40px: 20 rows
+    expect(fill.style.getPropertyValue("--dk-rows")).toBe("20")
+    const rest = image()
+    w.size(48)
+    await w.frame(16)
+    expect(fill.style.getPropertyValue("--dk-rows")).toBe("24")
+    expect(image()).not.toBe(rest)
+  })
+
+  it("holds its rest when static: no hover or press to step to", () => {
+    const { getByRole } = render(() => <DitherButton renderMode="static">Save</DitherButton>)
+    const fill = getByRole("button").querySelector<HTMLElement>(".dk-label-fill")!
+    expect(fill.hasAttribute("data-states")).toBe(false)
+    expect(fill.style.getPropertyValue("--dk-edge-1")).toBe("")
+  })
+
+  it("prints again when only its seed changes", () => {
     const [seed, setSeed] = createSignal(1)
     const { getByRole } = render(() => (
-      <DitherButton color="blue" variant="gradient" bloom="off" cell={2} seed={seed()}>
+      <DitherButton color="blue" variant="hatched" bloom="off" cell={2} seed={seed()}>
         Save
       </DitherButton>
     ))
-    await w.frame(16)
-    w.size()
-    const canvas = getByRole("button").querySelector("canvas")!
-    const before = w.uploads.filter((c) => c === canvas).length
-    setSeed(2)
-    await w.frame(32)
-    w.size()
-    expect(w.uploads.filter((c) => c === canvas).length).toBeGreaterThan(before)
+    const layer = () => getByRole("button").querySelector<HTMLElement>(".dk-label-layer")!
+    const before = layer().outerHTML
+    setSeed(7)
+    expect(layer().outerHTML).not.toBe(before)
   })
 
   it("keeps the focus ring in the theme's ring ink", () => {

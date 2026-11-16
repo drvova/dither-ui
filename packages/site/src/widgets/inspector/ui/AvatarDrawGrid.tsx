@@ -2,7 +2,7 @@ import { createMemo, Index } from "solid-js"
 import type { AvatarModel } from "@/entities/widget"
 import { clampGrid, cssColor, seededPattern } from "@dither-ui/kit"
 
-export type AvatarDrawGridProps = { avatar: AvatarModel }
+type AvatarDrawGridProps = { avatar: AvatarModel }
 
 const KEY =
   "rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground"

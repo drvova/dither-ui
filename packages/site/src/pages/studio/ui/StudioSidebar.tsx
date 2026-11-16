@@ -2,16 +2,17 @@ import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-j
 import { DitherAlertDialog, DitherAvatar, DitherIcon } from "@dither-ui/kit"
 import {
   agoOf,
+  built,
   chatGroups,
+  type ChatMeta,
   chats,
   newChat,
   openChat,
   pinChat,
+  removeBuilt,
   removeChat,
   renameChat,
-  type ChatMeta,
-} from "@/features/agent/chats"
-import { built, removeBuilt } from "@/features/agent/dither"
+} from "@/features/agent"
 import {
   activeProjectId,
   createProject,
@@ -24,11 +25,12 @@ import {
   type ProjectMeta,
 } from "@/features/persistence"
 import { modKey, routePath } from "@/shared/lib"
+import BrandMark from "@/shared/ui/BrandMark"
 import Mascot from "@/shared/ui/Mascot"
 import RowMenu, { type RowAction } from "./RowMenu"
 import "./StudioSidebar.css"
 
-export type StudioSidebarProps = {
+type StudioSidebarProps = {
   /** A turn is running: the chat and the project stay put until it ends. */
   locked: boolean
   /** Whether it shows: folded away it stays mounted. */
@@ -344,17 +346,7 @@ export default function StudioSidebar(props: StudioSidebarProps) {
 
       <div class="foot">
         <a href={routePath("/")} class="nav-row" title="dither-ui home">
-          <svg
-            viewBox="0 0 7 7"
-            width="14"
-            height="14"
-            aria-hidden="true"
-            {...{ focusable: "false" }}
-            shape-rendering="crispEdges"
-          >
-            <path d="M3 0h1v1h1v1h1v1h1v1h-1v1h-1v1h-1v1h-1v-1h-1v-1h-1v-1h-1v-1h1v-1h1v-1h1z" fill="currentColor" />
-            <rect x="3" y="3" width="1" height="1" fill="var(--swatch-orange)" />
-          </svg>
+          <BrandMark size={14} />
           <span class="row-label">dither-ui</span>
         </a>
         <a href={routePath("/docs")} class="nav-row">

@@ -15,7 +15,7 @@ export type SnippetKind = "file" | "fragment" | "ts" | "css" | "sh"
 
 export function snippetKind(code: string): SnippetKind {
   const t = code.trim()
-  if (/^export default function\b/m.test(t) && /^\s*return \(/m.test(t)) return "file"
+  if (/^export default function\b/m.test(t) && /^\s*return [(<]/m.test(t)) return "file"
   const first = t.split("\n").find((l) => l.trim()) ?? ""
   const markup = MARKUP_LINE.test(t)
   if (MARKUP_LINE.test(first)) return "fragment"
@@ -141,9 +141,12 @@ const indent = (text: string, by: number) =>
  * lines (over its markup, under it, or both) the component's body, with the
  * Solid APIs and the kit exports it uses imported (what it imports already
  * kept as written), its markup what the component returns (several nodes as
- * one fragment). Any other snippet is already whole and comes back as it is. */
+ * one fragment). Any other snippet is already whole and comes back as it is
+ * (a module read from its file without the newline that ends it). */
 export function asTsx(code: string, kitExports: ReadonlySet<string>): string {
-  if (snippetKind(code) !== "fragment") return code
+  const kind = snippetKind(code)
+  if (kind === "file") return code.trimEnd()
+  if (kind !== "fragment") return code
   const text = code.replace(/^\n+|\s+$/g, "")
   const at = MARKUP_LINE.exec(text)!.index
   const { end, one } = markupOf(text, at)

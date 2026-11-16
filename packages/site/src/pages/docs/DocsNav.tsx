@@ -2,7 +2,7 @@ import { createEffect, createSignal, For, on, Show } from "solid-js"
 import { DitherIcon, type IconName } from "@dither-ui/kit"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { GROUPS } from "@/pages/docs/groups"
-import { bandFill, seamStyle } from "@/widgets/site-header/menu"
+import { bandFill, seamStyle } from "@/widgets/site-header"
 import { routePath } from "@/shared/lib"
 import "./DocsNav.css"
 
@@ -13,7 +13,7 @@ export const docsUrl = (id: string) => routePath(`/docs/${id}`)
 /** Where a docs list stands: the rail beside the content (a pointer's 25px
  * targets at a 27px pitch) or the sections sheet (a finger's, at the
  * menu's reading size). */
-export type NavPlace = "rail" | "sheet"
+type NavPlace = "rail" | "sheet"
 export const NAV_LINK: Record<NavPlace, string> = { rail: "py-1 text-[11px]", sheet: "py-2 text-[15px]" }
 /** A group's heading sticks to the top of its list while its sections
  * scroll under it (the landmark in a long list). The list's top room lives
@@ -32,10 +32,28 @@ export const NAV_PLACE: Record<NavPlace, { top: string; head: string }> = {
  * table), read from its DOM: what "On this page" lists. */
 export type PagePart = { label: string; el: HTMLElement }
 
-export type DocsNavProps = {
+/** The parts of section `id` as its page holds them: its heading, each
+ * gallery heading and its props table (headings inside a preview are the
+ * demo's, not the section's). */
+export function partsOf(id: string): PagePart[] {
+  const section = id ? document.getElementById(id) : null
+  if (!section) return []
+  return [...section.querySelectorAll<HTMLElement>("h2, h3, table")]
+    .filter((el) => !el.closest("[data-demo-card]"))
+    .map((el) => (el.tagName === "TABLE" ? { label: "API", el } : { label: el.textContent?.trim() ?? "", el }))
+}
+
+/** Scroll the page to a part, under the header. */
+export function goTo(el: HTMLElement) {
+  const smooth = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+  window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - 88, behavior: smooth })
+}
+
+type DocsNavProps = {
   activeId: string
   variant: NavPlace
   parts?: PagePart[]
+  /** A link taken: its page loads (each section is a page of its own). */
   onGo?: (id: string) => void
   onPart?: (el: HTMLElement) => void
 }
@@ -182,10 +200,7 @@ export default function DocsNav(props: DocsNavProps) {
                           ? "border-foreground text-foreground"
                           : "border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                       }`}
-                      onClick={(e) => {
-                        e.preventDefault()
-                        props.onGo?.(it.id)
-                      }}
+                      onClick={() => props.onGo?.(it.id)}
                     >
                       {it.label}
                     </a>

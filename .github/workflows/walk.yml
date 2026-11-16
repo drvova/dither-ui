@@ -1,0 +1,111 @@
+name: Walk
+
+# The browser walk (`npm run walk`, packages/tasks/src/walk.mjs) over one
+# build of the site, in each engine the kit targets, outside the PR gate:
+# nightly, by hand, and on a pull request labelled `walk`. The site is built
+# once and handed to every walk as an artifact; each engine walks in shards
+# (`--shard k/n`, every n-th page of the plan), so no job runs long. A
+# finding fails its job; every job uploads its report (`<engine>.json`,
+# `<engine>.md`) and its screenshots, flagged pages among them.
+
+on:
+  schedule:
+    - cron: "41 3 * * *"
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: walk-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # One install at the workspace root, on the one Node (24, which SolidStart
+  # needs), and the site's build in the runner's Chrome.
+  build:
+    # a pull request walks only with the `walk` label, and adding another label does not walk it again
+    if: >-
+      github.event_name != 'pull_request' ||
+      (contains(github.event.pull_request.labels.*.name, 'walk') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'walk'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Static build
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: packages/site/.output/public
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3
+
+  walk:
+    needs: build
+    name: walk (${{ matrix.engine }} ${{ matrix.shard }}/3)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    # A whole walk on 4 cores takes about 21 min in Chromium, 33 in Firefox
+    # and 38 in WebKit: three shards keep each job near a third of that.
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit, firefox]
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: packages/site/.output/public
+      # Chromium is the runner's Chrome (`chromiumCandidates`); WebKit is
+      # WebKitGTK over WebDriver, Firefox Playwright's own build, each window
+      # on an Xvfb display of its own.
+      - name: Install WebKitGTK
+        if: matrix.engine == 'webkit'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends webkit2gtk-driver xvfb
+      - name: Install Firefox
+        if: matrix.engine == 'firefox'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb
+          npx playwright-core install --with-deps firefox
+      - name: Walk
+        run: >-
+          npm run walk -- --engine ${{ matrix.engine }} --shard ${{ matrix.shard }}/3 --out walk-report
+          ${{ matrix.engine == 'firefox' && '--driver playwright' || '' }}
+      - name: Summary
+        if: always()
+        run: cat walk-report/*.md >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: walk-${{ matrix.engine }}-${{ matrix.shard }}
+          path: walk-report/
+          if-no-files-found: warn
+          retention-days: 14

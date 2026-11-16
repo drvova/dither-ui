@@ -6,6 +6,8 @@ import DitherInput, { type DitherInputProps } from "./DitherInput"
  * type=email, inputmode=email, autocomplete=email — the three things a bare
  * text input gets wrong. */
 type Own = {
+  /** @docs string (with onUpdateModelValue)
+   * @default "" */
   modelValue?: string
   placeholder?: string
   autocomplete?: string

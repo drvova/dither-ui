@@ -9,6 +9,7 @@ import { sliderKeys } from "../engine/keys"
  * pointer, and the read-only input stays selectable for copying. Values snap
  * to `step`; float noise is trimmed by the step's own precision. */
 type Own = {
+  /** @docs number (with onUpdateModelValue) */
   modelValue?: number
   min?: number
   max?: number

@@ -5,6 +5,7 @@ import { Dynamic } from "solid-js/web"
 import { cn, type StyleProp } from "./lib"
 
 type Own = {
+  /** @docs "div" | "section" | "span" | "article" | … */
   as?: string
   class?: string
   xstyle?: StyleProp

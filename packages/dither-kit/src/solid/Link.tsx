@@ -4,7 +4,9 @@ import { cn } from "../tailwind/lib"
 /** The anchor, dressed: house underline treatment (hairline, grows its
  * offset, brightens on hover) and inheritable color so it sits in prose. */
 type Own = {
+  /** @default required */
   href: string
+  /** @docs boolean (target + rel) */
   external?: boolean
   class?: string
 }

@@ -9,7 +9,7 @@ import "./ThreadEntry.css"
 // key, the harness's reasoning and each step as folds, a permission prompt
 // answered in place, the turn's close. The panel owns every state; this
 // only draws it and says what was asked.
-export type ThreadEntryProps = {
+type ThreadEntryProps = {
   entry: Entry
   /** The reply streaming now / the thought streaming now. */
   live?: boolean

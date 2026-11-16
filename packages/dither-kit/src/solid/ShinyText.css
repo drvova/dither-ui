@@ -11,9 +11,9 @@
   background-size: 220% 100%;
   -webkit-background-clip: text;
   background-clip: text;
-  animation: dither-shine linear infinite;
+  animation: dk-shine linear infinite;
 }
-@keyframes dither-shine {
+@keyframes dk-shine {
   to {
     background-position: -220% 0;
   }

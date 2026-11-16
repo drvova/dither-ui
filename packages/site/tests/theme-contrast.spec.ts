@@ -155,7 +155,7 @@ describe("theme contrast", () => {
     expect(rule(".animations-docs-scope .cq-bucket")).toMatch(/color: var\(--swatch-blue\);/)
     for (const t of [LIGHT, DARK])
       expect(contrast(colour(resolve(t, t["swatch-blue"])), colour(t.background))).toBeGreaterThanOrEqual(4.5)
-    const backgrounds = readFileSync(`${root}packages/site/src/pages/docs/backgrounds/BackgroundsDocs.tsx`, "utf8")
+    const backgrounds = readFileSync(`${root}packages/site/src/pages/docs/backgrounds/examples/heat-trail.tsx`, "utf8")
     expect(backgrounds).toMatch(/<div class="dark [^"]*bg-black">\s*<DitherHeatTrail/)
     const dark = colour(resolve(DARK, DARK["muted-foreground"]))
     expect(contrast(dark, colour("#000000"))).toBeGreaterThanOrEqual(4.5)

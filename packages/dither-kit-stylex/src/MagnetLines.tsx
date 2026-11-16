@@ -10,11 +10,15 @@ const styles = stylex.create({
 })
 
 export type MagnetLinesProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   gap?: number
+  /** @docs number (px) */
   lineLength?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -34,20 +34,33 @@ export type { TrailParams }
 export { paintTrail }
 
 export type HeatTrailProps = {
-  /** The ramp, coolest first, hottest last: a fresh cell takes the last. */
+  /** The ramp, coolest first, hottest last: a fresh cell takes the last.
+   * @docs PixelColor[] (the ramp, coolest first, hottest last)
+   * @default blue, titanium, bone, ember */
   inks?: PixelColor[]
-  /** Seconds a cell takes to cool from fresh to nothing. */
+  /** Seconds a cell takes to cool from fresh to nothing.
+   * @docs number (seconds a cell takes to cool to nothing) */
   cool?: number
-  /** The diamond's radius in cells. */
+  /** The diamond's radius in cells.
+   * @docs number (the diamond's radius in cells) */
   size?: number
-  /** Device pixels per cell. */
+  /** Device pixels per cell.
+   * @docs number (device pixels per cell) */
   cell?: number
+  /** @docs boolean (nothing prints) */
   paused?: boolean
-  /** Fixed to the viewport over a scrolling page: the print moves with it. */
+  /** Fixed to the viewport over a scrolling page: the print moves with it.
+   * @docs boolean (the box is fixed to the viewport: the print scrolls with the page) */
   pinned?: boolean
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @docs number (the screen's seed)
+   * @default undefined */
   seed?: number
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

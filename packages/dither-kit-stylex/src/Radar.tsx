@@ -1,13 +1,13 @@
 // Generated from @dither-ui/kit/solid/Radar.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createEffect, mergeProps, onCleanup } from "solid-js"
+import { createComputed, mergeProps, onCleanup } from "solid-js"
 import type { VariantInput } from "@dither-ui/kit/solid/runtime/chart-context.ts"
 import { usePolarPart } from "@dither-ui/kit/solid/runtime/polar-context.ts"
 
 export type RadarProps = { dataKey: string; variant?: VariantInput }
 
 /** A radar chart's series: registers its texture with the chart, which
- * paints the polygon on its canvas. */
+ * prints the polygon. */
 export default function Radar(raw: RadarProps) {
   const props = mergeProps({ variant: "gradient" as VariantInput }, raw)
 
@@ -19,7 +19,8 @@ export default function Radar(raw: RadarProps) {
     )
   }
 
-  createEffect<string | undefined>((old) => {
+  // Registered as it is made, a server render's print included.
+  createComputed<string | undefined>((old) => {
     const dataKey = props.dataKey
     if (old !== undefined && old !== dataKey) ctx.unregisterVariant(old)
     ctx.registerVariant(dataKey, props.variant)
@@ -27,6 +28,6 @@ export default function Radar(raw: RadarProps) {
   })
   onCleanup(() => ctx.unregisterVariant(props.dataKey))
 
-  // The polygon is painted on the canvas; this part only registers the series.
+  // The polygon is the root's print; this part only registers the series.
   return <g />
 }

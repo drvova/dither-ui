@@ -2,7 +2,10 @@ import { createMemo, mergeProps } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 export type NumberTextProps = {
+  /** @default required */
   value: number
+  /** @docs number (min = max)
+   * @default natural */
   decimals?: number
   locale?: string
   grouping?: boolean

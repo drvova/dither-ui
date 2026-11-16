@@ -21,7 +21,11 @@ const styles = stylex.create({
   grid: { display: "grid", gap: "1rem" },
 })
 
-export type DitherFieldsetProps = { legend: string; children?: JSX.Element }
+export type DitherFieldsetProps = {
+  legend: string
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function DitherFieldset(props: DitherFieldsetProps) {
   return (

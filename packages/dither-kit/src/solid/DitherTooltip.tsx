@@ -5,6 +5,7 @@ import "./DitherTooltip.css"
 export type DitherTooltipProps = {
   text: string
   delay?: number
+  /** @docs content */
   children?: JSX.Element
 }
 

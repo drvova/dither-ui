@@ -1,23 +1,21 @@
 // The workbench of one preview (after Kobra's component workbench and its
-// Mesurer tray): the overlay teleported into the preview frame — layout
-// grid and guides, measurements, annotations, the pointer surface, rulers,
-// notes, comments, the loupe and the tray — and, under the frame, the
-// readout and the motion, responsive and settings panels.
+// Mesurer tray): the overlay teleported into the preview frame — the one
+// SVG layer (layout grid and guides, measurements, annotations, rulers),
+// the pointer surface under it, the note being written, the comment keys
+// and threads, the loupe and the tray — and, under the frame, the readout
+// and the motion, responsive and settings panels.
 import { createMemo, createRenderEffect, type JSX, onCleanup, onMount, Show } from "solid-js"
 import { Portal } from "solid-js/web"
 import { swatch } from "@/widgets/workbench/model/settings"
 import { type Bench, createBench } from "./bench"
 import { BENCH } from "./context"
 import Comments from "./ui/Comments"
-import Guides from "./ui/Guides"
-import Ink from "./ui/Ink"
 import Loupe from "./ui/Loupe"
-import Marks from "./ui/Marks"
 import Motion from "./ui/Motion"
 import Notes from "./ui/Notes"
+import Overlay from "./ui/Overlay"
 import Readout from "./ui/Readout"
 import Responsive from "./ui/Responsive"
-import Rulers from "./ui/Rulers"
 import Settings from "./ui/Settings"
 import Tray from "./ui/Tray"
 import "./Workbench.css"
@@ -105,9 +103,7 @@ export default function Workbench(props: WorkbenchProps) {
   return (
     <BENCH.Provider value={b}>
       <Portal mount={props.host} ref={overlay}>
-        <Guides />
-        <Marks />
-        <Ink />
+        <Overlay />
         <Show when={b.tool()}>
           <div
             class="wb-surface"
@@ -121,9 +117,6 @@ export default function Workbench(props: WorkbenchProps) {
             on:wheel={b.wheel}
             on:contextmenu={(e) => e.preventDefault()}
           />
-        </Show>
-        <Show when={b.toggles.rulers}>
-          <Rulers />
         </Show>
         <Notes />
         <Comments />

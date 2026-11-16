@@ -44,7 +44,7 @@ export function summarize(a: Artboard) {
 export const nameOf = (v: unknown): string | undefined => (typeof v === "string" ? v.slice(0, 80) : undefined)
 
 /** A frame's size as a command asks it: each side a finite number, held to 40-4000px. */
-export type FrameSize = { w?: number; h?: number }
+type FrameSize = { w?: number; h?: number }
 const side = (v: unknown) =>
   typeof v === "number" && Number.isFinite(v) ? Math.max(40, Math.min(4000, Math.round(v))) : undefined
 export const frameOf = (v: unknown): FrameSize => (isPlain(v) ? { w: side(v.w), h: side(v.h) } : {})
@@ -55,7 +55,7 @@ export function applyFrame(a: Artboard, frame: FrameSize) {
 
 /** A chart's data in the friendly shape, parsed: labels as text, series with
  * a key and their values as numbers (junk is 0). */
-export type ChartData = {
+type ChartData = {
   labels: string[]
   series: { key: string; label?: string; color?: string; values: number[] }[]
 }

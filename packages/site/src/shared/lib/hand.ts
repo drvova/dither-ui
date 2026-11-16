@@ -7,7 +7,7 @@
 // by the entry. Framework-free: it touches the DOM only when installed.
 
 /** The hand: a finger or a pen (`touch`), a mouse (`pointer`), the keys. */
-export type Hand = "touch" | "pointer" | "keyboard"
+type Hand = "touch" | "pointer" | "keyboard"
 
 let last: Hand = "pointer"
 

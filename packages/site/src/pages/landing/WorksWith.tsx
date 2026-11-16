@@ -5,7 +5,7 @@
 // kit's order).
 import { For } from "solid-js"
 import { HARNESSES, MODEL_NAMES, WORKS } from "@/pages/landing/facts"
-import { rise, routePath } from "@/shared/lib"
+import { routePath } from "@/shared/lib"
 import ToolMark from "@/shared/ui/ToolMark"
 import RiseWords from "./RiseWords"
 import "./WorksWith.css"
@@ -13,7 +13,7 @@ import "./WorksWith.css"
 export default function WorksWith() {
   return (
     <section id="works" aria-labelledby="works-h" class="works-with-scope sec">
-      <div ref={rise} class="sec-head">
+      <div class="sec-head rise">
         <h2 id="works-h" class="section-title">
           <RiseWords text="Plays well with others." />
         </h2>
@@ -23,12 +23,12 @@ export default function WorksWith() {
             wakes the agent you are already signed in to, and the 3D surfaces read whatever model is lying around in
             your downloads.
           </p>
-          <a data-rise href={routePath("/docs/styling")} class="more-link">
+          <a data-rise href={routePath("/docs/styling")} class="more-link" style={{ "--rise-n": 1 }}>
             See the styling switch
           </a>
         </div>
       </div>
-      <div ref={rise} class="works">
+      <div class="works rise">
         <div data-rise>
           <h3 id="works-styling" class="works-h">
             Your styling
@@ -45,7 +45,7 @@ export default function WorksWith() {
           </ul>
           <p class="works-more">and any app on its compiled stylesheet: UnoCSS, plain CSS or CSS-in-JS</p>
         </div>
-        <div data-rise>
+        <div data-rise style={{ "--rise-n": 1 }}>
           <h3 id="works-agent" class="works-h">
             Your agent
           </h3>
@@ -61,7 +61,7 @@ export default function WorksWith() {
           </ul>
           <p class="works-more">or any command you hand the bridge</p>
         </div>
-        <div data-rise>
+        <div data-rise style={{ "--rise-n": 2 }}>
           <h3 id="works-files" class="works-h">
             Your models
           </h3>

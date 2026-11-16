@@ -2,12 +2,13 @@ import { DitherIcon } from "@dither-ui/kit"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js"
 import { addArtboard, deselect, editor, selectMany } from "@/entities/editor"
-import { handoff } from "@/features/agent/handoff"
+import { handoff } from "@/features/agent"
 import { useShortcuts } from "@/features/keyboard"
 import { usePanZoom } from "@/features/pan-zoom"
 import { followPointer } from "@/shared/lib/follow"
 import { isTyping } from "@/shared/lib/keys"
 import Artboard from "./Artboard"
+import Overlay, { type Marquee } from "./Overlay"
 import SelectionAsk from "./SelectionAsk"
 import "./Canvas.css"
 
@@ -71,7 +72,7 @@ export default function Canvas(props: { ref?: (api: CanvasApi) => void }) {
 
   // Marquee selection on empty-canvas drag; a finger on empty canvas pans
   // instead (a touch screen has no Space or middle button).
-  const [marquee, setMarquee] = createSignal<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
+  const [marquee, setMarquee] = createSignal<Marquee | null>(null)
   function onCanvasDown(e: PointerEvent) {
     if (e.target !== e.currentTarget) return
     if (e.button === 1 || spaceHeld() || e.pointerType === "touch") return startPan(e)
@@ -125,34 +126,8 @@ export default function Canvas(props: { ref?: (api: CanvasApi) => void }) {
         <For each={visible()}>{(a) => <Artboard artboard={a} />}</For>
       </div>
 
-      {/* Snap guides (world coords -> screen) */}
-      <Show when={editor.guides.v != null}>
-        <div
-          class="pointer-events-none absolute inset-y-0 w-px bg-accent/70"
-          style={{ left: `${(editor.guides.v ?? 0) * editor.viewport.zoom + editor.viewport.x}px` }}
-        />
-      </Show>
-      <Show when={editor.guides.h != null}>
-        <div
-          class="pointer-events-none absolute inset-x-0 h-px bg-accent/70"
-          style={{ top: `${(editor.guides.h ?? 0) * editor.viewport.zoom + editor.viewport.y}px` }}
-        />
-      </Show>
-
-      {/* Marquee */}
-      <Show when={marquee()}>
-        {(m) => (
-          <div
-            class="pointer-events-none absolute border border-accent/70 bg-accent/10"
-            style={{
-              left: `${Math.min(m().x1, m().x2)}px`,
-              top: `${Math.min(m().y1, m().y2)}px`,
-              width: `${Math.abs(m().x2 - m().x1)}px`,
-              height: `${Math.abs(m().y2 - m().y1)}px`,
-            }}
-          />
-        )}
-      </Show>
+      {/* The selection, its handles, the snap guides and the marquee, drawn */}
+      <Overlay marquee={marquee()} />
 
       {/* Empty state */}
       <Show when={editor.artboards.length === 0}>

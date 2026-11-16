@@ -1,0 +1,66 @@
+/* A labelled fill (runtime/fill-layers.tsx): its layers under the label, each
+   a tone class (engine/tones.css) or the gradient's image, and the 1-cell
+   edge over them, laid on the cells (data-edge="over") or in their place
+   ("replace", the cells clipped inside it). A layer's ink, tile and shift
+   come as --dk-ink, --dk-tile, --dk-x, --dk-y (its image as --dk-img); a
+   fill with states (data-states, the button) names them again with -1
+   (hovered) and -2 (pressed), and moves between them here: a step from tone
+   to tone, never a fade. */
+.dk-label-fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  --dk-edge-now: var(--dk-edge);
+}
+.dk-label-layer,
+.dk-label-edge {
+  position: absolute;
+  inset: 0;
+}
+.dk-label-layer {
+  --dk-tone-ink: var(--dk-ink);
+  --dk-tone-x: var(--dk-x, 0);
+  --dk-tone-y: var(--dk-y, 0);
+  --dk-img-now: var(--dk-img);
+}
+.dk-label-layer.dk-tone {
+  --dk-tone-tile: var(--dk-tile);
+}
+.dk-label-image {
+  background-image: var(--dk-img-now);
+  /* square cells, --dk-rows of them from the top, never short of the box
+     (a box taller than its rows at rest stretches them until it reports) */
+  background-size: calc(var(--dk-cell, 2px) * 4) max(100%, calc(var(--dk-cell, 2px) * var(--dk-rows, 1)));
+  background-repeat: repeat-x;
+  image-rendering: pixelated;
+}
+.dk-label-edge {
+  box-sizing: border-box;
+  border: var(--dk-cell, 2px) solid var(--dk-edge-now);
+}
+.dk-label-fill[data-edge="replace"] > .dk-label-layer {
+  clip-path: inset(var(--dk-cell, 2px));
+}
+@media (prefers-reduced-motion: no-preference) {
+  :hover:not(:disabled) > .dk-label-fill[data-states] {
+    --dk-edge-now: var(--dk-edge-1);
+  }
+  :hover:not(:disabled) > .dk-label-fill[data-states] > .dk-label-layer {
+    --dk-tone-ink: var(--dk-ink-1);
+    --dk-tone-tile: var(--dk-tile-1);
+    --dk-tone-x: var(--dk-x-1);
+    --dk-tone-y: var(--dk-y-1);
+    --dk-img-now: var(--dk-img-1);
+  }
+  :active:not(:disabled) > .dk-label-fill[data-states] {
+    --dk-edge-now: var(--dk-edge-2);
+  }
+  :active:not(:disabled) > .dk-label-fill[data-states] > .dk-label-layer {
+    --dk-tone-ink: var(--dk-ink-2);
+    --dk-tone-tile: var(--dk-tile-2);
+    --dk-tone-x: var(--dk-x-2);
+    --dk-tone-y: var(--dk-y-2);
+    --dk-img-now: var(--dk-img-2);
+  }
+}

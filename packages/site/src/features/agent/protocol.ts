@@ -25,7 +25,7 @@ export const RESULT_EVENT = "dither-studio:result"
 export const MIRROR_ID = "dither-studio-document"
 
 /** The kit clock as any driver sees it: seconds in, a held moment out. */
-export type StudioClockApi = {
+type StudioClockApi = {
   seek: (seconds: number) => void
   release: () => void
   directed: () => boolean
@@ -33,7 +33,7 @@ export type StudioClockApi = {
   time: () => number | null
 }
 
-export const clockApi = (): StudioClockApi => ({
+const clockApi = (): StudioClockApi => ({
   seek: (seconds) => seek(Math.max(0, Number(seconds) || 0) * 1000),
   release,
   directed: isDirected,
@@ -43,7 +43,7 @@ export const clockApi = (): StudioClockApi => ({
   },
 })
 
-export type StudioAgentApi = {
+type StudioAgentApi = {
   version: number
   run: (command: unknown) => CommandResult
   registry: () => ReturnType<typeof registrySchema>

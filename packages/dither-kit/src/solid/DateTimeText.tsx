@@ -4,6 +4,7 @@ import { cn } from "../tailwind/lib"
 export type DateTimeTextProps = {
   date?: Date | string | number
   locale?: string
+  /** @default medium date + short time */
   options?: Intl.DateTimeFormatOptions
   class?: string
 }

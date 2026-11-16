@@ -1,7 +1,7 @@
 {
   "name": "@dither-ui/kit",
   "version": "0.1.0",
-  "description": "Dithered UI toolkit for Solid: composable ordered-dither charts (area, line, bar, pie, radar) on one tiny canvas engine, plus generative avatars, buttons, gradient washes and more.",
+  "description": "Dithered UI toolkit for Solid: composable ordered-dither charts (area, line, bar, pie, radar) printed as SVG, plus generative avatars, buttons, gradient washes and more.",
   "type": "module",
   "main": "./src/solid/index.ts",
   "module": "./src/solid/index.ts",

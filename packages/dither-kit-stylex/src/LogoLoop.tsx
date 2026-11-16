@@ -12,8 +12,11 @@ const styles = stylex.create({
 })
 
 export type LogoLoopProps = {
+  /** @default ['DITHER', 'BAYER', ...] */
   items?: string[]
+  /** @docs number (s) */
   speed?: number
+  /** @docs number (px) */
   gap?: number
   class?: string
   xstyle?: StyleProp

@@ -1,0 +1,36 @@
+/* A letter is a one-line window on its column of glyphs ("?", a glyph a
+   frame, the letter): at rest the column stands on the letter, masked on
+   "?", and running it steps up a row a frame to the letter. */
+.dk-decrypt-cell {
+  display: inline-block;
+  height: 1.25em;
+  line-height: 1.25em;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.dk-decrypt-column {
+  display: block;
+  /* every row exactly the window's height, whatever font draws it */
+  line-height: 1.25em;
+  white-space: pre;
+  transform: translateY(calc(-1.25em * var(--dk-rows)));
+}
+/* Masked and running only where motion is welcome: reduced, the letter
+   stands. */
+@media (prefers-reduced-motion: no-preference) {
+  .dk-decrypt[data-decrypt="masked"] .dk-decrypt-column {
+    transform: none;
+  }
+  .dk-decrypt[data-decrypt="run"] .dk-decrypt-column,
+  .dk-decrypt[data-decrypt="hover"]:hover .dk-decrypt-column {
+    animation: dk-decrypt var(--dk-dur) steps(var(--dk-rows), jump-none) both;
+  }
+}
+@keyframes dk-decrypt {
+  from {
+    transform: translateY(-1.25em);
+  }
+  to {
+    transform: translateY(calc(-1.25em * var(--dk-rows)));
+  }
+}

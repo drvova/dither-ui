@@ -1,15 +1,15 @@
 import { copyText, DitherFocusScope, DitherIcon } from "@dither-ui/kit"
 import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
 import { createEffect, createMemo, createSignal, on, onCleanup } from "solid-js"
-import type { Artboard } from "@/entities/artboard"
+import { type Artboard, copyFramesSvg, saveFramesSvg, SVG_COPY_SAID, type SvgCopy } from "@/entities/artboard"
+import { frameCode, shown } from "@/entities/artboard/code"
 import { download } from "@/shared/lib/files"
-import { frameCode, shown } from "../../entities/artboard/code"
 import { editor, selectedArtboard } from "../../entities/editor"
 import { setStyling, styling, STYLING_LABELS, STYLINGS } from "../../shared/lib/restyle"
 import { CodeBlock, Segmented } from "../../shared/ui"
 import "./ExportDialog.css"
 
-export type ExportDialogProps = { open: boolean; onClose?: () => void }
+type ExportDialogProps = { open: boolean; onClose?: () => void }
 
 export default function ExportDialog(props: ExportDialogProps) {
   // The Solid component in the chosen styling system: Tailwind as generated,
@@ -42,6 +42,18 @@ export default function ExportDialog(props: ExportDialogProps) {
     if (done) copyTimer = setTimeout(() => setCopied(false), 1500)
   }
   onCleanup(() => clearTimeout(copyTimer))
+
+  // The frame as a layered SVG for a design tool, and what the copy did.
+  const [svgCopied, setSvgCopied] = createSignal<SvgCopy | null>(null)
+  let svgTimer: ReturnType<typeof setTimeout> | undefined
+  async function copySvg() {
+    const a = selectedArtboard.value
+    if (!a) return
+    setSvgCopied(await copyFramesSvg([a]))
+    clearTimeout(svgTimer)
+    svgTimer = setTimeout(() => setSvgCopied(null), 1800)
+  }
+  onCleanup(() => clearTimeout(svgTimer))
 
   /** Download every artboard as its own .tsx file, each with the stylesheet
    * it imports where the styling system keeps one (staggered so the browser
@@ -118,6 +130,29 @@ export default function ExportDialog(props: ExportDialogProps) {
           </div>
           <div class="overflow-auto p-4">
             <CodeBlock code={code()} />
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 px-4 py-3">
+            <span class="text-[11px] text-muted-foreground" aria-live="polite">
+              {svgCopied() ? SVG_COPY_SAID[svgCopied()!] : "Layered vector, for Figma, Illustrator, Sketch or Penpot"}
+            </span>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="rounded-lg border border-border px-3 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+                disabled={!selectedArtboard.value}
+                onClick={copySvg}
+              >
+                Copy as SVG
+              </button>
+              <button
+                type="button"
+                class="rounded-lg border border-border px-3 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+                disabled={!selectedArtboard.value}
+                onClick={() => selectedArtboard.value && saveFramesSvg([selectedArtboard.value])}
+              >
+                Download SVG
+              </button>
+            </div>
           </div>
         </DitherFocusScope>
       </div>

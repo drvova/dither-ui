@@ -11,20 +11,34 @@ export type { RadarParams }
 export { paintRadar }
 
 export type RadarSweepProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#27FF64', '#7CFF67'] */
   colors?: string[]
   rings?: number
+  /** @docs number (sweep rad/s) */
   speed?: number
+  /** @docs number (trail length) */
   sweepWidth?: number
   glow?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
 }
 

@@ -9,7 +9,7 @@ import type { ReelCallout, ReelCameraKey, ReelChapter, ReelClip, ReelModel, Reel
 import { planSequence, resolveEasing, type ScorePlan } from "@dither-ui/kit/engine"
 import type { WipeDirection } from "@dither-ui/kit/engine/wipe.ts"
 
-export type ReelMoment = {
+type ReelMoment = {
   /** The clip on screen. */
   index: number
   /** Seconds into that clip. */
@@ -65,9 +65,9 @@ export const wipeDirectionOf = (kind: ReelTransitionKind): WipeDirection =>
 
 /* --------------------------------- camera -------------------------------- */
 
-export type Camera = { x: number; y: number; zoom: number; tilt: number }
+type Camera = { x: number; y: number; zoom: number; tilt: number }
 /** No keys: the frame fitted and held still. */
-export const STILL: Camera = { x: 0.5, y: 0.5, zoom: 1, tilt: 0 }
+const STILL: Camera = { x: 0.5, y: 0.5, zoom: 1, tilt: 0 }
 
 /** The camera at `t` (0-1 of the clip): keys eased between, the first held
  * before it and the last after it. */
@@ -147,7 +147,7 @@ export function cameraMoveOf(keys: ReelCameraKey[]): string {
 /* -------------------------------- callouts ------------------------------- */
 
 /** A callout drawing in over 0.9s from its `from` and fading over 0.3s to its `to`. */
-export type CalloutState = ReelCallout & { drawn: number; fade: number }
+type CalloutState = ReelCallout & { drawn: number; fade: number }
 
 /** The callouts up `local` seconds into a clip. */
 export function calloutsAt(clip: ReelClip, local: number): CalloutState[] {

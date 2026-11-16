@@ -25,6 +25,7 @@ import { type Compile, compiler, evaluate } from "../../src/widgets/source/model
 import { PACKAGES } from "../../src/widgets/source/model/run"
 import { WidgetRenderer } from "../../src/widgets/frame-renderer"
 import { world } from "@dither-ui/kit/testing/world.ts"
+import EXAMPLES from "virtual-dither-catalog/sources"
 
 const HOSTILE = `x" onClick={alert(1)} y='z' {alert(2)} {{ alert(2) }} </script><script>alert(3)</script><img src=x onerror=alert(5)> &amp; \\" */ \` \${alert(6)} ${String.fromCharCode(0x2028)}`
 const FRAME = { w: 300, h: 200 }
@@ -259,8 +260,10 @@ describe("widgetCode", () => {
     expect(input).toContain('import { createSignal } from "solid-js"')
     expect(input).toContain('const [value, setValue] = createSignal("")')
     expect(input).toContain("<DitherInput modelValue={value()} onUpdateModelValue={setValue} ")
-    // a model on its own prop and event: an update carries the next value...
-    const page = widgetCode(createComponent(componentEntry("DitherPagination")!), frame)
+    // a model on its own prop and event: an update carries the next value (an
+    // edited frame, which the generator writes, not the docs example)...
+    const pagination = createComponent(componentEntry("DitherPagination")!)
+    const page = widgetCode({ ...pagination, props: { ...pagination.props, total: 20 } }, frame)
     expect(page).toContain("page={value()} onUpdatePage={setValue}")
     // ...and an event that only says the control is done sets it false
     const dialog = widgetCode(createComponent(componentEntry("DitherDialog")!), frame)
@@ -423,7 +426,7 @@ describe("every frame the Studio can place", () => {
     const bad: string[] = []
     for (const [what, code] of frames) {
       if (
-        !/^(import [^\n]+\n)+\nexport default function Frame\(\) \{\n/.test(
+        !/^(import [^\n]+\n)+\nexport default function (Frame|Example)\(\) \{\n/.test(
           code.replace(/\nconst [\s\S]*?\n[}\]]\n/g, ""),
         )
       )
@@ -439,6 +442,17 @@ describe("every frame the Studio can place", () => {
     }
     expect(bad).toEqual([])
   }, 120_000)
+
+  it("exports a new frame its docs example draws as that example's code, and an edited one as written", () => {
+    const drawn = COMPONENT_REGISTRY.filter((e) => e.example)
+    expect(drawn.length).toBeGreaterThan(10)
+    for (const e of drawn) {
+      const fresh = createComponent(e)
+      expect(widgetCode(fresh, { w: 480, h: 320 })).toBe(EXAMPLES[e.example!])
+      const edited = { ...fresh, slotText: "Edited" }
+      expect(widgetCode(edited, { w: 480, h: 320 })).toContain("Edited")
+    }
+  })
 
   it("mounts, handing each component only what its registry row binds", () => {
     const bad: string[] = []

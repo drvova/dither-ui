@@ -146,11 +146,12 @@ export function standaloneScripts(): Plugin {
       const { default: solid } = await import("vite-plugin-solid")
       const { default: tailwindcss } = await import("@tailwindcss/vite")
       const { utilityMap } = await import("./utilities.ts")
+      const { exampleCatalog } = await import("./catalog.ts")
       const player = await alone({
         entry: PLAYER_ENTRY,
         name: "player",
         base,
-        plugins: [playerEntry(), solid(), tailwindcss(), utilityMap()],
+        plugins: [playerEntry(), exampleCatalog(), solid(), tailwindcss(), utilityMap()],
       })
       // The script and the stylesheet only: a worker the kit would start
       // from a file beside it cannot ride inline, and the kit paints on

@@ -7,8 +7,11 @@ import Icon from "./Icon"
  * Clipboard primitive (live-region announcement included), the trigger is an
  * icon button that flips Copy → Check. */
 export type CopyableTextProps = {
+  /** @default required */
   value?: string
+  /** @docs string (aria) */
   label?: string
+  /** @docs number (px) */
   size?: number
   class?: string
   children?: JSX.Element | ((scope: { readonly copied: boolean }) => JSX.Element)

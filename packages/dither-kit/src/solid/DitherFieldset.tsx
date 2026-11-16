@@ -1,6 +1,10 @@
 import type { JSX } from "solid-js"
 
-export type DitherFieldsetProps = { legend: string; children?: JSX.Element }
+export type DitherFieldsetProps = {
+  legend: string
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function DitherFieldset(props: DitherFieldsetProps) {
   return (

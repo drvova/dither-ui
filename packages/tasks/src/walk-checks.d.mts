@@ -47,7 +47,6 @@ export const DIALOG_FOCUS: string
 export const DIALOG_OPENED: string
 export const DIALOG_TABBED: string
 export const DIALOG_CLOSED: string
-export const INTERACTIVE: string
 
 /** Text short of contrast: where it stands and what it says (`text`), and
  * the finding as the report words it. */
@@ -73,13 +72,32 @@ export function foundTwice(first: ContrastFound[], again: ContrastFound[]): Cont
 export const HELD_FACES: string
 export function heldPreload(text: string, held: Set<string>): boolean
 export function concealed(el: Element): boolean
-export function roleOf(el: Element): string
 export function accessibleName(el: Element): string
-export function describe(el: Element): string
 export function auditA11y(doc: Document): A11yAudit
 export function focusMarks(el: Element): string[]
 export function indicated(before: string[], after: string[]): boolean
+export function late(stop: { marks: string[] | null } | undefined): boolean
 export function hiddenFocus(el: Element): string
 export function unreached<T extends Stop>(stops: T[], reached: number[], widgetsReached?: string[]): T[]
 export function dialogFindings(r: DialogRecord): string[]
 export function changedPixels(a: Png, b: Png, box: number[], scale: number): number
+
+/** An element the window composites through an SVG filter or a blend, as
+ * the page script `PAINT` hands it over. */
+export type Composited = {
+  i: number
+  kind: "filter" | "blend"
+  value: string
+  where: string
+  box: [number, number, number, number]
+  within: number[]
+}
+
+export const PAINT: string
+export const PAINT_SET: string
+export function compositeOf(style: {
+  filter?: string
+  mixBlendMode?: string
+}): Pick<Composited, "kind" | "value"> | null
+export function blackShare(png: Png, box: number[], scale: number): number
+export function paintFinding(c: Composited, shots: { on: Png; off?: Png; hidden?: Png }, scale: number): string

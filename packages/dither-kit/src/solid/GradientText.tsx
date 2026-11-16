@@ -3,9 +3,13 @@ import { cn } from "../tailwind/lib"
 import "./GradientText.css"
 
 export type GradientTextProps = {
+  /** @docs string[] (hex)
+   * @default ['#358ff3', '#7CFF67', '#358ff3'] */
   colors?: string[]
   speed?: number
+  /** @default undefined */
   class?: string
+  /** @docs text */
   children?: JSX.Element
 }
 

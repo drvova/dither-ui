@@ -1,7 +1,7 @@
 import { DitherIcon } from "@dither-ui/kit"
 import { createMemo, createSignal, Show } from "solid-js"
 import { editor } from "@/entities/editor"
-import { askAgent, handoff } from "@/features/agent/handoff"
+import { askAgent, handoff } from "@/features/agent"
 import "./SelectionAsk.css"
 
 // A small composer at the selection: one frame selected, a line under it

@@ -11,10 +11,13 @@ const styles = stylex.create({
 })
 
 export type CrosshairProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   thickness?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

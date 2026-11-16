@@ -19,11 +19,15 @@ const styles = stylex.create({
 })
 
 export type BlobCursorProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   size?: number
+  /** @docs number (0-1) */
   lag?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

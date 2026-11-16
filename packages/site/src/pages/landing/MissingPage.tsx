@@ -9,11 +9,13 @@ import { DitherHeatTrail } from "@dither-ui/kit"
 import "@/shared/fonts/display.css"
 import "@/pages/landing/chapters.css"
 import { TRAIL } from "@/pages/landing/plate"
-import { rise, routePath } from "@/shared/lib"
+import { routePath } from "@/shared/lib"
 import Mascot from "@/shared/ui/Mascot"
 import { SiteHeader } from "@/widgets/site-header"
-import RiseWords from "./RiseWords"
+import RiseWords, { wordsOf } from "./RiseWords"
 import "./MissingPage.css"
+
+const HEADLINE = "This page did not print."
 
 export default function MissingPage() {
   onMount(() => {
@@ -29,16 +31,16 @@ export default function MissingPage() {
       <SiteHeader current="landing" />
       <main id="main" tabindex="-1" class="lost outline-none">
         <DitherHeatTrail class="lost-trail" {...TRAIL} cell={4} />
-        <div ref={rise} class="lost-in">
+        <div class="lost-in rise-open" style={{ "--rise-words": wordsOf(HEADLINE) }}>
           <Mascot data-rise size={88} alive class="lost-mascot" />
           <h1 class="lost-h">
-            <RiseWords text="This page did not print." />
+            <RiseWords text={HEADLINE} />
           </h1>
-          <p data-rise class="sec-lede">
+          <p data-rise class="sec-lede" style={{ "--rise-n": 1 }}>
             The link may be old, or the cell it pointed at was never there.{" "}
             <span class="lede-key">Everything else is where you left it.</span>
           </p>
-          <div data-rise class="lost-keys">
+          <div data-rise class="lost-keys" style={{ "--rise-n": 2 }}>
             <a href={routePath("/")} class="nav-a key-chrome primary">
               Back to the start
             </a>

@@ -3,9 +3,12 @@ import { cn } from "../tailwind/lib"
 
 export type GradualBlurProps = {
   position?: "bottom" | "top"
+  /** @docs number (px) */
   height?: number
+  /** @docs number (px) */
   strength?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

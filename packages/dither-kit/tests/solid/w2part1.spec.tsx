@@ -77,19 +77,22 @@ describe("DitherCardStack", () => {
     expect(screen.getByText("two:1:false")).toBeTruthy()
   })
 
-  it("sends a far drag flying and reports the card that rises", () => {
-    fakeTimers()
+  it("sends a far swipe flying as it is let go, and reports the card that rises once it has flown", () => {
     HTMLElement.prototype.setPointerCapture = () => {}
     const onAdvance = vi.fn()
     const { container } = render(() => <CardStack items={["one", "two", "three"]} onAdvance={onAdvance} />)
     Object.defineProperty(container.firstElementChild, "offsetWidth", { value: 300 })
     const top = screen.getByRole("group", { name: "Card 1 of 3" })
     fireEvent.pointerDown(top, { pointerId: 1, clientX: 0 })
-    fireEvent.pointerMove(top, { pointerId: 1, clientX: 100 })
-    expect(top.style.transform).toContain("translateX(100px)")
-    fireEvent.pointerMove(top, { pointerId: 1, clientX: 220 })
-    fireEvent.pointerUp(top, { pointerId: 1, clientX: 220 })
-    vi.advanceTimersByTime(200)
+    fireEvent.pointerUp(top, { pointerId: 1, clientX: 100 })
+    expect(top.style.transform).toBe("") // the card never follows the finger
+    expect(top.hasAttribute("data-fly")).toBe(false) // a third of its width: it stays
+    fireEvent.pointerDown(top, { pointerId: 2, clientX: 0 })
+    fireEvent.pointerUp(top, { pointerId: 2, clientX: -220 })
+    expect(top.getAttribute("data-fly")).toBe("left")
+    const flown = new Event("transitionend", { bubbles: true })
+    Object.defineProperty(flown, "propertyName", { value: "transform" })
+    top.dispatchEvent(flown)
     expect(onAdvance).toHaveBeenCalledWith(1)
     expect(screen.getByRole("group", { name: "Card 2 of 3" }).textContent).toBe("two")
   })
@@ -411,7 +414,7 @@ describe("DitherRadioGroup", () => {
 })
 
 describe("DitherToggle", () => {
-  it("renders its label, reports the flip, and paints its fill once pressed", async () => {
+  it("renders its label, reports the flip, and prints its fill once pressed", () => {
     const [on, setOn] = createSignal(false)
     const { container } = render(() => (
       <DitherToggle modelValue={on()} onUpdateModelValue={setOn}>
@@ -419,29 +422,24 @@ describe("DitherToggle", () => {
       </DitherToggle>
     ))
     const button = screen.getByRole("button", { name: "Bold" })
-    const canvas = container.querySelector("canvas")!
     expect(button.getAttribute("aria-pressed")).toBe("false")
-    expect(canvas.style.display).toBe("none")
-    w.size()
-    await w.frame(100)
-    expect(w.uploads).toEqual([])
+    expect(container.querySelector(".dk-label-fill")).toBeNull()
     fireEvent.click(button)
     expect(button.getAttribute("aria-pressed")).toBe("true")
-    expect(canvas.style.display).toBe("")
-    await w.frame(200)
-    expect(w.uploads).toEqual([canvas])
+    expect(container.querySelector("canvas")).toBeNull()
+    expect(container.querySelector(".dk-label-image")).not.toBeNull()
   })
 })
 
 describe("DitherToggleGroup", () => {
-  it("is a radio group when single: arrows move the choice, the chosen one is painted", async () => {
+  it("is a radio group when single: arrows move the choice, the chosen one is printed", async () => {
     const [value, setValue] = createSignal<string | string[]>("a")
     const { container } = render(() => (
       <DitherToggleGroup options={OPTIONS} modelValue={value()} onUpdateModelValue={setValue} />
     ))
     expect(screen.getByRole("radiogroup")).toBeTruthy()
-    await w.frame(100)
-    expect(w.uploads).toEqual([container.querySelector("canvas")])
+    expect(container.querySelectorAll(".dk-label-fill")).toHaveLength(1)
+    expect(screen.getByRole("radio", { name: "Alpha" }).querySelector(".dk-label-fill")).not.toBeNull()
     fireEvent.keyDown(screen.getByRole("radio", { name: "Alpha" }), { key: "ArrowRight" })
     expect(value()).toBe("c")
     await Promise.resolve()
@@ -477,15 +475,14 @@ describe("DitherDock", () => {
     expect(onSelect).toHaveBeenCalledWith("mail")
   })
 
-  it("swells under the pointer and settles when it leaves", () => {
-    render(() => <Dock items={items} magnify={2} />)
+  it("swells by a gaussian sampled at its neighbours' places, which its stylesheet hovers", () => {
+    render(() => <Dock items={items} magnify={2} range={42} />)
     const bar = screen.getByRole("group", { name: "Dock" })
-    const home = screen.getByRole("button", { name: "Home" })
-    expect(home.style.transform).toBe("scale(1)")
-    fireEvent.pointerMove(bar, { clientX: 0 })
-    expect(home.style.transform).toBe("scale(2)")
-    fireEvent.pointerLeave(bar)
-    expect(home.style.transform).toBe("scale(1)")
+    const at = (n: number) => Number(bar.style.getPropertyValue(`--dk-dock-${n}`))
+    expect(at(0)).toBe(2)
+    expect(at(1)).toBeCloseTo(1 + Math.exp(-0.5))
+    expect(at(2)).toBeCloseTo(1 + Math.exp(-2))
+    expect(screen.getByRole("button", { name: "Home" }).className).toContain("dk-dock-item")
   })
 })
 
@@ -502,6 +499,14 @@ describe("DitherElectricBorder", () => {
     expect(border.style.filter).toContain(filter.id)
     expect(border.style.border).toBe("3px solid red")
     expect(container.querySelector("feDisplacementMap")!.getAttribute("scale")).toBe("9")
+  })
+
+  it("starts its SMIL where its still filter stands, so a frozen timeline shows the same arc", () => {
+    // Firefox freezes SMIL on a page without script: the first value shows
+    const { container } = render(() => <ElectricBorder>x</ElectricBorder>)
+    const turbulence = container.querySelector("feTurbulence")!
+    const animate = turbulence.querySelector("animate")!
+    expect(animate.getAttribute("from")).toBe(turbulence.getAttribute(animate.getAttribute("attributeName")!))
   })
 })
 
@@ -571,16 +576,14 @@ describe("DitherMagicRings", () => {
 })
 
 describe("DitherScrollVelocity", () => {
-  it("names itself by its text and runs its track once in view", async () => {
-    const { container } = render(() => <ScrollVelocity text="fast" />)
+  it("names itself by its text and drifts its track a quarter at its speed", () => {
+    vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(400)
+    const { container } = render(() => <ScrollVelocity text="fast" baseSpeed={50} />)
     const host = screen.getByLabelText("fast")
-    const track = host.firstElementChild as HTMLElement
+    const track = host.querySelector<HTMLElement>(".dk-sv-track")!
     expect(track.children.length).toBe(8)
     expect(container.textContent).toBe("fast".repeat(8))
-    w.show()
-    await w.frame(100)
-    await w.frame(120)
-    expect(track.style.transform).toMatch(/^translateX\(/)
+    expect(track.style.getPropertyValue("--dk-sv-drift")).toBe("2.000s")
   })
 })
 
@@ -609,15 +612,16 @@ describe("DitherTransferList", () => {
 })
 
 describe("DitherTrueFocus", () => {
-  it("names itself by its text and brings one word into focus at a time, on the kit clock", async () => {
-    render(() => <TrueFocus text="one two" interval={500} blur={4} />)
-    const words = [...screen.getByLabelText("one two").children] as HTMLElement[]
+  it("names itself by its text and turns its focus word by word in its stylesheet", () => {
+    render(() => <TrueFocus text="one two" interval={1000} blur={4} />)
+    const host = screen.getByLabelText("one two")
+    const words = [...host.children] as HTMLElement[]
     expect(words.map((x) => x.textContent)).toEqual(["one", "two"])
-    expect(words.map((x) => x.style.filter)).toEqual(["blur(0)", "blur(4px)"])
-    w.show()
-    await w.run(0, 450)
-    expect(words.map((x) => x.style.filter)).toEqual(["blur(0)", "blur(4px)"])
-    await w.run(500, 500)
-    expect(words.map((x) => x.style.filter)).toEqual(["blur(4px)", "blur(0)"])
+    expect(words.map((x) => x.style.getPropertyValue("--dk-i"))).toEqual(["0", "1"])
+    expect(host.hasAttribute("data-turn")).toBe(true)
+    expect(host.style.getPropertyValue("--dk-n")).toBe("2")
+    expect(host.style.getPropertyValue("--dk-interval")).toBe("1000ms")
+    expect(host.style.getPropertyValue("--dk-fade")).toBe("0.5")
+    expect(host.style.getPropertyValue("--dk-blur")).toBe("4px")
   })
 })

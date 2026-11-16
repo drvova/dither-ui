@@ -5,7 +5,9 @@ import { createInviewLoop } from "./runtime/in-view"
 import "./VariableProximity.css"
 
 export type VariableProximityProps = {
+  /** @default required */
   text?: string
+  /** @docs number (px) */
   radius?: number
   class?: string
 }

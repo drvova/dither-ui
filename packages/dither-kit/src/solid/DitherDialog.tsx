@@ -8,12 +8,15 @@ import "./DitherDialog.css"
 
 export type DitherDialogProps = {
   open: boolean
+  /** @default undefined */
   title?: string
+  /** @default undefined */
   description?: string
   closeOnBackdrop?: boolean
   class?: string
   onClose?: () => void
   footer?: JSX.Element
+  /** @docs content */
   children?: JSX.Element
 }
 

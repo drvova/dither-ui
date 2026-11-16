@@ -3,14 +3,13 @@ import { DitherFocusScope, DitherReveal } from "@dither-ui/kit"
 import { coverPage } from "@dither-ui/kit/engine/cover.ts"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { GROUPS } from "@/pages/docs/groups"
-import { SEAM_HEIGHT, SHEET_WIPE } from "@/widgets/site-header/menu"
-import { SheetHead } from "@/widgets/site-header"
+import { SEAM_HEIGHT, SHEET_WIPE, SheetHead } from "@/widgets/site-header"
 import DocsNav, { type PagePart } from "./DocsNav"
 
 /** The sheet's id: the header key's `aria-controls` names it. */
 export const SHEET_ID = "docs-sheet"
 
-export type DocsSheetProps = {
+type DocsSheetProps = {
   open: boolean
   activeId: string
   parts: PagePart[]

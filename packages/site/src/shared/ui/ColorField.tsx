@@ -11,7 +11,7 @@ type Own = {
   class?: string
   onUpdateModelValue?: (value: DitherColor | string) => void
 }
-export type ColorFieldProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
+type ColorFieldProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
 
 const presets = COLORS as readonly string[]
 

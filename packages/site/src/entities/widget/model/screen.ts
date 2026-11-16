@@ -1,4 +1,4 @@
-import { type ComponentEntry, defaultComponentProps } from "./registry"
+import { type ComponentEntry, componentEntry, defaultComponentProps } from "./registry"
 
 /** One component instance inside a screen row. */
 export type ScreenCell = {
@@ -10,8 +10,8 @@ export type ScreenCell = {
   grow: boolean // flex-1 vs natural width
 }
 
-export type RowAlign = "start" | "center" | "end" | "stretch"
-export type RowJustify = "start" | "center" | "end" | "between"
+type RowAlign = "start" | "center" | "end" | "stretch"
+type RowJustify = "start" | "center" | "end" | "between"
 
 export type ScreenRow = {
   id: string
@@ -31,6 +31,23 @@ export type ScreenModel = {
   rows: ScreenRow[]
   gap: number // vertical gap between rows
   padding: number
+}
+
+/** A row's or a cell's layer id on the canvas, under its frame's id: what
+ * the canvas selects it by and the layer tree lists it as. */
+export const screenLayerId = (frame: string, part: "row" | "cell", id: string): string => `${frame}:${part}:${id}`
+
+/** A screen's layers as the layer tree lists them: each row (`Row 1`, ...)
+ * and under it its cells, named after their components. */
+export function screenLayers(screen: ScreenModel, frame: string): { id: string; label: string; depth: 1 | 2 }[] {
+  return screen.rows.flatMap((row, ri) => [
+    { id: screenLayerId(frame, "row", row.id), label: `Row ${ri + 1}`, depth: 1 as const },
+    ...row.cells.map((cell) => ({
+      id: screenLayerId(frame, "cell", cell.id),
+      label: componentEntry(cell.is)?.label ?? cell.is,
+      depth: 2 as const,
+    })),
+  ])
 }
 
 let counter = 0

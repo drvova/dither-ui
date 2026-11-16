@@ -5,7 +5,7 @@ import { type Block, type Inline, parseProse } from "@/widgets/agent/model/prose
 import "./Prose.css"
 
 // A reply set as prose: its blocks as elements, never as HTML.
-export type ProseProps = { text: string; live?: boolean }
+type ProseProps = { text: string; live?: boolean }
 type Line = Inline[]
 type Of<K extends Block["kind"]> = Extract<Block, { kind: K }>
 

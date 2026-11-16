@@ -25,8 +25,8 @@ const styles = stylex.create({
       default: "transform, translate, scale, rotate",
       "@media (prefers-reduced-motion: reduce)": "none",
     },
-    transitionTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
-    transitionDuration: "150ms",
+    transitionTimingFunction: "var(--ease-pill)",
+    transitionDuration: "var(--duration-pill)",
   },
   text4: { height: "1em", lineHeight: "1" },
   row: { display: "inline-flex", fontVariantNumeric: "   tabular-nums " },
@@ -36,10 +36,15 @@ const styles = stylex.create({
  * new figure whenever `value` changes. Separators stay put. Reduced motion
  * snaps columns without the roll. */
 export type NumberFlowProps = {
+  /** @default required */
   value: number
   decimals?: number
-  /** Roll time per change, ms. */
+  /** Roll time per change, ms; unset, the pill role's (a readout changing
+   * its figures rolls on `--ease-pill` over `--duration-pill`).
+   * @docs number (ms): roll time per change
+   * @default the pill's 300ms */
   duration?: number
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }
@@ -47,7 +52,7 @@ export type NumberFlowProps = {
 const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 export default function NumberFlow(raw: NumberFlowProps) {
-  const props = mergeProps({ decimals: 0, duration: 600 }, raw)
+  const props = mergeProps({ decimals: 0 }, raw)
 
   const chars = createMemo(() => formatFixed(props.value, props.decimals).split(""))
 
@@ -73,7 +78,7 @@ export default function NumberFlow(raw: NumberFlowProps) {
                     {...stylex.props(styles.grid)}
                     style={{
                       transform: `translateY(-${Number(c())}em)`,
-                      "transition-duration": `${props.duration}ms`,
+                      "transition-duration": props.duration === undefined ? undefined : `${props.duration}ms`,
                     }}
                   >
                     <For each={DIGITS}>{(d) => <span {...stylex.props(styles.text4)}>{d}</span>}</For>

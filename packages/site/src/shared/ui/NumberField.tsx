@@ -12,7 +12,7 @@ type Own = {
   class?: string
   onUpdateModelValue?: (value: number) => void
 }
-export type NumberFieldProps = Own & Omit<JSX.LabelHTMLAttributes<HTMLLabelElement>, keyof Own>
+type NumberFieldProps = Own & Omit<JSX.LabelHTMLAttributes<HTMLLabelElement>, keyof Own>
 
 export default function NumberField(raw: NumberFieldProps) {
   const [props, rest] = splitProps(raw, [

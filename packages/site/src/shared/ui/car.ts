@@ -7,10 +7,10 @@
  * at its ends. Its wheels turn a quarter step a frame while it drives.
  * `tests/car.spec.ts` holds its shape. */
 
-import { MASCOT_H, MASCOT_W, type MascotCell, type MascotPose, mascotCells } from "./mascot"
+import { MASCOT_W, type MascotCell, type MascotPose, mascotCells } from "./mascot"
 
 export type CarInk = "body" | "ember" | "glass" | "tyre" | "light"
-export type CarCell = { x: number; y: number; ink: CarInk }
+type CarCell = { x: number; y: number; ink: CarInk }
 
 export const CAR_W = 73
 export const CAR_H = 21
@@ -29,7 +29,7 @@ const OUTLINE: [number, number][] = [
   [71.8, 14.8],
   [68, 16.5],
 ]
-export const WHEELS: [number, number][] = [
+const WHEELS: [number, number][] = [
   [17, 16.4],
   [57, 16.4],
 ]
@@ -131,26 +131,7 @@ export function drivenCells(turn = 0, pose: MascotPose = "idle"): (CarCell | (Ma
   return [...driver, ...car]
 }
 
-/** A row's run of cells of one paint, drawn as one rect. */
-export type Run = { x: number; y: number; w: number; paint: string }
-
-/** Cells merged into runs: along each row, neighbours of the same `paintOf`
- * become one run, so the picture draws in a fraction of the rects and
- * prints the same pixels. */
-export function toRuns<T extends { x: number; y: number }>(cells: readonly T[], paintOf: (c: T) => string): Run[] {
-  const sorted = [...cells].sort((a, b) => a.y - b.y || a.x - b.x)
-  const runs: Run[] = []
-  for (const c of sorted) {
-    const paint = paintOf(c)
-    const last = runs[runs.length - 1]
-    if (last && last.y === c.y && last.x + last.w === c.x && last.paint === paint) last.w++
-    else runs.push({ x: c.x, y: c.y, w: 1, paint })
-  }
-  return runs
-}
-
 /** The picture's box in cells: the car's width, from the driver's top to the wheels. */
 export const DRIVEN_W = Math.max(CAR_W, SEAT.x + MASCOT_W)
 export const DRIVEN_TOP = SEAT.y
 export const DRIVEN_H = CAR_H - SEAT.y
-export { MASCOT_H }

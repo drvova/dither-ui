@@ -17,7 +17,12 @@ const styles = stylex.create({
   },
 })
 
-export type DitherToolbarProps = { label?: string; children?: JSX.Element }
+export type DitherToolbarProps = {
+  /** @default undefined */
+  label?: string
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function DitherToolbar(props: DitherToolbarProps) {
   let root: HTMLDivElement | undefined

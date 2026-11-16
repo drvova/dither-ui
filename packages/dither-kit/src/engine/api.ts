@@ -15,6 +15,19 @@ export {
 } from "./precompile"
 export type { ButtonRasterOptions, GradientRasterOptions } from "./precompile"
 export { createRasterBuffer, putRasterBuffer, setRasterPixel32, setOrBlendRasterPixel } from "./raster"
+export { pngBytes, rasterSrc } from "./png"
+export {
+  matchTone,
+  screenTone,
+  TONE_LEVELS,
+  toneClass,
+  toneMask,
+  tonePatterns,
+  toneTile,
+  toneVar,
+  type ToneMask,
+  type ToneMatch,
+} from "./tone"
 export { clamp, clamp01, SCREENS, SCREEN_KINDS, screenMatrix, type ScreenKind } from "./pixel"
 export type { RasterBuffer } from "./raster"
 export {
@@ -117,9 +130,29 @@ export {
 } from "./transition"
 export { scoreCut, wavBytes, type ScoreAudio, type ScorePlan } from "./score"
 export { ICONS, ICON_NAMES, type IconName } from "./icons"
-export { linear, steps, frameSteps, frameIndex, cssSteps } from "./timing"
-export { directFromHyperframes, directedTime, isDirected, onSeek, release, seek } from "./clock"
-export type { SeekListener } from "./clock"
+export {
+  linear,
+  steps,
+  frameSteps,
+  frameIndex,
+  cssSteps,
+  cssEasing,
+  MOTION_ROLES,
+  ROLE_EASINGS,
+  motionRoleCss,
+} from "./timing"
+export {
+  directAnimation,
+  directFromHyperframes,
+  directedTime,
+  directSmil,
+  isDirected,
+  KIT_KEYFRAMES,
+  onSeek,
+  release,
+  seek,
+} from "./clock"
+export type { SeekListener, SmilTimeline } from "./clock"
 export { planSequence, sampleSequence, staggerDelay } from "./sequence"
 export { CONTAINER_SCALE, resolveCq, quantize } from "./containers"
 export type {
@@ -134,5 +167,5 @@ export type {
   TrackSample,
   TrackState,
 } from "./sequence"
-export type { Easing, StepPosition } from "./timing"
+export type { Easing, MotionRole, StepPosition } from "./timing"
 export type { CqRange, CqScale, CqState } from "./containers"

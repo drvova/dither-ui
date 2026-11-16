@@ -17,7 +17,14 @@ const styles = stylex.create({
 /** The tiny uppercase eyebrow above section titles — 10px, open tracking,
  * muted; the editorial "OVERLINE" register. `faint` shares the muted ink:
  * no text in the kit drops under AA (4.5:1). */
-export type OverlineProps = { tone?: "muted" | "faint"; class?: string; xstyle?: StyleProp; children?: JSX.Element }
+export type OverlineProps = {
+  /** @default "muted" */
+  tone?: "muted" | "faint"
+  class?: string
+  xstyle?: StyleProp
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function Overline(props: OverlineProps) {
   return <span class={cn(styles.text, props.xstyle, props.class)}>{props.children}</span>

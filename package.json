@@ -22,6 +22,7 @@
     "test:watch": "rs test watch",
     "lint": "rs lint",
     "format": "rs fmt",
+    "readme:art": "rs test -u packages/site/tests/readme-art.spec.ts",
     "check": "rs check && npm run typecheck"
   },
   "devDependencies": {

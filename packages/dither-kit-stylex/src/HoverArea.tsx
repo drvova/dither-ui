@@ -8,6 +8,7 @@ import { createSignal, type JSX, splitProps } from "solid-js"
  * `class` and other attrs fall through to the block untouched. */
 export type HoverAreaScope = { readonly hovered: boolean; readonly focused: boolean }
 export type HoverAreaProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> & {
+  /** @docs ({ hovered, focused }) => JSX.Element */
   children?: (scope: HoverAreaScope) => JSX.Element
 }
 

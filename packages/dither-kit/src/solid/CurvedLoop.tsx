@@ -6,7 +6,9 @@ import { createInviewLoop } from "./runtime/in-view"
 import "./CurvedLoop.css"
 
 export type CurvedLoopProps = {
+  /** @default "DITHER UI · CANVAS + BAYER ·" */
   text?: string
+  /** @docs number (units/s) */
   speed?: number
   class?: string
 }

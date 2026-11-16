@@ -11,10 +11,13 @@ const styles = stylex.create({
 })
 
 export type TargetCursorProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   size?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

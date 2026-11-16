@@ -1,4 +1,75 @@
+/* The mascot's poses and motion, in its own cells (a px is a cell here):
+   standing, its figure stands a row down, feet on the ground row; hopping
+   and flying it is up off the ground, a hop with its feet tucked. Alive it
+   blinks every five seconds, a pointer on it hops it once, and flying its
+   rotor steps round a quarter turn every 60ms, by its stylesheet alone;
+   under reduced motion it holds its pose. */
 .mascot-scope.mascot {
   flex-shrink: 0;
   overflow: visible;
+
+  & .mascot-fig {
+    transform: translateY(1px);
+  }
+  &[data-pose="fly"] .mascot-fig,
+  &[data-pose="hop"] .mascot-fig {
+    transform: none;
+  }
+  &[data-pose="hop"] .mascot-feet,
+  & .mascot-lid,
+  & .mascot-turn + .mascot-turn {
+    visibility: hidden;
+  }
+  &[data-pose="blink"] .mascot-lid {
+    visibility: visible;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    &[data-alive] .mascot-lid {
+      animation: mascot-blink 5s steps(1, end) 3.2s infinite;
+    }
+    &:not([data-pose="fly"]):hover .mascot-fig {
+      animation: mascot-hop 220ms steps(1, end);
+    }
+    &:not([data-pose="fly"]):hover .mascot-feet {
+      animation: mascot-tuck 220ms steps(1, end);
+    }
+    & .mascot-turn {
+      animation: mascot-turn 240ms steps(1, end) infinite;
+      animation-delay: calc(var(--turn) * 60ms - 240ms);
+    }
+  }
+}
+
+/* The lid down for 140ms of five seconds. */
+@keyframes mascot-blink {
+  0% {
+    visibility: visible;
+  }
+  2.8%,
+  100% {
+    visibility: hidden;
+  }
+}
+@keyframes mascot-hop {
+  from,
+  to {
+    transform: none;
+  }
+}
+@keyframes mascot-tuck {
+  from,
+  to {
+    visibility: hidden;
+  }
+}
+/* A rotor step shows for its quarter of the turn. */
+@keyframes mascot-turn {
+  0% {
+    visibility: visible;
+  }
+  25%,
+  100% {
+    visibility: hidden;
+  }
 }

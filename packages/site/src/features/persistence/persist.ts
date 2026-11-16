@@ -48,7 +48,7 @@ const applyStored = (key: string): boolean => loadDocument(parseDocument(readJso
 
 let timer: ReturnType<typeof setTimeout> | undefined
 /** Write the current editor state to the active project immediately. */
-export function flushSave(): void {
+function flushSave(): void {
   clearTimeout(timer)
   timer = undefined
   if (!activeProjectId.value) return

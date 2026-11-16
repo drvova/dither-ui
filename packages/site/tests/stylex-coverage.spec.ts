@@ -3,14 +3,19 @@
 // class left (the Studio's exports are held the same way by
 // `tests/site/codegen.spec.tsx`). The only classes allowed to stay are the
 // snippets' own hooks, which their hand-written CSS styles (the kit
-// stylesheet's scope, a class handed to a component, the container-query
-// routes).
+// stylesheet's scope and its dark theme, a class handed to a component, the
+// container-query routes, the motion examples' hooks).
 import { readFileSync, readdirSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "rstack/test"
 import { restyle } from "@dither-ui/restyle"
 
-const OWN_CLASSES = new Set(["dither-kit", "cta", "cq-card", "cq-grid", "readout", "cell"])
+const OWN_CLASSES = new Set([
+  ...["dither-kit", "dark", "cta", "cq-card", "cq-grid", "readout", "cell"],
+  // the sequence, container and stage examples' hooks (their comments say what styles them)
+  ...["seq-cell", "cq-panel", "cq-readout", "cq-bucket", "cq-scan"],
+  ...["stage-demo", "stage-sky", "stage-hills", "far", "near", "stage-moon", "crater", "stage-dot"],
+])
 
 /** What a StyleX rewrite of the snippet's Solid left behind: the classes
  * still written as text, and any class expression that is not StyleX's own. */
@@ -43,7 +48,13 @@ describe("StyleX coverage", () => {
     const left: string[] = []
     let snippets = 0
     // The docs: the pages and their framework-free data.
-    for (const f of files("packages/site/src/pages/docs"))
+    for (const f of files("packages/site/src/pages/docs")) {
+      // an example module is a snippet whole, as the reader takes it
+      if (/\/docs\/[\w-]+\/examples\/[\w-]+\.tsx$/.test(f)) {
+        snippets++
+        left.push(...leftovers(readFileSync(f, "utf8")).map((c) => `${f}: ${c}`))
+        continue
+      }
       for (const m of readFileSync(f, "utf8").matchAll(/`((?:[^`\\]|\\.)*)`/g)) {
         if (!/<[A-Za-z]/.test(m[1]) || !/class=/.test(m[1])) continue
         snippets++
@@ -51,6 +62,7 @@ describe("StyleX coverage", () => {
         const code = m[1].replace(/(?<!\\)\$\{[^}]*\}/g, "x").replace(/\\([`$\\])/g, "$1")
         left.push(...leftovers(code).map((c) => `${f}: ${c}`))
       }
+    }
     expect(snippets).toBeGreaterThan(100)
     expect(left).toEqual([])
   })

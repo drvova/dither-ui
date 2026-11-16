@@ -81,6 +81,7 @@ export function usePolarController(input: PolarControllerInput): PolarChartConte
   const [cursorY, setCursorYSignal] = createSignal(0)
   const [isMouseInChart, setIsMouseInChartSignal] = createSignal(false)
   const [variants, setVariantsSignal] = createSignal<Record<string, VariantInput>>({})
+  const [tooltip, setTooltip] = createSignal(false)
 
   const [revision, setRevision] = createSignal(0)
   createEffect(on([input.data, input.replayToken], () => setRevision((r) => r + 1), { defer: true }))
@@ -165,6 +166,10 @@ export function usePolarController(input: PolarControllerInput): PolarChartConte
     get ready() {
       return ready()
     },
+    get tooltip() {
+      return tooltip()
+    },
+    showsTooltip: setTooltip,
     get tooltipLeft() {
       return Math.max(48, Math.min(plotWidth() + input.margins().left - 48, cursorX()))
     },

@@ -58,39 +58,60 @@ export type ShaderChannel = ChannelInput
 export type DitherShaderApi = { surface: DitherSurface }
 
 export type DitherShaderProps = {
-  /** URL of a .frag / .glsl file. */
+  /** URL of a .frag / .glsl file.
+   * @docs string: URL of a .frag / .glsl file
+   * @default undefined */
   src?: string
-  /** Inline GLSL: Shadertoy `mainImage` or a raw `main`; wins over `src`. */
+  /** Inline GLSL: Shadertoy `mainImage` or a raw `main`; wins over `src`.
+   * @docs string: inline GLSL (Shadertoy mainImage or a raw main); wins over src
+   * @default undefined */
   source?: string
   /** Up to four sources bound as `iChannel0..3`: other kit surfaces (pulled
-   * at the same clock time), or any canvas, image or video. */
+   * at the same clock time), or any canvas, image or video.
+   * @docs (surface | component | canvas | image | video)[]: bound as iChannel0..3; a kit surface is pulled at the same
+   *   clock time, so the graph seeks and renders as one
+   * @default undefined */
   channels?: ShaderChannel[]
-  /** Tint of the mono mode, and `iColor` in the shader. */
+  /** Tint of the mono mode, and `iColor` in the shader.
+   * @docs PixelColor: the mono tint and iColor */
   color?: PixelColor
-  /** A palette ramp, dark to light: luminance picks the band, the Bayer cell dithers between bands. */
+  /** A palette ramp, dark to light: luminance picks the band, the Bayer cell dithers between bands.
+   * @docs PixelColor[]: a palette ramp; luminance picks the band, the Bayer cell dithers between bands
+   * @default undefined */
   colors?: PixelColor[]
-  /** Threshold luminance to 1 bit in `color` instead of keeping the shader's colours. */
+  /** Threshold luminance to 1 bit in `color` instead of keeping the shader's colours.
+   * @docs boolean: 1-bit luminance in color instead of the shader's colours */
   mono?: boolean
-  /** 0 smooth → 1 fully quantized. */
+  /** 0 smooth → 1 fully quantized.
+   * @docs number: 0 smooth → 1 fully quantized */
   dither?: number
-  /** Colour levels per channel (2 = the 8-colour look). */
+  /** Colour levels per channel (2 = the 8-colour look).
+   * @docs number: colour levels per channel (2 = eight colours) */
   levels?: number
-  /** Mono: alpha floor of the unlit cells, 0-1. */
+  /** Mono: alpha floor of the unlit cells, 0-1.
+   * @docs number: in mono, the alpha floor of unlit cells */
   shade?: number
-  /** Multiplies iTime. */
+  /** Multiplies iTime.
+   * @docs number: multiplies iTime */
   speed?: number
-  /** Seeds the dither matrix, `iSeed`, and without src/source the sample shader. */
+  /** Seeds the dither matrix, `iSeed`, and without src/source the sample shader.
+   * @docs number: dither matrix + the sample shader
+   * @default undefined */
   seed?: number
-  /** Backing cell size in CSS px: bigger is chunkier. */
+  /** Backing cell size in CSS px: bigger is chunkier.
+   * @docs number: backing cell in CSS px; the shader runs at this resolution */
   cell?: number
-  /** Feed the pointer to iMouse. */
+  /** Feed the pointer to iMouse.
+   * @docs boolean: the pointer feeds iMouse */
   interactive?: boolean
-  /** Accessible name. */
+  /** Accessible name.
+   * @docs string: accessible name */
   label?: string
-  paused?: boolean
   dpr?: number
-  /** Stop-motion cadence in fps (0 = smooth; see timing.ts). */
+  /** Stop-motion cadence in fps (0 = smooth; see timing.ts).
+   * @docs number: stop-motion cadence in fps (0 = smooth) */
   frameRate?: number
+  paused?: boolean
   renderMode?: DitherRenderMode
   class?: string
   xstyle?: StyleProp

@@ -12,7 +12,7 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 const r1 = (v: number) => Math.round(v * 10) / 10
 
 /** Damp the hand's jitter: each point eases toward the raw input. */
-export function streamline(points: InkPoint[], amount = 0.45): InkPoint[] {
+function streamline(points: InkPoint[], amount = 0.45): InkPoint[] {
   if (points.length < 3) return points.slice()
   const out: InkPoint[] = [points[0]]
   for (let i = 1; i < points.length; i++) {

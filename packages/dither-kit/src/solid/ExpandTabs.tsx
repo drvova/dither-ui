@@ -9,8 +9,13 @@ export type ExpandTab = { value: string; label: string; color?: PixelColor }
  * square glyphs. The label slides through a 0fr -> 1fr column, the house
  * grid trick, stilled under reduced motion. */
 export type ExpandTabsProps = {
+  /** @docs { value, label, color? }[]
+   * @default required */
   tabs: ExpandTab[]
+  /** @docs string (with onUpdateModelValue)
+   * @default required */
   modelValue: string
+  /** @docs PixelColor: active glyph fallback */
   color?: PixelColor
   class?: string
   onUpdateModelValue?: (value: string) => void
@@ -49,7 +54,7 @@ export default function ExpandTabs(raw: ExpandTabsProps) {
               }}
             />
             <span
-              class="grid transition-[grid-template-columns] duration-200 motion-reduce:transition-none"
+              class="grid transition-[grid-template-columns] ease-[var(--ease-pill)] duration-[var(--duration-pill)] motion-reduce:transition-none"
               style={{ "grid-template-columns": props.modelValue === t.value ? "1fr" : "0fr" }}
             >
               <span

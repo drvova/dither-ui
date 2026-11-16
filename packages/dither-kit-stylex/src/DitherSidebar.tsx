@@ -81,26 +81,30 @@ export const SIDEBAR_COLLAPSED = createContext<Accessor<boolean>>(() => false)
 export const SIDEBAR_COMPACT = createContext<Accessor<boolean>>(() => false)
 
 export type DitherSidebarProps = {
-  /** Collapsed state (with `onUpdateModelValue`). Meaning depends on `collapse` mode. */
+  /** Collapsed state (with `onUpdateModelValue`). Meaning depends on `collapse` mode.
+   * @docs boolean: collapsed (with onUpdateModelValue) */
   modelValue?: boolean
   onUpdateModelValue?: (collapsed: boolean) => void
   label?: string
   /** default: edge panel · floating: detached card · inset: bare · washed: dither gradient chrome. */
   variant?: SidebarVariant
-  /** Which edge it sits on — flips the border. */
-  side?: "left" | "right"
   /** rail: folds to icons · hide: folds away entirely · none: no toggle. */
   collapse?: SidebarCollapse
+  /** Which edge it sits on — flips the border. */
+  side?: "left" | "right"
   /** compact tightens rows — dense trees, inspector panels. */
   density?: SidebarDensity
-  /** Hide the built-in rail toggle (permanent rail: collapse="rail" + modelValue). */
+  /** Hide the built-in rail toggle (permanent rail: collapse="rail" + modelValue).
+   * @docs boolean (false: permanent rail) */
   toggle?: boolean
-  /** Wash color for variant="washed". */
+  /** Wash color for variant="washed".
+   * @docs PixelColor (for variant="washed") */
   washColor?: PixelColor
   class?: string
   xstyle?: StyleProp
   header?: JSX.Element
   footer?: JSX.Element
+  /** @docs content */
   children?: JSX.Element
 }
 

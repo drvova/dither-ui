@@ -9,7 +9,14 @@ const styles = stylex.create({
   dynamic: { display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
 })
 
-export type TruncateProps = { as?: string; title?: string; class?: string; xstyle?: StyleProp; children?: JSX.Element }
+export type TruncateProps = {
+  as?: string
+  title?: string
+  class?: string
+  xstyle?: StyleProp
+  /** @docs content */
+  children?: JSX.Element
+}
 
 /** One-line ellipsis. Wraps any content in the `truncate` contract —
  * `title` rides through so native tooltips stay available. */

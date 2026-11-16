@@ -30,6 +30,7 @@ export type DitherPreviewCardProps = {
   delay?: number
   /** What the card hangs from: hovering or focusing it shows the card. */
   trigger?: JSX.Element
+  /** @docs content */
   children?: JSX.Element
 }
 

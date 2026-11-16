@@ -1,3 +1,51 @@
+/* The rise (the user's call; CSS alone, a class on the element that holds
+   it): as a headline comes into view its words come up one after another,
+   24px each on the glide, then what stands with it (`data-rise` on a
+   block) follows. `.rise` runs in step with the scroll, each riser on its
+   own view timeline from the moment its top shows at the window's foot
+   through the next quarter of a screen, a word a step after the one before
+   it and a block after the words (`--rise-n`, its place among the blocks a
+   holder lines up); `.rise-open`, the first screen's, plays as the page
+   opens, 900ms each, the words 60ms apart, then the blocks 90ms apart
+   after the last word (`--rise-words` on the holder). Focus inside a
+   holder stands it all up at once, so a key Tabbed to is never unseen.
+   Without scroll timelines, under reduced motion and with no script at
+   all, everything stands where it is. */
 .rise-words-scope.rise-word {
   display: inline-block;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rise-open [data-rise] {
+    animation: rise 900ms var(--ease-settle) backwards;
+    animation-delay: calc((var(--rise-words, 0) - 1) * 60ms + 120ms + var(--rise-n, 0) * 90ms);
+  }
+
+  .rise-open [data-rise="word"] {
+    animation-delay: calc(var(--rise-word, 0) * 60ms);
+  }
+
+  @supports (animation-timeline: view()) {
+    .rise [data-rise] {
+      --rise-lag: calc(6vh + var(--rise-n, 0) * 3vh);
+      animation: rise auto var(--ease-settle) both;
+      animation-timeline: view();
+      animation-range: entry var(--rise-lag) entry calc(25vh + var(--rise-lag));
+    }
+
+    .rise [data-rise="word"] {
+      --rise-lag: calc(var(--rise-word, 0) * 1.5vh);
+    }
+  }
+
+  :is(.rise, .rise-open):focus-within [data-rise] {
+    animation: none;
+  }
 }

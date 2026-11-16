@@ -1,29 +1,45 @@
+/* A word every interval, in CSS: the words stand stacked in one cell and
+   the host runs one clock, --dk-rot-p from 0 to 1 over a turn of every
+   word. Each word reads where it stands on that turn (a registered integer
+   floors the wrap): it rises in over the lead into its slot, stands, and
+   rises out as the next one comes. Reduced motion keeps the turn and drops
+   the rise: the words crossfade in place. */
+@property --dk-rot-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+@property --dk-rot-wrap {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+@keyframes dk-rot {
+  to {
+    --dk-rot-p: 1;
+  }
+}
 .dither-rotating {
-  display: inline-block;
+  display: inline-grid;
   overflow: hidden;
   vertical-align: bottom;
 }
-.dither-rot-enter-active,
-.dither-rot-leave-active {
-  transition:
-    opacity 300ms cubic-bezier(0.2, 0, 0, 1),
-    transform 300ms cubic-bezier(0.2, 0, 0, 1);
+.dither-rotating[data-turn] {
+  animation: dk-rot calc(var(--dk-n) * var(--dk-interval)) linear infinite;
 }
-.dither-rot-enter-from {
-  opacity: 0;
-  transform: translateY(0.7em);
-}
-.dither-rot-leave-to {
-  opacity: 0;
-  transform: translateY(-0.7em);
+.dither-rot-word {
+  grid-area: 1 / 1;
+  --dk-rot-m: calc(var(--dk-rot-p) * var(--dk-n) - var(--dk-i) + var(--dk-fade));
+  --dk-rot-wrap: calc(var(--dk-rot-m) / var(--dk-n) - 0.5);
+  --dk-rot-u: calc(var(--dk-rot-m) - var(--dk-rot-wrap) * var(--dk-n) - var(--dk-fade));
+  /* 0 to 1 over the lead in, 1 to 0 over the next word's lead */
+  --dk-rot-in: clamp(0, (var(--dk-rot-u) + var(--dk-fade)) / var(--dk-fade), 1);
+  --dk-rot-out: clamp(0, (1 - var(--dk-rot-u)) / var(--dk-fade), 1);
+  opacity: min(var(--dk-rot-in), var(--dk-rot-out));
+  transform: translateY(calc((1 - var(--dk-rot-in)) * 0.7em - (1 - var(--dk-rot-out)) * 0.7em));
 }
 @media (prefers-reduced-motion: reduce) {
-  .dither-rot-enter-active,
-  .dither-rot-leave-active {
-    transition: opacity 200ms;
-  }
-  .dither-rot-enter-from,
-  .dither-rot-leave-to {
+  .dither-rot-word {
     transform: none;
   }
 }

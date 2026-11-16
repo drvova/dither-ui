@@ -13,8 +13,7 @@ import {
   useContext,
 } from "solid-js"
 import { Portal } from "solid-js/web"
-import { project, rubberband, velocityFrom, type VelocitySample } from "@dither-ui/kit/engine/gesture.ts"
-import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
+import { project, velocityFrom, type VelocitySample } from "@dither-ui/kit/engine/gesture.ts"
 import { cn } from "./lib"
 import FocusScope from "./FocusScope"
 import { Presence } from "@dither-ui/kit/solid/runtime/presence.tsx"
@@ -91,11 +90,10 @@ const styles = stylex.create({
   maxH85dvh: { maxHeight: "85dvh" },
   right0: { right: "0px", borderLeftStyle: "solid", borderLeftWidth: "1px" },
   left0: { left: "0px", borderRightStyle: "solid", borderRightWidth: "1px" },
-  selectNone: { WebkitUserSelect: "none", userSelect: "none" },
-  transitionTransformFilter: {
+  box3: {
     transitionProperty: { default: "transform, filter", "@media (prefers-reduced-motion: reduce)": "none" },
     transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-    transitionDuration: "150ms",
+    transitionDuration: "200ms",
   },
   touchPanY: { touchAction: " pan-y " },
 })
@@ -113,19 +111,29 @@ const resolveSnap = (s: number) => (s <= 1 ? s * window.innerHeight : s)
 export type DitherDrawerProps = {
   open: boolean
   side?: DrawerSide
+  /** @default undefined */
   title?: string
-  /** Swipe-to-dismiss gesture on the panel. */
+  /** Swipe-to-dismiss gesture on the panel: where the swipe would carry it
+   * decides, as it is let go (the panel does not follow the finger).
+   * @docs boolean: swipe to dismiss, momentum decides */
   swipe?: boolean
-  /** Bottom sheets only: preset visible heights (0..1 viewport fraction, >1 px). */
+  /** Bottom sheets only: preset visible heights (0..1 viewport fraction, >1 px).
+   * @docs number[]: ≤1 vh fraction, >1 px (bottom)
+   * @default undefined */
   snapPoints?: number[]
-  /** Active snap point (with `onUpdateSnapPoint`). Defaults to the first. */
+  /** Active snap point (with `onUpdateSnapPoint`). Defaults to the first.
+   * @docs number (with onUpdateSnapPoint)
+   * @default first snap */
   snapPoint?: number
-  /** false renders no backdrop and leaves the page interactive. */
+  /** false renders no backdrop and leaves the page interactive.
+   * @docs boolean (false: no backdrop, page stays live) */
   modal?: boolean
-  /** false keeps the drawer open on backdrop clicks (Escape still closes). */
+  /** false keeps the drawer open on backdrop clicks (Escape still closes).
+   * @docs boolean (false: backdrop click ignored) */
   dismissible?: boolean
   onClose?: () => void
   onUpdateSnapPoint?: (snap: number) => void
+  /** @docs content */
   children?: JSX.Element
 }
 
@@ -173,14 +181,11 @@ export default function DitherDrawer(raw: DitherDrawerProps) {
     props.onUpdateSnapPoint?.(s)
   }
 
-  // --- swipe: 1:1 tracking, rubber-band, momentum projection -------------------
+  // --- swipe: read as it is let go, momentum projected -----------------------
   const axis = createMemo(() => (props.side === "bottom" ? "y" : "x"))
   const dismissSign = createMemo(() => (props.side === "left" ? -1 : 1))
-  const [dragging, setDragging] = createSignal(false)
-  const [offset, setOffset] = createSignal(0) // px toward dismissal (negative = upward / rubber-banded)
-  const [settleMs, setSettleMs] = createSignal(200)
+  let swiping = false
   let start = 0
-  let size = 320
   let samples: VelocitySample[] = []
 
   const pos = (e: PointerEvent) => (axis() === "y" ? e.clientY : e.clientX)
@@ -191,68 +196,41 @@ export default function DitherDrawer(raw: DitherDrawerProps) {
     if (t.closest("button, a, input, textarea, select, [data-no-swipe]")) return
     const panel = panelRef
     if (!panel) return
-    setDragging(true)
+    swiping = true
     start = pos(e)
-    size = axis() === "y" ? panel.offsetHeight : panel.offsetWidth
     samples = [{ t: e.timeStamp, p: pos(e) }]
     panel.setPointerCapture(e.pointerId)
   }
   function onMove(e: PointerEvent) {
-    if (!dragging()) return
+    if (!swiping) return
     samples.push({ t: e.timeStamp, p: pos(e) })
     if (samples.length > 6) samples.shift()
-    const d = (pos(e) - start) * dismissSign()
-    if (hasSnaps()) {
-      // Upward headroom until the largest snap, rubber-band past it.
-      const headroom = snapBase()
-      setOffset(d >= -headroom ? d : -headroom - rubberband(-d - headroom, size))
-    } else {
-      setOffset(d >= 0 ? d : -rubberband(-d, size))
-    }
   }
-  function onUp() {
-    if (!dragging()) return
-    setDragging(false)
+  function onUp(e: PointerEvent) {
+    if (!swiping) return
+    swiping = false
+    const panel = panelRef
+    const size = panel ? (axis() === "y" ? panel.offsetHeight : panel.offsetWidth) : 320
     const v = velocityFrom(samples) * dismissSign()
-    // A hard flick settles faster — scale the release duration by swipe strength.
-    setSettleMs(Math.round(200 * Math.min(1, Math.max(0.3, 1 - Math.abs(v) / 3000))))
-    const projected = offset() + project(v)
+    // how far toward dismissal it went, and where its momentum carries it
+    const travelled = (pos(e) - start) * dismissSign()
+    const projected = travelled + project(v)
 
     if (hasSnaps()) {
       // Projected visible height picks the snap; below half the smallest = dismiss.
       const projectedVisible = activeSnapPx() - projected
       const snaps = props.snapPoints!
       const smallest = Math.min(...snaps.map(resolveSnap))
-      if (projectedVisible < smallest * 0.5) {
-        dismiss()
-        return
-      }
-      const nearest = snaps.reduce((a, b) =>
-        Math.abs(resolveSnap(b) - projectedVisible) < Math.abs(resolveSnap(a) - projectedVisible) ? b : a,
+      if (projectedVisible < smallest * 0.5) return props.onClose?.()
+      setSnap(
+        snaps.reduce((a, b) =>
+          Math.abs(resolveSnap(b) - projectedVisible) < Math.abs(resolveSnap(a) - projectedVisible) ? b : a,
+        ),
       )
-      setSnap(nearest)
-      setOffset(0)
       return
     }
-
-    // Velocity sign decides on a flick; projection decides on a slow drag.
-    if (offset() > 0 && (v > 500 || (projected > size * 0.5 && v > -100))) {
-      dismiss()
-    } else {
-      setOffset(0)
-    }
-  }
-  function dismiss() {
-    if (pixelPrefersReducedMotion()) {
-      setOffset(0)
-      props.onClose?.()
-      return
-    }
-    setOffset(size * 1.05)
-    window.setTimeout(() => {
-      props.onClose?.()
-      setOffset(0)
-    }, settleMs())
+    // Velocity sign decides on a flick; projection decides on a slow swipe.
+    if (travelled > 0 && (v > 500 || (projected > size * 0.5 && v > -100))) props.onClose?.()
   }
   function onKeyDown(e: KeyboardEvent) {
     if (e.key !== "Escape" && e.key !== "Esc") return
@@ -260,25 +238,15 @@ export default function DitherDrawer(raw: DitherDrawerProps) {
     props.onClose?.()
   }
 
-  /** 0..1 how far the drawer has been swiped toward dismissal. */
-  const progress = createMemo(() => {
-    const travelled = snapBase() + offset()
-    const total = hasSnaps() ? maxSnapPx() : size
-    return Math.min(1, Math.max(0, travelled / total))
-  })
-
   const panelStyle = createMemo<JSX.CSSProperties>(() => {
     if (childOpen() > 0) {
       const push = props.side === "bottom" ? "translateY(10px)" : `translateX(${12 * dismissSign()}px)`
       return { transform: `${push} scale(0.97)`, filter: "brightness(0.75)" }
     }
-    const style: JSX.CSSProperties = { "transition-duration": `${settleMs()}ms` }
-    if (hasSnaps()) style.height = `${maxSnapPx()}px`
-    const delta = snapBase() + offset()
-    if (delta !== 0) {
-      style.transform = axis() === "y" ? `translateY(${delta}px)` : `translateX(${offset() * dismissSign()}px)`
-    }
-    return style
+    if (!hasSnaps()) return {}
+    // the resting snap: everything below it hidden, moved there by the
+    // panel's transition
+    return { height: `${maxSnapPx()}px`, transform: snapBase() ? `translateY(${snapBase()}px)` : undefined }
   })
 
   /** The panel hears its keys and pointers on itself, never through Solid's
@@ -299,10 +267,6 @@ export default function DitherDrawer(raw: DitherDrawerProps) {
         <div
           aria-hidden="true"
           {...stylex.props(styles.layer)}
-          style={{
-            opacity: dragging() || offset() > 0 ? 1 - progress() : undefined,
-            transition: dragging() ? "none" : undefined,
-          }}
           onClick={() => props.dismissible && props.onClose?.()}
         />
       </Presence>
@@ -320,7 +284,7 @@ export default function DitherDrawer(raw: DitherDrawerProps) {
             props.side === "bottom" ? styles.insetX0 : styles.insetY0,
             props.side === "bottom" && !hasSnaps() ? styles.maxH85dvh : null,
             props.side === "right" ? styles.right0 : props.side === "left" ? styles.left0 : null,
-            dragging() ? styles.selectNone : styles.transitionTransformFilter,
+            styles.box3,
             props.swipe && props.side !== "bottom" ? styles.touchPanY : null,
           )}
           style={panelStyle()}

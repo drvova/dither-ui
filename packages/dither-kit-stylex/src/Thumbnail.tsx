@@ -56,13 +56,23 @@ const styles = stylex.create({
 // flight, clipped by the frame so the zoom never escapes it. zoom-in cursor
 // announces the affordance before the first pixel moves.
 type Own = {
+  /** @docs string: the picture, cover-fit to the frame
+   * @default required */
   src: string
+  /** @docs string: the picture's words and the link's name
+   * @default required */
   alt: string
+  /** @docs string: where the link goes
+   * @default required */
   href: string
-  /** aspect ratio of the frame, width/height — the house default is phi. */
+  /** aspect ratio of the frame, width/height — the house default is phi.
+   * @docs string: the frame's width over its height, any CSS aspect-ratio */
   ratio?: string
-  /** dither veil cell size in css px. */
+  /** dither veil cell size in css px.
+   * @docs number: the Bayer veil's cell in CSS px */
   veilCell?: number
+  /** @docs string: the link's classes; every other link attribute reaches it too
+   * @default undefined */
   class?: string
   xstyle?: StyleProp
 }

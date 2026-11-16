@@ -11,7 +11,7 @@ import { FILM } from "@/pages/landing/film"
 import { assetPath } from "@/shared/lib"
 import "./TrailerDialog.css"
 
-export type TrailerDialogProps = {
+type TrailerDialogProps = {
   /** Whether the film's dialog is open. */
   modelValue: boolean
   onUpdateModelValue?: (open: boolean) => void

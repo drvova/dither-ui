@@ -3,10 +3,14 @@ import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 
 export type SplashCursorProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   maxRadius?: number
+  /** @docs number (ms) */
   duration?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

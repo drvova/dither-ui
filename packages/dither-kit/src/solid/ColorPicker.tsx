@@ -5,6 +5,7 @@ import { cn } from "../tailwind/lib"
  * strip, and a hex readout input — pointer-driven, keyboard on the plane
  * (arrows nudge S/V). Model is the hex string. */
 export type ColorPickerProps = {
+  /** @docs string (hex, with onUpdateModelValue) */
   modelValue?: string
   disabled?: boolean
   class?: string

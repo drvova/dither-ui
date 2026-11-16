@@ -3,6 +3,7 @@
    framework-free specs, its public files and the docs beside the source
    write class names the pages never wear: they stay out of the stylesheet. */
 @import "./app/styles.css";
+@import "./app/print.css";
 @source "./";
 @source "../../dither-kit/src/solid";
 @source "../../dither-kit/src/tailwind/*.ts";

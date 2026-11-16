@@ -5,10 +5,13 @@ import "./FadeContent.css"
 import { latestEntry } from "../engine/visibility"
 
 export type FadeContentProps = {
+  /** @docs number (ms) */
   duration?: number
+  /** @docs number (ms) */
   delay?: number
   blur?: boolean
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

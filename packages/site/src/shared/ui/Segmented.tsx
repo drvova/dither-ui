@@ -12,7 +12,7 @@ type Own<T extends string | number> = {
   class?: string
   onUpdateModelValue?: (value: T) => void
 }
-export type SegmentedProps<T extends string | number> = Own<T> & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own<T>>
+type SegmentedProps<T extends string | number> = Own<T> & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own<T>>
 
 export default function Segmented<T extends string | number>(raw: SegmentedProps<T>) {
   const [props, rest] = splitProps(raw, ["options", "modelValue", "label", "labels", "class", "onUpdateModelValue"])

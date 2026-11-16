@@ -11,10 +11,13 @@ const styles = stylex.create({
 })
 
 export type MagnetProps = {
+  /** @docs number (0-1) */
   strength?: number
+  /** @docs number (px) */
   radius?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

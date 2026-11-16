@@ -9,6 +9,8 @@ import DitherInput, { type DitherInputProps } from "./DitherInput"
  * Shift, Meta + normalized key). Repeat keys are ignored so holding a combo
  * doesn't re-fire. */
 type Own = {
+  /** @docs string (with onUpdateModelValue)
+   * @default "" */
   modelValue?: string
   placeholder?: string
   disabled?: boolean

@@ -50,11 +50,14 @@ const styles = stylex.create({
 
 export type ListBoxProps = {
   options?: string[]
+  /** @docs string (with onUpdateModelValue)
+   * @default "" */
   value?: string
   disabled?: boolean
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
+  /** @docs (value) on commit */
   onSelect?: (value: string) => void
   /** The list's accessible name (passed on to the listbox). */
   "aria-label"?: string

@@ -14,7 +14,9 @@ const styles = stylex.create({
 export type BlurTextProps = {
   text?: string
   by?: "words" | "chars"
+  /** @docs number (ms) */
   stagger?: number
+  /** @docs number (ms) */
   duration?: number
   class?: string
   xstyle?: StyleProp

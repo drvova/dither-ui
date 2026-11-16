@@ -11,7 +11,7 @@ export default function Example() {
   const [on, setOn] = createSignal(true)
 
   return (
-    <div class={\`flex items-center gap-2 \${on() ? 'bg-card' : 'opacity-60'}\`}>
+    <div class={\`flex items-center gap-2 \${on() ? 'bg-card' : 'opacity-0'}\`}>
       <span class="text-[13px]" style="color: red">Bloom</span>
       <DitherButton class="w-full dither-kit" onClick={() => setOn(!on())}>Go</DitherButton>
       <b class={on() ? 'underline' : ''}>x</b>
@@ -27,8 +27,8 @@ const SHEET = `.row {
 .bgCard {
   background-color: var(--card);
 }
-.opacity60 {
-  opacity: 60%;
+.opacity0 {
+  opacity: 0%;
 }
 .text {
   font-size: 13px;
@@ -57,7 +57,7 @@ export default function Example() {
   const [on, setOn] = createSignal(true)
 
   return (
-    <div class={\`row \${on() ? 'bgCard' : 'opacity60'}\`}>
+    <div class={\`row \${on() ? 'bgCard' : 'opacity0'}\`}>
       <span class="text">Bloom</span>
       <DitherButton class="button dither-kit" onClick={() => setOn(!on())}>Go</DitherButton>
       <b class={on() ? 'underline' : ''}>x</b>
@@ -77,7 +77,7 @@ export default function Example() {
   const [on, setOn] = createSignal(true)
 
   return (
-    <div class={\`\${styles.row} \${on() ? styles.bgCard : styles.opacity60}\`}>
+    <div class={\`\${styles.row} \${on() ? styles.bgCard : styles.opacity0}\`}>
       <span class={styles.text}>Bloom</span>
       <DitherButton class={\`\${styles.button} dither-kit\`} onClick={() => setOn(!on())}>Go</DitherButton>
       <b class={on() ? styles.underline : ''}>x</b>
@@ -97,7 +97,7 @@ import * as stylex from "@stylexjs/stylex"
 const styles = stylex.create({
   row: { display: "flex", alignItems: "center", gap: "0.5rem" },
   bgCard: { backgroundColor: "var(--card)" },
-  opacity60: { opacity: "60%" },
+  opacity0: { opacity: "0%" },
   text: { fontSize: "13px", color: "red" },
   button: { width: "100%" },
   underline: { textDecorationLine: "underline" },
@@ -107,7 +107,7 @@ export default function Example() {
   const [on, setOn] = createSignal(true)
 
   return (
-    <div {...stylex.props(styles.row, on() ? styles.bgCard : styles.opacity60)}>
+    <div {...stylex.props(styles.row, on() ? styles.bgCard : styles.opacity0)}>
       <span {...stylex.props(styles.text)}>Bloom</span>
       <DitherButton class={\`\${stylex.props(styles.button).className} dither-kit\`} onClick={() => setOn(!on())}>Go</DitherButton>
       <b {...stylex.props(on() ? styles.underline : null)}>x</b>

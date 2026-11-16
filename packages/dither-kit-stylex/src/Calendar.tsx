@@ -95,8 +95,11 @@ const styles = stylex.create({
  * YYYY-MM-DD model so timezone math never enters the picture. Today gets a
  * ring, the selected day gets the fill. */
 export type CalendarProps = {
+  /** @docs string (ISO date, with onUpdateModelValue) */
   modelValue?: string
+  /** @docs string (ISO) */
   min?: string
+  /** @docs string (ISO) */
   max?: string
   disabled?: boolean
   class?: string

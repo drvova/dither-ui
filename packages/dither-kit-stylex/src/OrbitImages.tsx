@@ -27,12 +27,17 @@ const styles = stylex.create({
 })
 
 export type OrbitImagesProps = {
+  /** @default ['A', 'B', 'C', 'D', 'E'] */
   items?: string[]
+  /** @docs number (px) */
   radius?: number
+  /** @docs number (s) */
   duration?: number
+  /** @docs number (px) */
   size?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

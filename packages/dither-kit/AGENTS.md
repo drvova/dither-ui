@@ -17,8 +17,8 @@ package's paths are from the repository's root.
   step-timing primitives, the sequence timeline algebra, the clock director,
   the wipe engine (ordered-dither masks), the keyframe engine (container
   units), the score engine (a film's soundtrack from its cut),
-  container-query scales, chart roots/contexts, canvas painters, and the
-  public component set.
+  container-query scales, chart roots/contexts and the charts' SVG print,
+  canvas painters, and the public component set.
 - Consumers import ONLY what `package.json` `exports` declares: the Solid
   layer's index (`@dither-ui/kit`, `src/solid/index.ts`; a reader who copied
   `src/` aliases `@dither-kit` to its `solid/`), the engine's public API
@@ -41,16 +41,12 @@ generated twin. Inside the kit every import is relative
 
 - `engine/` — every module that carries no class name and no framework:
   palette, pixel, raster, the painters and backgrounds' renderers, the
-  chart paint loops (`cartesian-loop.ts`, `bar-loop.ts`, `pie-loop.ts`,
-  `radar-loop.ts`: `startCartesianLoop`, `startBarLoop`, `startPieLoop`,
-  `startRadarLoop`, over `chart-loop.ts`: the canvases at the backing
-  size, the timed entrance, the frames a loop is driven on, and the
-  bar, pie and radar charts' whole draw, `startChartLoop`, around a
-  family's own `paint`), the one rule for when a chart's held fill is stale
-  (`chart-fill.ts`) and the chart family's types (`chart-types.ts`),
+  charts' print (`chart-svg.ts`, the Charts contract below) and the chart
+  family's types (`chart-types.ts`),
   timing, sequence, clock, wipe, keyframes, score, parsers and GL engines,
   `copy-text.ts`, `theme.css`, `theme.ts` and `base.css` (the scoped
-  box-model base every layer assumes). It imports only `d3-*` and itself,
+  box-model base every layer assumes), `tone.ts` and the stylesheet it
+  writes, `tones.css` (the dither as class names). It imports only `d3-*` and itself,
   never a framework or a styling layer (`tests/solid-kit.spec.ts`).
   Behaviour lives here: where a
   runtime must follow a component's lifecycle, a core holds the behaviour
@@ -75,6 +71,8 @@ generated twin. Inside the kit every import is relative
   `surface.ts` (`createDitherBackground`, the surface loop bound to a
   component), `screen.ts` (the print screen as context: `useScreen`,
   `useDitherMatrix`, `useLabelMatrix`, `useVariantMatrix`),
+  `fill-layers.tsx` (`LabelFill`: a labelled fill's layers as tone
+  classes, with `fill-layers.css`, its one stylesheet),
   `visibility.ts` and `in-view.ts` (the loop gates: `createCanvasVisibility`,
   `createInviewLoop`), `kit-time.ts` (`createKitTime`: the kit clock's
   moment as a signal for a component that changes on a cadence; see the
@@ -84,13 +82,13 @@ generated twin. Inside the kit every import is relative
   names, `<name>-enter-from` / `-enter-active` / `-enter-to` and the three
   `-leave-*`, so a transition is a plain stylesheet), and the chart
   family's (`chart-context.ts`, `common-context.ts`, `polar-context.ts`,
-  `series-context.ts`, `use-chart-dimensions.ts`, `plot-canvas.tsx`
-  (`PlotCanvas`: every family's dither and bloom canvases, or the
-  precompiled image, and its loop started, restarted and woken) under
-  `cartesian-canvas.tsx`, `bar-canvas.tsx` and `polar-canvas.tsx` (the
-  pie's and the radar's, one canvas over each one's loop and fill), and
-  `chart-layer.tsx`, which sorts a chart root's children into its back,
-  drawing and DOM layers).
+  `series-context.ts`, `use-chart-dimensions.ts`, `chart-plot.tsx`
+  (`PlotFrame`: every family's print at the margins, or the precompiled
+  image, the bloom over it and its marks; `Cells`, `Inks`) under
+  `cartesian-plot.tsx`, `bar-plot.tsx` and `polar-plot.tsx` (the pie's
+  and the radar's), and `chart-layer.tsx`, which sorts a chart root's
+  children into its back, front and DOM layers and stacks them in the
+  root's one `<svg>`).
   Conventions: props are never destructured (defaults through `mergeProps`,
   a control's own props apart from the element's through `splitProps`, the
   rest spread on the element so listeners and ARIA reach it); elements are
@@ -144,6 +142,35 @@ generated twin. Inside the kit every import is relative
   view and wake as the cover lifts; loops inside the covering layer run on.
   `tests/surface-loop.spec.ts` and the cover's cases in
   `tests/solid/carried.spec.tsx`.
+- UI motion is class names (the user's call: "no JS, class names"): what
+  a component's DOM does as it moves (a panel's height, an overlay's
+  entrance, a word turning, letters typed or decrypted, a count rolling, a
+  stagger, a marquee, a hold's fill, a swell under the pointer) is a CSS
+  transition or `@keyframes` in the component's own stylesheet, its state
+  an attribute or a class the component sets (`data-open`, `data-hold`,
+  `data-decrypt`, `data-turn`, ...), its numbers custom properties written
+  once per state (`--dk-interval`, `--dk-from`), and
+  `prefers-reduced-motion` turning it off in the stylesheet. A cadence the
+  stylesheet cannot count runs on one registered custom property per
+  component animated from 0 to 1 (`--dk-focus-p`, `--dk-rot-p`,
+  `--dk-type-p`, `--seq-p`) and read in `calc()`, a registered
+  `<integer>` flooring its wrap. Every keyframe is named `dk-*` (the clock
+  holds them by that name). What runs frames in JS is only: the dither on
+  a canvas, the wipe's dithered mask (`DitherReveal`), the scene clock its
+  painters read (`DitherStage`), a pointer the product follows
+  (`BlobCursor`, `TextCursor`, `TextPressure`, `VariableProximity`; the
+  pointer-driven `Magnet`, `MagnetLines`, `SnapButton`, `Crosshair`,
+  `TargetCursor` and controls a finger moves, `SlideAction`,
+  `DitherSlider`, `Knob`, write a transform from the pointer and run no
+  loop), a frame that moves nothing, and `CurvedLoop` (left for the
+  user's decision: text riding an SVG curve is textPath's `startOffset`,
+  which CSS cannot animate). Following a drag is dropped where it was
+  decoration (`DitherDrawer`, `CardStack`, `WheelPicker`'s mouse drag): the
+  swipe is read as it is let go and CSS carries the rest. Scroll-linked
+  motion (`ScrollReveal`, `ScrollFloat`, the `WheelPicker` drum,
+  `ScrollVelocity`'s push) is a scroll or view timeline, standing still
+  where the browser has none. Held by `tests/css-motion.spec.ts` (each
+  piece still running frames listed with why; every keyframe `dk-*`).
 - Motion: `src/engine/spring.ts` is Apple's smooth spring (critically damped,
   from rest, settling to within a thousandth by its end, never past its
   mark; one shape at every duration), the `"spring"` easing name in
@@ -153,6 +180,16 @@ generated twin. Inside the kit every import is relative
   `dither-paint.ts`) leaves at full speed and settles long and soft,
   never past its mark; the site eases everything on it
   (`packages/site/tests/motion.spec.ts`).
+- Icons: `src/engine/icons.ts` is the one glyph table; `iconSymbols()`
+  writes it as `<symbol>`s (`iconSymbolId`, bare paths: the stroke, its
+  width, caps and joins come from the svg that uses a symbol).
+  `DitherIcon` draws its own paths, so a copied kit needs no sprite; under
+  the `IconSprite` context it is one `<use>` of the sprite the context
+  names: a file's URL (an app's own sprite carrying `iconSymbols()`) or
+  `""` for a `DitherIconSet` mounted in the page; `null` again inside a
+  subtree drawn to an image. The Icon cases of
+  `tests/solid/carried.spec.tsx` and the IconSet case of
+  `tests/solid/w2part7.spec.tsx`.
 
 - `DitherCommand` is modal: Escape closes, Tab never leaves it (focus
   returns to its input; the list is arrow-driven), focus restores to the
@@ -210,12 +247,9 @@ generated twin. Inside the kit every import is relative
   it provides (`ScreenContext`; Bayer without one), seeded as ever;
   the charts' contexts expose the same as `matrixOf(variant)`
   (`useVariantMatrix`, `resolveMatrix` when no screen is around). A
-  screen that changes reprints a chart through `engine/chart-fill.ts`:
-  `seriesFill`, `pieFill` and `radarFill` name everything a family's
-  fill is printed from, each series' matrix among it; a loop reprints
-  when that differs from the fill it holds, and the family's canvas
-  reads the same function in its wake list, so a new input to the fill
-  is added there once. A fill
+  screen that changes reprints a chart: its print is a memo over what it
+  reads, `matrixOf` among it, so a new matrix prints new inks and the
+  same matrix the same. A fill
   that carries a label (badge, toggle, button) keeps Bayer through
   `useLabelMatrix`, because a hatch under type breaks its letters.
   `precompile.ts` takes a `screen` option for surfaces that raster
@@ -228,8 +262,21 @@ generated twin. Inside the kit every import is relative
   `frameSteps` derives a `frame(fps)` cadence, `frameIndex` is the wall-clock
   frame gate drivers paint through, and `cssSteps` serializes one config for
   the CSS surface so JS and CSS can never disagree. Drivers pick cadence and
-  own the clock — the engine never reads time itself.
-  `tests/timing.spec.ts` holds the MDN step-graph parity table; change code
+  own the clock — the engine never reads time itself. It also holds the
+  four motion roles (the user's call, the scoped exceptions to the glide):
+  `MOTION_ROLES` (`travel`, a hop along a path, 420 to 620ms; `reorder`,
+  cards changing places; `pill`, a value pill changing its text, size or
+  place; `bump`, a receiver's pulse on an arrival, the one curve past its
+  mark), `ROLE_EASINGS` (`cssEasing` spells each) and `motionRoleCss()`,
+  the lines `theme.css` carries as `--ease-<role>` / `--duration-<role>`,
+  beside the roles' keyframes `dk-travel` (`--dk-from` to `--dk-to`) and
+  `dk-bump` (from `--dk-bump-from`). A component moves on a role only when
+  its motion truly is that role (CardStack and NotificationStack reorder;
+  the tabs' marker, the nav menu's underline, ExpandTabs, NumberFlow, the
+  wallet's figures and the preview rail's label are pills); everything
+  else keeps its own curve or the glide.
+  `tests/timing.spec.ts` holds the MDN step-graph parity table and the roles
+  against `theme.css`; change code
   and table together.
 - `sequence.ts` is the pure timeline algebra — the many-animations engine.
   Four node kinds (`track` | `serial` | `parallel` | `stagger`) flatten once
@@ -239,16 +286,19 @@ generated twin. Inside the kit every import is relative
   `steps()` composes into a sequence. Stagger origins (`start`/`center`/`end`/
   `edges`/index) live in the exported `staggerDelay`. Yoyo settling is
   continuous with the active legs: odd `loop` ends at 1, even at 0 — never
-  jump a settled track. `Sequence.tsx` is the shared driver: it snapshots
-  its children at start (rebuild via `restartKey`), writes `--seq-p` (eased,
-  `toFixed(4)`) + `data-seq` per child with change-skipping, and owns an
-  rAF clock whose first frame is dt 0 and whose wake has no time jump —
-  the surface loop's semantics. IO gate and reduced-motion floor mirror
-  `AnimatedContent`; the `frameRate` gate mirrors the background runtime with
-  completion checked BEFORE the gate. `tests/sequence.spec.ts` (algebra) and
-  the `Sequence` cases of `tests/solid/carried-motion.spec.tsx`
-  (driver, hand-stepped frames — respect the 100ms dt cap when stepping
-  fake time) pin both halves.
+  jump a settled track. `Sequence.tsx` is the same stagger in CSS
+  (`Sequence.css`): at start (again on `restartKey`) it lays each child's
+  `staggerDelay` as `--seq-delay` and the group's duration, loops, yoyo
+  (`alternate`) and easing as custom properties, and every child plays
+  `dk-seq`, the registered `--seq-p` from 0 to 1 a cycle; `data-seq`
+  (before/active/done) is read off the child's animation as its events
+  fire, and `onComplete` once every child is done. The easing is a CSS
+  timing function or one of `timing.ts`'s (`cssEasing`: `linear` and
+  `steps()` know their CSS; another function plays linear); `frameRate`
+  steps a cycle in its place. It starts on view, holds while paused or out
+  of view; reduced motion stands every child at its end (`--seq-end`).
+  `tests/sequence.spec.ts` (algebra) and the `Sequence` cases of
+  `tests/solid/carried-motion.spec.tsx` pin both halves.
 - `clock.ts` is the director — external ownership of time. Free-running,
   every animated surface owns its own rAF loop on wall time. `seek(ms)`
   directs them: the loops stand down and each surface paints exactly the
@@ -263,29 +313,45 @@ generated twin. Inside the kit every import is relative
   render with one worker; a moment that is not the next step, the first
   included, prints on a clean raster), holds a paused surface on its
   first frame (clock 0) whatever the moment, and prints the moment again
-  when what its frame read changes (`holds()` is true while directed); the chart canvases run the entrance from
-  composition time 0 and derive the sparkle tick from the moment;
-  `Sequence` samples its plan at the moment; spinner, skeleton, progress,
-  avatar, `CountUp` and `CurvedLoop` are pure functions of the moment;
-  `DecryptedText` runs its reveal at 60 frames per second of the moment with
-  a hashed glyph instead of `Math.random`. A component that changes on a
-  cadence reads the moment from `src/solid/runtime/kit-time.ts`
-  (`createKitTime(host, reduced)`: the run's own ms, advanced by frames
-  while in view, a step at most 100ms, at 0 under reduced motion unless
-  `"run"`; the directed moment, no frames, while directed; on release the
-  run goes on from where it stood) and derives what it shows from it,
-  never a `setInterval` or `setTimeout` chain: `RotatingText` (a word an
-  `interval`; directed, the moment's word stands without its crossfade),
-  `TrueFocus` (a word in focus an `interval`), `TextType` (`typedAt`: the
-  lead, letters typed, the hold, letters deleted, the gap, line by line),
-  `Antigravity` (`moteAt`: hashed motes rising, drifting and swaying in
-  closed form, coming back under the box at a hashed place each lap) and
-  `ScrollVelocity`'s drift (`baseSpeed` px a second of the moment; the
-  scroll's push is the reader's hand, added free-running only). Pointer-
-  and scroll-driven motion (hover lifts, cursors, `HoldAction`) stays free:
-  a renderer has no input. CSS
-  keyframe and transition motion is not the clock's — HyperFrames seeks it
-  itself through WAAPI. `directFromHyperframes()` takes direction from
+  when what its frame read changes (`holds()` is true while directed); a
+  chart's entrance and sparkles are `dk-*` CSS animations
+  (`solid/chart.css`), directed like the rest below; spinner, skeleton, progress, avatar and `CurvedLoop` are pure functions
+  of the moment. A canvas that changes on a cadence reads the moment from
+  `src/solid/runtime/kit-time.ts` (`createKitTime(host, reduced)`: the
+  run's own ms, advanced by frames while in view, a step at most 100ms, at
+  0 under reduced motion unless `"run"`; the directed moment, no frames,
+  while directed; on release the run goes on from where it stood), never a
+  `setInterval` or `setTimeout` chain: `Antigravity` (`moteAt`: hashed
+  motes rising, drifting and swaying in closed form, coming back under the
+  box at a hashed place each lap). The kit's CSS motion is the clock's
+  too, held in one place, `clock.ts`'s `directAnimation` (exported for
+  every piece that animates in CSS, the charts' entrance included): on
+  every `seek`, each CSS animation in the document named `dk-*`
+  (`KIT_KEYFRAMES`) is paused with its `currentTime` at the moment (delay
+  included, so a stagger lands where a free run puts it then; an
+  animation that starts on view runs from the composition's 0, as a
+  surface does), every running CSS transition is finished (a fresh mount
+  has none in flight), and one started while directed is held as its
+  `animationstart`/`transitionrun` fires; release plays the held ones on
+  from the moment. Scroll-driven animations are left alone (their time is
+  the scroll). HyperFrames seeks a page's animations through the same Web
+  Animations API to the same moment, so the two agree. So `RotatingText`,
+  `TrueFocus`, `TextType`, `DecryptedText` (a hashed glyph a frame at
+  60 a second), `CountUp`, `Sequence` and `ScrollVelocity`'s drift show
+  their moment exactly, proven in Chromium by
+  `packages/site/tests/site/css-motion.spec.ts` (each against the JS
+  driver's old model, forwards and back, mounted before the moment and
+  after it, and released).
+  SMIL is the clock's too: `directSmil(svg)` (in `api.ts`) pauses an
+  outermost `<svg>`'s timeline at each directed moment (`setCurrentTime`)
+  and lets it play on at the release, so a filter that SVG moves itself
+  (`ElectricBorder`'s and `FuzzyText`'s turbulence) prints the same frame
+  for the same moment; every component that renders an `<animate>`
+  directs its SVG in `onMount` (`tests/design-doc.spec.ts` at the root
+  finds them), and its first value is the still attribute, so a timeline
+  that never runs (Firefox freezes SMIL on a page without script) shows the
+  same filter (the cases in `tests/solid/w2part0.spec.tsx` and
+  `w2part1.spec.tsx`). `directFromHyperframes()` takes direction from
   HyperFrames' `hf-seek` events (`detail.time` seconds): the contract the
   Studio's video export and `src/pages/play` rely on. Pinned by
   `tests/clock.spec.ts` and the directed cases in
@@ -302,6 +368,16 @@ generated twin. Inside the kit every import is relative
   the screen, the theme and the box changed in place against a fresh
   mount, both directed to one moment; `tests/support/paint.ts` reads what
   a canvas shows).
+- The theme is CSS, never a canvas's input: a canvas paints the palette's
+  fills (`fillOf`, a series' colour, a ramp) over a clear ground and reads
+  no theme token, class or scheme, so a theme turn repaints nothing (the
+  measured toggle: no paint beyond what was already moving, on the
+  landing, the docs and the Studio). Art in the theme's inks is DOM or
+  SVG (`currentColor`, `var(--foreground)`) and turns with the root's
+  class. A component that needs a theme ink in a canvas is a CSS layer
+  over it instead. Pinned by the "theme costs no paint" case of
+  `packages/site/tests/site/paint-law.spec.tsx` (every registry row the
+  same pixels before and after `.dark`).
 - `wipe.ts` is the wipe engine — ordered-dither reveal masks for any DOM.
   `wipeStyle(progress, { cell, seed?, direction, band, width, height })`
   turns a progress into CSS `mask-image/size/repeat/position` values: a
@@ -323,6 +399,11 @@ generated twin. Inside the kit every import is relative
   loop, its delay waited out before the first play and a pause resuming
   where it left off, the kit clock's moment when directed, shown at once under reduced
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
+  A server writes no mask on a hidden reveal: `DitherReveal.css` hides it
+  under `@media (scripting: enabled)` until the script's first frame
+  writes the mask inline, so a page read without a script shows what it
+  holds (`packages/site/tests/site/page-reading.spec.tsx` reads every
+  built page for art masked shut).
   The Studio's reels cut between frames with it. Pinned by
   `tests/wipe.spec.ts` and the `DitherReveal` cases of
   `tests/solid/carried-motion.spec.tsx`.
@@ -387,7 +468,7 @@ generated twin. Inside the kit every import is relative
   Tailwind's utilities with `source(none)` and `@source` limited to
   `@dither-ui/kit/tailwind/` and `@dither-ui/kit/solid/`, in the
   `dither-kit.theme/base/utilities` layers; `packages/tasks/src/kit-css.mjs`
-  (`buildKitCss`, called by the site's post-build; `npm run build:css` writes
+  (`buildKitCss`, called by the site's build, `kitAdd`; `npm run build:css` writes
   the file alone) compiles it with `@tailwindcss/node` + `oxide` into
   `kit/dither-kit.css` in the site's build (served at `/kit/dither-kit.css`),
   so an app on UnoCSS, vanilla CSS or any CSS-in-JS runs the Solid layer by
@@ -413,7 +494,8 @@ generated twin. Inside the kit every import is relative
   and `IntersectionObserver` guarded (no gate → play), `document.fonts`
   optional, `text-wrap`/`content-visibility`/`scrollbar-*` progressive,
   masks in both spellings (`DitherReveal` sets `mask-*` and
-  `-webkit-mask-*`),
+  `-webkit-mask-*`; `tones.css` writes `mask` and `-webkit-mask`, each
+  composite in its own keywords),
   `-webkit-background-clip` beside the standard one. `copy-text.ts`'s `copyText`
   is the one clipboard path: the async clipboard where it exists, else the
   selection + `execCommand` route (plain http, older engines, automation),
@@ -586,7 +668,14 @@ generated twin. Inside the kit every import is relative
   whole cells and lets go of what leaves). Not `PixelTrail` (coarse blocks fading by alpha,
   one cell per event). Guarded by `tests/heat-trail.spec.ts`.
 - `world.ts` + `models.ts` + `world-gl.ts` + `DitherWorld.tsx` are the 3D
-  surface. `models.ts` parses model files into a `World`, bounded against
+  surface. `models.ts` is the parsers' entry (`MODEL_FORMATS`, `formatOf`,
+  `sniffFormat`, `externalResources`, `parseWorld`) over one file a format
+  in `models/` (`vrml-grammar.ts`: the tokenizer, the node grammar and a
+  node's field readers; `vrml.ts`: VRML97 / X3D classic and 1.0 nodes into
+  a world; `x3d.ts`, `gltf.ts`, `obj.ts`, `stl.ts`, `ply.ts`, `off.ts`;
+  `shared.ts`: bytes and text, the default grey, a ring's mean colour,
+  `MAX_NODES`, `splatWorld`), every public name handed on from
+  `models.ts` as before. It parses model files into a `World`, bounded against
   a hostile file: a scene graph is walked for at most `MAX_NODES` (shared
   DEF/USE instances counted each time), a list or face a file declares is
   held to the tokens it carries, an ElevationGrid to 1024 posts a side;
@@ -637,14 +726,18 @@ generated twin. Inside the kit every import is relative
   chain (also X3D's `<ROUTE>`) makes that Transform a `WorldNode` whose
   tracks hold keys in seconds (key × cycleInterval, loop, startTime);
   everything static between nodes folds into the node's `pre` matrix and
-  static meshes stay baked. `world.ts` is the engine: column-major mat4 +
-  quaternion math (`composeTransform` = T·C·R·SR·S·-SR·-C), the VRML
-  primitives (y up, CCW outward), `addMesh` (bakes the matrix, reverses
+  static meshes stay baked. `world.ts` is the engine, standing on files of
+  its own that it re-exports under the names it always exported:
+  `world-math.ts`, column-major mat4 +
+  quaternion math (`composeTransform` = T·C·R·SR·S·-SR·-C); `world-shapes.ts`,
+  the VRML primitives (y up, CCW outward); `world-scene.ts`, the `World`
+  and its types, `addMesh` (bakes the matrix, reverses
   rings for `ccw FALSE` or a mirroring matrix, fan-triangulates, keeps
   polygon outline edges with their owning triangle, registers colours),
   `sampleTrack` (lerp / step / shortest-path slerp, looping or clamped),
   `nodeMatrices(world, t)` (cached per time), `posedPositions`,
-  `finishWorld`, `cameraOf` (orbit camera around the sphere: `yaw`/`pitch`
+  `finishWorld`; `world-sample.ts`, `sampleWorld` (below). `world.ts`
+  itself holds `cameraOf` (orbit camera around the sphere: `yaw`/`pitch`
   degrees, `zoom` 1 frames the sphere, eye never inside it, camera-space
   lights) and the two-stage renderer: stage one fills a `WorldTarget`
   (shade 0-1, depth from the eye, palette index + 1) — `rasterizeWorld` is
@@ -911,8 +1004,9 @@ generated twin. Inside the kit every import is relative
   one around it, else Bayer. Pinned by `tests/poster.spec.ts`.
 - `format-number.ts` (`formatFixed`) is how a counter
   prints a number with its decimals fixed: one `Intl.NumberFormat` a
-  precision, made once (`toLocaleString` with options built one a call, a
-  rolling `CountUp` one a frame); `CountUp` and `NumberFlow` use it.
+  precision, made once; `CountUp` (an odometer column a digit, rolling from
+  where `from` stands to `to` on an ease-out, `countPlaces`) and
+  `NumberFlow` use it.
 - `noise.ts` is the single source for the 2D value-noise/fbm those surfaces use;
   `sampleRgbGradient` in `palette.ts` is the single out-param colour-ramp
   sampler they tint with. Add new generative backgrounds on top of both — never
@@ -924,16 +1018,12 @@ generated twin. Inside the kit every import is relative
   a column alone (an aurora's curtain edge) is worked out once per column
   a frame, never once per cell.
 - Perf seams (measured on the docs page, 6x-throttled mobile):
-  `ScrollReveal` measures via `getBoundingClientRect` at most once per frame
-  (rAF-coalesced; its first measure lands before first paint — a direct
-  mount-time call measured the whole dirty document for ~2s), and
   `DitherImage` defers its `src` fetch behind an IntersectionObserver
   (400px rootMargin, eager fallback when the observer or element is missing) —
   never pull the source at mount when the frame is offscreen.
 - Loop visibility contract: self-scheduling rAF loops in the text/animation
   family (CurvedLoop, TextCursor, TextPressure, VariableProximity,
-  GhostCursor, BlobCursor; and through `createKitTime` RotatingText,
-  TrueFocus, TextType, ScrollVelocity, Antigravity) run through
+  GhostCursor, BlobCursor; and through `createKitTime` Antigravity) run through
   `src/solid/runtime/in-view.ts` (`createInviewLoop`) — `start` only on the
   first IntersectionObserver hit,
   `stop` when the host leaves, `start` idempotent, never an optimistic start
@@ -946,8 +1036,8 @@ generated twin. Inside the kit every import is relative
   `\u00a0`), so a sentence breaks between words, never inside one, and
   the letters stay the root's only element children for the frame walk.
 - Text animations (`GradientText`, `ShinyText`, `GlitchText`, `SplitText`,
-  `RotatingText`, `CountUp`, ...) are a separate family: pure DOM/CSS (or a small
-  rAF for counting), NOT canvas/Bayer. They still ship as `Dither*` exports,
+  `RotatingText`, `CountUp`, ...) are a separate family: DOM and CSS, NOT
+  canvas/Bayer. They still ship as `Dither*` exports,
   register in `COMPONENT_REGISTRY`, and must honour `prefers-reduced-motion`
   (CSS `@media` or `pixelPrefersReducedMotion`). Wrapping effects take arbitrary
   text as children; char/number effects take a `text`/`to` prop. Docs live in
@@ -990,17 +1080,12 @@ generated twin. Inside the kit every import is relative
   the flag (they only use `drawImage`).
 - Standalone components must defer their initial `getBoundingClientRect()` to
   `requestAnimationFrame` to avoid a forced reflow when
-  many components mount simultaneously. `DitherButton` defers `init()` via RAF
-  with a `restartToken` guard and sizes its canvas from its ResizeObserver's
-  report (`borderBoxSize`), never a read of its box, so a wall of buttons
-  starting together forces no layout (a static button, without one, reads
-  once). `DitherToggleGroup` defers `paintAll()` via RAF.
+  many components mount simultaneously.
 - The disclosure surfaces' side rail (`DitherAccordion`,
   `DitherCollapsible`, `DitherToaster`) is one painter, `paintRail`
   (`engine/rail.ts`).
 - A canvas painted cell by cell writes a raster and uploads it once: a
-  RasterBuffer + `putRasterBuffer` (`paintToggleCanvas`, the spinner's
-  loop), or `cellCanvas(ctx, cols, rows)` (`raster.ts`), whose `cell` /
+  RasterBuffer + `putRasterBuffer` (the spinner's loop), or `cellCanvas(ctx, cols, rows)` (`raster.ts`), whose `cell` /
   `rect` lay exactly the pixel an `rgb()` fillStyle and a 1x1 `fillRect`
   over the cleared canvas leave (unpremultiplied, source-over on a second
   write) and whose `flush` puts it, one raster and ImageData per context.
@@ -1076,13 +1161,62 @@ generated twin. Inside the kit every import is relative
   a fill that sits between the inks, too bright for the light ink and too
   dark for black, prints at the tone nearest the fill as drawn that reaches
   it, a hundredth at a time either way (the green gradient badge lifts to
-  1.04 and takes black, the grey solid button dims to 0.82). The tone
-  scales every cell's alpha. The badge and the toggle print through
-  `renderLabelFill` (straight alpha: a pastel on light, a glow on dark),
-  the button through `renderDitherButton` (`precompile.ts`, its colour
-  stored scaled by alpha: `"premultiplied"`), both from `labelAlpha`, the
-  one rest formula. `tests/label-fill.spec.ts` measures every colour,
+  1.05 and takes black, the grey solid button dims to 0.81). The cells are
+  read in bytes as a browser lays them over the page (the colour scaled by
+  its alpha byte, then the page, each rounded) and a byte toward the ink,
+  as an engine that rounds the other way shows them, so the page holds AA
+  in every engine. The tone scales every cell's alpha. The badge and the
+  toggle store straight alpha (a pastel on light, a glow on dark), the
+  button its colour scaled by alpha (`"premultiplied"`), both from
+  `labelAlpha`, the one rest formula; all four print as tone classes (the
+  next bullet), cell for cell what the raster forms paint,
+  `renderLabelFill` and `renderDitherButton` (`precompile.ts`), which stay
+  for packaging. `tests/label-fill.spec.ts` measures every colour,
   variant, seed and size of the three in both themes.
+- The dither as class names: a 4x4 matrix holds 17 tones, so every print
+  screen's tones are 17 tiles (`src/engine/tone.ts`). `src/engine/tones.css`
+  is written from it (never by hand: `npx rs test -u
+  packages/dither-kit/tests/tones.spec.ts`): each tile once on the root,
+  `--dk-t-<screen>-<level>`, a class per tile, `dk-tone-<screen>-<level>`,
+  that prints its lit cells through a mask in `--dk-tone-ink` (else the
+  text colour) at `--dk-cell` (2px), shifted `--dk-tone-x`/`--dk-tone-y`
+  cells, `dk-tone` for a tile in `--dk-tone-tile`, and the modifiers
+  `dk-tone-gaps` (the unlit cells) and `dk-tone-hatch` (the hatched fill's
+  gaps left out); `tonePatterns(cell)` is the same set as SVG `<pattern>`s.
+  A seeded matrix is jittered, not shifted (`screenMatrix`): `matchTone`
+  names its cells by a screen's tile and shift where one makes them, else
+  they are the layer's own tile, inline. A labelled fill (button, badge,
+  toggle, toggle group) is `labelPaint(fill, variant, storage, matrix,
+  rows, intensity)`: its layers (the lit cells' tone and, hatched, the
+  unlit cells' in their 0.4 ink) and its 1-cell edge, laid on the cells
+  (straight) or in their place (premultiplied, the cells clipped inside
+  it), rendered by `LabelFill` on the server: no canvas, no paint. The
+  gradient's density runs down its rows, which no tile holds and no
+  stylesheet can count (the rows are the box's height in cells, known only
+  after layout; an SVG dither filter measured 0-47% of cells right in
+  WebKit): its cells are an image four cells wide and its rows tall,
+  `rasterSrc`'s PNG (`png.ts`), laid in square cells from the top
+  (`--dk-rows`), the last row cut where the box ends, never stretched:
+  every cell is the unit at any height (DESIGN.md). Its rows are
+  `labelRows(height, cell)` (whole cells, rounded up): written at render
+  for the component's height at rest (the badge 20px, its label's line
+  pinned to 16px; the toggle 30px inside its border, an 18px line; the
+  button 40px, its `min-h-10`), then for the height the fill's own
+  observer reports (`watchSize`, every fill, so a variant changed in place
+  to the gradient prints as a fresh mount does; no layout read, no
+  paint), so a taller key (the landing's `min-h-12`) prints 24 rows. Until
+  that report a box taller than its rows at rest stretches them to its
+  foot (`max(100%, rows)`), never an empty band. Tone layers repeat and
+  need no rows. The edge is one cell wide on the box's border, so where a
+  cell does not divide the box (a 3px cell in 40px) it frames the cut
+  last row. The button's hover and press (intensity 1 and 1.5) are paints of
+  their own in `-1`/`-2` custom properties, which `fill-layers.css` steps
+  to on `:hover` and `:active` (not disabled, not under reduced motion,
+  not `renderMode="static"`): tone to tone, never a fade.
+  `tests/tones.spec.ts` holds the stylesheet to the screens, every tile's
+  cells, `matchTone`, and every labelled fill's layers to its raster byte
+  for byte (the straight edge laid over a cell a byte of alpha off, as it
+  rounds twice).
   Every target is 24px or spaced per WCAG 2.5.8: a legend key is a label
   unless clickable, then a button with a 24px hit (`-my-1 py-1`); a slider
   thumb is a 24px box around its 12px mark on a 24px track (`-my-1 h-6`);
@@ -1091,7 +1225,7 @@ generated twin. Inside the kit every import is relative
   keyboard focus: an outline sits under its canvases, and its well clips
   an outer one.
 - Canvas visibility defaults to paused until IntersectionObserver reports the
-  element visible; do not start chart animation loops optimistically before the
+  element visible; do not start a canvas loop optimistically before the
   first visibility observation. The IO callback must record the element as
   visible before calling `onWake` so `schedule()` sees the correct state,
   and reads the NEWEST entry it is handed (`latestEntry`,
@@ -1099,13 +1233,42 @@ generated twin. Inside the kit every import is relative
   Chromium hands one callback an entry per change, oldest first, so a
   canvas observed at 0x0 and sized a moment later arrives as [out, in]
   (`tests/surface-loop.spec.ts`).
-- A chart loop that skips a frame with nothing new to paint still asks for
-  the next one while its entrance is under way (a delay, or two frames on
-  one timestamp), in the engine's cartesian loop; else it stops
-  part drawn until a hover wakes it. `tests/chart-entrance.spec.ts`.
 - `precompile.ts` must remain browser/SSR safe: it returns raw RGBA buffers and
   must not import a framework, DOM APIs, or a server-specific image encoder. Consumers
-  own encoding, caching, and invalidation of packaged assets.
+  own caching and invalidation of packaged assets.
+- A frame known at render is an image, not a canvas: `png.ts` (`pngBytes`,
+  `rasterSrc`, in `api.ts`; the one `crc32`, the site's zip's too, and the
+  encoder the site's icons are written with) writes a raster synchronously, in any runtime, as a
+  PNG at one pixel a cell (indexed with tRNS up to 256 colours, RGBA past
+  them; inflating to the raster's exact bytes, `tests/png.spec.ts`), and
+  the component renders it as an `<img>` scaled `image-rendering:
+  pixelated` (every engine at the floor takes it, so no `crisp-edges`
+  fallback is written) in its render, so a server render carries it, it
+  shows with scripts off, and no canvas, no `devicePixelRatio` read and no
+  repaint follows a change of pixel density (a zoom, another monitor). A
+  static `DitherSpinner` (its first frame) and a `DitherAvatar` with
+  `animate={false}` (its whole frame) are such images, bloom layer
+  included (the same source under the glow's filter); `cellWriter`
+  (`raster.ts`) is `cellCanvas`'s cell and rect over a raster of one's
+  own, so the image holds the bytes the canvas showed. A surface whose
+  frame depends on its laid-out box (a gradient, a poster, every
+  background on the surface loop, whose cell count is the box over
+  `cell / dpr`) or on time stays a canvas: its grid is not known until
+  the page lays it out.
+- Such a canvas still shows its dither at first paint on a built page: the
+  site's post-build bakes the frame the engine painted into it as its
+  background (`packages/tasks/src/bake-frames.ts`). `baked.ts` is the
+  runtime's half: the canvas carries `data-dk-baked="s:<id>"` (its settled
+  frame) or `"f:<id>"` (its first); `putRasterBuffer`, the one upload of
+  every raster surface (`cellCanvas` included), takes it off
+  (`releaseBaked`) in the call that puts the canvas's own pixels, so the
+  same pixels replace it and nothing shows twice; `bakedSettled(canvas)`
+  starts a surface whose frame the bake shows with its entrance played
+  (`DitherAvatar`), so its first paint is the bake's own bytes; a chart is
+  no canvas, and its print's PNG carries `PRINT_ATTR` so the build can
+  write it beside the page. A canvas drawn any other way
+  (`drawImage`, `fillRect`, a GL context) is never baked. Nothing in the
+  kit writes the attribute (`tests/baked.spec.ts`).
 - `precompiled` replaces only the dither plot/surface image; surrounding chart
   composition remains available. `renderMode="static"` disables animation and
   resize observation for standalone surfaces, auto-uses lower backing-resolution
@@ -1114,17 +1277,94 @@ generated twin. Inside the kit every import is relative
   `requestIdleCallback` (with `setTimeout` fallback) so decorative gradients
   never block first contentful paint. Live mode uses `DEFAULT_MAX_COLS=960`,
   `DEFAULT_MAX_ROWS=600` and paints immediately via `setTimeout(0)`.
-  `maxCols`/`maxRows` are configurable props on DitherGradient, DitherButton,
-  and DitherImage for per-instance tuning.
+  `maxCols`/`maxRows` are configurable props on DitherGradient and
+  DitherImage for per-instance tuning; the button's `renderMode="static"`
+  only holds its fill at rest.
 - Chart composition: root provides context (`cartesian-root` / `polar-root`),
-  children register series via contexts. Props are declared with explicit
-  runtime defaults — keep the API tables in `packages/site/src/pages/docs` in
-  sync when defaults change (`packages/site/tests/site/docs-api.spec.ts` checks
-  every row's names against the components).
+  children register series via contexts as they are made (`createComputed`,
+  so a server render's print reads them). Props are declared with explicit
+  runtime defaults.
+- Charts are SVG: a chart with its data prints on the server, no canvas
+  and no script needed to see it. `engine/chart-svg.ts` paints each
+  family's resting frame (no hover, the entrance done, the sparkles
+  apart) into a raster with the same thresholds, alphas and blends the
+  canvas loops used, and `printMarkup` writes each group of it (the
+  whole print, or a bar's or a slice's cells: `rasterInks`' owner map,
+  each its own mark) in the shorter of two exact forms, laid in a viewBox
+  of the backing's cells over the plot (`preserveAspectRatio="none"`):
+  its inks as paths (`rasterInks`: one a distinct RGBA, the cell's stored
+  bytes as the colour, its alpha byte as the opacity, each row's runs a
+  1-unit stroke, `crispEdges`) or its cells as a PNG at a pixel a cell
+  (`png.ts`) in an `<image>` over the WHOLE frame (`groupRaster`: a crop
+  at a fractional pixel resamples its edges, 93% of a bar chart's pixels
+  in Chromium at an odd size). A gradient holds hundreds of inks, so the
+  PNG wins, 4 to 8 times shorter; a fill of few inks keeps its paths.
+  The PNG's `<image>` carries `PRINT_ATTR` (`engine/baked.ts`): the
+  site's build moves a chart's prints that pass 1.5 kB together out of
+  the page into files
+  (`packages/tasks/src/bake-frames.ts`, `bakePrints`), so a prerendered
+  chart's HTML is its markup and words; a chart drawn with no build (the
+  Studio, the docs' Run) keeps its data URI. Its sparkles and an area or
+  line chart's marks are one markup string too (`sparklesMarkup`; the
+  marks' words through `escapeXml`): as elements each carried a
+  hydration key.
+  Either is cell for cell the canvas, every family, and pixel for pixel
+  in Chromium at 1x and 2x and in Gecko at 1x (measured at even and odd
+  sizes). Tone patterns (`<pattern>` Bayer levels) were measured and not
+  taken: a fill's alpha ramps cell by cell, so 16 tones hold 7 to 49% of
+  a chart's cells. The root's one `<svg>` (`chart-layer.tsx`) is named
+  for the chart and its series (`chartName`: `role="group"`, a `<title>`),
+  sized to the measured box, or before a measure to `CHART_FALLBACK`
+  (600x240, polar 320x320) scaled into the box; axes, ring labels and
+  values are `<text>`, the legend HTML (its keys are buttons). A mark
+  (a data index, a bar, a slice, a radar axis; `role="img"`, named by its
+  heading and values, `headingOf`: the row's first text outside the
+  series) shows its crosshair cells and its values under `:hover` or
+  `data-marked` (`markerIndex`), none while a composed `<Tooltip>` shows
+  them (`data-tooltip`), none on a chart that is not `interactive`. The
+  motion is `solid/chart.css`'s, every keyframe `dk-*` (the kit clock
+  holds it at a directed moment like the rest of the kit's CSS motion;
+  `tests/css-motion.spec.ts` reads every stylesheet of the Solid layer):
+  the entrance (`data-enter`, timed by `--dk-chart-duration`/`-delay`/
+  `-ease` from the root's props, `cssEasing`): a clip sweep (reversed
+  where the seed reverses it), bars growing from their base in the
+  stagger's wave, the pie's arc mask going round, the radar scaling out
+  of its centre, dots after it. It plays the first time the chart comes
+  on screen: until the runtime sets `data-in-view` (`watchVisibility`,
+  once) the entrance holds at its first frame; it is declared under
+  `@media (scripting: enabled) and (prefers-reduced-motion:
+  no-preference)`, so without a script, in a browser older than that
+  query, or under reduced motion the chart stands shown. Then the lift
+  (`data-lift`, an alpha slope filter), bars fading under another's
+  hover, a slice popping along its middle, the bloom (an SVG filter of the
+  same blur, brightness and saturation, `bloomOf`) and the sparkles'
+  twinkle (off under reduced motion). A replay or new data remounts the
+  `<svg>`, so the entrance runs again (at once: the chart was seen);
+  `entranceDone` (the active dot) lands on the entrance's `animationend`,
+  at once without one. Pinned by `tests/chart-svg.spec.ts` (the inks draw
+  back the raster byte for byte, each cell in its owner's group; each
+  group in its shorter form; a new screen, new inks),
+  `tests/solid/charts.spec.tsx` and the chart case of
+  `packages/site/tests/site/css-motion.spec.ts` (bars grown to the
+  directed moment's share, and held below the fold until scrolled to).
+- A component's props type is the one description of its props: the
+  docs' API tables print it (`packages/site/build/props.ts`), the Studio's
+  registry is held to it, and a reader copying the kit reads it in their
+  editor. Each prop the docs show differently from its declared type
+  carries `@docs <the type as a reader reads it, with its note>`; one
+  whose default the component's `mergeProps` literal does not say (or
+  says otherwise for the docs: `seed / blue`) carries `@default <value>`
+  (`none` for no default); an `@` in a tag is escaped, `\@container`.
+  A new prop, an edited type or a changed default reaches its table with
+  no other edit; the order of a props type is its table's order.
 
 ## Work Guidance
 
-- A new time-driven surface subscribes to the clock: paint the moment on
+- New UI motion is a class name: a transition or `dk-*` keyframes in the
+  component's stylesheet, state as an attribute, reduced motion in the
+  stylesheet; the clock holds it with nothing more. Only a canvas runs
+  frames.
+- A new time-driven canvas subscribes to the clock: paint the moment on
   seek, request no frames while directed, resume on release, and show what
   its inputs and that moment give (the paint law). One that changes on a
   cadence takes its moment from `createKitTime`, never a timer.
@@ -1144,11 +1384,15 @@ generated twin. Inside the kit every import is relative
   hooks stay class names) and any utility input whose effect was lost;
   `packages/site/tests/site/stylex-layer.spec.tsx` mounts it on the docs' StyleX
   runtime.
+- Tone classes: `tests/tones.spec.ts` (the generated stylesheet, every
+  tile, `matchTone`, each labelled fill's layers against its raster); the
+  labelled fills' component cases in `tests/solid/kit.spec.tsx`,
+  `w2part1.spec.tsx` and `w2part6.spec.tsx`.
 - Print screens: `tests/screens.spec.ts` (each screen a permutation, the
   seeded jitter equal to Bayer's) and the `DitherScreen` cases of
   `tests/solid/carried.spec.tsx` and `tests/solid/kit.spec.tsx`
-  (a `DitherScreen` reaching a surface), `tests/chart-screen.spec.ts` (each
-  chart loop reprints on a new matrix and sleeps on the same one) and the
+  (a `DitherScreen` reaching a surface), `tests/chart-svg.spec.ts` (each
+  chart family's print takes a new matrix and keeps the same one) and the
   `DitherScreen` cases of `tests/solid/charts.spec.tsx`; the poster:
   `tests/poster.spec.ts`.
 - Painting at memory speed: `tests/paint-limits.spec.ts` pins `cellCanvas`

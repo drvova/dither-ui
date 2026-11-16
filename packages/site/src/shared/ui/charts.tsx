@@ -8,6 +8,10 @@
 // so it loads them first (as it does the docs' packs): none suspends and
 // streams in after the shell.
 import { lazyPart } from "@/shared/lib/lazy-part"
+// The charts' stylesheet goes with the page, not with the lazy chunk: a
+// prerendered chart is drawn, hovered and timed by it before (or without)
+// any script, and a chunk's CSS reaches the page only as its script loads.
+import "@dither-ui/kit/solid/chart.css"
 
 export const AreaChart = lazyPart(() =>
   import("@dither-ui/kit/solid/area-chart.ts").then((m) => ({ default: m.AreaChart })),
@@ -21,41 +25,17 @@ export const BarChart = lazyPart(() =>
 export const PieChart = lazyPart(() =>
   import("@dither-ui/kit/solid/pie-chart.ts").then((m) => ({ default: m.PieChart })),
 )
-export const RadarChart = lazyPart(() =>
-  import("@dither-ui/kit/solid/radar-chart.ts").then((m) => ({ default: m.RadarChart })),
-)
 export const Area = lazyPart(() => import("@dither-ui/kit/solid/Area.tsx"))
 export const Line = lazyPart(() => import("@dither-ui/kit/solid/Line.tsx"))
 export const Bar = lazyPart(() => import("@dither-ui/kit/solid/Bar.tsx"))
 export const Pie = lazyPart(() => import("@dither-ui/kit/solid/Pie.tsx"))
-export const Radar = lazyPart(() => import("@dither-ui/kit/solid/Radar.tsx"))
-export const Grid = lazyPart(() => import("@dither-ui/kit/solid/Grid.tsx"))
 export const XAxis = lazyPart(() => import("@dither-ui/kit/solid/XAxis.tsx"))
-export const YAxis = lazyPart(() => import("@dither-ui/kit/solid/YAxis.tsx"))
 export const Dot = lazyPart(() => import("@dither-ui/kit/solid/Dot.tsx"))
-export const Legend = lazyPart(() => import("@dither-ui/kit/solid/Legend.tsx"))
-export const Tooltip = lazyPart(() => import("@dither-ui/kit/solid/Tooltip.tsx"))
 export const Sparkline = lazyPart(() => import("@dither-ui/kit/solid/Sparkline.tsx"))
 
 if (import.meta.env.SSR)
   await Promise.all(
-    [
-      AreaChart,
-      LineChart,
-      BarChart,
-      PieChart,
-      RadarChart,
-      Area,
-      Line,
-      Bar,
-      Pie,
-      Radar,
-      Grid,
-      XAxis,
-      YAxis,
-      Dot,
-      Legend,
-      Tooltip,
-      Sparkline,
-    ].map((chart) => chart.preload()),
+    [AreaChart, LineChart, BarChart, PieChart, Area, Line, Bar, Pie, XAxis, Dot, Sparkline].map((chart) =>
+      chart.preload(),
+    ),
   )

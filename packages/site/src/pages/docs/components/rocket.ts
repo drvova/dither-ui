@@ -3,16 +3,15 @@
 // any other. A chrome body, an ember nose and three swept fins, a band, a
 // porthole and a nozzle, each its own piece; a flame that flickers under it
 // by its own TimeSensor, a climb, and a fireball the file swells where it
-// bursts. The page drives one clock (`launchAt`): the file's moment, and
-// the build's scatter that blows the pieces apart as the fireball swells.
+// bursts. The World section's second example (`examples/world-2.tsx`)
+// carries this file as written and drives its one clock: the file's moment,
+// and the build's scatter that blows the pieces apart as the fireball swells.
 // Guarded by `tests/rocket.spec.ts`.
 
 /** Seconds of the climb; the burst comes at its top. */
 export const CLIMB_S = 2.4
 /** Seconds from the key to the debris settling. */
 export const LAUNCH_S = 4.6
-/** Seconds the pieces take to fly apart. */
-const BURST_S = 0.6
 
 const material = (rgb: string, glow = false) =>
   `Appearance { material Material { diffuseColor ${rgb}${glow ? ` emissiveColor ${rgb}` : ""} } }`
@@ -69,11 +68,3 @@ ROUTE BURN.value_changed TO FLAME.set_scale
 ROUTE BOOM.fraction_changed TO SWELL.set_fraction
 ROUTE SWELL.value_changed TO FIREBALL.set_scale
 `
-
-/** The launch at `t` seconds after the key: the file's moment, and how far
- * the pieces have blown apart (0 whole, 1 apart), held once it has burst. */
-export function launchAt(t: number): { time: number; scatter: number } {
-  const time = Math.max(0, Math.min(LAUNCH_S, t))
-  const burst = Math.max(0, Math.min(1, (time - CLIMB_S) / BURST_S))
-  return { time, scatter: 1 - (1 - burst) ** 3 }
-}

@@ -2,9 +2,12 @@ import { createSignal, type JSX, mergeProps } from "solid-js"
 import { cn } from "../tailwind/lib"
 
 export type CrosshairProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   thickness?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -3,10 +3,14 @@ import { cn } from "../tailwind/lib"
 import "./StarBorder.css"
 
 export type StarBorderProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (s) */
   speed?: number
+  /** @docs number (px) */
   thickness?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

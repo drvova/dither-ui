@@ -18,7 +18,7 @@ export const DOCS_ROOT = {
     "Documentation, live examples, API references, and copy-ready Solid code for dither-ui charts, components, composition, animation, and accessibility.",
 }
 
-export interface DocsMeta {
+interface DocsMeta {
   id: string
   label: string
   url: string

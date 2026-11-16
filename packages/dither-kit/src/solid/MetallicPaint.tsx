@@ -11,18 +11,28 @@ export type { MetallicPaintParams }
 export { paintMetallicPaint }
 
 export type MetallicPaintProps = {
+  /** @docs string[] (hex)
+   * @default ['#1A1A22', '#8890A0', '#E8ECF4'] */
   colors?: string[]
   scale?: number
   speed?: number
   distortion?: number
+  /** @docs number (0-1) */
   opacity?: number
+  /** @docs number (0-1) | boolean */
   dither?: number | boolean
   paused?: boolean
-  frameRate?: number
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
+  frameRate?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
   class?: string
 }

@@ -11,9 +11,13 @@ const styles = stylex.create({
 
 export type SplitTextProps = {
   text?: string
+  /** @docs number (ms/char) */
   stagger?: number
+  /** @docs number (ms) */
   duration?: number
+  /** @default 0 */
   replayToken?: number
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

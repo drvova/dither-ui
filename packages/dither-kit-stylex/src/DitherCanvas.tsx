@@ -17,10 +17,12 @@ const styles = stylex.create({
 
 export type DitherCanvasProps = {
   pattern?: "dots" | "grid" | "plain"
-  /** Pattern pitch in CSS pixels. */
+  /** Pattern pitch in CSS pixels.
+   * @docs number (pattern pitch in px) */
   cell?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

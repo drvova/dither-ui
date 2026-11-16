@@ -4,7 +4,7 @@ import { colorToHex } from "@dither-ui/kit"
 import { breakable, safeUrl } from "@/shared/lib"
 import { ColorField, NumberField, Segmented, Toggle } from "@/shared/ui"
 
-export type ComponentPropsPanelProps = {
+type ComponentPropsPanelProps = {
   entry: ComponentEntry
   target: { props: Record<string, unknown>; slotText: string | null }
 }

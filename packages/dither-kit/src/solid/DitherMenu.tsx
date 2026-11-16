@@ -13,7 +13,8 @@ export type MenuItem = {
 export type DitherMenuProps = {
   items: MenuItem[]
   onSelect?: (label: string) => void
-  /** The trigger's label. */
+  /** The trigger's label.
+   * @docs content */
   children?: JSX.Element
 }
 

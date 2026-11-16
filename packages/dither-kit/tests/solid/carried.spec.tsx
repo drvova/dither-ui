@@ -27,9 +27,10 @@ import {
   DitherIcon,
   DitherPressable,
   DitherThumbnail,
+  IconSprite,
 } from "../../src/solid"
 import { coverPage, isCovered } from "../../src/engine/cover"
-import { ICON_NAMES, ICONS } from "../../src/engine/icons"
+import { ICON_NAMES, ICONS, iconSymbolId } from "../../src/engine/icons"
 import { matrixFromSeed, type VariantInput } from "../../src/engine/dither-paint"
 import { BAYER4, pixelMatrixFromSeed, type ScreenKind, SCREENS, screenMatrix } from "../../src/engine/pixel"
 import { createInviewLoop } from "../../src/solid/runtime/in-view"
@@ -61,6 +62,24 @@ describe("Icon", () => {
     expect(svg.getAttribute("width")).toBe("24")
     expect(svg.getAttribute("viewBox")).toBe("0 0 24 24")
     expect(svg.getAttribute("stroke")).toBe("currentColor")
+  })
+
+  it("uses the sprite its context names, one <use> a glyph, and draws its own paths without one", () => {
+    const { container } = render(() => (
+      <IconSprite.Provider value="/sprite.svg">
+        <DitherIcon name="Close" strokeWidth={1.5} />
+        <IconSprite.Provider value={null}>
+          <DitherIcon name="Check" />
+        </IconSprite.Provider>
+      </IconSprite.Provider>
+    ))
+    const [sprited, own] = container.querySelectorAll("svg")
+    expect(sprited.querySelector("use")?.getAttribute("href")).toBe(`/sprite.svg#${iconSymbolId("Close")}`)
+    expect(sprited.querySelectorAll("path").length).toBe(0)
+    // the stroke is the svg's, so one sheet serves every width
+    expect([sprited.getAttribute("stroke"), sprited.getAttribute("stroke-width")]).toEqual(["currentColor", "1.5"])
+    expect(own.querySelector("use")).toBeNull()
+    expect(own.querySelectorAll("path").length).toBe(ICONS.Check.length)
   })
 
   it("mounts every glyph in the set", () => {
@@ -170,19 +189,14 @@ describe("Pressable", () => {
 describe("a surface whose precompiled image is taken away", () => {
   const IMAGE = "data:image/png;base64,AAAA"
 
-  it("the button paints its fill", async () => {
+  it("the button prints its fill", () => {
     const [image, setImage] = createSignal<string | undefined>(IMAGE)
     const { container } = render(() => <DitherButton precompiled={image()}>Deploy</DitherButton>)
     expect(container.querySelector("img")).not.toBeNull()
-    expect(container.querySelector("canvas")).toBeNull()
+    expect(container.querySelector(".dk-label-fill")).toBeNull()
     setImage(undefined)
-    await w.frame(16)
-    w.size()
-    await w.frame(32)
-    await w.frame(48)
-    const canvas = container.querySelector("canvas")!
     expect(container.querySelector("img")).toBeNull()
-    expect(w.uploads).toContain(canvas)
+    expect(container.querySelector(".dk-label-fill")).not.toBeNull()
   })
 
   it("the gradient paints its wash", async () => {

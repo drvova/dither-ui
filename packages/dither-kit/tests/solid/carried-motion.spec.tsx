@@ -17,6 +17,7 @@ import {
   DitherTrueFocus,
 } from "../../src/solid"
 import { release, seek } from "../../src/engine/clock"
+import { type Easing, steps } from "../../src/engine/timing"
 import type { CqState } from "../../src/engine/containers"
 import { paintOf, recordPaint } from "../support/paint"
 
@@ -266,7 +267,8 @@ describe("DitherReveal", () => {
 
 describe("Sequence", () => {
   const child = (container: HTMLElement, i: number) => container.firstElementChild!.children[i] as HTMLElement
-  const pOf = (container: HTMLElement, i: number) => child(container, i).style.getPropertyValue("--seq-p")
+  const root = (container: HTMLElement) => container.firstElementChild as HTMLElement
+  const delayOf = (container: HTMLElement, i: number) => child(container, i).style.getPropertyValue("--seq-delay")
   const stateOf = (container: HTMLElement, i: number) => child(container, i).getAttribute("data-seq")
   const all = (container: HTMLElement) => [0, 1, 2].map((i) => stateOf(container, i))
   const three = () => (
@@ -276,115 +278,70 @@ describe("Sequence", () => {
       <div id="c" />
     </>
   )
+  /** What the browser says as a child's `dk-seq` starts or ends. */
+  const say = (el: Element, type: "animationstart" | "animationend", animationName = "dk-seq") => {
+    const e = new Event(type, { bubbles: true })
+    Object.defineProperty(e, "animationName", { value: animationName })
+    el.dispatchEvent(e)
+  }
 
-  it("directed, paints the given moment in any order and requests no frames", async () => {
-    seek(0)
+  it("lays its stagger and timing on its children as CSS and asks no frames", () => {
     const { container } = render(() => (
-      <DitherSequence stagger={0.3} duration={0.5}>
+      <DitherSequence stagger={0.3} duration={0.5} delay={0.4} from="end">
         {three()}
       </DitherSequence>
     ))
-    await settle()
     expect(queue.size).toBe(0)
-    expect(pOf(container, 0)).toBe("0.0000")
-    seek(500) // child 0 done, child 1 (starts at 0.3) at 0.2/0.5
-    expect(pOf(container, 0)).toBe("1.0000")
-    expect(pOf(container, 1)).toBe("0.4000")
-    expect(stateOf(container, 0)).toBe("done")
-    expect(queue.size).toBe(0)
-    seek(100) // backwards: a pure function of the moment
-    expect(pOf(container, 0)).toBe("0.2000")
-    expect(pOf(container, 1)).toBe("0.0000")
-    seek(5000) // past the end: everything settled, nothing requested
-    expect(pOf(container, 2)).toBe("1.0000")
-    expect(queue.size).toBe(0)
-    release() // the loop resumes from the moment
-    expect(queue.size).toBe(1)
+    expect([0, 1, 2].map((i) => delayOf(container, i))).toEqual(["1s", "0.7s", "0.4s"])
+    expect(all(container)).toEqual(["before", "before", "before"])
+    const group = root(container)
+    expect(group.hasAttribute("data-seq-run")).toBe(true)
+    expect(group.style.getPropertyValue("--seq-dur")).toBe("0.5s")
+    expect(group.style.getPropertyValue("--seq-ease")).toBe("linear")
+    expect(group.style.getPropertyValue("--seq-loops")).toBe("1")
+    expect(group.style.getPropertyValue("--seq-dir")).toBe("normal")
+    expect(group.style.getPropertyValue("--seq-end")).toBe("1")
   })
 
-  it("waves progress across its children and settles all at the end", () => {
+  it("reports each child's place from its animation, and says it is done once, when the last ends", () => {
     const onComplete = vi.fn()
     const { container } = render(() => (
       <DitherSequence stagger={0.3} duration={0.5} onComplete={onComplete}>
         {three()}
       </DitherSequence>
     ))
-    expect(queue.size).toBe(1)
-
-    flush(50) // frame 1: dt 0, the timeline's head
-    expect(stateOf(container, 0)).toBe("active")
-    expect(pOf(container, 0)).toBe("0.0000")
-    expect(stateOf(container, 1)).toBe("before")
-    expect(stateOf(container, 2)).toBe("before")
-
-    tick(600) // elapsed about 0.55
-    expect(stateOf(container, 0)).toBe("done")
-    expect(pOf(container, 0)).toBe("1.0000")
-    expect(stateOf(container, 1)).toBe("active")
-    expect(Number(pOf(container, 1))).toBeCloseTo(0.5)
-    expect(stateOf(container, 2)).toBe("before")
-
-    tick(1250) // past the plan's 1.1s
+    say(child(container, 0), "animationstart")
+    expect(all(container)).toEqual(["active", "before", "before"])
+    say(child(container, 0), "animationstart", "dk-other") // not the sequence's
+    say(child(container, 1), "animationend", "dk-other")
+    expect(all(container)).toEqual(["active", "before", "before"])
+    for (const i of [0, 1, 2]) say(child(container, i), "animationend")
     expect(all(container)).toEqual(["done", "done", "done"])
     expect(onComplete).toHaveBeenCalledTimes(1)
-    expect(queue.size).toBe(0)
-
-    flush(9999)
-    expect(onComplete).toHaveBeenCalledTimes(1)
   })
 
-  it("holds everyone at 0 through its delay", () => {
+  it("eases on a CSS timing function, timing.ts's own, or its frame rate's steps", () => {
+    const [easing, setEasing] = createSignal<Easing | string>(steps(4))
+    const [fps, setFps] = createSignal(0)
     const { container } = render(() => (
-      <DitherSequence stagger={0.3} duration={0.5} delay={0.4}>
+      <DitherSequence duration={0.5} easing={easing()} frameRate={fps()} loop={2} yoyo>
         {three()}
       </DitherSequence>
     ))
-    flush(50)
-    expect(all(container)).toEqual(["before", "before", "before"])
-    tick(550) // elapsed 0.5 → t 0.1: the first runs at 0.2
-    expect(stateOf(container, 0)).toBe("active")
-    expect(Number(pOf(container, 0))).toBeCloseTo(0.2)
+    const ease = () => root(container).style.getPropertyValue("--seq-ease")
+    expect(ease()).toBe("steps(4, jump-end)")
+    setEasing("ease-in-out")
+    expect(ease()).toBe("ease-in-out")
+    setEasing(() => (p: number) => p * p) // a function CSS cannot say plays linear
+    expect(ease()).toBe("linear")
+    setFps(12)
+    expect(ease()).toBe("steps(6, jump-end)")
+    // an even yoyo settles back where it began
+    expect(root(container).style.getPropertyValue("--seq-dir")).toBe("alternate")
+    expect(root(container).style.getPropertyValue("--seq-end")).toBe("0")
   })
 
-  it("paused, holds the start state without requesting frames, then releases with no jump", async () => {
-    const [paused, setPaused] = createSignal(true)
-    const { container } = render(() => (
-      <DitherSequence stagger={0.3} duration={0.5} paused={paused()}>
-        {three()}
-      </DitherSequence>
-    ))
-    expect(queue.size).toBe(0)
-    expect(stateOf(container, 0)).toBe("active")
-    expect(pOf(container, 0)).toBe("0.0000")
-
-    setPaused(false)
-    await settle()
-    expect(queue.size).toBe(1)
-    flush(50)
-    expect(pOf(container, 0)).toBe("0.0000")
-    tick(150)
-    expect(Number(pOf(container, 0))).toBeCloseTo(0.2)
-  })
-
-  it("holds writes between its frame rate's boundaries while the clock keeps ticking", () => {
-    const { container } = render(() => (
-      <DitherSequence stagger={0.3} duration={0.5} frameRate={1}>
-        {three()}
-      </DitherSequence>
-    ))
-    flush(50)
-    expect(stateOf(container, 0)).toBe("active")
-    expect(pOf(container, 0)).toBe("0.0000")
-
-    tick(550) // still boundary 0 at 1fps: held
-    expect(pOf(container, 0)).toBe("0.0000")
-    expect(stateOf(container, 1)).toBe("before")
-
-    tick(1250) // the end is never gated
-    expect(all(container)).toEqual(["done", "done", "done"])
-  })
-
-  it("pauses when it leaves the view and resumes without a time jump", () => {
+  it("holds while paused or out of view, and replays on a new restart key", async () => {
     let fire: ((visible: boolean) => void) | null = null
     vi.stubGlobal(
       "IntersectionObserver",
@@ -397,31 +354,33 @@ describe("Sequence", () => {
         disconnect() {}
       },
     )
+    const [paused, setPaused] = createSignal(false)
+    const [key, setKey] = createSignal(0)
     const { container } = render(() => (
-      <DitherSequence stagger={0.3} duration={0.5}>
+      <DitherSequence stagger={0.3} duration={0.5} paused={paused()} restartKey={key()}>
         {three()}
       </DitherSequence>
     ))
-    expect(queue.size).toBe(0) // no optimistic start at mount
-
+    const group = root(container)
+    expect(group.hasAttribute("data-seq-run")).toBe(false) // waits to be seen
     fire!(true)
-    expect(queue.size).toBe(1)
-    flush(50)
-    tick(150)
-    expect(Number(pOf(container, 0))).toBeCloseTo(0.2)
-
+    expect(group.hasAttribute("data-seq-run")).toBe(true)
+    expect(group.hasAttribute("data-paused")).toBe(false)
     fire!(false)
-    expect(queue.size).toBe(0)
-    const held = pOf(container, 0)
-    flush(9999)
-
+    expect(group.hasAttribute("data-paused")).toBe(true)
     fire!(true)
-    expect(queue.size).toBe(1)
-    flush(100)
-    expect(pOf(container, 0)).toBe(held)
+    setPaused(true)
+    expect(group.hasAttribute("data-paused")).toBe(true)
+    setPaused(false)
+    say(child(container, 0), "animationend")
+    expect(stateOf(container, 0)).toBe("done")
+    setKey(1)
+    await settle()
+    expect(all(container)).toEqual(["before", "before", "before"])
+    expect(queue.size).toBe(0)
   })
 
-  it("under reduced motion, snaps to the settled end with no frames", () => {
+  it("under reduced motion, shows every child settled and is done at once", () => {
     reducedMotion(true)
     const onComplete = vi.fn()
     const { container } = render(() => (
@@ -431,7 +390,6 @@ describe("Sequence", () => {
     ))
     expect(queue.size).toBe(0)
     expect(all(container)).toEqual(["done", "done", "done"])
-    expect(pOf(container, 2)).toBe("1.0000")
     expect(onComplete).toHaveBeenCalledTimes(1)
   })
 
@@ -545,9 +503,10 @@ describe("DitherStage and DitherLayer", () => {
   })
 })
 
-describe("the cadence pieces on the kit clock", () => {
-  // Each turns, types, drifts or rises on the kit clock: directed, what it
-  // shows is the moment's, the same however the moment was reached.
+describe("the cadence pieces in CSS", () => {
+  // Each turns, types or drifts in its stylesheet: what the markup says is
+  // the same at every moment (the clock holds the CSS, engine/clock.ts),
+  // and none asks a frame.
   const pieces: [string, () => JSX.Element][] = [
     ["DitherRotatingText", () => <DitherRotatingText texts={["a", "b", "c"]} interval={500} />],
     ["DitherTrueFocus", () => <DitherTrueFocus text="one two three" interval={500} />],
@@ -556,6 +515,26 @@ describe("the cadence pieces on the kit clock", () => {
       () => <DitherTextType texts={["Hello", "World"]} typingSpeed={100} deletingSpeed={100} pause={200} />,
     ],
     ["DitherScrollVelocity", () => <DitherScrollVelocity text="drift" />],
+  ]
+  it.for(pieces)("%s is one markup at every moment and asks no frames", async ([, piece]) => {
+    const { container } = render(piece)
+    await settle()
+    const free = container.innerHTML
+    seek(1000)
+    await settle()
+    expect(container.innerHTML).toBe(free)
+    seek(1800)
+    await settle()
+    expect(container.innerHTML).toBe(free)
+    release()
+    expect(queue.size).toBe(0)
+  })
+})
+
+describe("the cadence pieces on the kit clock", () => {
+  // Antigravity's motes are a canvas: it draws the moment it is seeked to,
+  // the same however the moment was reached.
+  const pieces: [string, () => JSX.Element][] = [
     ["DitherAntigravity", () => <DitherAntigravity count={6}>Up</DitherAntigravity>],
   ]
   let undoPaint: () => void

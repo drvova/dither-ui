@@ -26,12 +26,13 @@ const FOLDER: Record<string, string> = {
   "@dither-ui/kit-stylex": "dither-kit-stylex",
   "@dither-ui/tasks": "tasks",
   "@dither-ui/bridge": "bridge",
+  "@dither-ui/add": "add",
   "@dither-ui/discord": "discord",
   "@dither-ui/site": "site",
 }
 
 /** Every package, and the packages it may depend on. The kit depends on
- * none; the bridge and the Discord service stand alone; the StyleX twin
+ * none; the bridge, the add command and the Discord service stand alone; the StyleX twin
  * takes the rewriter for the spec that generates it, never in its source. */
 const MAY_USE: Record<string, readonly string[]> = {
   "@dither-ui/kit": [],
@@ -39,6 +40,7 @@ const MAY_USE: Record<string, readonly string[]> = {
   "@dither-ui/kit-stylex": ["@dither-ui/kit", "@dither-ui/restyle"],
   "@dither-ui/tasks": ["@dither-ui/kit"],
   "@dither-ui/bridge": [],
+  "@dither-ui/add": [],
   "@dither-ui/discord": [],
   "@dither-ui/site": [
     "@dither-ui/kit",
@@ -46,6 +48,7 @@ const MAY_USE: Record<string, readonly string[]> = {
     "@dither-ui/restyle",
     "@dither-ui/tasks",
     "@dither-ui/bridge",
+    "@dither-ui/add",
   ],
 }
 const NAMES = Object.keys(MAY_USE)
@@ -54,11 +57,24 @@ const dirOf = (name: string) => join(PACKAGES, FOLDER[name])
 /** The one package a reader installs or copies: every other is private. */
 const PUBLIC = "@dither-ui/kit"
 
-/** Modules a build supplies rather than a package (`restyle`'s utility map). */
-const VIRTUAL = new Set(["virtual-dither-utilities"])
+/** Modules a build supplies rather than a package (`restyle`'s utility map, the
+ * site's kit props, `virtual:dither-props/<Component>`, the docs' examples'
+ * catalogue, `virtual-dither-catalog`, and SolidStart's client manifest, which an
+ * island reads its stylesheets from, `solid-start:get-manifest`). */
+const VIRTUAL = new Set([
+  "virtual-dither-utilities",
+  "virtual:dither-props",
+  "virtual-dither-catalog",
+  "solid-start:get-manifest",
+])
 
 /** The site's alias for its own `src/`: no other package has one. */
 const OWN_SOURCE = { package: "@dither-ui/site", prefix: "@/" }
+
+/** The docs' examples are the files a reader copies, so they import the
+ * kit as a reader's copy is aliased (`@dither-kit`, the site's own alias
+ * for its kit package, `packages/site/build/aliases.ts`); nothing else does. */
+const READERS_KIT = { spec: "@dither-kit", files: /^packages\/site\/src\/pages\/docs\/[\w-]+\/examples\/[\w-]+\.tsx$/ }
 
 type Manifest = {
   name: string
@@ -222,10 +238,11 @@ describe("an import between packages", () => {
     expect(out.map((i) => `${i.at}: ${i.spec}`)).toEqual([])
   })
 
-  it("names its package, with no alias but the site's own source", () => {
+  it("names its package, with no alias but the site's own source and the docs' examples' kit", () => {
     const aliased = IMPORTS.filter(
       (i) =>
-        /^(@dither-kit|~)(\/|$)/.test(i.spec) || (i.spec.startsWith(OWN_SOURCE.prefix) && i.pkg !== OWN_SOURCE.package),
+        (/^(@dither-kit|~)(\/|$)/.test(i.spec) && !(i.spec === READERS_KIT.spec && READERS_KIT.files.test(i.at))) ||
+        (i.spec.startsWith(OWN_SOURCE.prefix) && i.pkg !== OWN_SOURCE.package),
     )
     expect(aliased.map((i) => `${i.at}: ${i.spec}`)).toEqual([])
   })
@@ -261,9 +278,10 @@ describe("an import between packages", () => {
     const undeclared = new Set<string>()
     for (const i of IMPORTS) {
       const to = packageOf(i.spec)
-      if (!isBare(i.spec) || NAMES.includes(to) || VIRTUAL.has(i.spec)) continue
+      if (!isBare(i.spec) || NAMES.includes(to) || VIRTUAL.has(to)) continue
       if (i.spec.startsWith("node:") || builtinModules.includes(to)) continue
       if (i.pkg === OWN_SOURCE.package && i.spec.startsWith(OWN_SOURCE.prefix)) continue
+      if (i.spec === READERS_KIT.spec && READERS_KIT.files.test(i.at)) continue
       const pkg = MANIFESTS[i.pkg]
       if (i.spec.startsWith("#") && pkg.imports?.[i.spec]) continue
       const declared = { ...pkg.dependencies, ...pkg.peerDependencies, ...pkg.devDependencies, ...tools }

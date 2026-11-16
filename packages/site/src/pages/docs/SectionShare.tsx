@@ -10,7 +10,7 @@ import { docsMeta, SITE_URL } from "@/pages/docs/seo"
 import { assetPath } from "@/shared/lib"
 import { play } from "@/shared/lib/sound"
 
-export type SectionShareProps = { id: string }
+type SectionShareProps = { id: string }
 
 export default function SectionShare(props: SectionShareProps) {
   const [open, setOpen] = createSignal(false)

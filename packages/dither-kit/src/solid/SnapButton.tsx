@@ -7,13 +7,19 @@ import { CONTROL_BUTTON } from "../tailwind/control"
 import { cn } from "../tailwind/lib"
 
 type Own = {
-  /** Displacement that arms the snap, px. */
+  /** Displacement that arms the snap, px.
+   * @docs number (px): displacement that arms the snap */
   threshold?: number
   axis?: "x" | "y" | "both"
+  /** @docs PixelColor: armed accent */
   color?: PixelColor
   disabled?: boolean
   class?: string
+  /** @docs () on an armed release, or Enter/Space */
   onSnap?: () => void
+  /** @docs label content
+   * @default "Pull to confirm" */
+  children?: JSX.Element
 }
 const OWN = ["threshold", "axis", "color", "disabled", "class", "onSnap", "children"] as const satisfies readonly (
   keyof Own | "children"

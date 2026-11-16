@@ -14,7 +14,6 @@ import { createSignal, type JSX } from "solid-js"
 import { render } from "solid-js/web"
 import { renderDitherButton, renderDitherGradient } from "../src/engine/precompile"
 import { createRasterBuffer, putRasterBuffer, type RasterBuffer } from "../src/engine/raster"
-import DitherButton from "../src/solid/DitherButton"
 import DitherGradient from "../src/solid/DitherGradient"
 import DitherSpinner from "../src/solid/DitherSpinner"
 
@@ -126,30 +125,6 @@ const SCENARIOS: { name: string; notes: string; run: (container: HTMLElement) =>
       c.textContent = ""
       return { compute: computed - t0, full: done - t0, painted }
     },
-  },
-  {
-    name: "DitherButton live mount",
-    notes: "gradient variant, cell=2",
-    run: (c) =>
-      mountAndMeasure(c, () => (
-        <div style={CENTRE}>
-          <DitherButton color="blue" variant="gradient">
-            Save
-          </DitherButton>
-        </div>
-      )),
-  },
-  {
-    name: "DitherButton static mount",
-    notes: "320x200 cap, idle-deferred",
-    run: (c) =>
-      mountAndMeasure(c, () => (
-        <div style={CENTRE}>
-          <DitherButton color="blue" variant="gradient" renderMode="static">
-            Save
-          </DitherButton>
-        </div>
-      )),
   },
   {
     name: "DitherSpinner live mount",

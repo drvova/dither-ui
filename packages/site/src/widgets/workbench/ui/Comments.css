@@ -5,7 +5,9 @@
   pointer-events: none;
 }
 
-.comments-scope .pin {
+/* The key a pin is pressed through: laid over the pin the SVG layer draws,
+   the same box (the text sizes it, unseen), its own focus ring. */
+.comments-scope button.pin {
   position: absolute;
   display: grid;
   min-width: 20px;
@@ -16,25 +18,49 @@
   font-size: 10px;
   font-weight: 600;
   transform: translate(-2px, -100%);
-  color: black;
-  background: var(--wb-hl);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+  color: transparent;
+  background: none;
   pointer-events: auto;
 }
 
-.comments-scope .pin.resolved {
-  color: var(--color-muted-foreground);
-  background: var(--color-card);
-  box-shadow: inset 0 0 0 1px var(--color-border);
-}
-
-.comments-scope .pin.open {
+.comments-scope button.pin.open {
   outline: 2px solid var(--color-foreground);
   outline-offset: 1px;
 }
 
-.comments-scope .pin.draft {
-  pointer-events: none;
+/* Drawn (in the overlay's SVG layer). Black on either theme's ember
+   clears 5:1. */
+g.comments-scope .pin {
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.35));
+}
+
+g.comments-scope .pin path {
+  fill: var(--wb-hl);
+}
+
+g.comments-scope .pin text {
+  font-size: 10px;
+  font-weight: 600;
+  fill: black;
+}
+
+g.comments-scope .pin.resolved {
+  filter: none;
+}
+
+g.comments-scope .pin.resolved path {
+  fill: var(--color-card);
+  stroke: var(--color-border);
+}
+
+g.comments-scope .pin.resolved text {
+  fill: var(--color-muted-foreground);
+}
+
+@media (forced-colors: active) {
+  g.comments-scope .pin text {
+    fill: HighlightText;
+  }
 }
 
 .comments-scope .pop {

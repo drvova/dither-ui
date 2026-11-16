@@ -12,9 +12,10 @@
 // a failure named `<Component>.<input>`.
 //
 // The inputs: every prop the row declares, its second value made from its
+// docs example's states (`meta.states`) where it states one, else from its
 // spec (a boolean flipped, a number halfway to its bound, the next option,
-// another colour, a list reversed, a text that reads as a value from
-// `TEXT_SAMPLES`), then the surroundings: the print screen, the theme and
+// another colour, a list reversed, a text made from its own), then the
+// surroundings: the print screen, the theme and
 // the box. First of all nothing: two copies that differ with nothing
 // changed fail as `<Component>.<none>` (it runs on a timer the kit clock
 // does not drive).
@@ -27,8 +28,9 @@ import { release, seek } from "@dither-ui/kit/engine/clock.ts"
 import { paintOf, recordPaint } from "@dither-ui/kit/testing/paint.ts"
 import { createComponent } from "@/entities/widget/model/factory"
 import type { ComponentModel } from "@/entities/widget/model/types"
-import { COMPONENT_REGISTRY, type ComponentEntry, type PropSpec, TEXT_SAMPLES } from "@/entities/widget/model/registry"
+import { COMPONENT_REGISTRY, type ComponentEntry, type PropSpec } from "@/entities/widget/model/registry"
 import { WidgetRenderer } from "../../src/widgets/frame-renderer"
+import { stated } from "./docs-api"
 
 /** The kit clock's moment, ms: past every entrance. */
 const MOMENT = 2400
@@ -156,8 +158,10 @@ afterAll(() => {
   undoPaint()
 })
 
-/** A prop's second value, made from its spec. */
-function secondValue(spec: PropSpec): unknown {
+/** A prop's second value: the one its docs example states, else made from its spec. */
+function secondValue(entry: ComponentEntry, spec: PropSpec): unknown {
+  const value = stated(entry.is, spec.key)
+  if (value !== undefined) return value
   switch (spec.kind) {
     case "boolean":
       return !spec.def
@@ -174,7 +178,7 @@ function secondValue(spec: PropSpec): unknown {
     case "list":
       return spec.def.length > 1 ? [...spec.def].reverse() : [...spec.def, "Extra"]
     case "text":
-      return TEXT_SAMPLES[spec.key] ?? (spec.def ? `${spec.def} too` : "Text")
+      return spec.def ? `${spec.def} too` : "Text"
     case "url":
       return "/faces.webp"
   }
@@ -188,7 +192,7 @@ const inputsOf = (entry: ComponentEntry): Input[] => [
   { name: "<none>", apply: () => {} },
   ...entry.props.map((spec): Input => ({
     name: spec.key,
-    apply: (widget) => void (widget.props[spec.key] = secondValue(spec)),
+    apply: (widget) => void (widget.props[spec.key] = secondValue(entry, spec)),
   })),
   { name: "<screen>", apply: (_, around) => void (around.screen = "dot") },
   { name: "<theme>", apply: (_, around) => void (around.dark = true) },
@@ -307,5 +311,26 @@ describe("the paint law: changed in place, a component paints what a fresh mount
       if (how) failures.push(`${entry.is}.${input.name} (${how})`)
     }
     expect(failures).toEqual([])
+  })
+})
+
+/** The theme input, alone: `.dark` on the root, nothing else. */
+const THEME = inputsOf(COMPONENT_REGISTRY[0]).find((i) => i.name === "<theme>")!
+
+// A canvas is printed in the kit's own fills over a clear ground, never in
+// the theme's inks (those are CSS: tokens, tone classes, SVG), so turning
+// the theme repaints nothing: the same pixels before and after the turn.
+describe("the theme costs no paint: a canvas shows the same pixels in both themes", () => {
+  it.for(COMPONENT_REGISTRY.map((entry) => [entry.is, entry] as const))("%s", { timeout: 30000 }, async ([, entry]) => {
+    const kept = copy(entry)
+    try {
+      await vi.advanceTimersByTimeAsync(SETTLE)
+      const light = kept.shows().canvases
+      kept.apply(THEME)
+      await vi.advanceTimersByTimeAsync(SETTLE)
+      expect(kept.shows().canvases).toBe(light)
+    } finally {
+      kept.dispose()
+    }
   })
 })

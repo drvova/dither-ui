@@ -4,10 +4,14 @@ import { cn } from "../tailwind/lib"
 import { createInviewLoop } from "./runtime/in-view"
 
 export type BlobCursorProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   size?: number
+  /** @docs number (0-1) */
   lag?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

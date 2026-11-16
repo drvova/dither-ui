@@ -8,7 +8,7 @@
 
 /** How long the app waits for a stylesheet before it mounts all the same:
  * a sheet that failed before it was looked at never says so again. */
-export const SHEET_WAIT_MS = 3000
+const SHEET_WAIT_MS = 3000
 
 /** Resolves once every `<link rel="stylesheet">` in `doc` has loaded or
  * failed, at once when none is pending, after `SHEET_WAIT_MS` at most. */

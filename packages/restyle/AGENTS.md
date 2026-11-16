@@ -66,6 +66,9 @@ twin the same way. Paths here are from this package's root.
   compiler takes it).
   The spec reads the vocabulary the workspace's `rstack.config.ts`
   compiles, which is the site's.
+- Every export is imported somewhere in the workspace
+  (`packages/site/tests/exports.spec.ts`): a name only this package uses
+  is not exported.
 - The generator is held by the twin's own spec
   (`packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts`), and
   every docs snippet in every system by the site's

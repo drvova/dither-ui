@@ -4,7 +4,11 @@ import type { ChartType } from "@/shared/config"
 import type { Artboard } from "./types"
 
 let counter = 0
-const uid = () => `ab${Date.now().toString(36)}${(counter++).toString(36)}`
+// A browser stamps an id with its clock, so ids made in different sessions
+// never meet; the prerender has no session to keep apart and stamps none,
+// so the Studio's page is the same bytes in every build.
+const stamp = () => (typeof window === "undefined" ? "" : Date.now().toString(36))
+const uid = () => `ab${stamp()}${(counter++).toString(36)}`
 
 export type ArtboardKind = ChartType | SimpleWidgetKind
 

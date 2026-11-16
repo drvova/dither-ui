@@ -3,8 +3,11 @@ import { cn } from "../tailwind/lib"
 import "./CircularText.css"
 
 export type CircularTextProps = {
+  /** @default "DITHER · UI · TOOLKIT ·" */
   text?: string
+  /** @docs number (s) */
   duration?: number
+  /** @docs number (px) */
   size?: number
   class?: string
 }

@@ -11,14 +11,22 @@ import "./DitherContainer.css"
 export type ContainerScope = CqState & { width: number; height: number }
 
 export type DitherContainerProps = {
-  /** Bucket scale in container px — declaration order irrelevant. */
+  /** Bucket scale in container px — declaration order irrelevant.
+   * @docs CqScale: Record<name, min | { min?, max? }>; min inclusive, max exclusive, order irrelevant
+   * @default CONTAINER_SCALE (xs 0, sm 240, md 360, lg 520, xl 720) */
   scale?: CqScale
-  /** Quantize `--cq-w` / `--cq-h` to this many px (0 = continuous). */
+  /** Quantize `--cq-w` / `--cq-h` to this many px (0 = continuous).
+   * @docs number: quantize --cq-w to this px (0 = continuous) */
   step?: number
-  /** Native `container-name` for `@container` rules in children's styles. */
+  /** Native `container-name` for `@container` rules in children's styles.
+   * @docs string: native container-name for children's \@container rules */
   name?: string
+  /** @docs element tag */
   as?: string
+  /** @docs passthrough class */
   class?: string
+  /** @docs function of { width, height, size, index, matches }: measured content box (what \@container sees), active
+   *   bucket, its ordinal, every matching bucket */
   children?: JSX.Element | ((scope: ContainerScope) => JSX.Element)
 }
 

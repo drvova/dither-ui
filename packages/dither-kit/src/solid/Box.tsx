@@ -3,6 +3,7 @@ import { Dynamic } from "solid-js/web"
 import { cn } from "../tailwind/lib"
 
 type Own = {
+  /** @docs "div" | "section" | "span" | "article" | … */
   as?: string
   class?: string
 }

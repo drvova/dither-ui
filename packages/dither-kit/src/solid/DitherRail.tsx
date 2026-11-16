@@ -3,12 +3,17 @@ import { cn } from "../tailwind/lib"
 import { SIDEBAR_COLLAPSED, SIDEBAR_COMPACT } from "./DitherSidebar"
 
 export type DitherRailProps = {
+  /** @docs string (aria-label for the nav landmark) */
   label?: string
-  /** Which edge it sits on — flips the border. */
+  /** Which edge it sits on — flips the border.
+   * @docs "left" | "right" (flips the border edge) */
   side?: "left" | "right"
   class?: string
+  /** @docs JSX.Element (children: items, labels fold automatically) */
   header?: JSX.Element
+  /** @docs JSX.Element (children: items, labels fold automatically) */
   footer?: JSX.Element
+  /** @docs JSX.Element (children: items, labels fold automatically) */
   children?: JSX.Element
 }
 

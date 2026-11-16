@@ -31,6 +31,7 @@ function paintUnderline(
 }
 
 export type DitherNavMenuProps = {
+  /** @docs { label: string; href?: string }[] */
   items: NavMenuItem[]
   modelValue: string
   color?: PixelColor
@@ -98,7 +99,7 @@ export default function DitherNavMenu(raw: DitherNavMenuProps) {
       <canvas
         ref={(el) => (canvas = el)}
         aria-hidden="true"
-        class="absolute bottom-0 h-[2px] transition-[left,width] duration-200 motion-reduce:transition-none"
+        class="absolute bottom-0 h-[2px] transition-[left,width] ease-[var(--ease-pill)] duration-[var(--duration-pill)] motion-reduce:transition-none"
         style={{
           left: underline().left + "px",
           width: underline().width + "px",

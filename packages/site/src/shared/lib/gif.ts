@@ -10,20 +10,20 @@
 // writes their source into its page), so each one is a plain declaration
 // that names only the others.
 
-export type Frame = Uint8ClampedArray
+type Frame = Uint8ClampedArray
 
 /** `matrix` ordered-dithers each pixel by up to ±`spread`/2 before it is
  * matched (default 24 with a matrix); without one every pixel takes its
  * nearest palette colour. `keep` are colours (RGB triples) the palette holds
  * exactly however few pixels wear them: a design's own colours, which a
  * sample of a large frame can miss (a one-glyph accent). */
-export type GifOptions = { matrix?: number[][]; spread?: number; keep?: number[][] }
+type GifOptions = { matrix?: number[][]; spread?: number; keep?: number[][] }
 
 /** The palette slot a delta frame leaves see-through. */
-export const TRANSPARENT = 255
+const TRANSPARENT = 255
 
 /** A growable byte buffer. */
-export function byteBuffer() {
+function byteBuffer() {
   let buf = new Uint8Array(1 << 16)
   let length = 0
   const room = (n: number) => {
@@ -98,7 +98,7 @@ export function medianCut(pixels: number[], max = 256): number[][] {
 }
 
 /** The sampled colours themselves, when there are at most `max` of them. */
-export function distinctColours(pixels: number[], max = 256): number[][] | null {
+function distinctColours(pixels: number[], max = 256): number[][] | null {
   const seen = new Set<number>()
   for (const p of pixels) {
     seen.add(p)
@@ -108,7 +108,7 @@ export function distinctColours(pixels: number[], max = 256): number[][] | null 
 }
 
 /** Pixels sampled across every frame (at most ~`budget`), packed RGB. */
-export function sample(frames: Frame[], budget = 60000): number[] {
+function sample(frames: Frame[], budget = 60000): number[] {
   const total = frames.reduce((n, f) => n + f.length / 4, 0)
   const step = Math.max(1, Math.floor(total / budget))
   const out: number[] = []
@@ -215,7 +215,7 @@ export function lzw(indices: Uint8Array, minCodeSize = 8): Uint8Array {
 
 /** The box of `next` that differs from `prev`, every unchanged pixel in it
  * see-through; a 1×1 see-through box when nothing changed. */
-export function deltaBox(prev: Uint8Array, next: Uint8Array, width: number) {
+function deltaBox(prev: Uint8Array, next: Uint8Array, width: number) {
   const height = next.length / width
   let x0 = width
   let y0 = height

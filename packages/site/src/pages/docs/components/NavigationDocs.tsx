@@ -1,91 +1,31 @@
-import { createSignal, Index } from "solid-js"
-import { DitherBreadcrumb, DitherPagination, DitherRating, DitherStepper, DitherTimeline } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import breadcrumbProps from "virtual:dither-props/DitherBreadcrumb"
+import paginationProps from "virtual:dither-props/DitherPagination"
+import ratingProps from "virtual:dither-props/DitherRating"
+import stepperProps from "virtual:dither-props/DitherStepper"
+import timelineProps from "virtual:dither-props/DitherTimeline"
 import DocSection from "../DocSection"
+import BreadcrumbExample from "./examples/breadcrumb"
+import breadcrumbCode from "./examples/breadcrumb.tsx?raw"
+import StepperExample from "./examples/stepper"
+import stepperCode from "./examples/stepper.tsx?raw"
+import PaginationExample from "./examples/pagination"
+import paginationCode from "./examples/pagination.tsx?raw"
+import RatingExample from "./examples/rating"
+import ratingCode from "./examples/rating.tsx?raw"
+import TimelineExample from "./examples/timeline"
+import timelineCode from "./examples/timeline.tsx?raw"
 
-const SNIPPET_BREADCRUMB = `<DitherBreadcrumb
-  items={[
-    { label: 'Home', href: '#/' },
-    { label: 'Components', href: '#/docs' },
-    { label: 'Breadcrumb' },
-  ]}
-/>`
-
-const SNIPPET_PAGINATION = `const [page, setPage] = createSignal(3)
-
-<DitherPagination page={page()} onUpdatePage={setPage} total={12} />`
-
-const SNIPPET_RATING = `const [rating, setRating] = createSignal(3)
-
-{/* interactive: click or arrow-key to set */}
-<DitherRating modelValue={rating()} onUpdateModelValue={setRating} />
-
-{/* read-only supports fractions */}
-<DitherRating modelValue={4.5} readonly />
-
-{/* seed varies the star tilt + dither scatter */}
-<DitherRating modelValue={4} seed={88} color="pink" />`
-
-const SNIPPET_STEPPER = `<DitherStepper
-  current={1}
-  steps={[
-    { label: 'Cart' },
-    { label: 'Shipping' },
-    { label: 'Payment' },
-    { label: 'Done' },
-  ]}
-/>`
-
-const SNIPPET_TIMELINE = `<DitherTimeline
-  items={[
-    { title: 'Deployed v0.3.0', time: '2h ago', color: 'green',
-      body: 'Rolled out to production.' },
-    { title: 'Merged #482', time: 'Yesterday', color: 'blue',
-      body: 'Seeded spinner form space.' },
-    { title: 'Opened milestone', time: 'Mon', color: 'purple' },
-  ]}
-/>`
-
-const API: Record<string, PropRow[]> = {
-  breadcrumb: [
-    { prop: "items", type: "{ label; href? }[]", default: "" },
-    { prop: "separator", type: "string", default: '"/"' },
-  ],
-  pagination: [
-    { prop: "page", type: "number (with onUpdatePage)", default: "" },
-    { prop: "total", type: "number (page count)", default: "" },
-    { prop: "siblings", type: "number (pages either side)", default: "1" },
-  ],
-  rating: [
-    { prop: "modelValue", type: "number (with onUpdateModelValue)", default: "0" },
-    { prop: "max", type: "number", default: "5" },
-    { prop: "color", type: "PixelColor", default: '"orange"' },
-    { prop: "size", type: "number (px per star)", default: "22" },
-    { prop: "readonly", type: "boolean (fractions allowed)", default: "false" },
-    { prop: "label", type: "string (accessible name)", default: '"Rating"' },
-    { prop: "seed", type: "number (star tilt + scatter)", default: "clean" },
-  ],
-  stepper: [
-    { prop: "steps", type: "{ label; hint? }[]", default: "" },
-    { prop: "current", type: "number (active index)", default: "" },
-  ],
-  timeline: [
-    { prop: "items", type: "{ title; time?; body?; color? }[]", default: "" },
-    { prop: "dotSize", type: "number (px)", default: "12" },
-  ],
+export const API: Record<string, PropRow[]> = {
+  breadcrumb: kitTable(breadcrumbProps),
+  pagination: kitTable(paginationProps),
+  rating: kitTable(ratingProps),
+  stepper: kitTable(stepperProps),
+  timeline: kitTable(timelineProps),
 }
 
-const RATING_COLORS = ["orange", "pink", "purple", "green"] as const
-
 export default function NavigationDocs() {
-  const [page, setPage] = createSignal(3)
-  const [rating, setRating] = createSignal(3)
-  const [ratingSeeds, setRatingSeeds] = createSignal([0, 12, 88, 404])
-  const rerollRatings = () => {
-    setRatingSeeds(ratingSeeds().map(() => Math.floor(Math.random() * 100000)))
-  }
-
   return (
     <>
       {/* Breadcrumb */}
@@ -95,11 +35,9 @@ export default function NavigationDocs() {
           <code class="text-foreground/80">aria-current="page"</code>, inside a labelled{" "}
           <code class="text-foreground/80">nav</code>.
         </p>
-        <DemoCard code={SNIPPET_BREADCRUMB}>
+        <DemoCard code={breadcrumbCode}>
           <div class="flex justify-center">
-            <DitherBreadcrumb
-              items={[{ label: "Home", href: "#/" }, { label: "Components", href: "#/docs" }, { label: "Breadcrumb" }]}
-            />
+            <BreadcrumbExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.breadcrumb} />
@@ -112,16 +50,8 @@ export default function NavigationDocs() {
           bound with <code class="text-foreground/80">page</code> and{" "}
           <code class="text-foreground/80">onUpdatePage</code>.
         </p>
-        <DemoCard code={SNIPPET_PAGINATION}>
-          <div class="grid gap-4">
-            {/* Centred while it fits; on the narrowest phones it scrolls. */}
-            <div class="overflow-x-auto">
-              <div class="mx-auto w-max">
-                <DitherPagination page={page()} onUpdatePage={setPage} total={12} />
-              </div>
-            </div>
-            <p class="text-center text-[12px] text-muted-foreground">on page {page()} of 12</p>
-          </div>
+        <DemoCard code={paginationCode}>
+          <PaginationExample />
         </DemoCard>
         <PropsTable rows={API.pagination} />
       </DocSection>
@@ -133,33 +63,8 @@ export default function NavigationDocs() {
           <code class="text-foreground/80">slider</code> (click or arrow keys); read-only mode fills fractionally. A
           seed tilts the star and reshuffles the scatter, so no two ratings look stamped from the same die.
         </p>
-        <DemoCard code={SNIPPET_RATING}>
-          <div class="grid gap-6">
-            <div class="flex flex-col items-center gap-2">
-              <DitherRating modelValue={rating()} onUpdateModelValue={setRating} size={28} />
-              <p class="text-[12px] tabular-nums text-muted-foreground">{rating()} / 5 (click or arrow-key)</p>
-            </div>
-            <div class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-              <DitherRating modelValue={4.5} readonly />
-              <DitherRating modelValue={3} readonly color="green" />
-              <DitherRating modelValue={5} readonly color="pink" max={5} />
-              <DitherRating modelValue={7} readonly color="blue" max={10} size={16} />
-            </div>
-            <div class="flex flex-col items-center gap-3">
-              <div class="flex flex-wrap items-center justify-center gap-6">
-                <Index each={ratingSeeds()}>
-                  {(sd, i) => <DitherRating modelValue={4} readonly seed={sd()} color={RATING_COLORS[i]} size={24} />}
-                </Index>
-              </div>
-              <button
-                type="button"
-                class="rounded-md border border-border px-3 py-1 text-[12px] text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
-                onClick={rerollRatings}
-              >
-                Reroll star seeds
-              </button>
-            </div>
-          </div>
+        <DemoCard code={ratingCode}>
+          <RatingExample />
         </DemoCard>
         <PropsTable rows={API.rating} />
       </DocSection>
@@ -170,12 +75,9 @@ export default function NavigationDocs() {
           Progress through a multi-step flow. Completed steps carry a check, the current step an outlined node, and the
           connectors are the kit's dithered rule, dissolving toward steps not yet reached.
         </p>
-        <DemoCard code={SNIPPET_STEPPER}>
+        <DemoCard code={stepperCode}>
           <div class="mx-auto max-w-md">
-            <DitherStepper
-              current={1}
-              steps={[{ label: "Cart" }, { label: "Shipping" }, { label: "Payment" }, { label: "Done" }]}
-            />
+            <StepperExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.stepper} />
@@ -187,22 +89,8 @@ export default function NavigationDocs() {
           A vertical run of events, each pinned by a dithered dot whose density fades at the rim. Give a title, an
           optional timestamp, body and palette colour per node.
         </p>
-        <DemoCard code={SNIPPET_TIMELINE}>
-          <div class="mx-auto max-w-sm">
-            <DitherTimeline
-              items={[
-                {
-                  title: "Deployed v0.3.0",
-                  time: "2h ago",
-                  color: "green",
-                  body: "Rolled out to production behind a flag.",
-                },
-                { title: "Merged #482", time: "Yesterday", color: "blue", body: "Seeded the spinner form space." },
-                { title: "Opened milestone", time: "Mon", color: "purple", body: "Navigation & data components." },
-                { title: "Kicked off", time: "Last week", color: "orange" },
-              ]}
-            />
-          </div>
+        <DemoCard code={timelineCode}>
+          <TimelineExample />
         </DemoCard>
         <PropsTable rows={API.timeline} />
       </DocSection>

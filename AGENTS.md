@@ -87,20 +87,22 @@ Default section order:
   StyleX generator), `packages/site/` (the SolidStart app: landing, docs,
   Studio, player; its Vite plugins and post-build in `build/`, its static
   files in `public/`), `packages/tasks/` (the repository's tasks: the kit
-  stylesheet, the share cards, the frame renderer, the agent demo
-  recorder), `packages/bridge/` and `packages/discord/`.
+  stylesheet, the share cards, the pages' baked frames, the frame
+  renderer, the agent demo recorder), `packages/add/` (the add command a
+  reader runs), `packages/bridge/` and `packages/discord/`.
 - Dependencies point one way: `@dither-ui/kit` depends on no package here;
   `@dither-ui/restyle` and `@dither-ui/tasks` on `@dither-ui/kit`;
   `@dither-ui/kit-stylex` on `@dither-ui/kit` (and on `@dither-ui/restyle`
   for the spec that generates it, never in its source); `@dither-ui/site`
-  on those four and on `@dither-ui/bridge`; `@dither-ui/bridge` and
-  `@dither-ui/discord` on nothing here. A package imports another by its
+  on those four and on `@dither-ui/bridge` and `@dither-ui/add`;
+  `@dither-ui/bridge`, `@dither-ui/add` and `@dither-ui/discord` on
+  nothing here. A package imports another by its
   name, only what that package's `exports` declare, and only when its own
   manifest declares the dependency; no relative path leaves a package.
 - Every package is named under the `@dither-ui/` scope, whatever its
   folder (`packages/dither-kit` is `@dither-ui/kit`, `dither-kit-stylex`
   `@dither-ui/kit-stylex`, the rest their folder's name): the bare names
-  (`dither-kit`, `tasks`, `@dither-ui/restyle`, `site`, `bridge`, `discord`) are
+  (`dither-kit`, `tasks`, `restyle`, `site`, `bridge`, `add`, `discord`) are
   other people's packages on the npm registry, so none is ever written as
   a dependency or an import. A manifest takes a package of the workspace
   as `file:../<folder>` (npm has no `workspace:` protocol), which no
@@ -146,22 +148,32 @@ Default section order:
   (the crawler files, the cards' manifest and embeds, the install surface,
   the mascot's capture, the bridge), `kit-sources.ts` (the kit's own
   source at `kit/src/solid/` with a `files.json` listing: what the docs'
-  source panel shows, runs and zips), `standalone.ts` (`sw.js` and the
+  source panel shows, runs and zips), `kit-add.ts` (the add command, its
+  manifest and the files only it reads, and the kit stylesheet
+  `kit/dither-kit.css`), `standalone.ts` (`sw.js` and the
   single-file player `play/player.js` + `player.css`), `utilities.ts` (the
   styling rewriter's utility map) and `run-compiler.ts` (what the docs'
   Run needs to load Solid's compiler in a browser). Then
   `build/postbuild.mjs`, which needs a Chromium (`CHROME_PATH` or a
-  standard install) and fails loudly without one: the kit stylesheet, the
-  share card renderer and every card, each section's embed with its own
-  lede, and the agent registry read off the mounted Studio. Details in
-  `packages/site/AGENTS.md`.
+  standard install) and fails loudly without one: the
+  share card renderer and every card (each kept in
+  `node_modules/.cache/dither-ui/og/` under a hash of what it is drawn
+  from, so an unchanged card is copied, never redrawn), each section's embed with its own
+  lede, the agent registry read off the mounted Studio, and last every
+  page's kit canvases baked into its HTML (the engine's own frame at a
+  pixel a cell, shown before any script; `packages/tasks/AGENTS.md`).
+  Details in `packages/site/AGENTS.md`.
 - Aliases: one, the site's own source: `@/` → `packages/site/src/`
   (`packages/site/build/aliases.ts` for the build and the component specs,
   the root `tsconfig.json` `paths` for the type checker, `rstack.config.ts`
   for the framework-free specs: change them together). Every other import
   between packages is a package name. `@dither-kit` is what a reader
   aliases to their copy of the kit and what every snippet the site writes
-  for a reader imports from; no code here imports it.
+  for a reader imports from; the one place code here imports it is the
+  docs' examples (`packages/site/src/pages/docs/<pack>/examples/*.tsx`,
+  the files a reader copies), where the site's alias table and the
+  `tsconfig.json` `paths` make it `@dither-ui/kit`
+  (`tests/workspace.spec.ts` allows it there and nowhere else).
 - Canonical routes: `/` landing · `/docs[/section]` · `/studio`; legacy hash
   routes remain supported for old links; any other address shows the
   missing page (noindex, the landing's print). GitHub Pages deploys through
@@ -186,7 +198,10 @@ Default section order:
   1458,24,20,47; 1334,23,40,40. Regenerate from the sheet, don't
   hand-draw. They decorate the README. The README's screenshots live in
   `.github/readme/` (WebP, never shipped with the site), taken from a
-  production build: retake the one whose page changes.
+  production build: retake the one whose page changes. Its banner,
+  `.github/readme/brand.svg`, is generated: the hero's moment of the
+  brand forming, written from the brand's cells (`npm run readme:art`,
+  `packages/tasks/AGENTS.md`), never edited by hand.
 - Landing surfaces: everything that moves on the landing is the kit
   itself (the user's call after the trailer: show the real components,
   hands on, never drawings of them). The page is printed: one obsidian
@@ -229,15 +244,13 @@ Default section order:
   hero's "Watch the film" key and is fetched only when its dialog opens.
   Details in `packages/site/src/pages/AGENTS.md`.
 - Page transitions: moving between the site's pages is a cross-document
-  view transition the arriving page dithers through the kit's transition
-  engine (`@dither-ui/kit/engine/transition.ts`, a band of the signal ink on
-  the wipe's front); an inline head script from
-  `packages/site/src/app/page-reveal.ts`
-  (set in every site page's head by the shell,
-  `packages/site/src/entry-server.tsx`) catches it before the app runs. The
-  theme
-  turns through the same engine as an iris. Details in
-  `packages/site/src/AGENTS.md`.
+  view transition of the `page` type, all of it the site's stylesheet
+  (`packages/site/src/app/styles.css`: the new page wipes in through
+  strips of the kit's Bayer ranks, a band of the signal ink on the wipe's
+  front); the shell holds each page's first frame to the end of its HTML
+  (`packages/site/src/app/page-reveal.ts`, an expect link, no script). The
+  theme prints in through the same ranks, the one view transition its
+  toggle starts. Details in `packages/site/src/AGENTS.md`.
 - Crawler surface: `packages/site/src/pages/docs/crawler-files.ts` generates
   `sitemap.xml`, `robots.txt` and `llms.txt` at build (the `siteFiles`
   plugin, `packages/site/build/site-files.ts`, emitted with the browser's assets
@@ -327,6 +340,13 @@ Default section order:
   clip, the Bayer motif, a riser and an impact on every cut) that the
   export carries as the composition's audio track. Details in
   `packages/site/src/AGENTS.md` and `packages/dither-kit/AGENTS.md`.
+- Design tools: every Studio frame, and a selection, copies or saves as
+  a layered SVG a designer keeps editing in Figma, Illustrator, Sketch or
+  Penpot (one group a layer named after it, text as `<text>`, the dither
+  as cells merged into runs, art with no vector form as a PNG `<image>`):
+  `entities/artboard/vector.ts` over `svg.ts`, the canvas bar's and the
+  export dialog's SVG keys, the `svg.export` command / `export_svg` tool.
+  Details in `packages/site/src/AGENTS.md` (SVG).
 - Styling systems: the kit is one kit in layers: `@dither-ui/kit/engine/`
   (framework-free, styling-free logic), `@dither-ui/kit/solid/` (the components,
   authored in SolidJS with Tailwind), `@dither-ui/kit/tailwind/` (the Tailwind
@@ -339,13 +359,13 @@ Default section order:
   packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts` rewrites its
   StyleX twin, and the spec fails on any drift). The tokens live in
   `@dither-ui/kit/engine/theme.css` (plain custom properties the site's
-  `packages/site/src/app/styles.css` imports under Tailwind); the post-build
-  (and `npm run build:css`, `packages/tasks/src/kit-css.mjs`, alone)
+  `packages/site/src/app/styles.css` imports under Tailwind); the site's
+  build (`kitAdd`; `npm run build:css`, `packages/tasks/src/kit-css.mjs`, alone)
   compiles `@dither-ui/kit/tailwind/kit.css` (tokens, the `.dither-kit`-scoped
   base, every utility the kit uses) into `kit/dither-kit.css` in the build,
   so apps on UnoCSS, vanilla CSS or CSS-in-JS run the Solid layer without
-  Tailwind; StyleX apps copy the StyleX package beside the kit and alias
-  `@dither-kit` to it; `@dither-ui/kit/engine/theme.ts` themes from JS. Details
+  Tailwind; StyleX apps take the StyleX twin beside the kit and alias
+  `@dither-kit` to it (the add command writes it so, below); `@dither-ui/kit/engine/theme.ts` themes from JS. Details
   in `packages/dither-kit/AGENTS.md` and
   `packages/dither-kit-stylex/AGENTS.md`. What the site writes for a reader
   is Solid (the docs' tables, prose and snippets, the Studio's code export
@@ -359,6 +379,26 @@ Default section order:
   docs' styling switch, the Studio's export dialog and `code.get { styling
   }` all go through it, and the docs' Run plays a Solid example in the page
   (see `packages/site/src/widgets/source/AGENTS.md`).
+- Add command: a reader adds kit components to their project with one
+  line, `curl -fsSL https://dither-ui.com/add/dither-add.mjs | node
+  --input-type=module - add <component...>` (the `@dither-ui/add`
+  package's one zero-dependency script, served as written at
+  `add/dither-add.mjs` the way the bridge is; nothing on npm). It reads
+  `add/manifest.json`, which the site's build derives
+  (`packages/site/build/kit-add.ts`) from the kit's sources, its StyleX
+  twin (its imports of the kit made relative, so a copy holds both) and
+  the import graph read off every file: each component the kit's index
+  exports with its whole file set per layer, every file's hash, each
+  styling system's own files (`tailwind`: the Tailwind layer's
+  `tailwind/kit.css`; `css` and `modules`: the standalone stylesheet;
+  `stylex`: the twin and the tokens). It writes the set into one folder
+  (`src/dither-kit` by default) with an index of just what was added,
+  never replaces a file the reader changed without `--force` (it shows
+  the diff and writes nothing), and says the one alias to set,
+  `@dither-kit`. `list`, `diff`, `--dry-run`. Every docs section with demos
+  shows the line for the kit components they use, in the reader's
+  styling system; the Quick start, `llms.txt` and `agent/SKILL.md` carry
+  it. Details in `packages/add/AGENTS.md` and `packages/site/AGENTS.md`.
 - Print screens: every kit surface thresholds its density through a 4x4
   matrix, the Bayer one unless a `DitherScreen` around it picks a
   printer's screen (`line`, `diagonal`, `dot`, `cross`; `SCREENS` in
@@ -366,7 +406,11 @@ Default section order:
   function, `useDitherMatrix` (charts through their context's
   `matrixOf`), seeded as ever; a fill that carries a label keeps Bayer.
   `DitherPoster` prints the palette as tone through them: tiles that
-  dissolve into each other and the kit's diamond as their negative. Docs: Utils (`print-screens`), Backgrounds (`poster`). Details in
+  dissolve into each other and the kit's diamond as their negative. Docs: Utils (`print-screens`), Backgrounds (`poster`).
+  Each screen's 17 tones are also class names
+  (`@dither-ui/kit/engine/tones.css`, `dk-tone-<screen>-<level>`, generated
+  from `engine/tone.ts`): the labelled fills (button, badge, toggle, toggle
+  group) print through them on the server, no canvas. Details in
   `packages/dither-kit/AGENTS.md`.
 - Browsers and drivers: the kit is web platform only — Chromium (Chrome,
   Edge, Brave), WebKit (Safari) and Gecko (Firefox) at Tailwind v4's floor
@@ -378,7 +422,7 @@ Default section order:
   target for the whole site, iPhone and iPad: fingers drag every control
   (`touch-action` set, `pointercancel` handled), the Studio canvas pans
   under a finger and pinches under two, the site's menu is a bottom sheet
-  a finger drags down to close, and every right-click menu opens on
+  (closed by its key, Escape or a tap above it), and every right-click menu opens on
   a long press (`packages/site/src/shared/lib/long-press.ts`); fields read at
   16px there
   so focusing one never zooms the page (pinch zoom stays the reader's);
@@ -395,9 +439,10 @@ Default section order:
   `npm run walk -- --engine chromium|webkit|firefox` walks every page of a
   built site in one engine (every docs section's cards, canvases, Code tab
   and Run in each styling system, in both themes, the Studio's paths, the
-  player; the contrast of the text as painted; a keyboard and
-  screen-reader pass over every page and its dialogs; every page again at
-  an iPhone's size), by hand, outside the gate (`packages/tasks/AGENTS.md`).
+  player; the contrast of the text as painted; what an SVG filter blanks
+  or a blend paints black; a keyboard and screen-reader pass over every
+  page and its dialogs; every page again at an iPhone's size), by hand or
+  in its own workflow, outside the gate (`packages/tasks/AGENTS.md`).
 - Motion in container units: `@dither-ui/kit/engine/keyframes.ts` (lengths as unit
   terms, interpolated with their units kept, resolved to px against a box)
   drives `DitherStage` (a size query container with one kit-clock) and
@@ -487,7 +532,11 @@ Default section order:
 - CI (`.github/workflows/ci.yml`) is two jobs on one install: `check`
   (lint, format, the types of the whole repository, the framework-free
   specs and the kit's component specs) and `site` (the site's component
-  specs, the static build, the specs again over the built site).
+  specs, the static build, the specs again over the built site). The walk
+  (`.github/workflows/walk.yml`) stays out of that gate: nightly, on
+  dispatch and on a pull request labelled `walk`, one build handed as an
+  artifact to a matrix of the three engines in three shards each, every
+  job's report and shots uploaded, a finding failing its job.
 - The site's build prerenders every page so non-JS crawlers read the real
   page DOM from bytes, and its post-build draws in headless Chromium
   (`CHROME_PATH` or standard install paths, preinstalled on GitHub Actions
@@ -541,12 +590,27 @@ Default section order:
   easing, the site's `--ease-settle`) eases every transition and every
   driven wipe, reveal, rise, scroll scene and page transition alike, 150ms
   for a colour (the industrial brief's micro feedback), 350ms for a hand's
-  movement, 500ms for a sheet, save one lift (the user's call): what the
-  hand moves directly (a key or a card pressed and let go, a sheet a
-  finger drags and lets go) settles on the hand's spring, which may pass
-  its mark a little (`HAND_SPRING` in
-  `packages/site/src/shared/lib/spring.ts`, its CSS `--ease-spring`;
-  nothing that moves by itself springs); one moving layer at a
+  movement, 500ms for a sheet, save one lift (the user's call): a key or
+  a card let go after a press settles on the hand's spring, which may
+  pass its mark a little (`HAND_SPRING` in
+  `packages/site/src/shared/lib/spring.ts`, its CSS `--ease-spring`, the
+  press's way back as an `:active` transition; nothing that moves by
+  itself springs), and four roles scoped out of the glide (the user's
+  call): `travel` (a hop along a path, 420 to 620ms, five dots trailing),
+  `reorder` (cards changing places), `pill` (a value pill changing) and
+  `bump` (a receiver's pulse on an arrival, timed in CSS), each its own
+  curve and duration (`MOTION_ROLES` in `@dither-ui/kit/engine/timing.ts`,
+  `--ease-<role>`/`--duration-<role>` in the kit's `theme.css`, DESIGN.md's
+  Motion), taken only by motion that truly is that role; no motion is JS (the user's call: "I don't want any
+  animations to be JS; I want them to be no JS and be class names"): the
+  site's and the kit's UI motion are CSS classes (transitions,
+  `@keyframes`, scroll-driven animation, each under a
+  `prefers-reduced-motion: no-preference` query, a scroll timeline also
+  under `@supports`, so without it the end state stands), the kit's
+  dithered canvases still draw in JS, and motion CSS cannot drive by
+  itself (dragging the menu's sheet, a spring following a finger) is
+  dropped, never kept as a little script (`packages/site/tests/no-js-motion.spec.ts`,
+  `packages/site/tests/css-motion.spec.ts`); one moving layer at a
   time against a still ground (the user's call after the still ground
   study). Alignment matters (the user's call): what stands under the
   header stands on its lines (a sheet's words start on the brand mark's
@@ -706,9 +770,12 @@ Default section order:
       workbench
     - `packages/site/src/widgets/source/AGENTS.md` — the docs previews'
       source files and Run
+- `packages/add/AGENTS.md` — the add command: the zero-dependency script
+  that copies kit components into a reader's project, its guard and its
+  settings
 - `packages/tasks/AGENTS.md` — the repository's tasks: the kit stylesheet,
-  the share cards' drawing code, the frame renderer, the agent demo
-  recorder
+  the share cards' drawing code, the pages' baked frames, the frame
+  renderer, the agent demo recorder
 - `packages/bridge/AGENTS.md` — the local ACP bridge: zero-dep relay between a
   Studio tab and the user's own coding agent, Studio tools as an MCP server
 - `packages/discord/AGENTS.md` — the Discord interactions service: a

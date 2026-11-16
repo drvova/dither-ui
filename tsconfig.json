@@ -17,7 +17,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./packages/site/src/*"]
+      "@/*": ["./packages/site/src/*"],
+      "@dither-kit": ["./packages/dither-kit/src/solid/index.ts"]
     }
   },
   "include": [

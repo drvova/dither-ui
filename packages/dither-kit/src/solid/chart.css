@@ -1,0 +1,171 @@
+/* The charts' print, as SVG (`engine/chart-svg.ts`): its motion and its
+ * hover, all here, so a chart printed on the server moves and answers the
+ * pointer with no script. The root `<svg class="dk-chart">` carries the
+ * entrance's timing (`--dk-chart-duration`, `--dk-chart-delay`,
+ * `--dk-chart-ease`), `data-enter` while it plays an entrance and
+ * `data-in-view` once it has come on screen. Every keyframe is `dk-*`, so
+ * the kit clock holds it at a directed moment (`engine/clock.ts`). */
+.dk-chart {
+  overflow: visible;
+
+  /* A print's cells: one path an ink, each row's runs a 1-unit stroke. */
+  & .dk-chart-print {
+    shape-rendering: crispEdges;
+    pointer-events: none;
+  }
+
+  & .dk-chart-grow {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+  }
+
+  /* The live edge: each sparkle winks on its own phase. */
+  & .dk-chart-sparkle {
+    animation: dk-chart-twinkle var(--dk-twinkle) ease-in-out var(--dk-phase) infinite alternate;
+  }
+
+  /* The pointer lifts the fill (`hoverLift`; `data-hovered` holds it). */
+  &[data-lift]:hover .dk-chart-fill,
+  &[data-lift][data-hovered] .dk-chart-fill {
+    filter: var(--dk-chart-lift);
+  }
+  & .dk-chart-bloom {
+    pointer-events: none;
+    transition: opacity 150ms ease;
+  }
+  &[data-bloom-hover]:not(:hover, [data-hovered]) .dk-chart-bloom {
+    opacity: 0;
+  }
+
+  /* A mark answers the pointer: its crosshair and its value show; bars
+   * not under it fade; a slice pops out along its middle. */
+  & .dk-chart-reveal {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms ease;
+  }
+  & .dk-chart-mark:hover .dk-chart-reveal,
+  & .dk-chart-mark[data-marked] .dk-chart-reveal {
+    opacity: 1;
+  }
+  &[data-tooltip] .dk-chart-value {
+    display: none;
+  }
+  & .dk-chart-value {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    fill: var(--foreground);
+    paint-order: stroke;
+    stroke: var(--background);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+  & .dk-chart-bar {
+    transition: opacity 150ms ease;
+  }
+  & .dk-chart-bars:hover > .dk-chart-bar:not(:hover) {
+    opacity: 0.5;
+  }
+  & .dk-chart-bars > .dk-chart-bar:hover .dk-chart-fill {
+    filter: var(--dk-chart-lift);
+  }
+  & .dk-chart-slice {
+    transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  & .dk-chart-slice:hover {
+    transform: translate(var(--dk-pop-x), var(--dk-pop-y));
+  }
+}
+
+/* The entrance: a sweep (area, line), bars growing from their base, the
+ * pie's arc going round, the radar scaling out of its centre, the dots
+ * after it. It plays only where a script runs (the runtime marks the chart
+ * `data-in-view` the first time it comes on screen, and until then the
+ * entrance holds at its first frame); without one, or in a browser that
+ * cannot say (`scripting` is newer than the floor), and under reduced
+ * motion, the chart stands shown. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .dk-chart[data-enter] {
+    & .dk-chart-sweep {
+      animation: dk-chart-sweep var(--dk-chart-duration) var(--dk-chart-ease) var(--dk-chart-delay) both;
+    }
+    & .dk-chart-sweep[data-reverse] {
+      animation-name: dk-chart-sweep-reverse;
+    }
+    & .dk-chart-grow {
+      animation: dk-chart-grow var(--dk-bar-duration) var(--dk-chart-ease) var(--dk-bar-delay) both;
+    }
+    & .dk-chart-scale {
+      animation: dk-chart-scale var(--dk-chart-duration) var(--dk-chart-ease) var(--dk-chart-delay) both;
+    }
+    & .dk-chart-arc {
+      animation: dk-chart-arc var(--dk-chart-duration) var(--dk-chart-ease) var(--dk-chart-delay) both;
+    }
+    & .dk-chart-after {
+      animation: dk-chart-after 300ms ease calc(var(--dk-chart-delay) + var(--dk-chart-duration)) both;
+    }
+    &:not([data-in-view]) :is(.dk-chart-sweep, .dk-chart-grow, .dk-chart-scale, .dk-chart-arc, .dk-chart-after) {
+      animation-play-state: paused;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dk-chart .dk-chart-sparkle {
+    animation: none;
+  }
+  .dk-chart .dk-chart-slice {
+    transition: none;
+  }
+}
+
+@keyframes dk-chart-sweep {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes dk-chart-sweep-reverse {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes dk-chart-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes dk-chart-scale {
+  from {
+    transform: scale(0);
+  }
+}
+
+@keyframes dk-chart-arc {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes dk-chart-after {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dk-chart-twinkle {
+  from {
+    opacity: var(--dk-twinkle-low);
+  }
+}

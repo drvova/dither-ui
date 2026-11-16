@@ -12,7 +12,9 @@ const styles = stylex.create({
 })
 
 export type VariableProximityProps = {
+  /** @default required */
   text?: string
+  /** @docs number (px) */
   radius?: number
   class?: string
   xstyle?: StyleProp

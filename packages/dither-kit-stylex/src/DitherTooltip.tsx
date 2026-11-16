@@ -30,6 +30,7 @@ const styles = stylex.create({
 export type DitherTooltipProps = {
   text: string
   delay?: number
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -1,0 +1,61 @@
+/* Above the pointer surface (z 2) so the rulers take their press; nothing
+   else in it does. */
+.layer-scope.wb-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  fill: none;
+}
+
+/* A hairline stays one px on the screen at any zoom. */
+.layer-scope * {
+  vector-effect: non-scaling-stroke;
+}
+
+/* Text takes the overlay's 9px face; a label or a note sets its own size. */
+.layer-scope text {
+  fill: currentColor;
+  stroke: none;
+}
+
+.layer-scope .hatch {
+  stroke: color-mix(in oklab, var(--wb-guide) 32%, transparent);
+}
+
+/* Labels: a filled box and its text. Black on either theme's ember clears
+   5:1. */
+.layer-scope .label.hl rect {
+  fill: var(--wb-hl);
+}
+
+.layer-scope .label.hl text {
+  fill: black;
+}
+
+.layer-scope .label.guide rect {
+  fill: var(--wb-guide);
+}
+
+.layer-scope .label.guide text {
+  fill: var(--color-background);
+}
+
+.layer-scope .label.ring rect {
+  fill: var(--color-background);
+  stroke: var(--wb-guide);
+}
+
+.layer-scope .label.ring text {
+  fill: var(--wb-guide);
+}
+
+@media (forced-colors: active) {
+  .layer-scope .label.hl text {
+    fill: HighlightText;
+  }
+}

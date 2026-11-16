@@ -1,6 +1,6 @@
 // Generated from @dither-ui/kit/solid/CartesianSeries.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createEffect, createMemo, type JSX, mergeProps, onCleanup, Show } from "solid-js"
+import { createComputed, createMemo, type JSX, mergeProps, onCleanup, Show } from "solid-js"
 import {
   type SeriesKind,
   type StrokeVariant,
@@ -9,16 +9,24 @@ import {
 } from "@dither-ui/kit/solid/runtime/chart-context.ts"
 import { SeriesContext } from "@dither-ui/kit/solid/runtime/series-context.ts"
 
-export type CartesianSeriesProps = {
-  part: string
-  kind: SeriesKind
+/** A series of a cartesian chart: what `Area`, `Line` and `Bar` take. */
+export type SeriesProps = {
   dataKey: string
+  /** @docs name | TextureConfig | number (seed)
+   * @default "gradient" */
   variant?: VariantInput
+  /** @default "solid" */
   strokeVariant?: StrokeVariant
+  /** @default false */
   isClickable?: boolean
+  /** @docs number 0…1
+   * @default 1 */
   opacity?: number
+  /** @docs content */
   children?: JSX.Element
 }
+
+export type CartesianSeriesProps = SeriesProps & { part: string; kind: SeriesKind }
 
 export default function CartesianSeries(raw: CartesianSeriesProps) {
   const props = mergeProps(
@@ -34,7 +42,8 @@ export default function CartesianSeries(raw: CartesianSeriesProps) {
     )
   }
 
-  createEffect(() =>
+  // Registered as it is made, a server render's print included.
+  createComputed(() =>
     ctx.registerSeries({
       dataKey: props.dataKey,
       kind: props.kind,

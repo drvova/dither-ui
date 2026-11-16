@@ -26,8 +26,11 @@ const styles = stylex.create({
  * clipboard behavior and the announcement, not the semantics. */
 export type ClipboardScope = { readonly copied: boolean; copy: () => Promise<void> }
 export type ClipboardProps = {
+  /** @default required */
   value: string
   disabled?: boolean
+  /** @docs (value) => void
+   * @default on success */
   onCopied?: (value: string) => void
   children?: (scope: ClipboardScope) => JSX.Element
 }

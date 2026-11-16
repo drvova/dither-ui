@@ -8,7 +8,13 @@ const styles = stylex.create({
   text: { display: "block", fontSize: "11px", color: "var(--muted-foreground)" },
 })
 
-export type CaptionProps = { tone?: "muted" | "faint"; class?: string; xstyle?: StyleProp; children?: JSX.Element }
+export type CaptionProps = {
+  tone?: "muted" | "faint"
+  class?: string
+  xstyle?: StyleProp
+  /** @docs content */
+  children?: JSX.Element
+}
 
 /** Supporting text under a title or figure — the caption register of the
  * type scale (11px, muted). `faint` shares the muted ink: no text in the

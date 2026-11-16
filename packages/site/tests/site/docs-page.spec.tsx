@@ -74,8 +74,15 @@ function openDocs(at: string) {
   ))
   return { ...view, history }
 }
-const shownIds = () =>
-  [...document.querySelectorAll<HTMLElement>(".docs-flow > section")].filter((s) => !s.hidden).map((s) => s.id)
+/** The sections the flow shows: its rule holds the rest of the pack back
+ * (`.docs-flow > section:not([id="<shown>"])`). */
+const shownIds = () => {
+  const rule = document.querySelector(".docs-flow > style")?.textContent ?? ""
+  const held = rule.match(/^(.*) \{ display: none \}$/)?.[1]
+  return [...document.querySelectorAll<HTMLElement>(".docs-flow > section")]
+    .filter((s) => !held || !s.matches(held))
+    .map((s) => s.id)
+}
 /** Wait for a section's pack, a chunk of its own, to bring it. */
 async function arrive(id: string) {
   for (let i = 0; i < 400 && !document.getElementById(id); i++) await new Promise((r) => setTimeout(r, 10))
@@ -165,10 +172,11 @@ describe("docs section packs", () => {
     Object.assign(PACK_LOADERS, real)
   })
 
-  it("places every pack in the flow by the one table, none by name", () => {
+  it("places the section's pack in the flow by the one table, none by name", () => {
     const page = readFileSync(join(DOCS, "DocsPage.tsx"), "utf8")
-    expect(page).toContain("<For each={PACK_NAMES}>{(name) => <Pack name={name} />}</For>")
-    expect(page).not.toMatch(/<Pack name="/)
+    expect(page).toContain("const pack = packOf(shown)")
+    expect(page).toContain("<DOCS.flow pack={name()}")
+    expect(page).not.toMatch(/pack="/)
   })
 })
 
@@ -182,8 +190,8 @@ describe("docs section list", () => {
     const click = new MouseEvent("click", { bubbles: true, cancelable: true })
     links[3].dispatchEvent(click)
     expect(go.mock.calls).toEqual([[ids[3]]])
-    // the page opens it: the browser does not follow the link
-    expect(click.defaultPrevented).toBe(true)
+    // the browser follows the link: each section is a page of its own
+    expect(click.defaultPrevented).toBe(false)
   })
 
   it("opens the group of the section in view, folds and unfolds the rest, and keeps every link in the page", async () => {
@@ -372,6 +380,8 @@ describe("the docs' page", () => {
   it("lists the parts of a section opened straight from its address", async () => {
     openDocs("/docs/avatar")
     await arrive("avatar")
+    for (let i = 0; i < 400 && !document.querySelector('nav[aria-label="On this page"]'); i++)
+      await new Promise((r) => setTimeout(r, 10))
     const rail = document.querySelector('nav[aria-label="On this page"]')!
     expect(rail).not.toBeNull()
     expect([...rail.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Avatar", "Names", "API"])
@@ -400,55 +410,40 @@ describe("the docs' page", () => {
     expect(document.documentElement.dataset.page).toBe("docs")
   })
 
-  it("keeps the packs of the last sections read, letting the oldest go", async () => {
+  it("holds only its section's pack, never another's", async () => {
     // every pack rendered hidden once held most of a section page's nodes
     // and every one of its canvases
-    const { history } = openDocs("/docs/area")
+    openDocs("/docs/area")
     await arrive("area")
     expect(["area", "button", "palette"].map((id) => !!document.getElementById(id))).toEqual([true, false, false])
-    for (const id of ["button", "palette", "styling"]) {
-      history.set({ value: `/docs/${id}` })
-      await arrive(id)
-      expect(shownIds()).toEqual([id])
-    }
-    // the last three packs read stay, hidden; the first lets go
-    expect(["area", "button", "palette", "styling"].map((id) => !!document.getElementById(id))).toEqual([
-      false,
-      true,
-      true,
-      true,
-    ])
-    // each section read from its top
-    expect(vi.mocked(window.scrollTo).mock.calls.at(-1)).toEqual([{ top: 0, behavior: "auto" }])
   }, 30_000)
 
-  it("holds a deferred section's demos back until it opens, then keeps them", async () => {
+  it("holds a deferred section's demos back: only its own section's show", async () => {
     // the chart pack's other sections, rendered hidden, nearly doubled a chart's page
-    const { history } = openDocs("/docs/area")
+    openDocs("/docs/area")
     await arrive("area")
     const cards = (id: string) => document.querySelectorAll(`#${id} [data-demo-card]`).length
     expect([cards("area"), cards("bar")]).toEqual([1, 0])
     expect(document.querySelector("#bar h2")?.textContent).toBe("Bar chart")
-    history.set({ value: "/docs/bar" })
-    await arrive("bar")
-    expect([cards("area"), cards("bar")]).toEqual([1, 1])
   }, 30_000)
 
-  it("loads a section whose code is its own chunk only once it opens", async () => {
-    const { history } = openDocs("/docs/styling")
+  it("loads a section whose code is its own chunk only on its own page", async () => {
+    openDocs("/docs/styling")
     await arrive("styling")
     expect(document.getElementById("engine")).toBeNull()
-    history.set({ value: "/docs/engine" })
+    cleanup()
+    openDocs("/docs/engine")
     await arrive("engine")
     expect(shownIds()).toEqual(["engine"])
     expect(document.querySelector("#engine h2")?.textContent).toBe("Engine")
   }, 30_000)
 
-  it("shows one section of a pack that arrives after the page, lists its parts and keeps the pack", async () => {
+  it("shows one section of a pack that arrives after the page, and lists its parts", async () => {
     // a pack is a chunk of its own: its sections came after the hiding ran,
     // and a family's every section showed at once
-    const { history } = openDocs("/docs/shiny-text")
-    for (let i = 0; i < 400 && !document.getElementById("shiny-text"); i++) await new Promise((r) => setTimeout(r, 10))
+    openDocs("/docs/shiny-text")
+    for (let i = 0; i < 400 && !document.querySelector('nav[aria-label="On this page"] button'); i++)
+      await new Promise((r) => setTimeout(r, 10))
     await settle()
     expect(shownIds()).toEqual(["shiny-text"])
     expect(document.querySelectorAll('nav[aria-label="On this page"] button').length).toBeGreaterThan(0)
@@ -456,31 +451,25 @@ describe("the docs' page", () => {
     expect(document.querySelector(".docs-flow > style")?.textContent).toBe(
       '.docs-flow > section:not([id="shiny-text"]) { display: none }',
     )
-    // another pack's section next: this one stays mounted, hidden
-    const kept = document.getElementById("shiny-text")
-    history.set({ value: "/docs/avatar" })
-    await arrive("avatar")
-    expect(shownIds()).toEqual(["avatar"])
-    expect(document.getElementById("shiny-text")).toBe(kept)
   }, 30_000)
 
-  it("moves to a section by its route from the rail, the pager and the search", async () => {
-    const { history } = openDocs("/docs/avatar")
-    await arrive("avatar")
-    const at = () => history.get()
-    fireEvent.click(document.querySelector<HTMLAnchorElement>('nav[aria-label="Docs sections"] a[href$="/docs/bar"]')!)
+  it("leads to every section's own page: the rail, the pager, the breadcrumb and the search", async () => {
+    openDocs("/docs/bar")
     await arrive("bar")
-    expect(at()).toBe(docsUrl("bar"))
-    expect(shownIds()).toEqual(["bar"])
+    for (let i = 0; i < 400 && !document.querySelector('nav[aria-label="Docs sections"] a'); i++)
+      await new Promise((r) => setTimeout(r, 10))
+    // the rail: a link the browser follows, the section in view current
+    const link = document.querySelector<HTMLAnchorElement>('nav[aria-label="Docs sections"] a[href$="/docs/pie"]')!
+    const click = new MouseEvent("click", { bubbles: true, cancelable: true })
+    link.addEventListener("click", (e) => e.preventDefault(), { once: true })
+    link.dispatchEvent(click)
     expect(
       [...document.querySelectorAll('nav[aria-label="Docs sections"] [aria-current]')].map((a) => a.textContent),
     ).toEqual(["Bar chart"])
     // the pager: the sections either side, in the sidebar's order, each with its group
     const pager = [...document.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Previous and next sections"] a')]
     expect(pager.map((a) => a.textContent)).toEqual(["Previous, ComponentsLine chart", "Next, ComponentsPie chart"])
-    fireEvent.click(pager[1])
-    await settle()
-    expect(at()).toBe(docsUrl("pie"))
+    expect(pager.map((a) => a.getAttribute("href"))).toEqual([docsUrl("line"), docsUrl("pie")])
     // the breadcrumb: the docs, then the section's group by its first section
     const crumbs = [...document.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Breadcrumb"] a')]
     expect(crumbs.map((a) => [a.textContent, a.getAttribute("href")])).toEqual([
@@ -489,16 +478,10 @@ describe("the docs' page", () => {
     ])
     // two links a slash apart: each a 24px target (WCAG 2.5.8), which a phone's walk measured at 22px as inline text
     for (const a of crumbs) expect([...a.classList]).toEqual(expect.arrayContaining(["inline-flex", "min-h-6"]))
-    // the search: Ctrl K opens the palette, a pick opens the section
-    fireEvent.keyDown(window, { key: "k", ctrlKey: true })
-    await settle(1)
-    const input = document.querySelector<HTMLInputElement>('input[placeholder="Search docs…"]')!
-    fireEvent.input(input, { target: { value: "Radar chart" } })
-    fireEvent.keyDown(input, { key: "Enter" })
-    await settle()
-    expect(at()).toBe(docsUrl("radar"))
-    expect(shownIds()).toEqual(["radar"])
-    // nothing by that name: the page says so in its own words
+    // the search: Ctrl K opens the palette over the whole IA; nothing by
+    // that name, the page says so in its own words
+    for (let i = 0; i < 400 && !document.querySelector('button[aria-label="Search docs"]'); i++)
+      await new Promise((r) => setTimeout(r, 10))
     fireEvent.keyDown(window, { key: "k", ctrlKey: true })
     await settle(1)
     fireEvent.input(document.querySelector<HTMLInputElement>('input[placeholder="Search docs…"]')!, {
@@ -507,18 +490,7 @@ describe("the docs' page", () => {
     expect(document.body.textContent).toContain("Nothing in the docs is called “zzzz”.")
   })
 
-  it("lands a legacy hash link on its section's page", async () => {
-    window.history.replaceState(null, "", "/docs#/docs/avatar")
-    const { history } = openDocs("/docs")
-    await arrive("avatar")
-    expect(history.get()).toBe(docsUrl("avatar"))
-    expect(shownIds()).toEqual(["avatar"])
-    window.history.replaceState(null, "", "/")
-  })
-
   it("sets its head from the section: title, description, canonical, og, X and the breadcrumb", async () => {
-    const { history } = openDocs("/docs/avatar")
-    await settle()
     const head = () => ({
       title: document.title,
       description: document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content,
@@ -550,15 +522,17 @@ describe("the docs' page", () => {
         crumbType: id ? "application/ld+json" : undefined,
       }
     }
-    expect(head()).toEqual(of("avatar"))
-    history.set({ value: "/docs/bar" })
-    await settle()
-    expect(head()).toEqual(of("bar"))
-    expect(document.querySelectorAll('link[rel="canonical"], #docs-breadcrumb')).toHaveLength(2)
-    // the docs' own address: the generic head, no breadcrumb
-    history.set({ value: "/docs" })
-    await settle()
-    expect(head()).toEqual(of(""))
+    for (const [at, id] of [
+      ["/docs/avatar", "avatar"],
+      ["/docs/bar", "bar"],
+      ["/docs", ""],
+    ]) {
+      const view = openDocs(at)
+      await settle()
+      expect(head()).toEqual(of(id))
+      expect(document.querySelectorAll('link[rel="canonical"]')).toHaveLength(1)
+      view.unmount()
+    }
   })
 
   it("names the browser chrome's colour as the docs' dark ground until the page has painted", async () => {
@@ -572,6 +546,8 @@ describe("the docs' page", () => {
   it("switches what the page's code is written in, its sounds and its theme from the page's row", async () => {
     openDocs("/docs/styling")
     await arrive("styling")
+    for (let i = 0; i < 400 && !document.querySelector('main [role="group"][aria-label="Styling"]'); i++)
+      await new Promise((r) => setTimeout(r, 10))
     const group = (name: string) => document.querySelector(`main [role="group"][aria-label="${name}"]`)!
     const pressed = (name: string) =>
       [...group(name).querySelectorAll("button[aria-pressed='true']")].map((b) => b.textContent?.trim())
@@ -605,8 +581,10 @@ describe("the docs' page", () => {
   })
 
   it("opens the sections sheet from the header's key and closes it on a pick", async () => {
-    const { history } = openDocs("/docs/avatar")
+    openDocs("/docs/avatar")
     await arrive("avatar")
+    for (let i = 0; i < 400 && !document.querySelector('button[aria-label="Browse sections"]'); i++)
+      await new Promise((r) => setTimeout(r, 10))
     const key = document.querySelector<HTMLButtonElement>('button[aria-label="Browse sections"]')!
     expect(key.getAttribute("aria-controls")).toBe(SHEET_ID)
     expect(key.getAttribute("aria-expanded")).toBe("false")
@@ -618,10 +596,12 @@ describe("the docs' page", () => {
     expect(
       [...sheet.querySelectorAll('[aria-current] + ul[aria-label="On this page"] button')].map((b) => b.textContent),
     ).toEqual(["Names", "API"])
-    fireEvent.click(sheet.querySelector<HTMLAnchorElement>('a[href$="/docs/bar"]')!)
+    // a pick is a link the browser follows: the sheet shuts as it goes
+    const pick = sheet.querySelector<HTMLAnchorElement>('a[href$="/docs/bar"]')!
+    pick.addEventListener("click", (e) => e.preventDefault(), { once: true })
+    fireEvent.click(pick)
     await settle()
     expect(key.getAttribute("aria-expanded")).toBe("false")
-    expect(history.get()).toBe(docsUrl("bar"))
   })
 
   it("picks a variant from a gallery: the tile pressed, the code what the preview shows", async () => {

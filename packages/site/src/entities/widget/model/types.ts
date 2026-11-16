@@ -1,16 +1,9 @@
-import type {
-  AvatarMirror,
-  ButtonVariant,
-  GradientDirection,
-  PixelBloomConfig,
-  PixelBloomInput,
-  PixelColor,
-} from "@dither-ui/kit"
+import type { AvatarMirror, ButtonVariant, GradientDirection, PixelBloomInput, PixelColor } from "@dither-ui/kit"
 
-export type { PixelBloomConfig, PixelBloomInput, PixelColor }
+export type { PixelBloomInput }
 
 /** How the avatar's cells are produced. */
-export type AvatarSource = "seed" | "draw" | "image"
+type AvatarSource = "seed" | "draw" | "image"
 
 /** Fully granular avatar model — every engine prop, editable. */
 export type AvatarModel = {
@@ -78,7 +71,7 @@ import type { ScreenModel } from "./screen"
 export type ReelTransitionKind = "cut" | "dissolve" | "wipe-right" | "wipe-left" | "wipe-down" | "wipe-up"
 /** How a clip comes in over the previous one: an ordered-dither dissolve or
  * wipe (`seconds` long, `cell` px cells, an optional seeded matrix), or a cut. */
-export type ReelTransition = { kind: ReelTransitionKind; seconds: number; cell: number; seed: number | null }
+type ReelTransition = { kind: ReelTransitionKind; seconds: number; cell: number; seed: number | null }
 /** A camera key over a clip: at `t` (0-1 of the clip) the camera looks at
  * the point `x`, `y` of the frame (fractions), at `zoom` (1 = the frame
  * fitted), leaning `tilt` degrees about the vertical. Keys ease between. */

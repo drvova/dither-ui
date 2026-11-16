@@ -7,6 +7,7 @@ import { join } from "node:path"
 import ts from "typescript"
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
+import { addCommand, kitNamesIn } from "@/shared/lib/add-command"
 import { KIT_SRC } from "@/shared/lib/kit-sources"
 import { restyleSolid, STYLINGS } from "@dither-ui/restyle"
 import { kitFiles } from "../../build/kit-sources"
@@ -35,7 +36,7 @@ import { PACKAGES } from "../../src/widgets/source/model/run"
 import { asTsx, snippetKind } from "../../src/widgets/source/model/snippet"
 import { world } from "@dither-ui/kit/testing/world.ts"
 import { createSignal } from "solid-js"
-import { SHOWN_SECTION } from "../../src/pages/docs/DocSection"
+import DocSection, { SHOWN_SECTION } from "../../src/pages/docs/DocSection"
 import { PACK_LOADERS } from "../../src/pages/docs/pack-loaders"
 import { PACK_NAMES, PACKS } from "../../src/pages/docs/packs"
 
@@ -62,17 +63,26 @@ const read = (list: typeof SOLID, file: string) => readFileSync(list.find((f) =>
 const SOLID_INDEX = await loadKitIndex(async (f) => read(SOLID, f), solidFiles, "solid/index.ts")
 const KIT_NAMES = new Set(SOLID_INDEX.keys())
 
+/** The docs' example modules (`<pack>/examples/<id>.tsx`): each a snippet
+ * whole, the very file a reader takes. */
+const EXAMPLE_FILE = /\/docs\/[\w-]+\/examples\/[\w-]+\.tsx$/
+
 /** Every template literal of the docs' modules that holds markup, as its
- * source writes it (its holes `${…}`); HTML (a void tag left open: an embed
- * code, a page that links the kit's stylesheet) is not a component. */
-function docsLiterals(): { file: string; text: string }[] {
+ * source writes it (its holes `${…}`), and every example module whole
+ * (`whole`); HTML (a void tag left open: an embed code, a page that links
+ * the kit's stylesheet) is not a component. */
+function docsLiterals(): { file: string; text: string; whole?: boolean }[] {
   const files = (dir: string): string[] =>
     readdirSync(dir).flatMap((n) => {
       const p = join(dir, n)
       return statSync(p).isDirectory() ? files(p) : /\.tsx?$/.test(n) ? [p] : []
     })
-  const out: { file: string; text: string }[] = []
+  const out: { file: string; text: string; whole?: boolean }[] = []
   for (const file of files(join(process.cwd(), "src/pages/docs"))) {
+    if (EXAMPLE_FILE.test(file)) {
+      out.push({ file, text: readFileSync(file, "utf8"), whole: true })
+      continue
+    }
     const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.ESNext, true)
     const visit = (node: ts.Node): void => {
       if (ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node)) {
@@ -91,7 +101,11 @@ function docsLiterals(): { file: string; text: string }[] {
  * what it interpolates as a stand-in. */
 function docsSnippets(): { file: string; where: string; code: string }[] {
   const out: { file: string; where: string; code: string }[] = []
-  for (const { file, text } of docsLiterals()) {
+  for (const { file, text, whole } of docsLiterals()) {
+    if (whole) {
+      out.push({ file, where: file.slice(process.cwd().length + 1), code: text })
+      continue
+    }
     // a hole on a line of its own declares the snippet's data; one inside a line is a name
     let filled = ""
     let hole = 0
@@ -538,8 +552,10 @@ export const mode = import.meta.env.MODE`,
       // script written under its markup with no block around it is read as text
       if (tsx.includes('{"{"}')) failures.push(`${where} prints its script as text`)
       // a note between two tags is a comment of the markup, or it prints
-      const said = tsx
-        .slice(tsx.lastIndexOf("  return ("))
+      const markup = tsx.slice(tsx.lastIndexOf("  return ("))
+      // the markup ends with its component; a meta after it is no markup
+      const said = markup
+        .slice(0, markup.indexOf("\n}\n") + 1 || undefined)
         .split("\n")
         .find((l) => l.trim().startsWith("// "))
       if (said) failures.push(`${where} prints a note as text: ${said.trim()}`)
@@ -597,7 +613,10 @@ export const mode = import.meta.env.MODE`,
     const built = await siteFileList()
     const failures: string[] = []
     const unbound = freeNames(new Map(examples.map((e, i) => [`/examples/${i}.tsx`, e.tsx])))
-    examples.forEach(({ where, tsx }, i) => {
+    examples.forEach(({ where, tsx, code }, i) => {
+      // what its section's add line names is the kit's
+      for (const name of kitNamesIn(code))
+        if (!KIT_NAMES.has(name)) failures.push(`${where} puts ${name}, no kit component, on its add line`)
       const free = unbound.get(`/examples/${i}.tsx`)
       if (free) failures.push(`${where} reads what it never declares: ${free.join(", ")}`)
       const cut = elisions(tsx)
@@ -686,6 +705,27 @@ describe("the source panel on a docs preview", () => {
     localStorage.clear()
     w.restore()
     vi.unstubAllGlobals()
+  })
+
+  it("puts the line that adds what a section's demos use under them, in the reader's styling system", async () => {
+    w = world()
+    setStyling("css")
+    const view = render(() => (
+      <DocSection id="button">
+        <DemoCard code={SWITCH} />
+        <DemoCard code={"<DitherButton>Go</DitherButton>\n<DitherSwitch />"} />
+      </DocSection>
+    ))
+    await settle()
+    const line = view.container.querySelector("[data-add-line]")!
+    const site = new URL("/", location.origin).href
+    expect(line.querySelector("pre")!.textContent).toBe(
+      addCommand(["DitherSwitch", "DitherButton"], { styling: "css", site }),
+    )
+    expect(line.textContent).toContain("Add it to your project")
+    // a section with no demo has no line
+    cleanup()
+    expect(render(() => <DocSection id="button" />).container.querySelector("[data-add-line]")).toBeNull()
   })
 
   it("mounts the demo as the card nears the viewport, and keeps it", async () => {

@@ -5,9 +5,14 @@ import { cn } from "../tailwind/lib"
 import DitherSlider from "./DitherSlider"
 
 export type DitherVideoPlayerProps = {
+  /** @docs string: no src renders an honest empty face
+   * @default undefined */
   src?: string
+  /** @default undefined */
   poster?: string
+  /** @docs string: accessible name */
   label?: string
+  /** @docs PixelColor: scrubber and volume hue */
   color?: PixelColor
   class?: string
 }

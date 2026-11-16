@@ -143,44 +143,12 @@
     font-size: 12.5px;
     font-weight: 500;
     white-space: nowrap;
-    transition: color 150ms var(--ease-settle);
+    transition:
+      color 150ms var(--ease-settle),
+      scale var(--press-t);
   }
   .nav-a:hover {
     color: var(--foreground);
-  }
-  /* The glide (shared/lib/glide.ts): one filled ground travels under the
-     pointer from link to link, a hand's movement on the glide, and fades
-     on a colour's time; placed at once on the first entry. */
-  .glide-host {
-    position: relative;
-    isolation: isolate;
-  }
-  .glide-ground {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: -1;
-    border-radius: 8px;
-    background: var(--muted);
-    opacity: 0;
-    pointer-events: none;
-    will-change: transform;
-    transition:
-      transform 350ms var(--ease-settle),
-      width 350ms var(--ease-settle),
-      height 350ms var(--ease-settle),
-      opacity 150ms var(--ease-settle);
-  }
-  .glide-ground.is-shown {
-    opacity: 1;
-  }
-  .glide-ground.is-placed {
-    transition: opacity 150ms var(--ease-settle);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .glide-ground {
-      transition: opacity 150ms var(--ease-settle);
-    }
   }
   /* A secondary key: machined (a 10px radius, the hairline, a narrow
      reflection on its top edge). Only the primary key is a capsule. */
@@ -293,18 +261,15 @@
   /* A hardshell: two opposite corners cut, a chrome-glint hairline that
      follows the cut, its ground the theme's shell material (anodized
      graphite, bone ceramic) lit from the top left. The cut clips what it
-     holds. */
+     holds. The cut's outline is written once, `--hardshell-cut`: the
+     shell clips to it and its ring is the same outline less its inner
+     edge. */
   .hardshell {
+    --hardshell-cut:
+      var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut);
     position: relative;
     background: var(--shell-ground);
-    clip-path: polygon(
-      var(--cut) 0,
-      100% 0,
-      100% calc(100% - var(--cut)),
-      calc(100% - var(--cut)) 100%,
-      0 100%,
-      0 var(--cut)
-    );
+    clip-path: polygon(var(--hardshell-cut));
   }
   /* A flat shell: the hardshell's flat sibling, for every panel that is not
      its page's hero (the user's industrial brief: one shaped hero panel, the
@@ -325,12 +290,7 @@
     /* The ring: the outline, then the same outline 1px in, the hole. */
     clip-path: polygon(
       evenodd,
-      var(--cut) 0,
-      100% 0,
-      100% calc(100% - var(--cut)),
-      calc(100% - var(--cut)) 100%,
-      0 100%,
-      0 var(--cut),
+      var(--hardshell-cut),
       var(--cut) 0,
       calc(var(--cut) + 0.414px) 1px,
       1px calc(var(--cut) + 0.414px),
@@ -413,7 +373,8 @@
   .key-chrome {
     transition:
       filter 350ms var(--ease-settle),
-      translate 350ms var(--ease-settle);
+      translate 350ms var(--ease-settle),
+      scale var(--press-t);
   }
   .key-chrome:hover {
     filter: brightness(1.04);
@@ -423,20 +384,44 @@
       translate: 0 -1px;
     }
   }
-  /* The press (shared/lib/press.ts marks it): a key gives under the hand
-     on the glide and springs back as it is let go, a card that opts in
-     (`data-press="card"`) a little less. Its own `scale`, so a key's other
+  /* The press (the user's call; CSS alone, the key's own `:active`): a
+     key gives under the hand while it is held, a short travel down on the
+     glide, and springs back on the hand's spring as it is let go; a card
+     that opts in (`data-press="card"`) gives a little less, and only where
+     none of its controls, links or canvases took the press. Its own
+     `scale`: every pressable's transition carries `scale var(--press-t)`
+     beside its own (`tests/css-motion.spec.ts`), so a key's other
      transitions and its layout stay as they are; nothing under reduced
      motion. */
+  :where(.key, .key-chrome, .nav-a, .seg > button, [data-press]) {
+    --press-t: var(--spring-time) var(--ease-spring);
+    transition: scale var(--press-t);
+  }
   [data-press="card"] {
     --press-scale: 0.985;
   }
   @media (prefers-reduced-motion: no-preference) {
-    [data-pressed="down"] {
-      animation: press-down var(--press-time) var(--ease-settle) both;
-    }
-    [data-pressed="up"] {
-      animation: press-up var(--spring-time) var(--ease-spring) both;
+    :is(.key, .key-chrome, .nav-a, .seg > button, [data-press="key"]):active:not(:disabled, [aria-disabled="true"]),
+    [data-press="card"]:active:not(
+        :has(
+          :is(
+            a,
+            button,
+            input,
+            select,
+            textarea,
+            label,
+            canvas,
+            [tabindex],
+            [role="button"],
+            [role="slider"],
+            [role="switch"],
+            [role="tab"]
+          ):active
+        )
+      ) {
+      --press-t: var(--press-time) var(--ease-settle);
+      scale: var(--press-scale, 0.97);
     }
   }
   /* A track: machined segments recessed into the surface, as a hardware
@@ -562,6 +547,13 @@
      tests/spring.spec.ts). Where `linear()` is not supported it glides. */
   --ease-spring: var(--ease-settle);
   --spring-time: 500ms;
+  /* The four motion roles, the only other curves (the user's call): a hop
+     along a path (`--ease-travel`), cards changing places (`--ease-reorder`),
+     a value pill changing (`--ease-pill`) and a receiver's bump on an
+     arrival (`--ease-bump`), each over its `--duration-<role>`. They come
+     from the kit's theme.css, imported above, written once there from
+     `MOTION_ROLES` (@dither-ui/kit/engine/timing.ts); never redeclared here
+     (tests/design-doc.spec.ts). */
   /* A press's travel down, on the glide (`PRESS_DOWN_MS`). */
   --press-time: 90ms;
   --cut: 16px;
@@ -650,38 +642,157 @@
   }
 }
 
-/* Page to page, the site dithers: a same-origin navigation is a view
-   transition, which the new page hands to the kit's engine (app/page-reveal.ts).
-   None under reduced motion. */
+/* Page to page, the site dithers (the user's call; CSS alone): a
+   same-origin navigation between the site's pages is a cross-document view
+   transition of the `page` type, and the arriving page wipes in from the
+   left over the old one, its front printed through the Bayer matrix in
+   whole tiles (three strips of the 4x4's ranks, a quarter, a half, three
+   quarters) with a band of the signal ink ahead of it, the old page
+   dissolving into the band the same way; 640ms on the glide. Where a
+   browser has no cross-document view transitions the page simply arrives.
+   The theme turns through the same matrix: the toggle starts a view
+   transition of the `theme` type (`useTheme`), and the new theme prints in
+   over the old one rank by rank, 4px cells, 480ms on the glide. None of it
+   under reduced motion. The ranks' tiles (`--bayer-<k>`: the cells under
+   rank k lit, 8px cells, a 32px tile) are the kit's `BAYER4`, held to it
+   by `tests/css-motion.spec.ts`. */
+@property --front {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   @view-transition {
     navigation: auto;
+    types: page;
+  }
+
+  ::view-transition {
+    --bayer-1: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-2: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM16 16h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-3: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM16 0h8v8h-8zM16 16h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-4: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM16 0h8v8h-8zM0 16h8v8h-8zM16 16h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-5: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM16 0h8v8h-8zM8 8h8v8h-8zM0 16h8v8h-8zM16 16h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-6: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM16 0h8v8h-8zM8 8h8v8h-8zM0 16h8v8h-8zM16 16h8v8h-8zM24 24h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-7: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM16 0h8v8h-8zM8 8h8v8h-8zM24 8h8v8h-8zM0 16h8v8h-8zM16 16h8v8h-8zM24 24h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-8: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM16 0h8v8h-8zM8 8h8v8h-8zM24 8h8v8h-8zM0 16h8v8h-8zM16 16h8v8h-8zM8 24h8v8h-8zM24 24h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-9: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM8 0h8v8h-8zM16 0h8v8h-8zM8 8h8v8h-8zM24 8h8v8h-8zM0 16h8v8h-8zM16 16h8v8h-8zM8 24h8v8h-8zM24 24h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-10: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM8 0h8v8h-8zM16 0h8v8h-8zM8 8h8v8h-8zM24 8h8v8h-8zM0 16h8v8h-8zM16 16h8v8h-8zM24 16h8v8h-8zM8 24h8v8h-8zM24 24h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-11: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM8 0h8v8h-8zM16 0h8v8h-8zM24 0h8v8h-8zM8 8h8v8h-8zM24 8h8v8h-8zM0 16h8v8h-8zM16 16h8v8h-8zM24 16h8v8h-8zM8 24h8v8h-8zM24 24h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-12: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM8 0h8v8h-8zM16 0h8v8h-8zM24 0h8v8h-8zM8 8h8v8h-8zM24 8h8v8h-8zM0 16h8v8h-8zM8 16h8v8h-8zM16 16h8v8h-8zM24 16h8v8h-8zM8 24h8v8h-8zM24 24h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-13: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM8 0h8v8h-8zM16 0h8v8h-8zM24 0h8v8h-8zM0 8h8v8h-8zM8 8h8v8h-8zM24 8h8v8h-8zM0 16h8v8h-8zM8 16h8v8h-8zM16 16h8v8h-8zM24 16h8v8h-8zM8 24h8v8h-8zM24 24h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-14: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM8 0h8v8h-8zM16 0h8v8h-8zM24 0h8v8h-8zM0 8h8v8h-8zM8 8h8v8h-8zM24 8h8v8h-8zM0 16h8v8h-8zM8 16h8v8h-8zM16 16h8v8h-8zM24 16h8v8h-8zM8 24h8v8h-8zM16 24h8v8h-8zM24 24h8v8h-8z'/%3E%3C/svg%3E");
+    --bayer-15: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h8v8h-8zM8 0h8v8h-8zM16 0h8v8h-8zM24 0h8v8h-8zM0 8h8v8h-8zM8 8h8v8h-8zM16 8h8v8h-8zM24 8h8v8h-8zM0 16h8v8h-8zM8 16h8v8h-8zM16 16h8v8h-8zM24 16h8v8h-8zM8 24h8v8h-8zM16 24h8v8h-8zM24 24h8v8h-8z'/%3E%3C/svg%3E");
+  }
+
+  :root:active-view-transition-type(page)::view-transition-group(root) {
+    background: var(--swatch-orange);
+  }
+
+  :root:active-view-transition-type(page)::view-transition-old(root),
+  :root:active-view-transition-type(page)::view-transition-new(root) {
+    --tile: round(down, var(--front), 32px);
+    animation: page-front 640ms var(--ease-settle) both;
+    mix-blend-mode: normal;
+  }
+
+  /* The new page: whole to the strips, then the strips, densest first. */
+  :root:active-view-transition-type(page)::view-transition-new(root) {
+    mask:
+      linear-gradient(#000 0 0) 0 0 / max(0px, calc(var(--tile) - 96px)) 100% no-repeat,
+      var(--bayer-12) calc(var(--tile) - 96px) 0 / 32px 32px repeat-y,
+      var(--bayer-8) calc(var(--tile) - 64px) 0 / 32px 32px repeat-y,
+      var(--bayer-4) calc(var(--tile) - 32px) 0 / 32px 32px repeat-y;
+  }
+
+  /* The old page: the band's 64px clear ahead of the front (the signal
+     ink under it shows), then the strips, sparsest first, then whole. */
+  :root:active-view-transition-type(page)::view-transition-old(root) {
+    mask:
+      var(--bayer-4) calc(var(--tile) + 64px) 0 / 32px 32px repeat-y,
+      var(--bayer-8) calc(var(--tile) + 96px) 0 / 32px 32px repeat-y,
+      var(--bayer-12) calc(var(--tile) + 128px) 0 / 32px 32px repeat-y,
+      linear-gradient(#000 0 0) calc(var(--tile) + 160px) 0 / 100vw 100% no-repeat;
+  }
+
+  :root:active-view-transition-type(theme)::view-transition-old(root) {
+    animation: none;
+  }
+
+  :root:active-view-transition-type(theme)::view-transition-new(root) {
+    animation: theme-print 480ms var(--ease-settle) both;
+    mix-blend-mode: normal;
+    mask-size: 16px 16px;
   }
 }
 
-/* The rise's wait (shared/lib/rise-wait.ts): what rises stays out of sight
-   until the app rises it; the head script never sets it under reduced
-   motion. */
-.rise-wait [data-rise]:not([data-risen]) {
-  opacity: 0;
+/* An island (shared/lib/island.tsx) stands in its page as if it were not
+   there: what it holds is laid out by the page around it. */
+dither-island {
+  display: contents;
 }
 
-/* The press's travel (see `[data-pressed]`). */
-@keyframes press-down {
+@keyframes page-front {
   from {
-    scale: 1;
+    --front: -192px;
   }
   to {
-    scale: var(--press-scale, 0.97);
+    --front: calc(100vw + 128px);
   }
 }
 
-@keyframes press-up {
-  from {
-    scale: var(--press-scale, 0.97);
+@keyframes theme-print {
+  0% {
+    mask-image: linear-gradient(transparent 0 0);
   }
-  to {
-    scale: 1;
+  6.25% {
+    mask-image: var(--bayer-1);
+  }
+  12.5% {
+    mask-image: var(--bayer-2);
+  }
+  18.75% {
+    mask-image: var(--bayer-3);
+  }
+  25.0% {
+    mask-image: var(--bayer-4);
+  }
+  31.25% {
+    mask-image: var(--bayer-5);
+  }
+  37.5% {
+    mask-image: var(--bayer-6);
+  }
+  43.75% {
+    mask-image: var(--bayer-7);
+  }
+  50.0% {
+    mask-image: var(--bayer-8);
+  }
+  56.25% {
+    mask-image: var(--bayer-9);
+  }
+  62.5% {
+    mask-image: var(--bayer-10);
+  }
+  68.75% {
+    mask-image: var(--bayer-11);
+  }
+  75.0% {
+    mask-image: var(--bayer-12);
+  }
+  81.25% {
+    mask-image: var(--bayer-13);
+  }
+  87.5% {
+    mask-image: var(--bayer-14);
+  }
+  93.75% {
+    mask-image: var(--bayer-15);
+  }
+  100% {
+    mask-image: none;
   }
 }
 

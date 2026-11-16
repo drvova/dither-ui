@@ -1,0 +1,41 @@
+/* The word in focus turns every interval, in CSS: the host runs one clock,
+   --dk-focus-p from 0 to 1 over a turn of every word, and each word reads
+   where it stands on that turn (a registered integer floors the wrap): in
+   focus through its slot, blurring as the next one sharpens over the
+   fade that leads into that one's. A lone word stands (no data-turn). Reduced motion holds the clock at 0,
+   the first word in focus. */
+@property --dk-focus-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+@property --dk-focus-wrap {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+@keyframes dk-focus {
+  to {
+    --dk-focus-p: 1;
+  }
+}
+.dk-true-focus[data-turn] {
+  animation: dk-focus calc(var(--dk-n) * var(--dk-interval)) linear infinite;
+}
+.dk-true-focus-word {
+  /* slots since this word's fade began, then from its slot's start */
+  --dk-focus-m: calc(var(--dk-focus-p) * var(--dk-n) - var(--dk-i) + var(--dk-fade));
+  --dk-focus-wrap: calc(var(--dk-focus-m) / var(--dk-n) - 0.5);
+  --dk-focus-u: calc(var(--dk-focus-m) - var(--dk-focus-wrap) * var(--dk-n) - var(--dk-fade));
+  --dk-focus-on: min(
+    clamp(0, (var(--dk-focus-u) + var(--dk-fade)) / var(--dk-fade), 1),
+    clamp(0, (1 - var(--dk-focus-u)) / var(--dk-fade), 1)
+  );
+  filter: blur(calc((1 - var(--dk-focus-on)) * var(--dk-blur)));
+  opacity: calc(0.5 + 0.5 * var(--dk-focus-on));
+}
+@media (prefers-reduced-motion: reduce) {
+  .dk-true-focus[data-turn] {
+    animation: none;
+  }
+}

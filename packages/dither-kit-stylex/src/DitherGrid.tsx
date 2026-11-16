@@ -9,14 +9,18 @@ const styles = stylex.create({
 })
 
 export type DitherGridProps = {
-  /** Minimum card width; columns auto-fit. Ignored when cols is set. */
+  /** Minimum card width; columns auto-fit. Ignored when cols is set.
+   * @docs number (minimum card width, columns auto-fit) */
   min?: number
-  /** Fixed column count — for deliberate layouts. */
+  /** Fixed column count — for deliberate layouts.
+   * @docs number (fixed column count, overrides min) */
   cols?: number
-  /** Grid gap, any CSS length. */
+  /** Grid gap, any CSS length.
+   * @docs string (any CSS length) */
   gap?: string
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

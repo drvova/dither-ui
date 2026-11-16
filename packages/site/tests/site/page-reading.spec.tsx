@@ -4,7 +4,11 @@
 // no level skipped inside main, one main and every landmark of a kind there
 // are several of named. The walk holds the same rules over the pages as they
 // run, demos and dialogs included (`npm run walk`); this holds what the
-// prerender prints, in the gate. Checked when a build stands.
+// prerender prints, in the gate. And what a reader without a script sees:
+// no art the bytes print is masked shut until a script reveals it (a
+// reveal's hidden mask is its stylesheet's, under `scripting: enabled`),
+// and every chart's print is in the page, styled, its large cell images
+// files beside it rather than its markup. Checked when a build stands.
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
@@ -41,6 +45,36 @@ describe.skipIf(!existsSync(join(OUT, "index.html")))("every built page, as a sc
       document.body.innerHTML = new DOMParser().parseFromString(html, "text/html").body.innerHTML
       const read = auditA11y(document)
       for (const rule of RULES) for (const f of read[rule]) found.push(`${file} ${rule}: ${f}`)
+    }
+    expect(found).toEqual([])
+  }, 60_000)
+})
+
+/** A chart print's data URI past this many bytes is a file beside the page
+ * (`@dither-ui/tasks`' `bakePrints`, `INLINE_BYTES`). */
+const INLINE_BYTES = 1536
+
+describe.skipIf(!existsSync(join(OUT, "index.html")))("every built page, read without a script", () => {
+  it("prints no art masked shut, and every chart's print styled, its large images beside the page", () => {
+    const found: string[] = []
+    for (const file of pages()) {
+      const doc = new DOMParser().parseFromString(readFileSync(join(OUT, file), "utf8"), "text/html")
+      for (const el of doc.querySelectorAll<HTMLElement>("[style*='mask']")) {
+        const style = el.getAttribute("style") ?? ""
+        if (el.getAttribute("data-reveal") === "hidden" || /width%3D%221%22%20height%3D%221%22/.test(style))
+          found.push(`${file}: <${el.localName} class="${el.className}"> masked shut in the bytes`)
+      }
+      const charts = [...doc.querySelectorAll("svg.dk-chart")]
+      if (charts.length && !doc.querySelector("link[rel=stylesheet][href*='chart']"))
+        found.push(`${file}: ${charts.length} charts and no chart stylesheet linked`)
+      for (const chart of charts)
+        if (!chart.querySelector(".dk-chart-print image, .dk-chart-print path, image[aria-hidden]"))
+          found.push(`${file}: a chart with no print (${chart.getAttribute("aria-label")})`)
+      for (const image of doc.querySelectorAll("image[data-dk-print]")) {
+        const href = image.getAttribute("href") ?? ""
+        if (href.startsWith("data:") && ((href.length - 22) * 3) / 4 > INLINE_BYTES)
+          found.push(`${file}: a chart print of ${href.length} bytes in the markup`)
+      }
     }
     expect(found).toEqual([])
   }, 60_000)

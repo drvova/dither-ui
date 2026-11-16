@@ -5,7 +5,7 @@ import { placeArtboard } from "../../entities/editor"
 import { readJson, writeJson } from "@/shared/lib/storage"
 import { STORAGE_KEYS } from "@/shared/config/storage"
 
-export type Preset = { name: string; chart: ChartModel }
+type Preset = { name: string; chart: ChartModel }
 
 /** The stored presets, each a name and a chart (normalised when applied). */
 const load = (): Preset[] => {

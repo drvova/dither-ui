@@ -15,7 +15,7 @@ export const DEFAULT_VIDEO: VideoOptions = { seconds: 6, fps: 30, theme: "dark" 
 
 /** The player's two files: inline for a self-contained composition, or by
  * reference (relative to index.html) when the consumer writes a directory. */
-export type PlayerAssets = { js: string; css: string } | { jsRef: string; cssRef: string }
+type PlayerAssets = { js: string; css: string } | { jsRef: string; cssRef: string }
 
 export const slugOf = (name: string): string =>
   name

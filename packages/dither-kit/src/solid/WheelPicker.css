@@ -1,0 +1,44 @@
+/* The drum: each row turns and fades by where it stands in the wheel's
+   scroll, its own view timeline running from entering at the bottom
+   (--dk-wheel-d rows below the notch) through the notch to leaving at the
+   top. Once it stands on its value the wheel glides to a notch where motion is welcome; reduced, it
+   jumps and the drum lies flat (the rows only fade). */
+@keyframes dk-wheel {
+  0% {
+    transform: perspective(560px) rotateX(calc(var(--dk-wheel-d) * -16deg));
+    opacity: max(0.15, 1 - var(--dk-wheel-d) * 0.22);
+  }
+  50% {
+    transform: perspective(560px) rotateX(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(560px) rotateX(calc(var(--dk-wheel-d) * 16deg));
+    opacity: max(0.15, 1 - var(--dk-wheel-d) * 0.22);
+  }
+}
+@keyframes dk-wheel-flat {
+  0%,
+  100% {
+    opacity: max(0.15, 1 - var(--dk-wheel-d) * 0.22);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@supports (animation-timeline: view()) {
+  .dk-wheel-row {
+    animation: dk-wheel linear both;
+    animation-timeline: view(block);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dk-wheel-row {
+      animation-name: dk-wheel-flat;
+    }
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dk-wheel[data-ready] {
+    scroll-behavior: smooth;
+  }
+}

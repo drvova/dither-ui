@@ -1,5 +1,8 @@
 /* Fixed at the window's corner and moved by its transform, so a flight is
-   one transition of one layer. */
+   one transition of one layer: a hop, on the travel role. Five dots trail
+   it along the same line, each a beat later and fainter (`dk-travel`), and
+   the count, remade each hop, bumps as the mascot lands (`dk-bump`, held
+   back by the hop's own duration). */
 .studio-guide-scope {
   &.guide {
     position: fixed;
@@ -17,8 +20,30 @@
   }
   @media (prefers-reduced-motion: no-preference) {
     &.guide.is-placed {
-      transition: transform 500ms var(--ease-settle);
+      transition: transform var(--duration-travel) var(--ease-travel);
     }
+    &.guide .count.arrive {
+      --dk-bump-from: 0.8;
+      transform-origin: left center;
+      animation: dk-bump var(--duration-bump) var(--ease-bump) var(--duration-travel);
+    }
+    &.trail {
+      animation:
+        dk-travel var(--duration-travel) var(--ease-travel) calc(var(--i) * 40ms) both,
+        guide-trail var(--duration-travel) linear calc(var(--i) * 40ms) both;
+    }
+  }
+  &.trail {
+    position: fixed;
+    top: -2px;
+    left: -2px;
+    z-index: 54;
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-foreground);
+    pointer-events: none;
+    opacity: 0;
   }
   .guide-mascot {
     color: var(--color-foreground);
@@ -77,5 +102,14 @@
     .skip {
       transition: none;
     }
+  }
+}
+
+@keyframes guide-trail {
+  from {
+    opacity: calc(0.6 - var(--i) * 0.1);
+  }
+  to {
+    opacity: 0;
   }
 }

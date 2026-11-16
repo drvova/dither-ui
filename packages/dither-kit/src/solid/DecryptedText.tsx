@@ -1,118 +1,87 @@
-import { createMemo, createSignal, mergeProps, onCleanup, onMount } from "solid-js"
-import { directedTime, isDirected, onSeek } from "../engine/clock"
+import { createMemo, createSignal, Index, mergeProps, onCleanup, onMount } from "solid-js"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
-import { cn } from "../tailwind/lib"
 import { latestEntry } from "../engine/visibility"
+import { cn } from "../tailwind/lib"
+import "./DecryptedText.css"
 
 export type DecryptedTextProps = {
   text?: string
   speed?: number
   trigger?: "view" | "hover"
+  /** The glyphs a letter runs through before it settles.
+   * @docs string: the glyphs a letter runs through */
+  chars?: string
   class?: string
 }
 
 const CHARS = "!<>-_\\/[]{}=+*^?#ABCDEF0123456789"
+/** The decrypt's frame, ms: a glyph a frame at 60 a second. */
+const FRAME = 1000 / 60
 
-const rand = () => CHARS[Math.floor(Math.random() * CHARS.length)]
-/** A directed render must repeat: the glyph is a hash of (frame, slot). */
-const seededChar = (frame: number, i: number) =>
-  CHARS[((Math.imul(frame + 1, 2654435761) ^ Math.imul(i + 1, 40503)) >>> 0) % CHARS.length]
+/** The glyph at a frame of a slot: a hash, so every run prints the same. */
+const glyphAt = (chars: string, frame: number, i: number) =>
+  chars[((Math.imul(frame + 1, 2654435761) ^ Math.imul(i + 1, 40503)) >>> 0) % chars.length]
 
+/** A letter's column: "?" (the masked rest), a glyph every frame until it
+ * settles, then the letter itself. */
+export function glyphColumn(chars: string, letter: string, i: number, frames: number): string {
+  const rows = ["?"]
+  for (let f = 1; f <= frames; f++) rows.push(glyphAt(chars, f, i) ?? "?")
+  rows.push(letter)
+  return rows.join("\n")
+}
+
+/** Letters that run through glyphs and settle left to right, in CSS: each
+ * letter a column of its glyphs that steps up a row a frame
+ * (`DecryptedText.css`), so the kit clock holds it when directed. On
+ * `view` the text waits masked until it is seen; on `hover` it rests
+ * whole and runs while the pointer is on it. Reduced motion shows it whole. */
 export default function DecryptedText(raw: DecryptedTextProps) {
-  const props = mergeProps({ text: "DECRYPTED", speed: 1, trigger: "view" as const }, raw)
+  const props = mergeProps({ text: "DECRYPTED", speed: 1, trigger: "view" as const, chars: CHARS }, raw)
 
-  const target = createMemo(() => props.text)
-  // Where the reveal stands, the text shown read off it, so a new text or
-  // speed shows at once: before it (every glyph a "?"), at a frame, or done.
-  const [state, setState] = createSignal<"masked" | "done" | { frame: number; seeded: boolean }>(
-    props.trigger === "hover" ? "done" : "masked",
-  )
+  const [state, setState] = createSignal<"masked" | "run">("masked")
   let el: HTMLSpanElement | undefined
-  let raf = 0
-  let running = false
 
-  const revealEvery = () => Math.max(1, Math.round(3 / Math.max(0.1, props.speed)))
-  /** Whether the reveal is complete at a decrypt frame. */
-  const ended = (frame: number) => frame >= target().length * revealEvery() + 8
-
-  /** The text at a decrypt frame. */
-  function frameText(frame: number, seeded: boolean): string {
-    const t = target()
-    const revealed = Math.floor(frame / revealEvery())
-    let out = ""
-    for (let i = 0; i < t.length; i++)
-      out += i < revealed ? t[i] : t[i] === " " ? " " : seeded ? seededChar(frame, i) : rand()
-    return out
-  }
-
-  const display = createMemo(() => {
-    const s = state()
-    if (s === "masked") return target().replace(/[^ ]/g, "?")
-    return s === "done" || ended(s.frame) ? target() : frameText(s.frame, s.seeded)
-  })
-
-  function scramble() {
-    if (running) return
-    running = true
-    let frame = 0
-    const tick = () => {
-      if (ended(++frame) || isDirected()) {
-        setState("done")
-        running = false
-        return
-      }
-      setState({ frame, seeded: false })
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-  }
-
-  // Directed (clock.ts): the reveal runs at 60 frames per second of the moment.
-  function seekTo(ms: number) {
-    if (raf) cancelAnimationFrame(raf)
-    raf = 0
-    running = false
-    setState({ frame: Math.floor(ms / (1000 / 60)), seeded: true })
-  }
+  /** Frames between one letter settling and the next. */
+  const every = createMemo(() => Math.max(1, Math.round(3 / Math.max(0.1, props.speed))))
+  const letters = createMemo(() => [...props.text])
 
   onMount(() => {
-    const unseek = onSeek((ms) => (ms === null ? scramble() : seekTo(ms)))
-    let io: IntersectionObserver | null = null
-    onCleanup(() => {
-      unseek()
-      if (raf) cancelAnimationFrame(raf)
-      io?.disconnect()
-    })
-    if (pixelPrefersReducedMotion() || props.trigger === "hover") {
-      setState("done")
-      return
-    }
-    if (isDirected()) {
-      seekTo(directedTime() ?? 0)
-      return
-    }
-    if (typeof IntersectionObserver === "undefined") {
-      scramble()
-      return
-    }
-    io = new IntersectionObserver((entries) => {
-      const entry = latestEntry(entries)
-      if (entry?.isIntersecting) {
-        scramble()
-        io?.disconnect()
-      }
+    if (props.trigger === "hover" || pixelPrefersReducedMotion()) return
+    if (typeof IntersectionObserver === "undefined") return void setState("run")
+    const io = new IntersectionObserver((entries) => {
+      if (!latestEntry(entries)?.isIntersecting) return
+      setState("run")
+      io.disconnect()
     })
     if (el) io.observe(el)
+    onCleanup(() => io.disconnect())
   })
 
   return (
     <span
       ref={(node) => (el = node)}
-      class={cn("inline-block whitespace-pre font-mono", props.class)}
+      class={cn("dk-decrypt inline-block whitespace-pre font-mono", props.class)}
+      data-decrypt={props.trigger === "hover" ? "hover" : state()}
       aria-label={props.text}
-      onMouseEnter={() => props.trigger === "hover" && scramble()}
     >
-      {display()}
+      <Index each={letters()}>
+        {(letter, i) => {
+          // a letter settles once its frames are run: one more slot each
+          const frames = () => (i + 1) * every()
+          return letter() === " " ? (
+            <span aria-hidden="true"> </span>
+          ) : (
+            <span
+              aria-hidden="true"
+              class="dk-decrypt-cell"
+              style={{ "--dk-rows": String(frames() + 1), "--dk-dur": `${(frames() + 1) * FRAME}ms` }}
+            >
+              <span class="dk-decrypt-column">{glyphColumn(props.chars, letter(), i, frames())}</span>
+            </span>
+          )
+        }}
+      </Index>
     </span>
   )
 }

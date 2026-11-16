@@ -12,6 +12,7 @@ const styles = stylex.create({
  * sub-KB sizes stay whole numbers, sign preserved. */
 export type FileSizeTextProps = {
   bytes?: number
+  /** @docs number (≥ 1KB) */
   decimals?: number
   locale?: string
   class?: string

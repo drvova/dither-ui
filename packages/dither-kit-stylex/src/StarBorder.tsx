@@ -18,11 +18,15 @@ const styles = stylex.create({
 })
 
 export type StarBorderProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (s) */
   speed?: number
+  /** @docs number (px) */
   thickness?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

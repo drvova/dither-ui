@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "sideEffects": [
+    "**/*.css",
+    "**/*.tsx"
+  ],
   "imports": {
     "#dither-facts": "./build/facts.ts"
   },
@@ -17,6 +21,7 @@
   },
   "dependencies": {
     "@babel/standalone": "^7.29.14",
+    "@dither-ui/add": "file:../add",
     "@dither-ui/bridge": "file:../bridge",
     "@dither-ui/kit": "file:../dither-kit",
     "@dither-ui/kit-stylex": "file:../dither-kit-stylex",

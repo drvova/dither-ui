@@ -1,4 +1,4 @@
-import { createMemo, For, mergeProps, Show } from "solid-js"
+import { createMemo, For, mergeProps, onCleanup, onMount, Show } from "solid-js"
 import { rgb } from "../engine/palette"
 import { cn } from "../tailwind/lib"
 import { chartLayer } from "./runtime/chart-layer"
@@ -23,6 +23,12 @@ export default function Tooltip(raw: TooltipProps) {
   const props = mergeProps({ variant: "default" as TooltipVariant }, raw)
 
   const chart = useCommonChart()
+  // Once it can show (a script runs), the values are the tooltip's: the
+  // print's marks show none of their own.
+  onMount(() => {
+    chart.showsTooltip(true)
+    onCleanup(() => chart.showsTooltip(false))
+  })
   const show = createMemo(() => chart.ready && chart.hoverIndex != null)
 
   // Retain the last hovered index so the card keeps its content while fading out.

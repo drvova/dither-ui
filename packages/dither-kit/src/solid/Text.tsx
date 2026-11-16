@@ -7,8 +7,10 @@ import { cn } from "../tailwind/lib"
  * utilities (`faint` shares the muted ink: no text drops under AA), `size` to the 11–15px scale the docs use — anything else
  * (leading, tracking, weight) rides along in `class`. */
 type Own = {
+  /** @docs "p" | "span" | "h3" | "li" | … */
   as?: string
   tone?: "default" | "muted" | "faint"
+  /** @docs "xs" | "sm" | "md" | "lg" (11–15px) */
   size?: "xs" | "sm" | "md" | "lg"
   class?: string
 }

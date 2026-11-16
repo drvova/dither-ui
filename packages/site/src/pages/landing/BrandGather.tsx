@@ -17,7 +17,7 @@ import { choreograph, LOCKUP, LOCKUP_SIZE, MOMENT, type Staging, type Waypoint }
 import "./BrandGather.css"
 import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
-export type BrandGatherProps = {
+type BrandGatherProps = {
   scene: Staging
   replay?: boolean
   class?: string

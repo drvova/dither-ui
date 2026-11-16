@@ -5,6 +5,7 @@ import "./GlitchText.css"
 export type GlitchTextProps = {
   text?: string
   speed?: number
+  /** @default undefined */
   class?: string
 }
 

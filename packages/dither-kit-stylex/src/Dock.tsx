@@ -1,9 +1,10 @@
 // Generated from @dither-ui/kit/solid/Dock.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createSignal, For, mergeProps, onMount } from "solid-js"
+import { For, mergeProps } from "solid-js"
 import { cssColor } from "@dither-ui/kit/engine/palette.ts"
-import { pixelPrefersReducedMotion, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
+import type { PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
+import "@dither-ui/kit/solid/Dock.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -21,13 +22,6 @@ const styles = stylex.create({
       default: "color-mix(in oklab, var(--card) 60%, transparent)",
       ":hover": { default: null, "@media (hover: hover)": "var(--card)" },
     },
-    transitionProperty: {
-      default: "transform, translate, scale, rotate",
-      "@media (prefers-reduced-motion: reduce)": "none",
-    },
-    transitionTimingFunction: "cubic-bezier(0, 0, 0.2, 1)",
-    transitionDuration: "150ms",
-    willChange: "transform",
   },
   text: { width: "0.5rem", height: "0.5rem", borderRadius: "2px" },
   row: {
@@ -47,65 +41,52 @@ const styles = stylex.create({
 export type DockItem = { value: string; label: string; color?: PixelColor }
 
 export type DockProps = {
+  /** @docs { value, label, color? }[]
+   * @default required */
   items: DockItem[]
-  /** Peak scale over the pointer. */
+  /** Peak scale over the pointer.
+   * @docs number: peak scale over the pointer */
   magnify?: number
-  /** Falloff radius in px. */
+  /** Falloff radius in px.
+   * @docs number (px): gaussian falloff radius */
   range?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs (value) */
   onSelect?: (value: string) => void
 }
 
-/** Hover-magnifying dock — items swell on a gaussian falloff around the
- * pointer and settle when it leaves. Reduced motion keeps the row still and
- * marks hover by color alone. */
+/** The pitch between neighbouring items' centres, px (a 36px key, a 6px gap). */
+const PITCH = 42
+
+/** Hover-magnifying dock — the item under the pointer (or the focus) swells
+ * and its neighbours on either side swell less, by a gaussian falloff of
+ * `range` sampled at their places, and all settle when it leaves: CSS
+ * `:hover` and `:has()` over the scales worked out here (`Dock.css`).
+ * Reduced motion keeps the row still and marks hover by color alone. */
 export default function Dock(raw: DockProps) {
   const props = mergeProps({ magnify: 1.7, range: 80 }, raw)
 
-  const [px, setPx] = createSignal<number | null>(null)
-  let bar: HTMLDivElement | undefined
-  // Read once, at mount (a server render has no media to ask).
-  let still = false
-  onMount(() => {
-    still = pixelPrefersReducedMotion()
-  })
-
-  function track(e: PointerEvent) {
-    if (still) return
-    const r = bar?.getBoundingClientRect()
-    if (r) setPx(e.clientX - r.left)
-  }
-
-  const scaleOf = (i: number) => {
-    const at = px()
-    if (at === null || !bar) return 1
-    const buttons = bar.querySelectorAll("button")
-    const b = buttons[i] as HTMLElement | undefined
-    if (!b) return 1
-    const center = b.offsetLeft + b.offsetWidth / 2
-    const d = Math.abs(at - center)
-    const g = Math.exp(-(d * d) / (2 * props.range * props.range))
-    return 1 + (props.magnify - 1) * g
+  /** The swell `places` pitches from the pointer's item. */
+  const scale = (places: number) => {
+    const d = places * PITCH
+    return String(1 + (props.magnify - 1) * Math.exp(-(d * d) / (2 * props.range * props.range)))
   }
 
   return (
     <div
-      ref={(el) => (bar = el)}
       class={cn(styles.row, props.xstyle, props.class)}
+      style={{ "--dk-dock-0": scale(0), "--dk-dock-1": scale(1), "--dk-dock-2": scale(2) }}
       role="group"
       aria-label="Dock"
-      onPointerMove={track}
-      onPointerLeave={() => setPx(null)}
     >
       <For each={props.items}>
-        {(it, i) => (
+        {(it) => (
           <button
             type="button"
             aria-label={it.label}
             title={it.label}
-            {...stylex.props(styles.button)}
-            style={{ transform: `scale(${scaleOf(i())})` }}
+            class={cn(styles.button, "dk-dock-item")}
             onClick={() => props.onSelect?.(it.value)}
           >
             <span

@@ -58,7 +58,8 @@ function paintTrack(
 const CELL = 2
 
 export type DitherSliderProps = {
-  /** A number, or a [lo, hi] pair for a range slider. */
+  /** A number, or a [lo, hi] pair for a range slider.
+   * @docs number | [number, number] (array = range) */
   modelValue: number | [number, number]
   onUpdateModelValue?: (value: number | [number, number]) => void
   /** Accessible name for the thumb(s). */
@@ -66,13 +67,17 @@ export type DitherSliderProps = {
   min?: number
   max?: number
   step?: number
-  color?: PixelColor
-  /** Fill texture — same vocabulary as the charts. */
+  /** Fill texture — same vocabulary as the charts.
+   * @default "gradient" */
   variant?: SliderVariant
-  /** Paint tick columns at each step (or 10 divisions when steps are dense). */
+  /** Paint tick columns at each step (or 10 divisions when steps are dense).
+   * @docs boolean (tick columns at steps if ≤25, else tenths) */
   ticks?: boolean
-  /** Show a value bubble above the thumb while dragging or focused. */
+  /** Show a value bubble above the thumb while dragging or focused.
+   * @docs boolean (bubble while dragging or focused) */
   showValue?: boolean
+  /** @default "blue" */
+  color?: PixelColor
   disabled?: boolean
   seed?: number
   class?: string

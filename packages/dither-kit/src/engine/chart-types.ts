@@ -1,5 +1,5 @@
-// The chart family's shared types: what a root publishes to its parts, its
-// canvas and its paint loop. Framework-free; a binding (`solid/runtime/`)
+// The chart family's shared types: what a root publishes to its parts and
+// its print (`chart-svg.ts`). Framework-free; a binding (`solid/runtime/`)
 // builds the values and provides them.
 
 import type { ScaleLinear } from "d3-scale"
@@ -7,9 +7,6 @@ import type { BloomInput, DitherMatrix, EasingInput, VariantInput } from "./dith
 import type { DitherColor, Seed } from "./palette"
 import type { PieSlice, RadarAxis } from "./polar"
 import type { StackType } from "./scales"
-
-/** A live value a paint loop reads each frame. */
-export type Box<T> = { readonly current: T }
 
 /** An element's CSS pixel size. */
 export type Dimensions = { width: number; height: number }
@@ -44,6 +41,10 @@ export type CommonChart = {
   heading: (index: number, labelKey?: string) => string | null
   itemsAt: (index: number) => TooltipItem[]
   ready: boolean
+  /** A `<Tooltip>` is composed and shows the values (the print's marks
+   * then show none of their own). */
+  tooltip: boolean
+  showsTooltip: (on: boolean) => void
   tooltipLeft: number // clamped px for the floating tooltip
   tooltipTop: number // px — follows the hovered node (cartesian) / cursor (polar)
 }
@@ -69,7 +70,7 @@ export type { AreaVariant, TextureConfig, VariantInput } from "./dither-paint"
 export type StrokeVariant = "solid" | "dashed"
 export type SeriesKind = "area" | "line" | "bar"
 
-/** What each series part (<Area />, <Line />, <Bar />) registers so the canvas
+/** What each series part (<Area />, <Line />, <Bar />) registers so the print
  * knows which series to paint and how. */
 export type SeriesSpec = {
   dataKey: string
@@ -89,6 +90,8 @@ export type ChartContextValue = {
   margins: Margins
   plot: { width: number; height: number }
   ready: boolean
+  /** The pointer reads the chart: its marks show their values. */
+  interactive: boolean
   xCenter: (index: number) => number
   bandwidth: number
   indexAtX: (px: number) => number

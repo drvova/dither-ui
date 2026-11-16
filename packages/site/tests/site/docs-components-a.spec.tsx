@@ -76,8 +76,10 @@ describe.each(PACKS)("%s", (_name, Pack, nav) => {
       expect(s.querySelector("h2")?.className).toBe("text-lg tracking-tight")
       expect(s.firstElementChild?.tagName).toBe("H2")
       expect(cards(s).length).toBeGreaterThan(0)
-      // the API table closes the section
-      expect(s.lastElementChild?.tagName).toBe("DL")
+      // the API table closes the section's own content, the line that adds its components after it
+      expect(s.lastElementChild?.hasAttribute("data-add-line")).toBe(true)
+      expect(s.lastElementChild?.previousElementSibling?.tagName).toBe("DL")
+      expect(s.lastElementChild?.querySelector("pre")?.textContent).toMatch(/ add Dither\w+/)
     }
   })
 
@@ -183,7 +185,7 @@ describe("FormDocs", () => {
     expect(boxes.map((b) => b.getAttribute("aria-checked"))).toEqual(["true", "true", "true"])
   })
 
-  it("binds the progress bar to the slider above it, and each variant to its own level", () => {
+  it("steps the slider's thumbs, holds the progress at its own level, and each variant at its own", () => {
     const { container } = shown(FormDocs)
     const slider = section(container, "slider")
     const thumbs = [...slider.querySelectorAll<HTMLElement>("[role='slider']")]
@@ -194,8 +196,9 @@ describe("FormDocs", () => {
     expect(progress.querySelector(".demo-well")?.textContent).toContain("40%")
     fireEvent.keyDown(thumbs[0], { key: "ArrowRight" })
     expect(thumbs[0].getAttribute("aria-valuenow")).toBe("41")
-    expect(progress.querySelector(".demo-well")?.textContent).toContain("41%")
-    expect(progress.querySelector("[role='progressbar']")?.getAttribute("aria-valuenow")).toBe("41")
+    // the progress example holds its own value: a module of its own
+    expect(progress.querySelector(".demo-well")?.textContent).toContain("40%")
+    expect(progress.querySelector("[role='progressbar']")?.getAttribute("aria-valuenow")).toBe("40")
     // the quality slider steps by ten
     fireEvent.keyDown(thumbs[3], { key: "ArrowRight" })
     expect(thumbs[3].getAttribute("aria-valuenow")).toBe("70")
@@ -228,7 +231,7 @@ describe("LayoutDocs", () => {
     expect(section(container, "rail").querySelector("[aria-label='Demo rail']")).not.toBeNull()
   })
 
-  it("streams a deploy into both consoles, one run at a time", () => {
+  it("streams a deploy into its console, one run at a time", () => {
     vi.useFakeTimers()
     const { container } = shown(LayoutDocs)
     const well = section(container, "console").querySelector(".demo-well")!
@@ -242,7 +245,8 @@ describe("LayoutDocs", () => {
     expect(well.textContent).not.toContain("bundling client…")
     vi.advanceTimersByTime(450 * 4)
     expect(well.textContent).toContain("deployed to dither-ui.com")
-    expect(section(container, "dither-shell").querySelector(".demo-well")?.textContent).toContain(
+    // the shell's console is its own example's
+    expect(section(container, "dither-shell").querySelector(".demo-well")?.textContent).not.toContain(
       "deployed to dither-ui.com",
     )
     expect(run.disabled).toBe(false)

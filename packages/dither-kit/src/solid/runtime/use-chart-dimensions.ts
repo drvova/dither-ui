@@ -7,22 +7,26 @@ export type { Dimensions } from "../../engine/chart-types"
  * Tracks an element's CSS pixel size via {@link ResizeObserver}. Uses the
  * observer's `contentRect` rather than `getBoundingClientRect()` so a parent
  * transform morph cannot trick the chart into measuring a scaled size and
- * locking its canvas to it. Takes the element as an accessor and returns a
- * reactive size.
+ * locking its print to it. Takes the element as an accessor and returns a
+ * reactive size: `unmeasured` until a size is measured (a server render, a
+ * box not laid out yet), so a chart prints before any script runs and its
+ * `<svg>` scales that print into the box.
  */
 export function useChartDimensions<T extends HTMLElement>(
   el: () => T | null | undefined,
+  unmeasured: Dimensions,
 ): {
   size: Accessor<Dimensions>
 } {
-  const [size, setSize] = createSignal<Dimensions>({ width: 0, height: 0 })
+  const [measured, setSize] = createSignal<Dimensions>({ width: 0, height: 0 })
+  const size = () => (measured().width > 0 && measured().height > 0 ? measured() : unmeasured)
   let ro: ResizeObserver | null = null
   let fallback = 0
 
   const update = (width: number, height: number) => {
     const nextWidth = Math.max(0, Math.round(width))
     const nextHeight = Math.max(0, Math.round(height))
-    const prev = size()
+    const prev = measured()
     if (prev.width === nextWidth && prev.height === nextHeight) return
     setSize({ width: nextWidth, height: nextHeight })
   }
@@ -44,7 +48,7 @@ export function useChartDimensions<T extends HTMLElement>(
     })
     ro.observe(node)
     fallback = window.setTimeout(() => {
-      if (!size().width && !size().height) measureNode()
+      if (!measured().width && !measured().height) measureNode()
     }, 0)
     onCleanup(() => {
       if (fallback) clearTimeout(fallback)

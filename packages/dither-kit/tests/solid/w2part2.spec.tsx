@@ -77,23 +77,41 @@ describe("Caption", () => {
 })
 
 describe("DecryptedText", () => {
-  it("is named by its text, and resolves to it once seen", async () => {
+  const columns = (el: Element) => [...el.querySelectorAll(".dk-decrypt-column")].map((c) => c.textContent!.split("\n"))
+
+  it("is named by its text, waits masked, and resolves to it once seen, a letter a slot", async () => {
     render(() => <DecryptedText text="OK GO" speed={3} />)
     const el = screen.getByLabelText("OK GO")
-    expect(el.textContent).toBe("?? ??")
+    expect(el.getAttribute("data-decrypt")).toBe("masked")
+    // each letter's column: the mask, a glyph a frame until it settles, the letter
+    const cols = columns(el)
+    expect(cols.map((c) => c[0])).toEqual(["?", "?", "?", "?"])
+    expect(cols.map((c) => c.at(-1))).toEqual(["O", "K", "G", "O"])
+    expect(cols.map((c) => c.length)).toEqual([3, 4, 6, 7]) // the space stands, a slot of its own
+    const cells = [...el.querySelectorAll<HTMLElement>(".dk-decrypt-cell")]
+    expect(cells.map((c) => c.style.getPropertyValue("--dk-rows"))).toEqual(["2", "3", "5", "6"])
     w.show()
-    for (let i = 0; i < 20; i++) await w.frame(i * 16)
-    expect(el.textContent).toBe("OK GO")
+    await w.frame(16)
+    expect(el.getAttribute("data-decrypt")).toBe("run")
   })
 
-  it("shows its text at rest and scrambles under the pointer when hover triggers it", async () => {
+  it("prints the same glyphs on every run", () => {
+    const a = render(() => <DecryptedText text="ABC" />)
+    const first = columns(a.container.firstElementChild!)
+    a.unmount()
+    const b = render(() => <DecryptedText text="ABC" />)
+    expect(columns(b.container.firstElementChild!)).toEqual(first)
+  })
+
+  it("rests whole and runs under the pointer when hover triggers it", () => {
     render(() => <DecryptedText text="HOVER" trigger="hover" />)
     const el = screen.getByLabelText("HOVER")
-    expect(el.textContent).toBe("HOVER")
-    fireEvent.mouseEnter(el)
-    await w.frame(16)
-    expect(el.textContent).not.toBe("HOVER")
-    expect(el.textContent).toHaveLength(5)
+    expect(el.getAttribute("data-decrypt")).toBe("hover")
+    expect(
+      columns(el)
+        .map((c) => c.at(-1))
+        .join(""),
+    ).toBe("HOVER")
   })
 })
 

@@ -31,6 +31,16 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      # The share cards the last build drew, each kept under a hash of what
+      # it is drawn from (the renderer as built, the browser, its own copy):
+      # an entry answers only a card drawn from the same, so a restored
+      # cache never ships a stale one. Restored after the install, which
+      # empties node_modules.
+      - uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/dither-ui
+          key: share-cards-${{ runner.os }}-${{ hashFiles('package-lock.json', 'packages/*/src/**', 'packages/site/build/**') }}
+          restore-keys: share-cards-${{ runner.os }}-
       # The whole site as static files in packages/site/.output/public:
       # every page prerendered (404.html among them, which a static host
       # serves for an unknown address), the single-file player the video

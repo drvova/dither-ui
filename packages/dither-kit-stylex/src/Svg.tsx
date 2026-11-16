@@ -5,9 +5,11 @@ import { cn, type StyleProp } from "./lib"
 
 export type SvgProps = {
   viewBox?: string
+  /** @docs string (promotes to role=img) */
   label?: string
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

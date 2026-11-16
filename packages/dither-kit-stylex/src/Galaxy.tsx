@@ -20,21 +20,35 @@ export type { GalaxyParams }
 export { paintGalaxy }
 
 export type GalaxyProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#3DA5FF', '#A8FFB6', '#FFFFFF'] */
   colors?: string[]
   arms?: number
+  /** @docs number (arm winding) */
   twist?: number
   speed?: number
+  /** @docs number 0…1 (star count) */
   density?: number
   glow?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

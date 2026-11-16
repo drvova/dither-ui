@@ -11,8 +11,8 @@ const styles = stylex.create({
   grid: {
     display: "grid",
     transitionProperty: { default: "grid-template-columns", "@media (prefers-reduced-motion: reduce)": "none" },
-    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-    transitionDuration: "200ms",
+    transitionTimingFunction: "var(--ease-pill)",
+    transitionDuration: "var(--duration-pill)",
   },
   pl2: { paddingLeft: "0.5rem" },
   text2: { minWidth: "0px", overflow: "hidden", whiteSpace: "nowrap" },
@@ -61,8 +61,13 @@ export type ExpandTab = { value: string; label: string; color?: PixelColor }
  * square glyphs. The label slides through a 0fr -> 1fr column, the house
  * grid trick, stilled under reduced motion. */
 export type ExpandTabsProps = {
+  /** @docs { value, label, color? }[]
+   * @default required */
   tabs: ExpandTab[]
+  /** @docs string (with onUpdateModelValue)
+   * @default required */
   modelValue: string
+  /** @docs PixelColor: active glyph fallback */
   color?: PixelColor
   class?: string
   xstyle?: StyleProp

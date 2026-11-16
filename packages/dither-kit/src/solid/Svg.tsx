@@ -3,8 +3,10 @@ import { cn } from "../tailwind/lib"
 
 export type SvgProps = {
   viewBox?: string
+  /** @docs string (promotes to role=img) */
   label?: string
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

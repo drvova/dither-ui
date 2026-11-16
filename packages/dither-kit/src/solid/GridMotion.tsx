@@ -11,21 +11,35 @@ export type { GridMotionParams }
 export { paintGridMotion }
 
 export type GridMotionProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#3DA5FF', '#7CE0FF'] */
   colors?: string[]
+  /** @docs number (cells) */
   count?: number
+  /** @docs number (drift direction) */
   angle?: number
   speed?: number
   lineWidth?: number
   glow?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
 }
 

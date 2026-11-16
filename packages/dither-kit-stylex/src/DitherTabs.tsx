@@ -83,8 +83,8 @@ const styles = stylex.create({
   canvas: {
     position: "absolute",
     transitionProperty: { default: "left, top, width, height", "@media (prefers-reduced-motion: reduce)": "none" },
-    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-    transitionDuration: "200ms",
+    transitionTimingFunction: "var(--ease-pill)",
+    transitionDuration: "var(--duration-pill)",
   },
   rounded2: { borderRadius: "0.25rem" },
 })
@@ -154,18 +154,21 @@ function paintWash(canvas: HTMLCanvasElement, w: number, h: number, color: Pixel
 }
 
 export type DitherTabsProps = {
-  /** Plain strings or { value, label, badge, disabled } items. */
+  /** Plain strings or { value, label, badge, disabled } items.
+   * @docs (string | { value, label?, badge?, disabled? })[] */
   tabs: (string | TabItem)[]
   modelValue: string
-  color?: PixelColor
   /** underline: moving dither strip · segmented: boxed chips · washed: dither fill. */
   variant?: TabsVariant
   orientation?: "horizontal" | "vertical"
+  /** @default "blue" */
+  color?: PixelColor
   seed?: number
   class?: string
   xstyle?: StyleProp
   onUpdateModelValue?: (value: string) => void
-  /** Panels: put DitherTabPanel children here so they inherit the context. */
+  /** Panels: put DitherTabPanel children here so they inherit the context.
+   * @docs content */
   children?: JSX.Element
 }
 

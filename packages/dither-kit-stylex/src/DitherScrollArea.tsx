@@ -9,7 +9,13 @@ const styles = stylex.create({
   box: { overflow: "auto" },
 })
 
-export type DitherScrollAreaProps = { class?: string; xstyle?: StyleProp; children?: JSX.Element }
+export type DitherScrollAreaProps = {
+  /** @default undefined */
+  class?: string
+  xstyle?: StyleProp
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function DitherScrollArea(props: DitherScrollAreaProps) {
   return <div class={cn([styles.box, "dk-scroll"], props.xstyle, props.class)}>{props.children}</div>

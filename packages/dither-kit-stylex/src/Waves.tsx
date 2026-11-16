@@ -20,24 +20,36 @@ export type { WavesParams }
 export { paintWaves }
 
 export type WavesProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#5227FF', '#7CFF67'] */
   colors?: string[]
   count?: number
   amplitude?: number
   frequency?: number
   speed?: number
+  /** @docs number (fraction of gap) */
   lineWidth?: number
   glow?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   mouseInteraction?: boolean
   mouseStrength?: number
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

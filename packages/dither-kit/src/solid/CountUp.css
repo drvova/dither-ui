@@ -1,0 +1,34 @@
+/* Each digit is a one-line window on its column of 0-9: at rest the column
+   stands on the end's digit; waiting to be seen it stands on where the count
+   starts, and running it rolls there to the end on an ease-out. Reduced
+   motion shows the end. */
+.dk-count-cell {
+  display: inline-block;
+  height: 1.25em;
+  line-height: 1.25em;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.dk-count-column {
+  display: block;
+  /* every row exactly the window's height, whatever font draws it */
+  line-height: 1.25em;
+  white-space: pre;
+  transform: translateY(calc(-1.25em * var(--dk-end)));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dk-count-up[data-count="wait"] .dk-count-column {
+    transform: translateY(calc(-1.25em * var(--dk-start)));
+  }
+  .dk-count-up[data-count="run"] .dk-count-column {
+    animation: dk-count var(--dk-count-dur) cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+@keyframes dk-count {
+  from {
+    transform: translateY(calc(-1.25em * var(--dk-start)));
+  }
+  to {
+    transform: translateY(calc(-1.25em * var(--dk-end)));
+  }
+}

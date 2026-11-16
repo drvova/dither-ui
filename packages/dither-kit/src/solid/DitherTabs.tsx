@@ -84,17 +84,20 @@ function paintWash(canvas: HTMLCanvasElement, w: number, h: number, color: Pixel
 }
 
 export type DitherTabsProps = {
-  /** Plain strings or { value, label, badge, disabled } items. */
+  /** Plain strings or { value, label, badge, disabled } items.
+   * @docs (string | { value, label?, badge?, disabled? })[] */
   tabs: (string | TabItem)[]
   modelValue: string
-  color?: PixelColor
   /** underline: moving dither strip · segmented: boxed chips · washed: dither fill. */
   variant?: TabsVariant
   orientation?: "horizontal" | "vertical"
+  /** @default "blue" */
+  color?: PixelColor
   seed?: number
   class?: string
   onUpdateModelValue?: (value: string) => void
-  /** Panels: put DitherTabPanel children here so they inherit the context. */
+  /** Panels: put DitherTabPanel children here so they inherit the context.
+   * @docs content */
   children?: JSX.Element
 }
 
@@ -260,7 +263,7 @@ export default function DitherTabs(raw: DitherTabsProps) {
               ref={(el) => (canvas = el)}
               aria-hidden="true"
               class={cn(
-                "absolute transition-[left,top,width,height] duration-200 motion-reduce:transition-none",
+                "absolute transition-[left,top,width,height] ease-[var(--ease-pill)] duration-[var(--duration-pill)] motion-reduce:transition-none",
                 props.variant === "washed" && "rounded",
               )}
               style={{ ...markerStyle(), "image-rendering": "pixelated" }}

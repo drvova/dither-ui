@@ -10,7 +10,8 @@ result to a coding agent, on the live preview — a real tool, never a mock.
 ## Ownership
 
 The components and the controller live in this folder; `model/` beside
-them holds the framework-free model (see `../../AGENTS.md`).
+them holds the framework-free model (see `../../AGENTS.md`) and the
+controller's Solid-bound parts (below).
 
 - `Workbench.tsx` — the root: creates the controller, provides it
   (`context.ts` → `useBench()`), portals the overlay into the preview
@@ -22,7 +23,20 @@ them holds the framework-free model (see `../../AGENTS.md`).
   panel with the selection; `feedbackVerb` names which on K's key and the
   readout's; the feedback cases of
   `tests/site/workbench.spec.tsx`). Components render from it
-  and call into it.
+  and call into it. It is composed from its Solid-bound parts in
+  `model/`, each a `create*(state, deps)` over the one state: `state.ts`
+  (the options, settings, the tool in hand, the undoable workspace and its
+  saving, every overlay signal, and which preview holds the keys:
+  `ownKeys`/`hasKeys`/`dropKeys`), `measuring.ts` (the per-frame loop),
+  `selection.ts` (hit tests, the selection box, move / scale / rotate),
+  `notes.ts` (notes and comment threads), `pixels.ts` (the snapshot, the
+  loupe's and the sampler's pixels), `recorder.ts` (stills, recordings,
+  video and GIF export; `GIF`), `gestures.ts` (every pointer gesture) and
+  `keys.ts` (the keyboard and its listeners); a part names what it takes
+  from another by that part's type (`Pick<Selection, …>`), never by an
+  import of `bench.ts`. `bench.ts` keeps the tool switch, the agent
+  hand-off, the preview as SVG (`copyAsSvg`, `downloadSvg`, below) and
+  start / stop, and returns the same surface.
 - The DOM readings live a layer down, in `shared/lib/inspect/` (the
   agent's `inspect` reads with them too): `color.ts` (parse every computed
   form, print hex/rgb/hsl/oklch, WCAG contrast), `geometry.ts` (boxes,
@@ -41,12 +55,18 @@ them holds the framework-free model (see `../../AGENTS.md`).
   `capture.ts` (DOM render, tab grab, region recording, trim, frames for
   a GIF; encoded by `shared/lib/gif.ts` with the kit's `BAYER8`: one
   palette over all frames, ordered-dithered, only the changed box after
-  the first frame), `tools.ts`.
-- `ui/` — one component per layer or panel: `Tray`, `Rulers`, `Guides`,
-  `Marks`, `Ink`, `Notes`, `Comments`, `Loupe`, `Readout`, `Motion`,
-  `Responsive`, `Settings`, `Icon`; `Keyed` is the list they share, its
-  rows living as long as their id (the workspace is replaced whole on
-  every change).
+  the first frame), `tools.ts`, `svg.ts` (the SVG layer's text: a label's
+  width in the mono face, measured once, a note's lines wrapped as its
+  field wraps them, and `serializeSvg`, a group as a standalone file with
+  its computed paint written on each element).
+- `ui/` — one component per layer or panel: `Overlay` (the one SVG
+  layer: `Guides`, `Marks`, the annotations group of `Ink`'s `Drawings`,
+  `Notes`' `NoteShapes` and `Comments`' `Pins`, `Ink`'s drafts and
+  selection chrome, `Rulers`; `Label` is its filled text box), `Tray`,
+  `Notes` (the field a note is written in), `Comments` (the pins' keys
+  and the thread), `Loupe`, `Readout`, `Motion`, `Responsive`,
+  `Settings`, `Icon`; `Keyed` is the list they share, its rows living as
+  long as their id (the workspace is replaced whole on every change).
 
 ## Local Contracts
 
@@ -88,6 +108,17 @@ them holds the framework-free model (see `../../AGENTS.md`).
   `document.elementsFromPoint`, skipping the overlay. Comments anchor to
   the nearest control (`controlOf`), by child path (re-found after
   re-renders) with the selector and box kept for the agent.
+- Everything the overlay draws is ONE SVG (`ui/Overlay.tsx`, z 4 over
+  the pointer surface): guides and grid, X-ray (one path per tone and
+  depth), the box model, type lines, the Tab order, distances, labels,
+  arrows, strokes, notes, comment pins, drafts, the selection and the
+  rulers; every stroke `vector-effect: non-scaling-stroke`, hairlines on
+  the half pixel. Only the rulers' grounds take a press there. What is
+  operable stays HTML over it: the note being written (its field), each
+  pin's key (a transparent `<button>` the pin's size, named, ringed), the
+  thread, the loupe and the tray. The annotations are the layer's
+  `ANNOTATIONS` group; "Copy annotations as SVG" (the readout's Select
+  and Comment rows) copies it through `serializeSvg`, stage-sized.
 - Overlay layers are decorative (`aria-hidden`): the readout says the same
   in words and every measurement, colour and audit result is reachable
   there; guides can be placed by number; the tray is a `toolbar` with
@@ -110,6 +141,16 @@ them holds the framework-free model (see `../../AGENTS.md`).
   cap; trims re-record the cut, scaling frames that change size; export
   as WebM/MP4 (as recorded) or a GIF (12 fps, ≤ 480 px, ≤ 240 frames,
   dithered by the kit — a GIF of the dither stays crisp).
+- SVG: the tray's Copy as SVG and Download SVG keys (beside K's; no key
+  of their own) turn the stage as it stands, its live state, into one
+  layered SVG for a design tool, read and written by the Studio's own
+  reader (`entities/artboard`: `elementSvg` over the stage, the overlay
+  left out; `../../AGENTS.md`, SVG, says what the file holds), copied by
+  its `copySvg` (`image/svg+xml` with `text/plain` in Chromium, the text
+  alone in Safari and Firefox, which design tools paste as vectors too)
+  and saved by its `saveSvg` as `<section>-<n>.svg`; the status line says
+  which (`SVG_COPY_SAID`). The SVG is made in the press, so the copy
+  keeps the gesture Safari asks for.
 - The tray docks to the stage's bottom (default) or top (`settings.tray`);
   the workbench sets `data-tray` on the frame and DemoCard keeps that
   edge's lane free (`data-[tray=…]` padding).
@@ -120,7 +161,7 @@ them holds the framework-free model (see `../../AGENTS.md`).
   workbench releases a clock it held.
 - Sounds (`shared/lib/sound.ts`, Kobra's cues): a tool or group switch and
   undo/redo tap, toggles sound on/off, copies (colours, CSS, selectors,
-  the image, the agent feedback) chime, settings and the minimized tray
+  the image, the agent feedback, the SVG) chime, settings and the minimized tray
   fold/unfold; Settings carries the site's interface-sounds switch.
 
 ## Verification
@@ -128,14 +169,16 @@ them holds the framework-free model (see `../../AGENTS.md`).
 - `tests/workbench.spec.ts` (root, `rs test`): the GIF encoder (LZW round-trips through a
   decoder, table resets included; median cut; Bayer dithering; the
   GIF89a frame; delta frames decoded back exactly; kept colours exact), colour parsing/printing/contrast, geometry,
-  ink, workspace sanitizing/history/Markdown, settings, the DOM readings
+  ink, workspace sanitizing/history/Markdown, settings, the SVG layer's
+  label widths, note wrapping and serialisation, the DOM readings
   (names, roles, states, Tab order, paths, selectors, controlOf, the
   audit's targets: labels, spacing, disabled, hidden).
 - `tests/site/workbench.spec.tsx` (Vitest): the workbench
   mounted on a preview, the controller's undoable workspace, its keys and
-  its Escape ladder, the measuring loop, every layer of the overlay and
-  panel under the frame, the feedback sent or copied, and what unmounting
-  gives back.
+  its Escape ladder, the measuring loop, every layer of the overlay (one
+  SVG) and panel under the frame, the feedback sent or copied, the
+  annotations copied as SVG, the preview copied as SVG (both types, the
+  overlay left out) and downloaded, and what unmounting gives back.
 - Browser walk (`npm run dev`): every tool on `/docs/button` (hover, pin, Alt
   distances and Alt+S, X-ray, Typography's contrast, Accessibility's Tab
   order, guides placed / dragged off, the loupe over a dithered canvas,

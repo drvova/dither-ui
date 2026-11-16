@@ -763,6 +763,16 @@ describe("links and text", () => {
     expect(copy.style.filter).toContain(`#${filter.id}`)
   })
 
+  it("FuzzyText starts its SMIL where its still filter stands, so a frozen timeline shows the same fuzz", () => {
+    // Firefox freezes SMIL on a page without script: the first value shows
+    const { container } = render(() => <FuzzyText />)
+    const turbulence = container.querySelector("feTurbulence")!
+    const animate = turbulence.querySelector("animate")!
+    expect(animate.getAttribute("values")!.split(";")[0]).toBe(
+      turbulence.getAttribute(animate.getAttribute("attributeName")!),
+    )
+  })
+
   it("two FuzzyTexts never share a filter", () => {
     const { container } = render(() => (
       <>
@@ -774,15 +784,12 @@ describe("links and text", () => {
     expect(new Set(ids).size).toBe(2)
   })
 
-  it("ScrambleText scrambles on hover and settles back on its text", async () => {
+  it("ScrambleText rests on its text and scrambles under the pointer", () => {
     render(() => <ScrambleText text="ab" />)
     const span = screen.getByLabelText("ab")
-    expect(span.textContent).toBe("ab")
-    fireEvent.mouseEnter(span)
-    await w.frame(16)
-    expect(span.textContent?.length).toBe(2)
-    for (let i = 0; i < 12; i++) await w.frame(32 + i * 16)
-    expect(span.textContent).toBe("ab")
+    expect(span.getAttribute("data-decrypt")).toBe("hover")
+    const cols = [...span.querySelectorAll(".dk-decrypt-column")].map((c) => c.textContent!.split("\n").at(-1))
+    expect(cols.join("")).toBe("ab")
   })
 })
 

@@ -6,7 +6,7 @@
 // Loaded by Node as it is (type stripping): erasable syntax only.
 import { createHash } from "node:crypto"
 import { createReadStream, existsSync } from "node:fs"
-import { access, mkdir, readFile, stat, writeFile } from "node:fs/promises"
+import { access, copyFile, mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises"
 import { createServer, type Server } from "node:http"
 import { extname, join, normalize } from "node:path"
 
@@ -21,18 +21,20 @@ export interface CardPage {
 }
 
 /** The little of a Playwright browser this file drives. */
-export interface CardBrowser {
+interface CardBrowser {
+  /** The browser's own version, part of every card's cache key. */
+  version?(): string
   newPage(options?: { viewport?: { width: number; height: number } }): Promise<CardPage>
 }
 
 /** A section as the manifest (og/sections.json) names it, as far as the
  * embeds read it. */
-export interface CardSection {
+interface CardSection {
   id: string
   description: string
 }
 
-export const MIME: Record<string, string> = {
+const MIME: Record<string, string> = {
   ".html": "text/html",
   ".js": "text/javascript",
   ".css": "text/css",
@@ -58,7 +60,7 @@ export function servedFile(dir: string, url: string, base = "/"): string | null 
 }
 
 /** A minimal static server over a build's output. */
-export function serveStatic(dir: string, base = "/"): Server {
+function serveStatic(dir: string, base = "/"): Server {
   return createServer(async (req, res) => {
     try {
       let file = servedFile(dir, req.url ?? "/", base)
@@ -119,12 +121,6 @@ export async function refineEmbed(dist: string, section: CardSection, lede: stri
   return out !== null
 }
 
-/** The marker that says the cards on disk were drawn from this renderer,
- * manifest and ledes. */
-export function cardsHash(renderer: Uint8Array, manifest: Uint8Array, ledes: Record<string, string>): string {
-  return createHash("sha256").update(renderer).update(manifest).update(JSON.stringify(ledes)).digest("hex").slice(0, 16)
-}
-
 /** What the renderer page answers as `window.og`: the site's, restated
  * (the tasks never import the site), held to it by the site's
  * `tests/site/protocols.spec.ts`. */
@@ -132,38 +128,69 @@ export interface OgWindow {
   og: { ids(): string[]; files(id: string): Promise<{ png: string; gif: string }> }
 }
 
+/** The renderer as built: `og/index.html` and every file under
+ * `og/assets/` (its script, which holds the card code, the kit engine it
+ * prints with, the route cards' copy and the kit's counts; its stylesheet;
+ * the display face), names and bytes, hashed. */
+export async function rendererHash(dist: string): Promise<string> {
+  const og = join(dist, "og")
+  const assets = await readdir(join(og, "assets"), { recursive: true }).catch(() => [] as string[])
+  const hash = createHash("sha256").update(await readFile(join(og, "index.html")))
+  for (const name of assets.map(String).sort()) {
+    const file = join(og, "assets", name)
+    if (!(await stat(file)).isFile()) continue
+    hash.update(`\0${name}\0`).update(await readFile(file))
+  }
+  return hash.digest("hex")
+}
+
+/** Bumped when what a key covers changes, so no older entry answers. */
+const CARD_CACHE_VERSION = 1
+
+/** One card's cache key: the renderer's hash, the browser that draws it
+ * (its version and the first frame it painted, which changes with any face
+ * it falls back to), and the card's own data (its entry in the section
+ * manifest, none for a route, whose copy the renderer holds, and its lede).
+ * Everything a card is drawn from is in one of these, so a card kept under
+ * its key is the card a fresh draw makes. */
+export function cardKey(parts: {
+  renderer: string
+  browser: string
+  id: string
+  entry?: unknown
+  lede?: string
+}): string {
+  const data = JSON.stringify([CARD_CACHE_VERSION, parts.id, parts.entry ?? null, parts.lede ?? null])
+  return createHash("sha256").update(`${parts.renderer}\0${parts.browser}\0${data}`).digest("hex")
+}
+
 /** Every share card (the three routes, then each docs section) drawn by the
  * build's own renderer page (`<dist>/og/index.html`): its still as
  * og/<id>.png and its loop as og/<id>.gif, which the pages' og tags, Discord
  * component embeds and oEmbed photos point at. A few pages draw at once
  * (encoding is CPU-bound, one card about a second). `ledes` is each
- * section's first paragraph, which its card sets under its title. A card
- * that fails rejects, and the build with it. Answers the number drawn (0:
- * no renderer, or the cards on disk are current). */
+ * section's first paragraph, which its card sets under its title. With a
+ * `cache` folder, a card whose key (`cardKey`) is kept there is copied from
+ * it, every card drawn is kept, and what this build did not use is
+ * removed. A card that fails rejects, and the build with it. Answers the
+ * number drawn (0: no renderer, or every card came from the cache). */
 export async function renderOgCards(opts: {
   browser: CardBrowser
   /** Where `dist` is served, the deploy's base included, no slash at its end. */
   origin: string
   dist: string
   ledes: Record<string, string>
+  cache?: string
   log?: (line: string) => void
 }): Promise<number> {
-  const { browser, origin, dist, ledes, log = console.log } = opts
+  const { browser, origin, dist, ledes, cache, log = console.log } = opts
   const renderer = join(dist, "og", "index.html")
   if (!existsSync(renderer)) {
     log("og: no renderer page — skipping cards (the build's og/index entry makes it)")
     return 0
   }
   await writeFile(join(dist, "og", "ledes.json"), JSON.stringify(ledes))
-  // A marker skips the render when neither the renderer, the manifest nor
-  // the ledes changed and the cards are still there (a run on its own).
-  const hash = cardsHash(await readFile(renderer), await readFile(join(dist, "og", "sections.json")), ledes)
-  const marker = join(dist, "og", ".cards-hash")
-  const prev = await readFile(marker, "utf8").catch(() => "")
-  if (prev.trim() === hash && existsSync(join(dist, "og", "home.gif"))) {
-    log("og: renderer and manifest unchanged — cards cached, skipping render")
-    return 0
-  }
+  const manifest: { id: string }[] = JSON.parse(await readFile(join(dist, "og", "sections.json"), "utf8"))
   const open = async () => {
     const page = await browser.newPage({ viewport: { width: 1200, height: 630 } })
     await page.goto(`${origin}/og/index.html`, { waitUntil: "load" })
@@ -172,29 +199,63 @@ export async function renderOgCards(opts: {
     return page
   }
   const first = await open()
-  const queue = await first.evaluate(() => (window as unknown as OgWindow).og.ids())
+  const ids = await first.evaluate(() => (window as unknown as OgWindow).og.ids())
+  // Ready, the renderer shows the first card's first frame: how this
+  // browser paints the card's faces.
+  const painted = await first.evaluate(() => document.querySelector("canvas")?.toDataURL("image/png") ?? "")
+  const drawer = `${browser.version?.() ?? ""}\0${painted}`
+  const hash = await rendererHash(dist)
+  const keys = new Map(
+    ids.map((id) => [
+      id,
+      cardKey({ renderer: hash, browser: drawer, id, entry: manifest.find((s) => s.id === id), lede: ledes[id] }),
+    ]),
+  )
+  const kept = (id: string, ext: string) => join(cache ?? "", `${keys.get(id)}.${ext}`)
+  const queue: string[] = []
+  for (const id of ids)
+    if (cache && existsSync(kept(id, "png")) && existsSync(kept(id, "gif")))
+      for (const ext of ["png", "gif"]) await copyFile(kept(id, ext), join(dist, "og", `${id}.${ext}`))
+    else queue.push(id)
   const total = queue.length
   let done = 0
   let bytes = 0
   const started = Date.now()
+  if (cache) await mkdir(cache, { recursive: true })
   const work = async (page: CardPage) => {
     for (let id = queue.shift(); id; id = queue.shift()) {
       const files = await page.evaluate((id: string) => (window as unknown as OgWindow).og.files(id), id)
       const png = Buffer.from(files.png, "base64")
       const gif = Buffer.from(files.gif, "base64")
       if (!png.length || !gif.length) throw new Error(`og: the card ${id} came out empty`)
-      await writeFile(join(dist, "og", `${id}.png`), png)
-      await writeFile(join(dist, "og", `${id}.gif`), gif)
+      for (const [ext, data] of [
+        ["png", png],
+        ["gif", gif],
+      ] as const) {
+        await writeFile(join(dist, "og", `${id}.${ext}`), data)
+        // Written aside and moved in: a killed build never keeps half a card.
+        if (cache) {
+          await writeFile(`${kept(id, ext)}.part`, data)
+          await rename(`${kept(id, ext)}.part`, kept(id, ext))
+        }
+      }
       bytes += png.length + gif.length
       done++
     }
     await page.close()
   }
-  const pages = [first, ...(await Promise.all([1, 2, 3].map(open)))]
+  const more = Math.min(3, Math.max(0, total - 1))
+  const pages = [first, ...(await Promise.all(Array.from({ length: more }, open)))]
   await Promise.all(pages.map(work))
-  await writeFile(marker, hash)
+  if (cache) {
+    const used = new Set([...keys.values()].flatMap((k) => [`${k}.png`, `${k}.gif`]))
+    for (const name of await readdir(cache)) if (!used.has(name)) await rm(join(cache, name), { force: true })
+  }
   const seconds = ((Date.now() - started) / 1000).toFixed(0)
-  log(`og: drew ${done}/${total} share cards -> og/<id>.png + .gif (${(bytes / 1048576).toFixed(1)} MB, ${seconds}s)`)
+  const from = cache ? `, ${ids.length - total} from the cache` : ""
+  log(
+    `og: drew ${done}/${ids.length} share cards -> og/<id>.png + .gif (${(bytes / 1048576).toFixed(1)} MB, ${seconds}s)${from}`,
+  )
   return done
 }
 

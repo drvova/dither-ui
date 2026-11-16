@@ -5,7 +5,7 @@
 import { createMemo, For, mergeProps } from "solid-js"
 import { layoutPixelText, PIXEL_ROWS } from "@/pages/landing/pixel-type"
 
-export type PixelWordProps = { text: string; cell?: number }
+type PixelWordProps = { text: string; cell?: number }
 
 export default function PixelWord(raw: PixelWordProps) {
   const props = mergeProps({ cell: 5 }, raw)

@@ -25,21 +25,34 @@ export type { PosterLayout, PosterParams, PosterTile }
 export { paintPoster, posterLayout }
 
 export type DitherPosterProps = {
-  /** The inks the tiles are printed in. */
+  /** The inks the tiles are printed in.
+   * @docs PixelColor[] (palette names, hues or hex)
+   * @default ['blue', 'orange', 'grey'] */
   inks?: PixelColor[]
-  /** What a tile's open screen cells show where it has no second ink: a colour, or the page beneath. */
+  /** What a tile's open screen cells show where it has no second ink: a colour, or the page beneath.
+   * @docs PixelColor | 'transparent'
+   * @default 'transparent' */
   ground?: PixelColor | "transparent"
-  /** The screen every tone prints through; default the screen of a `DitherScreen` around it, else Bayer. */
+  /** The screen every tone prints through; default the screen of a `DitherScreen` around it, else Bayer.
+   * @docs 'bayer' | 'line' | 'diagonal' | 'dot' | 'cross'
+   * @default a DitherScreen's, else 'bayer' */
   screen?: ScreenKind
+  /** @docs number (the composition) */
   seed?: number
-  /** How fast the screen slides inside the mark, in cells per second. */
+  /** How fast the screen slides inside the mark, in cells per second.
+   * @docs number (cells per second the screen slides inside the mark) */
   speed?: number
-  /** Cell size in CSS px. */
+  /** Cell size in CSS px.
+   * @docs number (px) */
   cell?: number
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
   class?: string
   xstyle?: StyleProp

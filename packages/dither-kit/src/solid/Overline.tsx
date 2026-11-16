@@ -4,7 +4,13 @@ import { cn } from "../tailwind/lib"
 /** The tiny uppercase eyebrow above section titles — 10px, open tracking,
  * muted; the editorial "OVERLINE" register. `faint` shares the muted ink:
  * no text in the kit drops under AA (4.5:1). */
-export type OverlineProps = { tone?: "muted" | "faint"; class?: string; children?: JSX.Element }
+export type OverlineProps = {
+  /** @default "muted" */
+  tone?: "muted" | "faint"
+  class?: string
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function Overline(props: OverlineProps) {
   return (

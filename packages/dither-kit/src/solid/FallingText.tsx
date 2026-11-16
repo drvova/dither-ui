@@ -4,8 +4,11 @@ import "./FallingText.css"
 
 export type FallingTextProps = {
   text?: string
+  /** @docs number (ms) */
   stagger?: number
+  /** @docs number (ms) */
   duration?: number
+  /** @default 0 */
   replayToken?: number
   class?: string
 }

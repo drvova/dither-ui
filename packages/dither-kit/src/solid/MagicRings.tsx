@@ -3,10 +3,13 @@ import { cn } from "../tailwind/lib"
 import "./MagicRings.css"
 
 export type MagicRingsProps = {
+  /** @docs string (hex) */
   color?: string
   count?: number
+  /** @docs number (s) */
   duration?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

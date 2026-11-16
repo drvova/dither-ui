@@ -1,54 +1,51 @@
 // Generated from @dither-ui/kit/solid/TrueFocus.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createMemo, For, mergeProps } from "solid-js"
-import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
-import { createKitTime } from "@dither-ui/kit/solid/runtime/kit-time.ts"
+import "@dither-ui/kit/solid/TrueFocus.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
-  text: {
-    display: "inline-block",
-    transitionProperty: "filter, opacity",
-    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-    transitionDuration: "500ms",
-  },
+  text: { display: "inline-block" },
   row: { display: "inline-flex", flexWrap: "wrap", columnGap: "0.35em", rowGap: "0.25rem" },
 })
 
 export type TrueFocusProps = {
   text?: string
+  /** @docs number (ms) */
   interval?: number
+  /** @docs number (px) */
   blur?: number
   class?: string
   xstyle?: StyleProp
 }
 
+/** The crossfade from one word to the next, ms (at most half a slot). */
+const FADE = 500
+
+/** One word in focus at a time, the next every `interval`: the turn is a
+ * CSS animation (`TrueFocus.css`) the kit clock holds when it is directed. */
 export default function TrueFocus(raw: TrueFocusProps) {
   const props = mergeProps({ text: "True focus mode", interval: 1400, blur: 5 }, raw)
 
-  let host: HTMLSpanElement | undefined
   const words = createMemo(() => props.text.split(/\s+/).filter(Boolean))
-  // The word in focus: the next one every `interval` of the kit clock.
-  const { time } = createKitTime(() => host)
-  const active = createMemo(() =>
-    pixelPrefersReducedMotion() || words().length < 2
-      ? 0
-      : Math.floor(time() / Math.max(300, props.interval)) % words().length,
-  )
+  const interval = () => Math.max(300, props.interval)
 
   return (
-    <span ref={(el) => (host = el)} class={cn(styles.row, props.xstyle, props.class)} aria-label={props.text}>
+    <span
+      class={cn([styles.row, "dk-true-focus"], props.xstyle, props.class)}
+      style={{
+        "--dk-n": String(Math.max(1, words().length)),
+        "--dk-interval": `${interval()}ms`,
+        "--dk-fade": String(Math.min(0.5, FADE / interval())),
+        "--dk-blur": `${props.blur}px`,
+      }}
+      data-turn={words().length > 1 ? "" : undefined}
+      aria-label={props.text}
+    >
       <For each={words()}>
         {(w, i) => (
-          <span
-            aria-hidden="true"
-            class={cn(styles.text, "dither-focus-word")}
-            style={{
-              filter: i() === active() ? "blur(0)" : `blur(${props.blur}px)`,
-              opacity: i() === active() ? 1 : 0.5,
-            }}
-          >
+          <span aria-hidden="true" class={cn(styles.text, "dk-true-focus-word")} style={{ "--dk-i": String(i()) }}>
             {w}
           </span>
         )}

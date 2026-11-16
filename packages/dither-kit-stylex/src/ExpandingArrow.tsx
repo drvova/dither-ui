@@ -65,10 +65,14 @@ const styles = stylex.create({
  * the trail is stamped by a repeating radial gradient in the accent hue and
  * the head tile nudges forward. Reduced motion reveals the trail instantly. */
 type Own = {
+  /** @docs PixelColor: tile and trail accent */
   color?: PixelColor
   disabled?: boolean
   class?: string
   xstyle?: StyleProp
+  /** @docs label content
+   * @default "Explore the kit" */
+  children?: JSX.Element
 }
 const OWN = ["color", "disabled", "class", "xstyle", "children"] as const satisfies readonly (keyof Own | "children")[]
 

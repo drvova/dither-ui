@@ -592,23 +592,12 @@ const PRESET: Record<Exclude<BloomLevel, "off">, BloomConfig> = {
   aura: { blur: 15, brightness: 2.9, opacity: 0.1, saturate: 3 },
 }
 
-export type BloomStyle = {
-  filter: string
-  opacity: number
-  mixBlendMode: BloomBlend
-  imageRendering: "auto"
-}
-
-/** Style for the bloom *layer* canvas (a blurred, additive copy). null when off. */
-export function bloomLayerStyle(input: BloomInput, active: boolean): BloomStyle | null {
-  if (!active || input === "off") return null
+/** A bloom's settings, or null when it is off: the chart's glow layer, a
+ * blurred additive copy of its print, is an SVG filter of them. */
+export function bloomOf(input: BloomInput): Required<BloomConfig> | null {
+  if (input === "off") return null
   const cfg = typeof input === "string" ? PRESET[input] : typeof input === "number" ? bloomFromSeed(input) : input
-  return {
-    filter: `blur(${cfg.blur}px) brightness(${cfg.brightness}) saturate(${cfg.saturate ?? 1})`,
-    opacity: cfg.opacity,
-    mixBlendMode: cfg.blend ?? "plus-lighter",
-    imageRendering: "auto",
-  }
+  return { saturate: 1, blend: "plus-lighter", ...cfg }
 }
 
 // Easing — gentle start + soft settle so entrances don't feel linear.

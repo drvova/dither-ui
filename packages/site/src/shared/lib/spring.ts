@@ -1,13 +1,12 @@
-// The hand's spring (the user's call): what a finger or a pointer moves
-// directly (a key pressed, a sheet dragged and let go) settles on a spring
-// that may pass its mark a little and comes back, where everything else
-// moves on the glide. ONE definition, a response and a bounce: the spring
-// takes about `response` to reach its mark and passes it by `bounce`'s
-// share of the way at most. A stylesheet takes it as CSS `linear()`
-// (`springLinear`, copied into `app/styles.css` as `--ease-spring` over
-// `--spring-time` and held to this module by `tests/spring.spec.ts`); a
-// drag let go takes it with the hand's velocity (`springAt`, `springTo`).
-// Framework-free: `springTo` touches the frame clock only when called.
+// The hand's spring (the user's call): a key let go after a press settles
+// on a spring that may pass its mark a little and comes back, where
+// everything else moves on the glide. ONE definition, a response and a
+// bounce: the spring takes about `response` to reach its mark and passes it
+// by `bounce`'s share of the way at most. The stylesheet takes it as CSS
+// `linear()` (`springLinear`, copied into `app/styles.css` as
+// `--ease-spring` over `--spring-time` and held to this module by
+// `tests/spring.spec.ts`): the press's way back, a transition, never a
+// script (the user's call: no motion is JS). Framework-free.
 
 /** The spring: its response (s) and how far past its mark it may go. */
 export const HAND_SPRING = { response: 0.35, bounce: 0.25 } as const
@@ -68,29 +67,4 @@ export const SPRING_OVERSHOOT = Math.exp((-PHYSICS.zeta * PHYSICS.omega * Math.P
 export function springLinear(points = 40): string {
   const stops = Array.from({ length: points + 1 }, (_, i) => Number(springEase(i / points).toFixed(3)))
   return `linear(${stops.join(", ")})`
-}
-
-/** Run the spring on the frame clock from `from` to `to`, let go at
- * `velocity` (units a ms, the way a pointer reports it): `frame` gets each
- * value, `done` the mark once it has settled (within half a unit, barely
- * moving). Returns a stop that leaves it where it is. */
-export function springTo(
-  from: number,
-  to: number,
-  velocity: number,
-  frame: (value: number) => void,
-  done: () => void,
-): () => void {
-  const start = performance.now()
-  let raf = requestAnimationFrame(function step(now) {
-    const { x, v } = springAt((now - start) / 1000, from - to, velocity * 1000)
-    if (Math.abs(x) < 0.5 && Math.abs(v) < 20) {
-      frame(to)
-      done()
-      return
-    }
-    frame(to + x)
-    raf = requestAnimationFrame(step)
-  })
-  return () => cancelAnimationFrame(raf)
 }

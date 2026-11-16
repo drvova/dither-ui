@@ -8,11 +8,14 @@ import { Portal as Teleport } from "solid-js/web"
  * in place — the SSR/no-portal switch; `defer` waits for the rest of the
  * render, so the target may come later in the same template. */
 export type PortalProps = {
+  /** @docs string (selector) */
   to?: string
   disabled?: boolean
   /** Solid mounts a portal after the render it is in, so the target may
-   * always come later: kept so a caller written for a deferred portal still types. */
+   * always come later: kept so a caller written for a deferred portal still types.
+   * @docs boolean (the target may come later in the markup) */
   defer?: boolean
+  /** @docs content */
   children?: JSX.Element
 }
 

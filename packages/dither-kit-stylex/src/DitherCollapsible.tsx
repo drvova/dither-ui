@@ -58,6 +58,7 @@ export type DitherCollapsibleProps = {
   modelValue?: boolean
   color?: PixelColor
   onUpdateModelValue?: (value: boolean) => void
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -554,25 +554,21 @@ describe("DitherPluralText", () => {
 })
 
 describe("DitherRotatingText", () => {
-  it("shows its first word, then turns to the next on the kit clock once the first has left", async () => {
-    const { container, unmount } = render(() => <RotatingText texts={["one", "two"]} interval={500} />)
-    expect(container.textContent).toBe("one")
-    w.show()
-    await w.run(0, 450)
-    expect(container.textContent).toBe("one")
-    await w.frame(500) // the word turns: the first leaves
-    expect(container.textContent).toBe("one")
-    await w.frame(516)
-    await settle()
-    expect(container.textContent).toBe("two")
-    unmount()
+  it("stands every word in one cell, turned by its stylesheet, the first read out", () => {
+    const { container } = render(() => <RotatingText texts={["one", "two"]} interval={600} />)
+    const host = container.firstElementChild as HTMLElement
+    const words = [...host.children] as HTMLElement[]
+    expect(words.map((x) => x.textContent)).toEqual(["one", "two"])
+    expect(words.map((x) => x.getAttribute("aria-hidden"))).toEqual([null, "true"])
+    expect(host.hasAttribute("data-turn")).toBe(true)
+    expect(host.style.getPropertyValue("--dk-interval")).toBe("600ms")
+    expect(host.style.getPropertyValue("--dk-fade")).toBe("0.5")
   })
 
-  it("stands still on a single word", async () => {
+  it("stands still on a single word", () => {
     const { container } = render(() => <RotatingText texts={["only"]} />)
-    w.show()
-    await w.run(0, 3000, 100)
     expect(container.textContent).toBe("only")
+    expect((container.firstElementChild as HTMLElement).hasAttribute("data-turn")).toBe(false)
   })
 })
 

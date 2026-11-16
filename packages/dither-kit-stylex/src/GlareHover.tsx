@@ -10,7 +10,12 @@ const styles = stylex.create({
   frame: { position: "relative", display: "inline-block", overflow: "hidden", borderRadius: "12px" },
 })
 
-export type GlareHoverProps = { class?: string; xstyle?: StyleProp; children?: JSX.Element }
+export type GlareHoverProps = {
+  class?: string
+  xstyle?: StyleProp
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function GlareHover(props: GlareHoverProps) {
   return (

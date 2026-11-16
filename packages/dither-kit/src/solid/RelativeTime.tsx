@@ -2,10 +2,16 @@ import { createMemo, createSignal, mergeProps, onCleanup, onMount } from "solid-
 import { cn } from "../tailwind/lib"
 
 export type RelativeTimeProps = {
+  /** @default required */
   date: Date | string | number
   locale?: string
+  /** @docs boolean (re-tick) */
   auto?: boolean
+  /** @docs number (frozen clock)
+   * @default Date.now() */
   now?: number
+  /** @docs number (ms)
+   * @default 30000 */
   updateInterval?: number
   class?: string
 }

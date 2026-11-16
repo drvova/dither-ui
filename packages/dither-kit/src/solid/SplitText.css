@@ -1,9 +1,9 @@
 .dither-split-char {
   display: inline-block;
-  animation: dither-split-in cubic-bezier(0.2, 0, 0, 1) both;
+  animation: dk-split-in cubic-bezier(0.2, 0, 0, 1) both;
   will-change: transform, opacity;
 }
-@keyframes dither-split-in {
+@keyframes dk-split-in {
   from {
     opacity: 0;
     transform: translateY(0.55em) rotate(6deg);

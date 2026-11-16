@@ -1,38 +1,18 @@
 import { createSignal, For } from "solid-js"
-import { DitherIcon, DitherPoster, SCREEN_KINDS, type ScreenKind } from "@dither-ui/kit"
+import { DitherIcon, SCREEN_KINDS, type ScreenKind } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import { exampleCode } from "../example-code"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import posterProps from "virtual:dither-props/DitherPoster"
 import DocSection from "../DocSection"
+import PosterExample from "./examples/poster"
+import posterCode from "./examples/poster.tsx?raw"
 
 const CHIP = "rounded border px-2 py-1 text-[11px]"
 const PICKED = "border-accent bg-accent text-accent-foreground"
 const UNPICKED = "border-border/60 text-muted-foreground hover:bg-accent/40"
 
-const SNIPPET = `<DitherPoster seed={7} inks={['blue', 'orange', '#101214']} class="h-96" />
-
-{/* on paper: the open cells of a field show the page, or a ground you name */}
-<DitherPoster ground="#e4e1d8" />`
-
-const API: PropRow[] = [
-  {
-    prop: "inks",
-    type: "PixelColor[] (palette names, hues or hex)",
-    default: "['blue', 'orange', 'grey']",
-  },
-  { prop: "ground", type: "PixelColor | 'transparent'", default: "'transparent'" },
-  {
-    prop: "screen",
-    type: "'bayer' | 'line' | 'diagonal' | 'dot' | 'cross'",
-    default: "a DitherScreen's, else 'bayer'",
-  },
-  { prop: "seed", type: "number (the composition)", default: "7" },
-  { prop: "speed", type: "number (cells per second the screen slides inside the mark)", default: "2" },
-  { prop: "cell", type: "number (px)", default: "2" },
-  { prop: "paused", type: "boolean", default: "false" },
-  { prop: "frameRate", type: "number (fps, stop-motion)", default: "0 (smooth)" },
-  { prop: "dpr", type: "number", default: "devicePixelRatio" },
-  { prop: "renderMode", type: '"live" | "static"', default: '"live"' },
-]
+export const API: PropRow[] = kitTable(posterProps)
 
 export default function PosterSection() {
   /* The poster on its own stage: roll a seed for a new composition, pick the
@@ -40,6 +20,8 @@ export default function PosterSection() {
   const [seed, setSeed] = createSignal(7)
   const [screen, setScreen] = createSignal<ScreenKind>("bayer")
   const roll = () => setSeed(Math.floor(Math.random() * 100_000))
+  // the picks as the example's props: Bayer is its default screen, left out
+  const picks = () => ({ seed: seed(), screen: screen() === "bayer" ? undefined : screen() })
 
   return (
     <DocSection id="poster">
@@ -49,11 +31,9 @@ export default function PosterSection() {
         as their negative, its screen sliding with the clock. A seed lays out the tiles, their inks and ramps and the
         mark.
       </p>
-      <DemoCard code={SNIPPET} fit="inset">
+      <DemoCard code={exampleCode(posterCode, picks())} fit="inset">
         <div class="flex w-full flex-col items-center gap-3">
-          <div class="relative h-72 w-full overflow-hidden rounded-md bg-card">
-            <DitherPoster seed={seed()} screen={screen()} />
-          </div>
+          <PosterExample {...picks()} />
           <div class="flex flex-wrap items-center justify-center gap-2">
             <button
               type="button"

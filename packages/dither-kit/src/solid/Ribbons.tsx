@@ -11,22 +11,32 @@ export type { RibbonsParams }
 export { paintRibbons }
 
 export type RibbonsProps = {
+  /** @docs string[] (hex)
+   * @default ['#5227FF', '#7CFF67', '#3DA5FF'] */
   colors?: string[]
   count?: number
   speed?: number
   thickness?: number
   amplitude?: number
   glow?: number
-  opacity?: number
-  dither?: number | boolean
   mouseInteraction?: boolean
+  /** @docs number (0-1) */
+  opacity?: number
+  /** @docs number (0-1) | boolean */
+  dither?: number | boolean
   mouseStrength?: number
   paused?: boolean
-  frameRate?: number
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
+  frameRate?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
   class?: string
 }

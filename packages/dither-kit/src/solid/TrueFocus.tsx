@@ -1,44 +1,42 @@
 import { createMemo, For, mergeProps } from "solid-js"
-import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
-import { createKitTime } from "./runtime/kit-time"
+import "./TrueFocus.css"
 
 export type TrueFocusProps = {
   text?: string
+  /** @docs number (ms) */
   interval?: number
+  /** @docs number (px) */
   blur?: number
   class?: string
 }
 
+/** The crossfade from one word to the next, ms (at most half a slot). */
+const FADE = 500
+
+/** One word in focus at a time, the next every `interval`: the turn is a
+ * CSS animation (`TrueFocus.css`) the kit clock holds when it is directed. */
 export default function TrueFocus(raw: TrueFocusProps) {
   const props = mergeProps({ text: "True focus mode", interval: 1400, blur: 5 }, raw)
 
-  let host: HTMLSpanElement | undefined
   const words = createMemo(() => props.text.split(/\s+/).filter(Boolean))
-  // The word in focus: the next one every `interval` of the kit clock.
-  const { time } = createKitTime(() => host)
-  const active = createMemo(() =>
-    pixelPrefersReducedMotion() || words().length < 2
-      ? 0
-      : Math.floor(time() / Math.max(300, props.interval)) % words().length,
-  )
+  const interval = () => Math.max(300, props.interval)
 
   return (
     <span
-      ref={(el) => (host = el)}
-      class={cn("inline-flex flex-wrap gap-x-[0.35em] gap-y-1", props.class)}
+      class={cn("dk-true-focus inline-flex flex-wrap gap-x-[0.35em] gap-y-1", props.class)}
+      style={{
+        "--dk-n": String(Math.max(1, words().length)),
+        "--dk-interval": `${interval()}ms`,
+        "--dk-fade": String(Math.min(0.5, FADE / interval())),
+        "--dk-blur": `${props.blur}px`,
+      }}
+      data-turn={words().length > 1 ? "" : undefined}
       aria-label={props.text}
     >
       <For each={words()}>
         {(w, i) => (
-          <span
-            aria-hidden="true"
-            class="dither-focus-word inline-block transition-[filter,opacity] duration-500"
-            style={{
-              filter: i() === active() ? "blur(0)" : `blur(${props.blur}px)`,
-              opacity: i() === active() ? 1 : 0.5,
-            }}
-          >
+          <span aria-hidden="true" class="dk-true-focus-word inline-block" style={{ "--dk-i": String(i()) }}>
             {w}
           </span>
         )}

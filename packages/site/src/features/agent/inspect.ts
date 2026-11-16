@@ -3,13 +3,12 @@
 // box) and what the accessibility floor finds (names, 24px targets,
 // contrast, alt, tabindex). Boxes are the frame's own CSS px, whatever the
 // canvas's zoom.
-import type { Artboard } from "@/entities/artboard"
+import { type Artboard, surfaceOf } from "@/entities/artboard"
 import { editor } from "../../entities/editor"
-import { surfaceOf } from "@/entities/artboard/picture"
 import { audit, boxOf, focusOrder, nameOf, roleOf, statesOf } from "@/shared/lib/inspect/measure"
 
 /** At most this many controls come back, so a busy screen stays a short answer. */
-export const INSPECT_CONTROLS = 60
+const INSPECT_CONTROLS = 60
 
 export function inspectFrame(a: Artboard) {
   const surface = surfaceOf(a.id)

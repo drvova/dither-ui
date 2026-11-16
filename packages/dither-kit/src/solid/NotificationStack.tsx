@@ -33,17 +33,27 @@ const VARIANTS = {
 export type NotificationStackVariant = keyof typeof VARIANTS
 
 export type NotificationStackProps = {
+  /** @docs { id, title, body?, time?, icon?, color? }[]
+   * @default required */
   items: NotificationItem[]
-  /** Pinned-open state (with `onUpdateModelValue`); hover and focus expand transiently. */
+  /** Pinned-open state (with `onUpdateModelValue`); hover and focus expand transiently.
+   * @docs boolean (with onUpdateModelValue): pinned open; hover/focus expand transiently */
   modelValue?: boolean
   onUpdateModelValue?: (expanded: boolean) => void
-  onViewall?: () => void
+  /** @docs number: cards shown in the stack and list */
   maxVisible?: number
+  /** @docs string: header + toggle aria-label */
   collapsedLabel?: string
+  /** @docs string: view-all button text */
   expandedLabel?: string
+  /** @docs string: empty-state card */
   emptyLabel?: string
+  /** @docs "stack" | "fan" | "condensed": collapsed silhouette */
   variant?: NotificationStackVariant
+  /** @docs PixelColor: icon fallback tint */
   color?: PixelColor
+  /** @docs () when view-all is pressed */
+  onViewall?: () => void
   class?: string
 }
 
@@ -51,7 +61,7 @@ export type NotificationStackProps = {
  * readable list on hover, focus or tap — tap pins the list open (the model),
  * hover and focus expand transiently. Three collapsed silhouettes share one
  * expansion: stack (peeked edges), fan (rotated hand), condensed (tight
- * slivers). Cards fan out on the house bouncy bezier with a per-card
+ * slivers). Cards change places on the reorder role (`--ease-reorder`) with a per-card
  * stagger; reduced motion snaps. */
 export default function NotificationStack(raw: NotificationStackProps) {
   const props = mergeProps(
@@ -126,8 +136,8 @@ export default function NotificationStack(raw: NotificationStackProps) {
         }
       >
         <div
-          class="relative transition-[height] duration-300 motion-reduce:transition-none"
-          style={{ height: `${height()}px`, "transition-timing-function": "cubic-bezier(0.2, 1.4, 0.4, 1)" }}
+          class="relative transition-[height] ease-[var(--ease-reorder)] duration-[var(--duration-reorder)] motion-reduce:transition-none"
+          style={{ height: `${height()}px` }}
         >
           <For each={visible()}>
             {(item, i) => (
@@ -136,10 +146,10 @@ export default function NotificationStack(raw: NotificationStackProps) {
                 {...(i() === 0
                   ? { type: "button", "aria-expanded": props.modelValue, "aria-label": props.collapsedLabel }
                   : {})}
-                class={`absolute inset-x-0 top-0 flex h-16 items-center gap-2.5 overflow-hidden rounded-lg border border-border/60 bg-card px-3 text-left transition-[transform,opacity] duration-300 motion-reduce:transition-none ${
+                class={`absolute inset-x-0 top-0 flex h-16 items-center gap-2.5 overflow-hidden rounded-lg border border-border/60 bg-card px-3 text-left transition-[transform,opacity] ease-[var(--ease-reorder)] duration-[var(--duration-reorder)] motion-reduce:transition-none ${
                   i() === 0 ? CONTROL_BUTTON : ""
                 }`}
-                style={{ ...cardStyle(i()), "transition-timing-function": "cubic-bezier(0.2, 1.4, 0.4, 1)" }}
+                style={cardStyle(i())}
                 aria-hidden={i() > 0 && !expanded() ? "true" : undefined}
                 onClick={() => i() === 0 && props.onUpdateModelValue?.(!props.modelValue)}
               >

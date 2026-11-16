@@ -8,9 +8,9 @@ export type DitherNumberFieldProps = {
   min?: number
   max?: number
   step?: number
-  disabled?: boolean
   /** The input's accessible name. */
   label?: string
+  disabled?: boolean
 }
 
 export default function DitherNumberField(raw: DitherNumberFieldProps) {

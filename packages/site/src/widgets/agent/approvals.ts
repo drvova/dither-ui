@@ -1,8 +1,7 @@
 import { type Accessor, createMemo, createSignal } from "solid-js"
 import { unwrap } from "solid-js/store"
+import type { AgentConfig, Built } from "@/features/agent"
 import type { AcpPermissionRequest } from "@/features/agent/acp"
-import type { Built } from "@/features/agent/dither"
-import type { AgentConfig } from "@/features/agent/tools"
 import { askTitle } from "./model/steps"
 import type { Entry } from "./model/thread"
 
@@ -12,7 +11,7 @@ import type { Entry } from "./model/thread"
 type Approval = Extract<Entry, { kind: "approval" }>
 type Option = Approval["options"][number]
 
-export type ApprovalHooks = {
+type ApprovalHooks = {
   config: AgentConfig
   /** The thread's store: a prompt is its newest entry once asked. */
   thread: { entries: Entry[] }

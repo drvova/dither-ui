@@ -58,14 +58,20 @@ const styles = stylex.create({
 })
 
 type Own = {
-  /** Displacement that arms the snap, px. */
+  /** Displacement that arms the snap, px.
+   * @docs number (px): displacement that arms the snap */
   threshold?: number
   axis?: "x" | "y" | "both"
+  /** @docs PixelColor: armed accent */
   color?: PixelColor
   disabled?: boolean
   class?: string
   xstyle?: StyleProp
+  /** @docs () on an armed release, or Enter/Space */
   onSnap?: () => void
+  /** @docs label content
+   * @default "Pull to confirm" */
+  children?: JSX.Element
 }
 const OWN = [
   "threshold",

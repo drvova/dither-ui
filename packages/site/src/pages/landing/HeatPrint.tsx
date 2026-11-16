@@ -14,7 +14,7 @@ import { offloadHeat, spawnHeatWorker } from "@/pages/landing/heat-offload"
 import { RAMP as INKS } from "@/pages/landing/plate"
 import "./HeatPrint.css"
 
-export type HeatPrintProps = { paused: boolean; field?: HeatField; grain?: HeatGrain; seed?: number }
+type HeatPrintProps = { paused: boolean; field?: HeatField; grain?: HeatGrain; seed?: number }
 
 const RAMP = INKS.map(fillOf)
 

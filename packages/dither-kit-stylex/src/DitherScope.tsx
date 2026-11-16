@@ -28,18 +28,26 @@ const styles = stylex.create({
 })
 
 export type DitherScopeProps = {
+  /** @docs "sine" | "square" | "triangle" | "saw" | number[] (samples, -1..1) */
   signal?: ScopeSignal
-  /** Cycles of a named wave across the screen. */
+  /** Cycles of a named wave across the screen.
+   * @docs number (of a named wave across the screen) */
   cycles?: number
-  /** Cycles a second a named wave drifts; 0 holds it. */
+  /** Cycles a second a named wave drifts; 0 holds it.
+   * @docs number (cycles a second; 0 holds it) */
   speed?: number
-  /** The trace's height, 1 filling the screen. */
+  /** The trace's height, 1 filling the screen.
+   * @docs number (1 fills the screen) */
   gain?: number
-  /** The trail of earlier phases, 0 (none) to 1. */
+  /** The trail of earlier phases, 0 (none) to 1.
+   * @docs number (0..1, the trail of earlier phases) */
   afterglow?: number
-  /** What it traces (also its accessible name). */
+  /** What it traces (also its accessible name).
+   * @docs string (in the corner, its accessible name)
+   * @default undefined */
   label?: string
   color?: PixelColor
+  /** @default undefined */
   seed?: number
   class?: string
   xstyle?: StyleProp

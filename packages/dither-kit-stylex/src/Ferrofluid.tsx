@@ -31,6 +31,8 @@ const FLOW_VEC: Record<FlowDirection, [number, number]> = {
 }
 
 export type FerrofluidProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#27FF64', '#7CFF67', '#A8FFB6'] */
   colors?: string[]
   speed?: number
   scale?: number
@@ -41,19 +43,30 @@ export type FerrofluidProps = {
   shimmer?: number
   glow?: number
   flowDirection?: FlowDirection
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   mouseInteraction?: boolean
   mouseStrength?: number
   mouseRadius?: number
+  /** @docs number (s) */
   mouseDampening?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

@@ -4,10 +4,12 @@ import { cn } from "../tailwind/lib"
 import { createKitTime } from "./runtime/kit-time"
 
 export type AntigravityProps = {
+  /** @docs string (hex) */
   color?: string
   count?: number
   speed?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -11,16 +11,24 @@ export type { NoiseParams }
 export { paintNoiseField }
 
 export type NoiseProps = {
+  /** @docs string[] (hex)
+   * @default ['#3DA5FF', '#7CE0FF', '#FFFFFF'] */
   colors?: string[]
   speed?: number
+  /** @docs number (0-1) */
   density?: number
+  /** @docs number (0-1) */
   opacity?: number
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
   dpr?: number
+  /** @docs string */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
   class?: string
 }

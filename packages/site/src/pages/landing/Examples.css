@@ -395,9 +395,12 @@
   }
 }
 
-/* The rail's dots: one a card, in cells (the kit's unit), the card at the
-   rail's start a long cell in the ink. Each is a 24px target around a 6px
-   cell. Only where the rail is. */
+/* The rail's dots: one a card, in cells (the kit's unit), each a link to
+   its card and a 24px target around a 6px cell; the card at the rail's
+   start a long cell in the ink, lit by the rail's own scroll timeline
+   (each dot its share of the rail's travel), so no script keeps it. Where
+   a browser has no scroll timelines every dot stays a plain cell. Only
+   where the rail is. */
 .examples-scope .rail-dots {
   display: none;
 }
@@ -408,40 +411,64 @@
     justify-content: center;
     margin-top: 16px;
   }
-  .examples-scope .rail-dots button {
+  .examples-scope .rail-dots a {
     display: grid;
     place-items: center;
     width: 24px;
     height: 24px;
   }
-  .examples-scope .rail-dots button::before {
+  .examples-scope .rail-dots a::before {
     content: "";
     width: 6px;
     height: 6px;
     background: var(--ink-3);
-    transition:
-      width 350ms var(--ease-settle),
-      background-color 150ms var(--ease-settle);
   }
-  .examples-scope .rail-dots button[aria-current="true"]::before {
-    width: 18px;
-    background: var(--ink);
+  @supports (animation-timeline: scroll()) and (timeline-scope: --rail) {
+    .examples-scope {
+      timeline-scope: --rail;
+    }
+    .examples-scope .bento {
+      scroll-timeline: --rail inline;
+    }
+    .examples-scope .rail-dots a::before {
+      --share: calc(100% / (var(--n) - 1));
+      animation: rail-dot auto linear none;
+      animation-timeline: --rail;
+      animation-range: calc((var(--i) - 0.5) * var(--share)) calc((var(--i) + 0.5) * var(--share));
+    }
   }
-  .examples-scope .rail-dots button:focus-visible {
+  .examples-scope .rail-dots a:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: -2px;
   }
 }
 
-/* The scene (`SCENES.tile`): from 1024px, where the bento is a grid, each
-   card slides up into place in step with the scroll as it comes in, a row
-   together. The rail under 1024px moves only under the finger; nothing
-   moves under reduced motion. */
-@media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
-  .examples-scope .card {
-    translate: 0 calc((1 - var(--scene, 1)) * 56px);
+@keyframes rail-dot {
+  from,
+  to {
+    width: 18px;
+    background: var(--ink);
   }
-  .examples-scope .card[data-scene="live"] {
-    will-change: translate;
+}
+
+/* The scene: from 1024px, where the bento is a grid, each card slides up
+   into place in step with the scroll as it comes in, a row together, on
+   its own view timeline: from its top at the window's foot until it stands
+   six tenths of the way up, 56px on the glide. The rail under 1024px moves
+   only under the finger; nothing moves under reduced motion, and without
+   scroll timelines every card stands in place. */
+@keyframes tile-in {
+  from {
+    translate: 0 56px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 1024px) {
+  @supports (animation-timeline: view()) {
+    .examples-scope .card {
+      animation: tile-in auto var(--ease-settle) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60vh;
+    }
   }
 }

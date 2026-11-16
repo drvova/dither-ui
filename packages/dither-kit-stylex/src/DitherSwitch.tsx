@@ -80,6 +80,7 @@ type Own = {
   modelValue: boolean
   /** Accessible name — required for screen readers, the control has no text. */
   label?: string
+  /** @default "blue" */
   color?: PixelColor
   seed?: number
   disabled?: boolean

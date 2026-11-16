@@ -7,7 +7,7 @@
 // is a file (its kind, its completion) is `./snippet`.
 import type { SnippetKind } from "./snippet"
 
-export type Lang = "tsx" | "ts" | "css" | "md" | "sh"
+type Lang = "tsx" | "ts" | "css" | "md" | "sh"
 
 export interface SourceFile {
   /** Its path in the download: the example and prompt at the root, the
@@ -127,7 +127,7 @@ export interface SourceContext {
   install: string
 }
 
-export interface PromptContext {
+interface PromptContext {
   title: string
   description: string
   url: string

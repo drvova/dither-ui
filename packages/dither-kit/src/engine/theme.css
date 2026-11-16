@@ -37,6 +37,19 @@
   --swatch-orange: rgb(160, 82, 6);
   --swatch-red: rgb(198, 44, 44);
   --swatch-grey: rgb(96, 100, 108);
+
+  /* The four motion roles, the scoped exceptions to the glide, each its
+     curve and duration (`MOTION_ROLES` in timing.ts, which writes these
+     lines; tests/timing.spec.ts holds them together): a hop along a path,
+     cards changing places, a value pill changing, a receiver's bump. */
+  --ease-travel: cubic-bezier(0.45, 0, 0.55, 1);
+  --duration-travel: 520ms;
+  --ease-reorder: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-reorder: 700ms;
+  --ease-pill: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-pill: 300ms;
+  --ease-bump: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --duration-bump: 250ms;
 }
 
 .dark {
@@ -62,4 +75,26 @@
   --swatch-orange: rgb(255, 150, 50);
   --swatch-red: rgb(240, 70, 70);
   --swatch-grey: rgb(92, 92, 100);
+}
+
+/* The roles' keyframes, named dk-* so the kit clock holds them at a
+   directed moment: `dk-travel` carries a thing from `--dk-from` to
+   `--dk-to` (a translate) on a hop, `dk-bump` gives a receiver one pulse
+   from `--dk-bump-from` back to its size as something arrives. Played on
+   their role's tokens, only where motion is welcome. */
+@keyframes dk-travel {
+  from {
+    translate: var(--dk-from, 0 0);
+  }
+  to {
+    translate: var(--dk-to, 0 0);
+  }
+}
+@keyframes dk-bump {
+  from {
+    scale: var(--dk-bump-from, 0.9);
+  }
+  to {
+    scale: 1;
+  }
 }

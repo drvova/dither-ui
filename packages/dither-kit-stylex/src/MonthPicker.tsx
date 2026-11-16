@@ -83,6 +83,7 @@ const styles = stylex.create({
 })
 
 export type MonthPickerProps = {
+  /** @docs string (YYYY-MM, with onUpdateModelValue) */
   modelValue?: string
   onUpdateModelValue?: (value: string) => void
   disabled?: boolean

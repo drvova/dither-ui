@@ -11,12 +11,16 @@ const styles = stylex.create({
 })
 
 export type ClickSparkProps = {
+  /** @docs string (hex) */
   color?: string
   count?: number
+  /** @docs number (px) */
   size?: number
+  /** @docs number (ms) */
   duration?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -12,11 +12,14 @@ const styles = stylex.create({
 })
 
 export type GhostCursorProps = {
+  /** @docs string (hex) */
   color?: string
   count?: number
+  /** @docs number (px) */
   size?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

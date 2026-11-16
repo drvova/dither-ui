@@ -1,10 +1,19 @@
 import { type Component, For, Show } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import { boundProps, componentEntry, fieldLabel, type ScreenCell, type ScreenModel } from "@/entities/widget"
+import {
+  boundProps,
+  componentEntry,
+  fieldLabel,
+  modelOf,
+  type ScreenCell,
+  type ScreenModel,
+  screenLayerId,
+  slotChildren,
+} from "@/entities/widget"
+import { layerMark } from "@/entities/artboard"
 import * as kit from "@dither-ui/kit"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import { editor, selectLayer } from "@/entities/editor"
-import { modelOf, slotChildren } from "../../entities/widget/model/model"
 import { FieldWrap } from "./FieldWrap"
 
 const JUSTIFY: Record<string, string> = {
@@ -29,7 +38,8 @@ function modelProps(cell: ScreenCell): Record<string, unknown> {
 }
 
 export default function ScreenRenderer(props: { screen: ScreenModel; artboardId: string }) {
-  const cellId = (cell: ScreenCell) => `${props.artboardId}:cell:${cell.id}`
+  const cellId = (cell: ScreenCell) => screenLayerId(props.artboardId, "cell", cell.id)
+  const rowId = (row: { id: string }) => screenLayerId(props.artboardId, "row", row.id)
   const isSelected = (id: string) => editor.selectedLayerId === id
 
   /** A press on a row or a cell selects it and goes no further. One from
@@ -52,10 +62,11 @@ export default function ScreenRenderer(props: { screen: ScreenModel; artboardId:
               "flex min-h-6 rounded-sm",
               ALIGN[row.align],
               JUSTIFY[row.justify],
-              editor.selectedLayerId === `${props.artboardId}:row:${row.id}` ? "ring-1 ring-accent/60" : "",
+              editor.selectedLayerId === rowId(row) ? "ring-1 ring-accent/60" : "",
             )}
+            {...layerMark(rowId(row))}
             style={{ gap: `${row.gap}px` }}
-            onPointerDown={(e) => press(e, `${props.artboardId}:row:${row.id}`)}
+            onPointerDown={(e) => press(e, rowId(row))}
           >
             <For each={row.cells}>
               {(cell) => (
@@ -65,6 +76,7 @@ export default function ScreenRenderer(props: { screen: ScreenModel; artboardId:
                     cell.grow ? "flex-1 min-w-0" : "",
                     isSelected(cellId(cell)) ? "ring-1 ring-accent" : "",
                   )}
+                  {...layerMark(cellId(cell))}
                   onPointerDown={(e) => press(e, cellId(cell))}
                 >
                   <FieldWrap label={fieldLabel(cell.is, cell.props)} class="w-full">

@@ -6,19 +6,19 @@
 // (`BrandGather`) stands in the clear band, pulled in from the right
 // edge where the plate is narrow, and gathers there once as the plate comes
 // into view, while the tone prints in through the kit's reveal (the lights
-// coming on). It holds as a scene (`SCENES.plate`): a run a little taller
-// than the plate, the plate pinned in the viewport's middle through it,
-// scaling up into place as the reader scrolls, then let go. Decorative.
+// coming on). An island of the landing. It holds as a scene (`Plate.css`,
+// the run's view timeline): a run a little taller than the plate, the plate
+// pinned in the viewport's middle through it, scaling up into place as the
+// reader scrolls, then let go. Decorative.
 import { DitherReveal, DitherScreen } from "@dither-ui/kit"
 import { LOCKUP_SIZE } from "@/pages/landing/brand"
-import { plateField, sceneOf, type Plate as PlateRow } from "@/pages/landing/plate"
-import { SCENES } from "@/pages/landing/scenes"
-import { scene } from "@/shared/lib/scroll-scene-ref"
+import { PLATES, plateField, sceneOf } from "@/pages/landing/plate"
 import BrandGather from "./BrandGather"
 import HeatPrint from "./HeatPrint"
 import "./Plate.css"
 
-export type PlateProps = { plate: PlateRow }
+/** The plate by its row in the table: an island's props cross as JSON. */
+type PlateProps = { plate: keyof typeof PLATES }
 
 const pct = (f: number) => `${f * 100}%`
 
@@ -26,15 +26,11 @@ const CELL = 4
 const WIDTH = LOCKUP_SIZE.width * CELL
 const HALF = 3.5 * CELL
 
-export default function Plate(props: PlateProps) {
+export default function Plate(raw: PlateProps) {
+  const props = { plate: PLATES[raw.plate] }
   const field = plateField(props.plate)
   return (
-    <div
-      ref={scene(SCENES.plate)}
-      class="plate-scope plate-run"
-      style={{ "--aspect": props.plate.aspect }}
-      aria-hidden="true"
-    >
+    <div class="plate-scope plate-run" style={{ "--aspect": props.plate.aspect }} aria-hidden="true">
       <div class="plate-pin">
         <div class="plate">
           <DitherScreen screen={props.plate.screen}>

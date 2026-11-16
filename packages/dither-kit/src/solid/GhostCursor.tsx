@@ -4,10 +4,13 @@ import { cn } from "../tailwind/lib"
 import { createInviewLoop } from "./runtime/in-view"
 
 export type GhostCursorProps = {
+  /** @docs string (hex) */
   color?: string
   count?: number
+  /** @docs number (px) */
   size?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

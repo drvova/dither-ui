@@ -20,21 +20,35 @@ export type { LightningParams }
 export { paintLightning }
 
 export type LightningProps = {
+  /** @docs string[] (≤ 8 hex)
+   * @default ['#5227FF', '#7CE0FF', '#FFFFFF'] */
   colors?: string[]
   bolts?: number
   speed?: number
+  /** @docs number (path wander) */
   jitter?: number
+  /** @docs number (bolt thickness) */
   width?: number
   glow?: number
+  /** @docs number 0…1 */
   opacity?: number
+  /** @docs number 0…1 | boolean */
   dither?: number | boolean
   paused?: boolean
+  /** @docs number (fps, stop-motion)
+   * @default 0 (smooth) */
   frameRate?: number
+  /** @default devicePixelRatio */
   dpr?: number
+  /** @docs string
+   * @default undefined */
   mixBlendMode?: JSX.CSSProperties["mix-blend-mode"]
+  /** @default undefined */
   seed?: number
   renderMode?: DitherRenderMode
+  /** @docs string | { src: string; width?: number; height?: number } */
   precompiled?: PrecompiledDither
+  /** @default undefined */
   class?: string
   xstyle?: StyleProp
 }

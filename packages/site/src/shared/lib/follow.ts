@@ -6,7 +6,7 @@
 // a pinch, or a drag the pinch ended (`features/pan-zoom`), never leaves a
 // listener behind to steer the next pointer that moves.
 
-export type FollowEnd = (ev: PointerEvent | null, cancelled: boolean) => void
+type FollowEnd = (ev: PointerEvent | null, cancelled: boolean) => void
 
 /** Calls `onMove` with each move of `down`'s pointer and `onEnd` once, when it
  * is up (`cancelled` false), cancelled (true) or stopped by the returned

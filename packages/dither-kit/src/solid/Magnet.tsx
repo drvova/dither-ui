@@ -4,9 +4,12 @@ import { cn } from "../tailwind/lib"
 import "./Magnet.css"
 
 export type MagnetProps = {
+  /** @docs number (0-1) */
   strength?: number
+  /** @docs number (px) */
   radius?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -14,8 +14,8 @@ export type GuideStop = {
   end?: boolean
 }
 
-export type Box = { left: number; top: number; right: number; bottom: number }
-export type Size = { width: number; height: number }
+type Box = { left: number; top: number; right: number; bottom: number }
+type Size = { width: number; height: number }
 
 const GAP = 12
 const INSET = 16

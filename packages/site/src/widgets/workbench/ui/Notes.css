@@ -1,7 +1,18 @@
+/* Drawn (in the overlay's SVG layer). */
+g.notes-scope.note > rect {
+  fill: color-mix(in oklab, var(--color-background) 82%, transparent);
+  stroke: color-mix(in oklab, currentColor 30%, transparent);
+}
+
+g.notes-scope.note > text {
+  fill: currentColor;
+}
+
+/* Written in. */
 .notes-scope.wb-notes {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 5;
   pointer-events: none;
 }
 
@@ -20,11 +31,6 @@
 /* The field's ring is the note's own outline while it is written in. */
 .notes-scope .note:focus-within {
   outline: 1px solid var(--wb-hl);
-  outline-offset: 2px;
-}
-
-.notes-scope .note.on {
-  outline: 1px dashed var(--wb-hl);
   outline-offset: 2px;
 }
 
@@ -47,5 +53,8 @@
 @media (prefers-reduced-transparency: reduce) {
   .notes-scope .note {
     background: var(--color-background);
+  }
+  g.notes-scope.note > rect {
+    fill: var(--color-background);
   }
 }

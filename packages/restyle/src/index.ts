@@ -26,7 +26,7 @@ export const isStyling = (v: unknown): v is Styling => STYLINGS.includes(v as St
 
 /* ------------------------------ compiling classes ------------------------- */
 
-export type Compiled = {
+type Compiled = {
   /** Declarations per variant chain (`[]` is the element itself), in cascade order. */
   chains: { chain: string[]; decl: [string, string][] }[]
   /** Classes the map does not know, or the target cannot express — kept as classes. */
@@ -149,7 +149,7 @@ export function compileUtilities(tokens: string[], strict = false, map: UtilityM
 
 /* ------------------------------ the rewrite ------------------------------- */
 
-export type Named = { name: string; compiled: Compiled }
+type Named = { name: string; compiled: Compiled }
 
 export const camel = (s: string) => s.replace(/[^A-Za-z0-9]+(.)?/g, (_, c?: string) => (c ? c.toUpperCase() : ""))
 const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1)

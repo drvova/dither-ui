@@ -1,10 +1,11 @@
 // DESIGN.md, the look in one readable place, states values that live in
 // the code. Each is read here from its source and must appear in the doc as
 // it is, so the doc cannot drift: a design change touches both.
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
 import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { FRAME_BUDGET_MS } from "@dither-ui/kit/engine/frame-budget.ts"
+import { MOTION_ROLES } from "@dither-ui/kit/engine/timing.ts"
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 const doc = read("DESIGN.md")
@@ -22,6 +23,36 @@ describe("DESIGN.md", () => {
     const curve = `cubic-bezier(${GLIDE_BEZIER.join(", ")})`
     expect(doc).toContain(curve)
     expect(read("packages/site/src/app/styles.css")).toContain(`--ease-settle: ${curve};`)
+  })
+
+  it("names the four motion roles, each curve and duration as the kit defines it and the site takes it", () => {
+    const styles = read("packages/site/src/app/styles.css")
+    expect(styles).toContain('@import "@dither-ui/kit/engine/theme.css";')
+    for (const [role, { bezier, ms }] of Object.entries(MOTION_ROLES)) {
+      expect(doc, role).toContain(`**${role}**`)
+      expect(doc, role).toContain(`\`cubic-bezier(${bezier.join(", ")})\``)
+      expect(doc, role).toContain(`\`${ms}ms\``)
+      // one copy: the kit's stylesheet, which the site imports
+      expect(styles, role).not.toMatch(new RegExp(`--(ease|duration)-${role}:`))
+    }
+    const [lo, hi] = MOTION_ROLES.travel.span
+    expect(doc).toContain(`${lo} to ${hi}ms a hop`)
+  })
+
+  it("moves the cell pictures by their stylesheets, no timer, and SMIL on the clock a renderer directs", () => {
+    expect(doc).toContain("`directSmil`")
+    expect(read("packages/dither-kit/src/engine/clock.ts")).toContain("export function directSmil(")
+    for (const file of ["Mascot.tsx", "MascotCar.tsx"]) {
+      const src = read(`packages/site/src/shared/ui/${file}`)
+      expect(src, file).not.toMatch(/setInterval|setTimeout|requestAnimationFrame/)
+    }
+    // every kit component that renders SMIL hands its SVG to the clock
+    const kit = "packages/dither-kit/src/solid"
+    const smil = readdirSync(new URL(`../${kit}`, import.meta.url)).filter(
+      (f) => f.endsWith(".tsx") && /<animate/.test(read(`${kit}/${f}`)),
+    )
+    expect(smil.length).toBeGreaterThan(0)
+    for (const file of smil) expect(read(`${kit}/${file}`), file).toContain("directSmil(")
   })
 
   it("names the hand's spring and the press as the site's stylesheet sets them", () => {
@@ -71,6 +102,29 @@ describe("DESIGN.md", () => {
     )?.[1]
     expect(title).toBeTruthy()
     expect(doc).toContain(`\`${title}\``)
+  })
+
+  it("prints on paper every ground and ink the landing's dark print sets", () => {
+    const dark = block(
+      read("packages/site/src/pages/landing/chapters.css"),
+      ':root:is([data-page="landing"], [data-page="missing"])',
+    )
+    const css = read("packages/site/src/app/print.css")
+    const paper = Object.fromEntries(
+      [...css.matchAll(/(--[\w-]+):\s*([^;]+?)\s*!important;/g)].map((m) => [m[1], m[2]]),
+    )
+    for (const token of Object.keys(dark)) expect(paper[token], token).toBeTruthy()
+    expect([paper["--background"], paper["--foreground"]]).toEqual(["#fff", "#111"])
+    expect(doc).toContain("On paper")
+  })
+
+  it("cuts the hardshell from one outline, as the doc says", () => {
+    const css = read("packages/site/src/app/styles.css")
+    const [, name] = css.match(/\.hardshell \{\s*(--[\w-]+):/)!
+    expect(doc).toContain(`\`${name}\``)
+    // the shell and its ring clip by the one outline; no copy of its corners
+    expect(css.match(new RegExp(`polygon\\(\\s*(evenodd,\\s*)?var\\(${name}\\)`, "g"))).toHaveLength(2)
+    expect(css.split("100% calc(100% - var(--cut))")).toHaveLength(2)
   })
 
   it("gives the paint budget the runtime keeps", () => {

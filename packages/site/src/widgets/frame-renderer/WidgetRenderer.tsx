@@ -6,12 +6,13 @@ import {
   componentEntry,
   demoToast,
   fieldLabel,
+  modelOf,
+  slotChildren,
   type WidgetModel,
 } from "@/entities/widget"
 import * as kit from "@dither-ui/kit"
 import { DitherAvatar, DitherButton, DitherGradient, DitherImage, toast } from "@dither-ui/kit"
 import { editor } from "@/entities/editor"
-import { modelOf, slotChildren } from "../../entities/widget/model/model"
 import { FieldWrap } from "./FieldWrap"
 import ScreenRenderer from "./ScreenRenderer"
 import "./WidgetRenderer.css"

@@ -1,229 +1,107 @@
-import { createSignal, onCleanup, onMount } from "solid-js"
-import {
-  DitherBlurText,
-  DitherCountUp,
-  DitherNumberFlow,
-  DitherDecryptedText,
-  DitherFallingText,
-  DitherGlitchText,
-  DitherGradientText,
-  DitherRotatingText,
-  DitherScrambleText,
-  DitherScrollFloat,
-  DitherScrollReveal,
-  DitherShinyText,
-  DitherShuffle,
-  DitherSplitText,
-  DitherTextType,
-  DitherScrollVelocity,
-  DitherTextCursor,
-  DitherTextPressure,
-  DitherVariableProximity,
-  DitherTrueFocus,
-  DitherCircularText,
-  DitherCurvedLoop,
-  DitherFuzzyText,
-  DitherAsciiText,
-} from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
-import PropsTable, { type PropRow } from "../PropsTable"
+import PropsTable, { kitTable, type PropRow } from "../PropsTable"
+import gradientTextProps from "virtual:dither-props/DitherGradientText"
+import shinyTextProps from "virtual:dither-props/DitherShinyText"
+import glitchTextProps from "virtual:dither-props/DitherGlitchText"
+import splitTextProps from "virtual:dither-props/DitherSplitText"
+import rotatingTextProps from "virtual:dither-props/DitherRotatingText"
+import countUpProps from "virtual:dither-props/DitherCountUp"
+import numberFlowProps from "virtual:dither-props/DitherNumberFlow"
+import textTypeProps from "virtual:dither-props/DitherTextType"
+import blurTextProps from "virtual:dither-props/DitherBlurText"
+import decryptedTextProps from "virtual:dither-props/DitherDecryptedText"
+import scrambleTextProps from "virtual:dither-props/DitherScrambleText"
+import shuffleProps from "virtual:dither-props/DitherShuffle"
+import fallingTextProps from "virtual:dither-props/DitherFallingText"
+import scrollRevealProps from "virtual:dither-props/DitherScrollReveal"
+import scrollFloatProps from "virtual:dither-props/DitherScrollFloat"
+import scrollVelocityProps from "virtual:dither-props/DitherScrollVelocity"
+import textCursorProps from "virtual:dither-props/DitherTextCursor"
+import textPressureProps from "virtual:dither-props/DitherTextPressure"
+import variableProximityProps from "virtual:dither-props/DitherVariableProximity"
+import trueFocusProps from "virtual:dither-props/DitherTrueFocus"
+import circularTextProps from "virtual:dither-props/DitherCircularText"
+import curvedLoopProps from "virtual:dither-props/DitherCurvedLoop"
+import fuzzyTextProps from "virtual:dither-props/DitherFuzzyText"
+import asciiTextProps from "virtual:dither-props/DitherAsciiText"
 import DocSection from "../DocSection"
+import GradientTextExample from "./examples/gradient-text"
+import gradientTextCode from "./examples/gradient-text.tsx?raw"
+import ShinyTextExample from "./examples/shiny-text"
+import shinyTextCode from "./examples/shiny-text.tsx?raw"
+import GlitchTextExample from "./examples/glitch-text"
+import glitchTextCode from "./examples/glitch-text.tsx?raw"
+import TextTypeExample from "./examples/text-type"
+import textTypeCode from "./examples/text-type.tsx?raw"
+import BlurTextExample from "./examples/blur-text"
+import blurTextCode from "./examples/blur-text.tsx?raw"
+import DecryptedTextExample from "./examples/decrypted-text"
+import decryptedTextCode from "./examples/decrypted-text.tsx?raw"
+import ScrambleTextExample from "./examples/scramble-text"
+import scrambleTextCode from "./examples/scramble-text.tsx?raw"
+import ScrollRevealExample from "./examples/scroll-reveal"
+import scrollRevealCode from "./examples/scroll-reveal.tsx?raw"
+import ScrollFloatExample from "./examples/scroll-float"
+import scrollFloatCode from "./examples/scroll-float.tsx?raw"
+import ScrollVelocityExample from "./examples/scroll-velocity"
+import scrollVelocityCode from "./examples/scroll-velocity.tsx?raw"
+import TextPressureExample from "./examples/text-pressure"
+import textPressureCode from "./examples/text-pressure.tsx?raw"
+import TrueFocusExample from "./examples/true-focus"
+import trueFocusCode from "./examples/true-focus.tsx?raw"
+import CircularTextExample from "./examples/circular-text"
+import circularTextCode from "./examples/circular-text.tsx?raw"
+import CurvedLoopExample from "./examples/curved-loop"
+import curvedLoopCode from "./examples/curved-loop.tsx?raw"
+import FuzzyTextExample from "./examples/fuzzy-text"
+import fuzzyTextCode from "./examples/fuzzy-text.tsx?raw"
+import AsciiTextExample from "./examples/ascii-text"
+import asciiTextCode from "./examples/ascii-text.tsx?raw"
+import SplitTextExample from "./examples/split-text"
+import splitTextCode from "./examples/split-text.tsx?raw"
+import RotatingTextExample from "./examples/rotating-text"
+import rotatingTextCode from "./examples/rotating-text.tsx?raw"
+import CountUpExample from "./examples/count-up"
+import countUpCode from "./examples/count-up.tsx?raw"
+import NumberFlowExample from "./examples/number-flow"
+import numberFlowCode from "./examples/number-flow.tsx?raw"
+import ShuffleExample from "./examples/shuffle"
+import shuffleCode from "./examples/shuffle.tsx?raw"
+import FallingTextExample from "./examples/falling-text"
+import fallingTextCode from "./examples/falling-text.tsx?raw"
+import TextCursorExample from "./examples/text-cursor"
+import textCursorCode from "./examples/text-cursor.tsx?raw"
+import VariableProximityExample from "./examples/variable-proximity"
+import variableProximityCode from "./examples/variable-proximity.tsx?raw"
 
-const API: Record<string, PropRow[]> = {
-  gradientText: [
-    { prop: "colors", type: "string[] (hex)", default: "['#358ff3', '#7CFF67', '#358ff3']" },
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "class", type: "string", default: "undefined" },
-    { prop: "children", type: "text", default: "" },
-  ],
-  shinyText: [
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "disabled", type: "boolean", default: "false" },
-    { prop: "class", type: "string", default: "undefined" },
-    { prop: "children", type: "text", default: "" },
-  ],
-  glitchText: [
-    { prop: "text", type: "string", default: '"GLITCH"' },
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  splitText: [
-    { prop: "text", type: "string", default: '"Split text"' },
-    { prop: "stagger", type: "number (ms/char)", default: "40" },
-    { prop: "duration", type: "number (ms)", default: "600" },
-    { prop: "replayToken", type: "number", default: "0" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  rotatingText: [
-    { prop: "texts", type: "string[]", default: "['Solid', 'canvas', 'dither']" },
-    { prop: "interval", type: "number (ms)", default: "2000" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  countUp: [
-    { prop: "to", type: "number", default: "required" },
-    { prop: "from", type: "number", default: "0" },
-    { prop: "duration", type: "number (ms)", default: "1500" },
-    { prop: "decimals", type: "number", default: "0" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  numberFlow: [
-    { prop: "value", type: "number", default: "required" },
-    { prop: "decimals", type: "number", default: "0" },
-    { prop: "duration", type: "number (ms): roll time per change", default: "600" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  textType: [
-    { prop: "texts", type: "string[]", default: "['Type this out.', 'Then this.']" },
-    { prop: "typingSpeed", type: "number (ms)", default: "60" },
-    { prop: "deletingSpeed", type: "number (ms)", default: "35" },
-    { prop: "pause", type: "number (ms)", default: "1400" },
-    { prop: "loop", type: "boolean", default: "true" },
-    { prop: "cursor", type: "boolean", default: "true" },
-  ],
-  blurText: [
-    { prop: "text", type: "string", default: '"Blur into focus"' },
-    { prop: "by", type: '"words" | "chars"', default: '"words"' },
-    { prop: "stagger", type: "number (ms)", default: "90" },
-    { prop: "duration", type: "number (ms)", default: "600" },
-  ],
-  decryptedText: [
-    { prop: "text", type: "string", default: '"DECRYPTED"' },
-    { prop: "speed", type: "number", default: "1" },
-    { prop: "trigger", type: '"view" | "hover"', default: '"view"' },
-  ],
-  scrambleText: [
-    { prop: "text", type: "string", default: '"Hover to scramble"' },
-    { prop: "speed", type: "number", default: "1" },
-  ],
-  shuffle: [
-    { prop: "text", type: "string", default: '"Shuffle in"' },
-    { prop: "stagger", type: "number (ms)", default: "55" },
-    { prop: "duration", type: "number (ms)", default: "650" },
-    { prop: "replayToken", type: "number", default: "0" },
-  ],
-  fallingText: [
-    { prop: "text", type: "string", default: '"Falling text"' },
-    { prop: "stagger", type: "number (ms)", default: "45" },
-    { prop: "duration", type: "number (ms)", default: "700" },
-    { prop: "replayToken", type: "number", default: "0" },
-  ],
-  scrollReveal: [
-    { prop: "text", type: "string", default: "required" },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  scrollFloat: [
-    { prop: "text", type: "string", default: "required" },
-    { prop: "amount", type: "number", default: "1" },
-  ],
-  scrollVelocity: [
-    { prop: "text", type: "string", default: '"DITHER · UI · TOOLKIT ·"' },
-    { prop: "baseSpeed", type: "number (px/s)", default: "60" },
-  ],
-  textCursor: [
-    { prop: "text", type: "string", default: '"dither"' },
-    { prop: "class", type: "string", default: "undefined" },
-  ],
-  textPressure: [
-    { prop: "text", type: "string", default: '"Pressure"' },
-    { prop: "radius", type: "number (px)", default: "140" },
-    { prop: "strength", type: "number", default: "1" },
-  ],
-  variableProximity: [
-    { prop: "text", type: "string", default: "required" },
-    { prop: "radius", type: "number (px)", default: "120" },
-  ],
-  trueFocus: [
-    { prop: "text", type: "string", default: '"True focus mode"' },
-    { prop: "interval", type: "number (ms)", default: "1400" },
-    { prop: "blur", type: "number (px)", default: "5" },
-  ],
-  circularText: [
-    { prop: "text", type: "string", default: '"DITHER · UI · TOOLKIT ·"' },
-    { prop: "duration", type: "number (s)", default: "12" },
-    { prop: "size", type: "number (px)", default: "170" },
-  ],
-  curvedLoop: [
-    { prop: "text", type: "string", default: '"DITHER UI · CANVAS + BAYER ·"' },
-    { prop: "speed", type: "number (units/s)", default: "60" },
-  ],
-  fuzzyText: [
-    { prop: "text", type: "string", default: '"FUZZY"' },
-    { prop: "intensity", type: "number", default: "4" },
-  ],
-  asciiText: [
-    { prop: "text", type: "string", default: '"DITHER"' },
-    { prop: "cols", type: "number", default: "64" },
-  ],
-}
-
-const SNIPPETS = {
-  gradientText: `<DitherGradientText colors={['#358ff3', '#7CFF67', '#358ff3']}>
-  Beautifully dithered
-</DitherGradientText>`,
-  shinyText: `<DitherShinyText>Shimmering headline</DitherShinyText>`,
-  glitchText: `<DitherGlitchText text="MALFUNCTION" />`,
-  splitText: `const [token, setToken] = createSignal(0)
-
-<div class="grid place-items-center gap-4">
-  <DitherSplitText text="Split into characters" replayToken={token()} class="text-3xl" />
-  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
-</div>`,
-  rotatingText: `<p>
-  Built for <DitherRotatingText texts={['Solid', 'canvas', 'the studio']} />
-</p>`,
-  countUp: `<DitherCountUp to={1984} /> renders {/* counts up when scrolled into view */}`,
-  numberFlow: `const [metric, setMetric] = createSignal(12480)
-// a live metric: the digits roll on every change
-let timer = 0
-onMount(() => {
-  timer = window.setInterval(() => (setMetric(metric() + Math.round(Math.random() * 900 - 300))), 2400)
-})
-onCleanup(() => clearInterval(timer))
-
-<div class="text-4xl">$<DitherNumberFlow value={metric()} /></div>`,
-  textType: `<DitherTextType texts={['Charts, dithered.', 'Buttons, dithered.', 'Everything, dithered.']} />`,
-  blurText: `<DitherBlurText text="Blur into focus" by="words" />`,
-  decryptedText: `<DitherDecryptedText text="ACCESS GRANTED" />`,
-  scrambleText: `<DitherScrambleText text="Hover to scramble" />`,
-  shuffle: `const [token, setToken] = createSignal(0)
-
-<div class="grid place-items-center gap-4">
-  <DitherShuffle text="Shuffled into place" replayToken={token()} class="text-3xl" />
-  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
-</div>`,
-  fallingText: `const [token, setToken] = createSignal(0)
-
-<div class="grid place-items-center gap-4">
-  <DitherFallingText text="Falling into place" replayToken={token()} class="text-3xl" />
-  <button type="button" onClick={() => setToken(token() + 1)}>Replay</button>
-</div>`,
-  scrollReveal: `<DitherScrollReveal text="These words reveal as you scroll them into view" />`,
-  scrollFloat: `<DitherScrollFloat text="Floating up on scroll" />`,
-  scrollVelocity: `<DitherScrollVelocity text="DITHER · UI · TOOLKIT · " />`,
-  textCursor: `<div class="h-40"><DitherTextCursor text="dither" /></div>`,
-  textPressure: `<DitherTextPressure text="Pressure" />`,
-  variableProximity: `<DitherVariableProximity text="Move the cursor across this line" />`,
-  trueFocus: `<DitherTrueFocus text="True focus mode" />`,
-  circularText: `<DitherCircularText text="DITHER · UI · TOOLKIT · " />`,
-  curvedLoop: `<DitherCurvedLoop text="DITHER UI · CANVAS + BAYER · " />`,
-  fuzzyText: `<DitherFuzzyText text="FUZZY" />`,
-  asciiText: `<DitherAsciiText text="DITHER" />`,
+export const API: Record<string, PropRow[]> = {
+  gradientText: kitTable(gradientTextProps),
+  shinyText: kitTable(shinyTextProps),
+  glitchText: kitTable(glitchTextProps),
+  splitText: kitTable(splitTextProps),
+  rotatingText: kitTable(rotatingTextProps),
+  countUp: kitTable(countUpProps),
+  numberFlow: kitTable(numberFlowProps),
+  textType: kitTable(textTypeProps),
+  blurText: kitTable(blurTextProps),
+  decryptedText: kitTable(decryptedTextProps),
+  scrambleText: kitTable(scrambleTextProps),
+  shuffle: kitTable(shuffleProps),
+  fallingText: kitTable(fallingTextProps),
+  scrollReveal: kitTable(scrollRevealProps),
+  scrollFloat: kitTable(scrollFloatProps),
+  scrollVelocity: kitTable(scrollVelocityProps),
+  textCursor: kitTable(textCursorProps),
+  textPressure: kitTable(textPressureProps),
+  variableProximity: kitTable(variableProximityProps),
+  trueFocus: kitTable(trueFocusProps),
+  circularText: kitTable(circularTextProps),
+  curvedLoop: kitTable(curvedLoopProps),
+  fuzzyText: kitTable(fuzzyTextProps),
+  asciiText: kitTable(asciiTextProps),
 }
 
 export default function TextDocs() {
-  const [splitReplay, setSplitReplay] = createSignal(0)
-  const [shuffleReplay, setShuffleReplay] = createSignal(0)
-  const [fallingReplay, setFallingReplay] = createSignal(0)
-
-  /* Number flow: a live metric that re-rolls every few seconds. */
-  const [flowValue, setFlowValue] = createSignal(12480)
-  onMount(() => {
-    const flowTimer = window.setInterval(() => {
-      setFlowValue((v) => v + Math.round(Math.random() * 900 - 300))
-    }, 2400)
-    onCleanup(() => window.clearInterval(flowTimer))
-  })
-
   return (
     <>
       {/* Gradient text */}
@@ -232,9 +110,9 @@ export default function TextDocs() {
           An animated gradient clipped to the text. The colour band drifts across the glyphs forever. Respects reduced
           motion.
         </p>
-        <DemoCard code={SNIPPETS.gradientText}>
+        <DemoCard code={gradientTextCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <DitherGradientText>Beautifully dithered</DitherGradientText>
+            <GradientTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.gradientText} />
@@ -244,9 +122,9 @@ export default function TextDocs() {
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           A bright highlight sweeps across dim text on a loop: a subtle sheen for headlines and labels.
         </p>
-        <DemoCard code={SNIPPETS.shinyText}>
+        <DemoCard code={shinyTextCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <DitherShinyText>Shimmering headline</DitherShinyText>
+            <ShinyTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.shinyText} />
@@ -257,9 +135,9 @@ export default function TextDocs() {
           Two RGB-split copies jitter and clip over the base text for a broken-signal effect. The base stays readable;
           the glitch layers hide under reduced motion.
         </p>
-        <DemoCard code={SNIPPETS.glitchText}>
+        <DemoCard code={glitchTextCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl font-medium tracking-tight">
-            <DitherGlitchText text="MALFUNCTION" />
+            <GlitchTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.glitchText} />
@@ -270,19 +148,8 @@ export default function TextDocs() {
           Each character rises and settles on a stagger. Bump <code class="text-foreground/80">replayToken</code> to run
           it again; the whole word is still one labelled node for screen readers.
         </p>
-        <DemoCard code={SNIPPETS.splitText}>
-          <div class="grid min-h-24 place-items-center gap-4">
-            <div class="text-3xl tracking-tight">
-              <DitherSplitText text="Split into characters" replayToken={splitReplay()} />
-            </div>
-            <button
-              class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-              type="button"
-              onClick={() => setSplitReplay((n) => n + 1)}
-            >
-              Replay
-            </button>
-          </div>
+        <DemoCard code={splitTextCode}>
+          <SplitTextExample />
         </DemoCard>
         <PropsTable rows={API.splitText} />
       </DocSection>
@@ -292,11 +159,8 @@ export default function TextDocs() {
           Cycles through a list of words for a headline that says several things, each sliding out as the next slides
           in.
         </p>
-        <DemoCard code={SNIPPETS.rotatingText}>
-          <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <span>Built for&nbsp;</span>
-            <DitherRotatingText class="text-foreground" texts={["Solid", "canvas", "the studio"]} />
-          </div>
+        <DemoCard code={rotatingTextCode}>
+          <RotatingTextExample />
         </DemoCard>
         <PropsTable rows={API.rotatingText} />
       </DocSection>
@@ -306,11 +170,8 @@ export default function TextDocs() {
           Eases a number from <code class="text-foreground/80">from</code> to <code class="text-foreground/80">to</code>{" "}
           when it scrolls into view. Locale-formatted, tabular figures. Reduced motion jumps to the final value.
         </p>
-        <DemoCard code={SNIPPETS.countUp}>
-          <div class="flex min-h-24 items-center justify-center gap-8 text-4xl tracking-tight tabular-nums">
-            <DitherCountUp to={1984} />
-            <DitherCountUp to={99.9} decimals={1} />
-          </div>
+        <DemoCard code={countUpCode}>
+          <CountUpExample />
         </DemoCard>
         <PropsTable rows={API.countUp} />
       </DocSection>
@@ -320,13 +181,8 @@ export default function TextDocs() {
           <code class="text-foreground/80">value</code> changes. Count up plays once; this one never stops. Reduced
           motion snaps.
         </p>
-        <DemoCard code={SNIPPETS.numberFlow}>
-          <div class="flex min-h-24 items-center justify-center gap-3 text-4xl tracking-tight">
-            <span class="text-2xl text-muted-foreground" aria-hidden="true">
-              $
-            </span>
-            <DitherNumberFlow value={flowValue()} />
-          </div>
+        <DemoCard code={numberFlowCode}>
+          <NumberFlowExample />
         </DemoCard>
         <PropsTable rows={API.numberFlow} />
       </DocSection>
@@ -336,9 +192,9 @@ export default function TextDocs() {
           A typewriter with a blinking caret: it types each string, pauses, deletes and moves to the next. Reduced
           motion shows the first line, no typing.
         </p>
-        <DemoCard code={SNIPPETS.textType}>
+        <DemoCard code={textTypeCode}>
           <div class="flex min-h-24 items-center justify-center text-2xl tracking-tight">
-            <DitherTextType texts={["Charts, dithered.", "Buttons, dithered.", "Everything, dithered."]} />
+            <TextTypeExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.textType} />
@@ -349,9 +205,9 @@ export default function TextDocs() {
           Words (or characters) blur into focus on a stagger the first time they enter the viewport. Still one labelled
           node for screen readers.
         </p>
-        <DemoCard code={SNIPPETS.blurText}>
+        <DemoCard code={blurTextCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <DitherBlurText text="Blur into focus" />
+            <BlurTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.blurText} />
@@ -362,9 +218,9 @@ export default function TextDocs() {
           Scrambled cipher characters resolve left-to-right into the real text when it scrolls into view. Monospace
           keeps the width steady.
         </p>
-        <DemoCard code={SNIPPETS.decryptedText}>
+        <DemoCard code={decryptedTextCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl font-medium tracking-tight">
-            <DitherDecryptedText text="ACCESS GRANTED" />
+            <DecryptedTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.decryptedText} />
@@ -374,9 +230,9 @@ export default function TextDocs() {
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Hover to burst-scramble the characters, which then settle back to the real text. Repeatable on every hover.
         </p>
-        <DemoCard code={SNIPPETS.scrambleText}>
+        <DemoCard code={scrambleTextCode}>
           <div class="flex min-h-24 items-center justify-center text-2xl tracking-tight sm:text-3xl">
-            <DitherScrambleText text="Hover to scramble" />
+            <ScrambleTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.scrambleText} />
@@ -387,19 +243,8 @@ export default function TextDocs() {
           Characters fly in from scattered offsets and rotations, settling into place on a stagger. Bump{" "}
           <code class="text-foreground/80">replayToken</code> to run it again.
         </p>
-        <DemoCard code={SNIPPETS.shuffle}>
-          <div class="grid min-h-24 place-items-center gap-4">
-            <div class="text-3xl tracking-tight">
-              <DitherShuffle text="Shuffled into place" replayToken={shuffleReplay()} />
-            </div>
-            <button
-              class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-              type="button"
-              onClick={() => setShuffleReplay((n) => n + 1)}
-            >
-              Replay
-            </button>
-          </div>
+        <DemoCard code={shuffleCode}>
+          <ShuffleExample />
         </DemoCard>
         <PropsTable rows={API.shuffle} />
       </DocSection>
@@ -408,19 +253,8 @@ export default function TextDocs() {
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           Characters drop in from above with a little overshoot bounce, staggered across the line.
         </p>
-        <DemoCard code={SNIPPETS.fallingText}>
-          <div class="grid min-h-24 place-items-center gap-4">
-            <div class="text-3xl tracking-tight">
-              <DitherFallingText text="Falling into place" replayToken={fallingReplay()} />
-            </div>
-            <button
-              class="rounded-md border border-border/60 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-              type="button"
-              onClick={() => setFallingReplay((n) => n + 1)}
-            >
-              Replay
-            </button>
-          </div>
+        <DemoCard code={fallingTextCode}>
+          <FallingTextExample />
         </DemoCard>
         <PropsTable rows={API.fallingText} />
       </DocSection>
@@ -430,9 +264,9 @@ export default function TextDocs() {
           The words fade and de-blur word-by-word as the block travels up through the viewport. The reveal is tied to
           scroll position, not a one-shot. Scroll the page.
         </p>
-        <DemoCard code={SNIPPETS.scrollReveal}>
+        <DemoCard code={scrollRevealCode}>
           <div class="flex min-h-24 max-w-md items-center justify-center text-center text-xl leading-relaxed tracking-tight">
-            <DitherScrollReveal text="These words reveal as you scroll them into view" />
+            <ScrollRevealExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.scrollReveal} />
@@ -443,9 +277,9 @@ export default function TextDocs() {
           Characters float up from an offset as the scroll progress reaches each one: a gentle parallax settle. Scroll
           the page.
         </p>
-        <DemoCard code={SNIPPETS.scrollFloat}>
+        <DemoCard code={scrollFloatCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <DitherScrollFloat text="Floating up on scroll" />
+            <ScrollFloatExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.scrollFloat} />
@@ -456,9 +290,9 @@ export default function TextDocs() {
           A seamless marquee band that drifts on its own and speeds up (or reverses) with your scroll velocity, easing
           back to base speed. Scroll the page.
         </p>
-        <DemoCard code={SNIPPETS.scrollVelocity}>
+        <DemoCard code={scrollVelocityCode}>
           <div class="w-full text-2xl font-medium tracking-tight text-muted-foreground">
-            <DitherScrollVelocity text="DITHER · UI · TOOLKIT · " />
+            <ScrollVelocityExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.scrollVelocity} />
@@ -469,10 +303,8 @@ export default function TextDocs() {
           The characters of the word trail the pointer inside the box, each lagging a little further behind for a ribbon
           of type. Move your cursor over the preview.
         </p>
-        <DemoCard code={SNIPPETS.textCursor}>
-          <div class="h-40 w-full text-xl">
-            <DitherTextCursor text="dither" />
-          </div>
+        <DemoCard code={textCursorCode}>
+          <TextCursorExample />
         </DemoCard>
         <PropsTable rows={API.textCursor} />
       </DocSection>
@@ -482,9 +314,9 @@ export default function TextDocs() {
           Characters bulge (scaling up and gaining weight) near the cursor, like the word is being pressed. Move your
           cursor near the text.
         </p>
-        <DemoCard code={SNIPPETS.textPressure}>
+        <DemoCard code={textPressureCode}>
           <div class="flex min-h-24 items-center justify-center text-4xl tracking-tight">
-            <DitherTextPressure text="Pressure" />
+            <TextPressureExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.textPressure} />
@@ -495,10 +327,8 @@ export default function TextDocs() {
           Each character's weight and opacity ramps with its distance to the pointer. No scaling, so a whole sentence
           stays put while the cursor lights a path through it.
         </p>
-        <DemoCard code={SNIPPETS.variableProximity}>
-          <div class="flex min-h-24 max-w-md items-center justify-center text-center text-xl leading-relaxed tracking-tight">
-            <DitherVariableProximity text="Move the cursor across this line to feel the weight shift" />
-          </div>
+        <DemoCard code={variableProximityCode}>
+          <VariableProximityExample />
         </DemoCard>
         <PropsTable rows={API.variableProximity} />
       </DocSection>
@@ -508,9 +338,9 @@ export default function TextDocs() {
           One word stays sharp while the rest blur, and the focus steps through the phrase on a timer, pulling the eye
           word by word.
         </p>
-        <DemoCard code={SNIPPETS.trueFocus}>
+        <DemoCard code={trueFocusCode}>
           <div class="flex min-h-24 items-center justify-center text-3xl tracking-tight">
-            <DitherTrueFocus text="True focus mode" />
+            <TrueFocusExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.trueFocus} />
@@ -521,9 +351,9 @@ export default function TextDocs() {
           Text set around a full circle on an SVG path, rotating forever: a badge or seal. Uses{" "}
           <code class="text-foreground/80">currentColor</code> so it inherits type colour.
         </p>
-        <DemoCard code={SNIPPETS.circularText}>
+        <DemoCard code={circularTextCode}>
           <div class="flex min-h-48 items-center justify-center text-foreground">
-            <DitherCircularText text="DITHER · UI · TOOLKIT · " />
+            <CircularTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.circularText} />
@@ -534,9 +364,9 @@ export default function TextDocs() {
           Text flows along a wavy SVG path as a seamless loop. The copy length is measured so the scroll wraps without a
           visible seam.
         </p>
-        <DemoCard code={SNIPPETS.curvedLoop}>
+        <DemoCard code={curvedLoopCode}>
           <div class="flex min-h-24 w-full items-center justify-center text-foreground">
-            <DitherCurvedLoop text="DITHER UI · CANVAS + BAYER · " />
+            <CurvedLoopExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.curvedLoop} />
@@ -547,9 +377,9 @@ export default function TextDocs() {
           An SVG turbulence + displacement filter wobbles the glyph edges into an analog fuzz. Native filters, no
           canvas. Reduced motion drops the filter.
         </p>
-        <DemoCard code={SNIPPETS.fuzzyText}>
+        <DemoCard code={fuzzyTextCode}>
           <div class="flex min-h-24 items-center justify-center text-5xl font-bold tracking-tight">
-            <DitherFuzzyText text="FUZZY" />
+            <FuzzyTextExample />
           </div>
         </DemoCard>
         <PropsTable rows={API.fuzzyText} />
@@ -560,11 +390,11 @@ export default function TextDocs() {
           The word is rasterised to an offscreen canvas and mapped onto an ASCII density ramp: an on-brand ASCII render
           of any string.
         </p>
-        <DemoCard code={SNIPPETS.asciiText}>
+        <DemoCard code={asciiTextCode}>
           {/* Centred while it fits; on the narrowest phones it scrolls. */}
           <div class="flex min-h-24 items-center overflow-x-auto text-foreground">
             <div class="mx-auto w-max">
-              <DitherAsciiText text="DITHER" />
+              <AsciiTextExample />
             </div>
           </div>
         </DemoCard>

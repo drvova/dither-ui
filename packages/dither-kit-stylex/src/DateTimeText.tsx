@@ -11,6 +11,7 @@ const styles = stylex.create({
 export type DateTimeTextProps = {
   date?: Date | string | number
   locale?: string
+  /** @default medium date + short time */
   options?: Intl.DateTimeFormatOptions
   class?: string
   xstyle?: StyleProp

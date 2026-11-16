@@ -3,7 +3,7 @@
 // morphs pause ↔ play. 32px, the chrome hit-area floor.
 import "./PauseChip.css"
 
-export type PauseChipProps = {
+type PauseChipProps = {
   /** Whether the surface plays. */
   modelValue: boolean
   onUpdateModelValue?: (playing: boolean) => void

@@ -5,7 +5,7 @@ import { followPointer } from "@/shared/lib/follow"
 import { clamp } from "@dither-ui/kit/engine/pixel.ts"
 
 type Own = { modelValue: BezierPoints; class?: string; onUpdateModelValue?: (value: BezierPoints) => void }
-export type BezierEditorProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
+type BezierEditorProps = Own & Omit<JSX.HTMLAttributes<HTMLDivElement>, keyof Own>
 
 // Screen space: x 0..1 spans the width; y -0.5..1.5 so overshoot is visible.
 const W = 232

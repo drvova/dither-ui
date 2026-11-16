@@ -15,12 +15,10 @@ export function boxFrom(a: Point, b: Point): Box {
   return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(b.x - a.x), h: Math.abs(b.y - a.y) }
 }
 
-export const contains = (outer: Box, inner: Box) =>
+const contains = (outer: Box, inner: Box) =>
   inner.x >= outer.x && inner.y >= outer.y && right(inner) <= right(outer) && bottom(inner) <= bottom(outer)
 
 export const intersects = (a: Box, b: Box) => a.x < right(b) && b.x < right(a) && a.y < bottom(b) && b.y < bottom(a)
-
-export const inside = (p: Point, b: Box) => p.x >= b.x && p.x <= right(b) && p.y >= b.y && p.y <= bottom(b)
 
 const round = (v: number) => Math.round(v * 10) / 10
 

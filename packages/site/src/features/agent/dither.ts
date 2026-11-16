@@ -25,7 +25,7 @@ export type Built = {
 }
 
 /** One call of the tool, parsed where it enters. */
-export type DitherCall =
+type DitherCall =
   | { kind: "find"; job: string }
   | { kind: "run"; action: string; args: Record<string, unknown> }
   | { kind: "build"; tool: Built }

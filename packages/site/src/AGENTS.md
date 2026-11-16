@@ -17,16 +17,21 @@ load, so the workspace's `rs test` can import it (its specs are
 `../tests/*.spec.ts`); it takes the kit's values from `@dither-ui/kit/engine`,
 never from `@dither-ui/kit`, whose index is the components. Where a
 framework-free module and its Solid binding would share a name, each has
-its own (`shared/lib/rise.ts` and `shared/lib/rise-ref.ts`,
-`widgets/source/model/snippet.ts` and `widgets/source/model/files.ts`):
+its own (`widgets/source/model/snippet.ts` and `widgets/source/model/files.ts`):
 no file re-exports another to stand in its place. The SolidStart package
 around this tree (entries, routes, the build, how Solid is written) is
 `../AGENTS.md`'s.
 
 ## Ownership
 
-- `app/` — global styles/tokens (`styles.css`), the page transition's
-  hand-off (`page-reveal.ts`), the wait for the page's stylesheets before
+- `app/` — global styles/tokens and every motion of the site's own
+  (`styles.css`), the site on paper
+  (`print.css`, imported after it by `app.css`: ink on white whatever the
+  theme, the header, rails and keys off, links' addresses shown, the
+  scroll scenes settled and the pinned runs as tall as their stage; its
+  tokens held to the landing's by `tests/design-doc.spec.ts`), what the
+  page transition needs in a head (`page-reveal.ts`), the wait for the
+  page's stylesheets before
   the app mounts (`sheets-ready.ts`), the install surface (`install-files.ts`)
   and the Studio's service worker (`sw.ts`, its rules in `offline.ts`).
   The entries, the shell and the routes stand at the tree's top
@@ -58,7 +63,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   over the input (`TurnTrays.tsx`, the changes bar `ChangesBar.tsx`);
   `model/` is framework-free: the session's states and the fold of the
   harness's events (`session.ts`), the changes bar (`changes.ts`), the
-  composer's menus, recall, queue and keys (`composer.ts`), and the
+  composer's menus (and the share of its props they take, `HarnessMenus`),
+  recall, queue and keys (`composer.ts`), and the
   readings of the thread, the reply's prose and the tool steps in words).
 - `features/` — user actions: keyboard (shortcuts +
   ShortcutsHelp overlay), persistence (localStorage hydrate/autosave,
@@ -66,7 +72,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   the work, not the chats, opened beside the original) and deleted (the
   last one's place taken by a new project under a new name; the page
   then forgets its chats, `forgetProject`)),
-  export-code, export-image (the PNG download), export-video (the video
+  export-code (the code dialog, its SVG keys over `entities/artboard`),
+  export-image (the PNG download), export-video (the video
   dialog over `entities/video`), reel (the score preview, its audio opened
   in the click that asks for it, as iOS needs), pan-zoom (wheel, middle or Space drag, one finger on empty
   canvas pans, two fingers pinch about their midpoint; a second finger ends
@@ -94,9 +101,13 @@ around this tree (entries, routes, the build, how Solid is written) is
   list of the kinds `createWidget` builds whole, its type
   `SimpleWidgetKind` and guard `isSimpleWidgetKind`, from its index; the
   artboard factory and the library's widget keys read it; `model/reel.ts`,
-  the reel's and the film's pure timeline), artboard (`picture.ts`, a
-  frame's drawn surface, `surfaceOf`, and its PNG, `artboardPng`, imported
-  by path), video (a frame as a HyperFrames composition: the builder,
+  the reel's and the film's pure timeline; `screenLayers`, a screen's rows
+  and cells as the layer tree, the canvas and the SVG name them), artboard
+  (`picture.ts`, a frame's drawn surface, `surfaceOf`, and its PNG,
+  `artboardPng`; `vector.ts` and `svg.ts`, the frame as a layered SVG, and
+  `svg-copy.ts`, that SVG copied or saved, see SVG below; `model/name.ts`,
+  `fileBase`, the one way a frame's name becomes a file's; `code.ts`,
+  the frame as code, its second entry), video (a frame as a HyperFrames composition: the builder,
   `composition.ts`, and what the dialog and the agent take from it,
   `video.ts`).
 - `shared/fonts/` — the display face: `michroma-latin.woff2` (the Latin
@@ -108,7 +119,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   ContextMenu, ...; `ToolMark` over `marks.ts` — the real one-colour marks of
   npm, pnpm, Bun, Node, Solid, Tailwind, StyleX, CSS Modules, CSS, GitHub and
   the coding agents the bridge starts (keyed by its harness ids), from Simple
-  Icons (CC0), LobeHub (MIT) and the tools' own site icons, paths verbatim;
+  Icons (CC0), LobeHub (MIT) and the tools' own site icons, paths verbatim,
+  drawn from the site's sprite (below), so no page or script carries them;
   their owners' trademarks, shown only beside the tool's name, never restyled,
   dithered or put in the kit; imported by path, never through the `shared/ui`
   barrel, which would pull every shared component into the landing's first
@@ -116,7 +128,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   writes it; `charts.tsx`, the kit's charts as lazy parts (`lazyPart`, each
   loaded before a server renders it), so their scales (d3) and engines stay out
   of a page's first load, read by the landing's cards and the docs' chart
-  sections in place of the kit's index), config (CHART_TYPES; `titles.ts`, the routes' titles, a leaf the
+  sections in place of the kit's index; it imports the charts' stylesheet,
+  `@dither-ui/kit/solid/chart.css`, itself, so the page links it and a
+  prerendered chart is styled with no script: a lazy chunk's CSS arrives
+  only with its script), config (CHART_TYPES; `titles.ts`, the routes' titles, a leaf the
   landing can load without the docs IA; `storage.ts`, `STORAGE_KEYS` and
   `STORAGE_PREFIXES`, every localStorage key the site keeps, the ONE place
   one is spelled (never renamed: a reader's browser holds them); `player.ts`,
@@ -145,47 +160,25 @@ around this tree (entries, routes, the build, how Solid is written) is
   the click its release makes (a cancelled touch makes none, and a press on
   nothing keeps its click); a moving finger, a mouse, a text field and the
   platform's own menu (Android) are left alone (`tests/long-press.spec.ts`) —
-  `glide.ts` — the hover ground (the user's call, after a page they made):
-  one filled ground travels under the pointer from link to link in a row
-  (`ref={glide}`, `glide-ref.ts`; the header's nav), placed at once on the
-  first entry, a hand's movement on the glide, fading on a colour's time;
-  a finger never drives it, a keyboard keeps the focus ring
-  (`.glide-ground` in `app/styles.css`; `tests/site/glide.spec.tsx`) —
   `spring.ts` — the hand's spring (`HAND_SPRING`: response 0.35s, bounce
-  0.25; the user's lift of the glide for direct manipulation only):
-  `springAt` (the closed form from a position and a velocity),
+  0.25; the user's lift of the glide for a press let go only):
+  `springAt` (the closed form from a position and a velocity) and
   `springLinear` (its CSS `linear()` over `SPRING_MS`, copied into
-  `app/styles.css` as `--ease-spring` behind `@supports`) and `springTo`
-  (on the frame clock, for a drag let go; `tests/spring.spec.ts`) —
-  `press.ts` — `installPress`, set once by `entry-client.tsx`: a pointer
-  down on a key (`PRESSABLE`: `.key`, `.key-chrome`, `.nav-a`,
-  `.seg > button`, or what opts in with `data-press`, `"card"` giving
-  less) marks it `data-pressed="down"`, let go (or cancelled) `"up"` once
-  its 90ms travel has played, unmarked when its spring ends; a card only
-  where none of its controls, links or canvases took the press; nothing
-  under reduced motion; `app/styles.css` moves it, a `scale` of its own,
-  so a key's transitions and layout stay (`tests/site/press.spec.tsx`) —
-  `scroll-scene.ts` — scroll scenes: `scrollScene(el, range)`
-  (`scroll-scene-ref.ts`: `ref={scene(range)}`) writes `--scene`, 0 to 1
-  on the glide, from where the element is laid out (its own transform
-  left out) between two moments of its passage, or through the span its
-  sticky first child (never moved itself) is pinned; one driver: an
-  IntersectionObserver holds the scenes near the viewport (`SCENE_NEAR`),
-  and only while one is near does the scroll read their boxes in the
-  frame, then write; a scene gone past stands at its end above the view,
-  its start below; nothing under reduced motion, and a scene's stylesheet
-  moves only by transform and opacity under
-  `prefers-reduced-motion: no-preference` (`tests/scroll-scene.spec.ts`,
-  `tests/site/scroll-scene.spec.tsx`) —
+  `app/styles.css` as `--ease-spring` behind `@supports`, the press's way
+  back; `tests/spring.spec.ts`) —
   `files.ts` — `download()` and a stored .zip of text files, the ONE download
   path for the Studio's exports, the workbench and the source panel, and the
-  ONE `crc32` (the zip's entries, the icons' PNG chunks) —
+  zip's entries checked by the kit's one `crc32` (`@dither-ui/kit/engine/png.ts`) —
   `words.ts` — `breakable`, a camelCase name with a break point at each hump,
   for display only (the inspector's names) — `restyle.ts` — the reader's
   choice of styling system, kept across visits, over the `@dither-ui/restyle` package (a
   snippet in that system, the node-side utility map and the kit's StyleX
   generator: see `packages/restyle/AGENTS.md`); `kit-sources.ts` — the one
-  rule for which kit files the build serves; `gif.ts` — the ONE GIF encoder
+  rule for which kit files the build serves; `add-command.ts` — the add
+  command as the site hands it out (where the build serves the script,
+  its manifest and files, the line that runs it, `addCommand`, and the
+  kit components a snippet uses, `kitNamesIn`), import-free so the
+  build's config and the crawler files read it too; `gif.ts` — the ONE GIF encoder
   (one palette, `keep` colours held exact, optional ordered dither, delta
   frames), import-free because the share-card renderer carries its source
   inline: the workbench's captures and the share cards both go through it);
@@ -205,7 +198,21 @@ around this tree (entries, routes, the build, how Solid is written) is
   slot text through both code generators and Solid's own compiler).
 - `entities/widget/model/registry.ts` is the single source for Studio's searchable
   component library, inspector controls, untrusted-prop sanitization, functional
-  demo composition, and code export. A text field that reads a `DitherField`'s
+  demo composition, and code export. A row of a component whose docs
+  example carries a `meta` is generated from it (`example("DitherKnob")`
+  in its place in the list, beside it only what is code: its `mapProps`,
+  its `demo`): the build's catalogue (`virtual-dither-catalog`,
+  `../build/catalog.ts`, typed by `entities/widget/model/catalog.d.ts`;
+  the contract `shared/lib/example.ts`, `pages/AGENTS.md`) resolves each
+  setting's kind from its prop's type (a union of literals a select of
+  them, `PixelColor` a colour), its value from the meta's `demo`, the
+  example's props or the kit's default. The swipe area and the drawer
+  indent stay hand rows, the value each binds being its demo's (`demo:
+  true`). Where the example IS a new frame of the row
+  (the component alone, every prop it hands a setting at its value), the
+  row names it (`example`) and an unedited frame exports the example's own
+  code (`virtual-dither-catalog/sources`, `codegen.ts`); an edited one is
+  written by the generator. A text field that reads a `DitherField`'s
   context (DitherInput, Textarea, Select and the Email, Password, Search,
   Phone and Currency inputs, which wrap DitherInput) is `labelled`: a `label`
   text setting (empty by default) that is not the component's prop but the
@@ -218,10 +225,17 @@ around this tree (entries, routes, the build, how Solid is written) is
   what it takes: a setting that is not a prop is read into one (a
   bracket's `teams` into `rounds`) or, for the toaster, into its demo's
   `toast()` call (`demoToast`, the canvas's "Show toast" and the export's
-  key). Every prop a row binds is a real prop of its component, every
+  key); its meta says such a setting in `studio.story` (its kind and its
+  value, before the props' settings; a key that is a prop fails the
+  build). Every prop a row binds is a real prop of its component, every
   setting reaches it or its demo, and the code a frame of each row
   exports, as it comes and edited, type-checks against the kit
-  (`tests/site/registry-props.spec.ts`). A component with a two-way value (a field's
+  (`tests/site/registry-props.spec.ts`). A row holds only what the
+  Studio needs that the props type cannot say (its label, the input's
+  kind, a range, the demo's values, the options it offers): every value a
+  setting hands its prop as it stands (its default, an edit, each option
+  of a select) is one the prop's type takes, by the checker, in the same
+  spec. A component with a two-way value (a field's
   value, the chips' pick; the registry's `model` row, its prop where the
   component names it, `value` for the list pickers) keeps it as `model`;
   a demo's own state (the drawer a swipe area opens) is a `model` with
@@ -230,17 +244,20 @@ around this tree (entries, routes, the build, how Solid is written) is
   `value`, `artboard.update`'s `widget.value`) only in the kind of the
   entry's default and under `MODEL_MAX`, else the default;
   `tests/field-values.spec.ts`. Every public `Dither*` export is covered
-  there or by a bespoke widget kind. `TEXT_SAMPLES` beside the rows gives
-  a text prop read as a value (a locale, a currency, a CSS length) the
-  second value `tests/site/paint-law.spec.tsx` changes it to.
+  there or by a bespoke widget kind. A setting's second value in the
+  specs (`tests/site/paint-law.spec.tsx`, the export's type check in
+  `registry-props.spec.ts`) is its docs example's `states` where it states
+  one (`stated`, `tests/site/docs-api.ts`), else made from its spec.
 
 ## Local Contracts
 
 - Layer imports flow downward only: pages → widgets → features → entities →
   shared, never up (nor into the files above the layers: the entries, the
   shell, `app.tsx`, `app.css`, `routes/`), never sideways into another
-  slice of the same layer, and no module reaches itself again through the
-  values it imports (a type-only import is erased). Two layers rank their
+  slice of the same layer, and no module reaches itself again through what
+  it imports, types included (a type cycle is two files that should share
+  a third: the composer's menus take their share of its props from
+  `widgets/agent/model/composer.ts`, `HarnessMenus`). Two layers rank their
   slices, each rank a real dependency: entities chart and widget (a
   frame's two contents) under artboard (a frame) under editor (the
   frames) under video (a frame of the document and its reel's clips);
@@ -250,6 +267,27 @@ around this tree (entries, routes, the build, how Solid is written) is
   `tests/fsd.spec.ts` holds all of it, with no exemption. The kit
   (`@dither-ui/kit`) may be imported from any layer; nothing imports back
   into it.
+- A slice is entered only through its public entry, its `index.ts`, from
+  anywhere outside it (another layer, the routes, the shell); inside a
+  slice files import each other freely. The surface is what is used:
+  `tests/exports.spec.ts` fails on an export nothing imports (a spec
+  counts), so a name a slice keeps to itself is not exported, its
+  components' props types included. Where a module behind an
+  index would pull weight into a page that loads the index without using
+  it (the bundler places a module by the imports that reach it, used or
+  not), the slice names a second entry, listed in the spec's `ENTRIES`:
+  `features/agent/acp.ts` (the ACP client, the lazily loaded agent panel's
+  alone), `entities/artboard/code.ts` and the chart's and the widget's
+  `model/codegen.ts` (the frame as code: the player and the canvas never
+  reach the styling rewriter). A page is entered file by file where the
+  routes, the shell and the build take it (`pages/docs`: `DocsPage`,
+  `PageHead`, `heads`, `pages`, `pack-loaders`, `crawler-files`;
+  `pages/landing`: `LandingPage`, `MissingPage`; `pages/play`: `main`; the
+  Studio's index), never through a barrel (`../AGENTS.md`). `app/` and
+  `shared/` hold no slices: their files are imported by path, a segment's
+  index (`shared/lib`, `shared/config`, `shared/ui`) only a short way to
+  its light modules, never the one door (the tools' marks, a stylesheet
+  or a heavy engine stay out of it, as `shared/ui/marks.ts` does).
 - Canonical routes are `/`, `/docs[/section]`, and `/studio`, plus the
   `noindex` player at `/play/`; legacy
   `#/docs[/section]` and `#/studio[/new/<type>]` links remain supported.
@@ -377,7 +415,8 @@ around this tree (entries, routes, the build, how Solid is written) is
     `inspect` (`inspect.ts`: the frame's controls in Tab order and the
     audit's findings, read off its drawn surface (`surfaceOf`,
     `entities/artboard/picture.ts`) at the canvas's zoom), `export_png`
-    (`image.export` names `image/<slug>.png`); frame summaries carry
+    (`image.export` names `image/<slug>.png`), `export_svg` (`svg.export`,
+    the SVG's text itself); frame summaries carry
     their `group`; the `AgentEvent` union the
     composer renders (delta, thought, assistant, tool, activity with the
     harness's ACP tool kind, plan, mode, commands, turn, error, stopped,
@@ -417,8 +456,7 @@ around this tree (entries, routes, the build, how Solid is written) is
     request reaching a local server; no document, parent or storage; an
     endless loop stopped while the page answers; parse and throw errors
     reported).
-  - `chats.ts` (imported by path, so the page never pulls the protocol):
-    a project's chats, the `chats` store shared by the Studio's
+  - `chats.ts`: a project's chats, the `chats` store shared by the Studio's
     sidebar, its search and the agent panel (`project`, `list` newest
     first as `{id, title, at, named?, pinned?}`, parsed once where the
     index is read, the `active` chat). `openProject` (a no-op when open;
@@ -443,7 +481,8 @@ around this tree (entries, routes, the build, how Solid is written) is
     `NoBridge`, which the panel answers with its setup card, never a raw
     error; `bridgeCommand(page, file, bridgeUrl)` is that card's line
     (the file the site serves at `BRIDGE_FILE`, from `bridge-file.ts`,
-    which imports nothing so `build/site-files.ts` reads it too; `--origin`
+    which imports nothing so `build/site-files.ts` reads it too, and which
+    the panel takes through `acp.ts`, the slice's second entry; `--origin`
     only when `bridgeKnows` says the bridge would refuse the page, pinned
     against the real bridge by `tests/bridge.spec.ts`). `connectAcp`
     sends the Studio tools
@@ -529,6 +568,74 @@ around this tree (entries, routes, the build, how Solid is written) is
   snippet's own CSS hooks stay classes), `tests/site/solid-code.spec.tsx`
   (a file and a fragment in each system), and the export and `code.get` cases in
   `tests/site/codegen.spec.tsx` and `state.spec.tsx`.
+- SVG: a frame (or the selection, each frame at its place) as a layered
+  SVG a design tool keeps editing (Figma, Illustrator, Sketch, Penpot),
+  read off the frame as drawn (`surfaceOf`) at the canvas's zoom by
+  `entities/artboard/vector.ts` (`framesSvg`; the walk's shared state and
+  colours in `walk.ts`, a box's paint in `box.ts`) and written by `svg.ts`
+  (framework-free: the scene's nodes, `svgDocument`, `cellRuns`,
+  `fontStack`, `parseColor`; computed CSS read as SVG in `css-svg.ts`:
+  radii, gradients, tiles, basic-shape clips, shadows). Each frame is a group named after it (ids
+  are the names design tools show as layers, each once), clipped to its
+  box, a `Background` layer (the surface's fill over what the page shows
+  under it, opaque) and then the frame's own layers: a chart's as the
+  layer tree names them (`layersOf`: its root, the back SVG as the grid,
+  the canvases as the series, the front SVG's parts as the X and Y axes
+  by where they stand, else the series' markers, the page layer as the
+  legend), a screen's rows and cells (`screenLayers`; the renderer marks
+  each with `layerMark(id)`), any other widget one layer named after its
+  component. Inside a layer: a box as the page paints it (`box.ts`):
+  outer shadows (blurred by a filter), its fill and each background
+  layer (a linear or radial gradient as an SVG gradient, a tiled layer
+  as a pattern, so a dot grid stays a pattern; a kit tone class,
+  `dk-tone*`, as that tone's own pattern from the kit's `tonePatterns` in
+  its ink at `--dk-cell`), inset rings (an inset shadow of spread alone:
+  a pressed key), its border and outline, each corner its own radius (a
+  `<rect>` where they agree, arcs where not); what a box clips (overflow,
+  a basic-shape `clip-path`) in a clipped group; a positioned
+  `::before`/`::after` as a box; a checkbox, radio or slider the browser
+  draws as plain shapes in its accent;
+  each line of text (a field's value or placeholder, an SVG tick's text
+  too, its anchor resolved) a `<text>` at its baseline, no anchor or
+  baseline attribute, in its size, weight and face (the stack from
+  `fontStack`: the faces a tool ships first, Michroma, Inter, JetBrains
+  Mono for the system mono; CSS's system keywords out), an inline SVG's
+  shapes copied with their computed paints and their place as a matrix
+  (what they refer to in `defs`), a canvas's print as its cells merged
+  into runs, one path an ink (its read-back held to `MAX_INKS` inks by
+  `quantizeInks`, a median cut of its colours as they show, so a line's
+  few cells keep their hue; a CSS filter on it, the glow, kept as an SVG
+  filter, blur, brightness and saturation, with its blend), and a canvas
+  the inks would move past `INK_TOLERANCE` or that runs past `MAX_RUNS`
+  (a photo, a smooth ramp) as its current frame in a PNG `<image>`, as
+  an `<img>` is (one drawn pixelated, a still avatar or spinner, is cells
+  like a canvas). What SVG cannot say is approximated and listed in the
+  file's `<desc>`: blurred or offset inset shadows, a masked or filtered
+  `::before`/`::after` and one in the flow left out, a mask other than a
+  tone drawn unmasked, a `clip-path` that is not a basic shape left
+  unclipped, a conic gradient in its first colour, a rounded border with
+  unequal sides drawn square, a native control drawn as plain shapes (the
+  reader is synchronous, so it never rasterises).
+  Every colour is written as hex (`oklch()` and `color-mix()` read back
+  through a pixel). Delivery: `svg-copy.ts`'s `copyFramesSvg` writes
+  `image/svg+xml` with `text/plain` where `ClipboardItem.supports` says
+  the browser takes it (Chromium), else the text alone through the kit's
+  `copyText` (Safari, Firefox; Figma, Penpot and Illustrator read SVG text
+  on paste), and says which (`SVG_COPY_SAID`); `saveFramesSvg` downloads
+  `<name>.svg` (`selection.svg` for several); `copySvg` and `saveSvg` do
+  the same for any SVG's text. Any element is read the same way by
+  `elementSvg(root, name, skip?)` (zoom 1, no model layers, `skip`
+  leaving out what it names): the docs previews' workbench copies and
+  saves its stage with it (`widgets/workbench/AGENTS.md`), so the Studio
+  and the docs write one SVG. UI: the canvas bar's "Copy
+  as SVG" and "Save as SVG" keys (the selection) and the export dialog's
+  "Copy as SVG" and "Download SVG" (its frame). Protocol: `svg.export {
+  id? | ids? }` (the selection by default; malformed ids refused, a frame
+  not drawn fails) answers `{ ids, file: svg/<name>.svg, svg }`, the
+  `export_svg` tool. Pinned by `tests/svg.spec.ts` (the writer and a known
+  frame), `tests/site/svg-export.spec.tsx` (a frame of each chart type
+  and widget kind, a screen's layers, the selection, the command) and the
+  `svg.export` row of `tests/site/agent-commands.spec.ts`.
 - Clock for drivers: `clock.seek { seconds? }` / `clock.release` hold or
   free the kit clock from the protocol (the `seek_clock` tool), and
   `window.ditherStudio.clock` exposes the same four calls (`seek(seconds)`,
@@ -693,7 +800,7 @@ around this tree (entries, routes, the build, how Solid is written) is
   suppress. Every page holds one h1 and one main (the Studio's h1 and the
   player's are visually hidden); what a scene keeps unseen is inert (the
   agent story's parts not laid out yet), and what the rise holds stands up
-  at once when focus comes into it (`shared/lib/rise.ts`), so Tab never
+  at once when focus comes into it (`:focus-within`, `RiseWords.css`), so Tab never
   lands on what does not show. Interactive targets are at least 24px on their short side
   (`h-6` / `min-h-6` / `size-6` on dense chrome). Pressed and selected
   chrome is `.ring-on` and every toggle carries `aria-pressed` (state is
@@ -721,13 +828,17 @@ around this tree (entries, routes, the build, how Solid is written) is
   canvas) is `touch-none`. A frame's resize handle reaches 24px on the
   screen under a cursor and 40px under a finger whatever the zoom
   (`--zoom` on the frames' layer, `widgets/canvas/Artboard.css`), the
-  frame's name (its move grip) standing over that reach. A menu
+  frame's name (its move grip) standing over that reach. That key is
+  unseen: the canvas draws the selection's outline, the handles (8px at
+  any zoom), the snap guides and the marquee in ONE SVG layer over the
+  frames, in screen px, taking no press (`widgets/canvas/Overlay.tsx`,
+  strokes `non-scaling`; the canvas cases of `tests/site/render.spec.tsx`). A menu
   opened at a point moves in from the window's edge (`inView`, the kit's
   engine). Keys shown on hover show on a screen without hover
-  (`[@media(hover:none)]`). A press gives under a finger as under a mouse
-  (`shared/lib/press.ts`, pointer events, so WebKit's missing `:active`
-  on a tap never matters), and the site's menu under lg is a bottom sheet
-  a finger drags down (`pages/AGENTS.md`, Header).
+  (`[@media(hover:none)]`). A press is the key's own `:active` (WebKit on
+  iOS may show no press on a quick tap: the press is feedback, never
+  state), and the site's menu under lg is a bottom sheet (`pages/AGENTS.md`,
+  Header).
 - The inspector's names (and the shared fields' it uses: NumberField,
   Segmented, Toggle, BloomField, TextureField) stand in ONE column,
   `.prop-name` (`--prop-name`, 5.5rem, `app/styles.css`, unlayered), so
@@ -783,10 +894,11 @@ around this tree (entries, routes, the build, how Solid is written) is
   `transition-*` utility glides; `tests/motion.spec.ts` holds both
   sites' copies to the kit and finds no other curve or linear wipe in the
   site's motion), `--ease-spring` and `--spring-time` (the hand's spring
-  as `linear()`, the glide where it is not supported; only what the hand
-  moves directly), `--press-time` (a press's travel down), the press's
-  rules (`[data-pressed]`, `@keyframes press-down` and `press-up`,
-  `--press-scale`), `--cut` (16px), `--display-face`
+  as `linear()`, the glide where it is not supported; only a press let
+  go), `--press-time` (a press's travel down), the press's rules (every
+  pressable's `:active`, `--press-t` the transition its own list carries
+  as `scale var(--press-t)`, `--press-scale`; `tests/css-motion.spec.ts`),
+  `--cut` (16px), `--display-face`
   (Michroma, then the mono; the `font-display` utility reads it; its
   `@font-face` is `shared/fonts/display.css`, imported by the landing and
   the docs only, never by the player, whose bundle inlines every asset).
@@ -795,7 +907,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   `.spec` (spec label: uppercase, tracked, 10px) and `.speed-tag` (a
   slanted plate), the ONLY uppercase in the site's own chrome;
   `.hardshell` (two corners cut by `clip-path`, which clips what it
-  holds, fixed descendants included; a chrome-glint ring along the cut;
+  holds, fixed descendants included; the cut's outline written once,
+  `--hardshell-cut`, which the shell and its ring both clip by, so the
+  cut is never restated (`tests/design-doc.spec.ts`); a chrome-glint
+  ring along the cut;
   the shell ground (no fasteners or other manufacturing theater: the
   user's brief keeps one credible joint, the cut); set `--cut`
   locally for a smaller cut), only for a page's one shaped hero panel
@@ -842,45 +957,71 @@ around this tree (entries, routes, the build, how Solid is written) is
   fetched, the cards' renderer, the player and the kit's sources never;
   Chromium only, and off under DevTools), both set by the shell
   (`src/entry-server.tsx`). `tests/first-paint.spec.ts`.
-- Docs sections are DIRECT children of `.docs-flow`: the page shows one
-  at a time by toggling `hidden` on them (`pages/AGENTS.md`, Wayfinding),
-  and each is prerendered as its own page (`routes/docs/[section].tsx`).
-  A section a pack renders is mounted only once opened (`docs/packs.ts`,
-  `packOpen`; the last `PACKS_KEPT` packs read stay mounted): a new pack
-  is a row in `DOCS` (`docs/groups.ts`) and its loader, every section a
+- Docs sections are DIRECT children of `.docs-flow` (`pages/docs/DocsPack.tsx`,
+  the flow's island): each is prerendered as its own page
+  (`routes/docs/[section].tsx`), which holds only its section's pack
+  (`docs/packs.ts`, `packOf`), the pack's other sections held back in the
+  bytes by the flow's rule (`pages/AGENTS.md`, Wayfinding): a new pack is
+  a row in `DOCS` (`docs/groups.ts`) and its loader, every section a
   pack's `DocSection`.
   New section wrappers must stay direct children of `.docs-flow`.
+- Static pages and islands (`shared/lib/island.tsx`; the contract is
+  `../AGENTS.md`'s): `Static` is the ONE boundary between a page's bytes
+  and its script, `islands({...})` the ONE table of a page's islands, and
+  an island is a module of the page's slice (`pages/landing/InsideArt.tsx`,
+  `pages/docs/DocsHeader.tsx`) or of `shared/ui` (`AdSlot`), never a
+  slice's index, since its chunk's stylesheets are read by its module's
+  id. Rendered in a browser (a spec, a page rendered anew) an island is a
+  lazy part. Islands share the page's module state (the styling, the
+  sounds, the theme) as one app does. What moves on a static page's bytes
+  (the rise, the scroll scenes, the press) needs no island: it is the
+  classes the server renders (Motion, below).
+- Motion (the user's call: "I don't want any animations to be JS; I want
+  them to be no JS and be class names"): every motion of the site's own
+  is a class's CSS, a transition, `@keyframes` or a scroll-driven
+  animation, inside a `prefers-reduced-motion: no-preference` query (a
+  scroll timeline also inside `@supports (animation-timeline: view())`),
+  so a reader who asks for less, a browser without scroll timelines (Safari
+  before 26, Firefox) and a page with no script all see the end state, and
+  nothing waits hidden for the app. A script may toggle the class or the
+  attribute a motion keys on (the menu's `data-phase`, the car's
+  `data-driving`) and pause or play the kit's canvas art (`drive.ts`,
+  `coverPage`); it never moves anything itself. What a stylesheet cannot
+  drive alone (a sheet dragged under a finger, a spring from its velocity,
+  a ground travelling from link to link) is dropped. The kit's dithered
+  canvases draw in script, and `tests/no-js-motion.spec.ts` names every
+  other file that still runs the frame clock, plays an animation or writes
+  a transform, each with its reason (the brand's cells, the docs' demos of
+  the kit, the Studio's film, the inspect tools' canvases, placements a
+  transition then moves); `tests/css-motion.spec.ts` holds the classes.
 - Page transitions: the routes (`/`, `/docs`, `/studio` and the section
-  pages) opt into cross-document view transitions in `app/styles.css`
-  (`@view-transition`, none under reduced motion), and the arriving page
-  dithers from the old one through the kit's `ditherViewTransition`: a
-  right wipe (left going back through history) with a band of the signal
-  ink, on the glide like every motion on the site. `app/page-reveal.ts` owns the hand-off: `PAGE_REVEAL_SCRIPT`,
-  inlined first in each site page's head by the shell
-  (`src/entry-server.tsx`, with the `PAGE_END_ID` marker at
-  the end of each body), parks the
-  `pagereveal` transition and holds the old page on screen until the app
-  takes it; arriving from one of the pages it also holds the first frame
-  to the marker (`<link rel=expect blocking=render>`), since Chromium drops
-  a transition into a page it paints mid-parse;
-  `takePageTransition` hands it to `entry-client.tsx` in either order (that hold lets
-  the app's deferred script run before the reveal). `tests/page-reveal.spec.ts`
-  runs the inline script both ways. The rise (`shared/lib/rise.ts`: a
-  headline's words up one after another on the glide, 24px over 900ms,
-  60ms apart, then its blocks 90ms apart; the site's `rise(el)` is
-  `shared/lib/rise-ref.ts` over it) waits in the
-  prerendered bytes:
-  `RISE_HEAD_SCRIPT` (`shared/lib/rise-wait.ts`, inlined after the reveal
-  script) sets `rise-wait` on `<html>` unless the reader asks for reduced
-  motion, styles.css keeps unrisen `[data-rise]` out of sight under it,
-  and the app takes over (`data-rise="live"`) or the wait lets go after
-  3s. On a page that turns with the reader's theme (`TURNS_WITH_THEME`
+  pages) opt into cross-document view transitions of the `page` type in
+  `app/styles.css` (`@view-transition { navigation: auto; types: page }`,
+  none under reduced motion), and the arriving page wipes in from the left
+  over the old one, CSS alone: a registered `--front` runs 640ms on the
+  glide, quantized to the 32px tile, and the new page's mask is whole to
+  three strips of the kit's Bayer ranks (`--bayer-<k>`, the 4x4's cells
+  under rank k, held to `BAYER4` by `tests/css-motion.spec.ts`), the old
+  page's the same strips the other way 64px ahead, so a band of the signal
+  ink (the group's ground) leads the front. Going back through history
+  wipes the same way (no script reads the direction). Where a browser has
+  no cross-document view transitions the page arrives at once. The shell
+  holds each page's first frame to the `PAGE_END_ID` marker at the end of
+  its body (`PAGE_EXPECT` in `app/page-reveal.ts`, `<link rel=expect
+  blocking=render>`), since Chromium drops a transition into a page it
+  paints mid-parse. The rise (`pages/landing/RiseWords.css`: a headline's
+  words up one after another on the glide, 24px, then its blocks) is a
+  holder's class: `.rise` on its own view timeline as it comes into view,
+  `.rise-open` (the first screen's) 900ms as the page opens, the words 60ms
+  apart, then the blocks 90ms apart. On a page that turns with the reader's theme (`TURNS_WITH_THEME`
   in `pages/docs/heads.ts`: the docs and the Studio) `THEME_HEAD_SCRIPT`
   (`shared/lib/useTheme.ts`, reading `STORAGE_KEYS.theme`) sets the
   stored theme on `<html>` before the first paint, so a reader in light
   never meets the dark bytes until the app mounts. The theme toggle
-  (`useTheme`'s `revealToggle`) dithers the new theme in as an iris from
-  its control.
+  (`useTheme`'s `turn`) starts the one view transition of the `theme`
+  type (`THEME_TURN`; where the browser has typed view transitions and
+  motion is welcome, else it turns at once), and the stylesheet prints the
+  new theme in over the old one through the 16 ranks, 4px cells, 480ms.
 - Install and offline (the Studio is a PWA; the landing and the docs are
   not): `app/offline.ts` names the app's path (`OFFLINE.app`, `studio/`)
   that the manifest's place, the worker's scope and its kept page all
@@ -889,8 +1030,8 @@ around this tree (entries, routes, the build, how Solid is written) is
   (`studio/app.webmanifest`; `id`,
   `start_url` and `scope` all `.`, standalone, the Studio's dark ground
   as background and theme, icons a folder up), every icon drawn from
-  `MARK_CELLS` as a PNG it encodes itself (the maskable one's mark inside
-  the 80% safe circle; its chunks' CRC-32 is `shared/lib/files.ts`'s) and
+  `MARK_CELLS` as a PNG through the kit's encoder (`@dither-ui/kit/engine/png.ts`; the maskable one's mark inside
+  the 80% safe circle) and
   the tab's SVG, all listed by `installFiles()`
   and emitted by the `siteFiles` plugin, and the head tables the pages
   render (`ICON_HEAD`, the icons, on every site page from the shell;
@@ -918,16 +1059,44 @@ around this tree (entries, routes, the build, how Solid is written) is
   Bayer thresholds, an eye hole beside an ember optic that never shuts,
   the mark's ember heart and antenna tips;
   poses idle, blink, hop, wave and fly, where the antennae fold into a
-  rotor whose `turn` steps it round); `Mascot.tsx` draws it as a
-  decorative SVG in `currentColor`, blinks when `alive`, hops under a
-  pointer and spins the rotor while it flies, all held still under
-  reduced motion. Imported by path. Guarded by `tests/mascot.spec.ts`.
+  rotor whose `turn` steps it round; `mascotParts` hands its parts, a
+  row up off the ground, to the sprite); `Mascot.tsx` draws it as a
+  decorative SVG in `currentColor` of the sprite's parts (antennae or
+  each rotor turn, body, feet, a lid on the eye), posed by `data-pose`
+  and `data-alive` and moved by `Mascot.css` alone, no timer: standing a
+  row down, a blink every five seconds when `alive`, a hop under a
+  `:hover`, the rotor a quarter turn every 60ms while it flies, all held
+  still under reduced motion. Imported by path. Guarded by
+  `tests/mascot.spec.ts`.
+- `shared/ui/sprite.ts` is the site's ONE SVG sprite's address and ids
+  (`spriteRef`, `markSymbol`, `BRAND_SYMBOL`, `MASCOT_SYMBOLS`):
+  `sprite-file.ts` draws it from the sources (every kit glyph as the
+  kit's `iconSymbols` writes it, every tool's mark verbatim, the brand
+  mark and the mascot's parts from their cell tables, an ink's cells one
+  path through `cells.ts`'s `runPaths`) and names it by its content
+  (`_build/assets/sprite-<crc>.svg`); the `siteFiles` plugin emits it and
+  defines `SPRITE_DEFINE` to its path for the app, so the Studio's worker
+  keeps it with the page (`pageAssets` drops a `#symbol`). An external
+  file, not one inlined in each page: cached once across pages, where an
+  inlined sheet weighed on every page more than the inline glyphs it
+  replaced. `ToolMark`, `BrandMark` (its own mark; another grid's
+  `cells` draws its runs inline), `Mascot` and, through the kit's
+  `IconSprite` context `app.tsx` provides, every `DitherIcon` on a site
+  page `<use>` it. What is drawn to an image or exported draws its own
+  paths (`IconSprite` set back to `null`): a docs demo and its workbench
+  (`DemoCard`), every Studio frame (`FrameRenderer`). Guarded by
+  `tests/sprite.spec.ts` (each symbol against its source, the mascot
+  stood in every pose from its parts).
   `car.ts` is the mascot's car on the same cell grid (an original wedge
   speedster: the body printed like the mascot's, an ember stripe, the
   brand's diamond on the door, ember tail light, bone headlight, wheels
   whose spokes turn a step a frame), `drivenCells` seats the mascot in
   its cockpit (only what stands over the door line shows);
-  `MascotCar.tsx` draws them, its wheels turning while `driving`, still
+  `MascotCar.tsx` draws them, its wheels turning while `driving` by
+  `MascotCar.css` alone, as the rotor steps: `cells.ts`'s `stepCells`
+  splits the wheel turns into what they share (drawn once) and each
+  turn's own cells (a `.car-turn` group, `--turn` its place), shown for
+  its quarter of 280ms under `data-driving`, the first turn parked and
   under reduced motion. Guarded by `tests/car.spec.ts`.
   `mascot-capture.ts` grows the table into a Gaussian capture of our own
   (a cut stone of splats, a dark eye and an ember optic on both faces, three ember orbits),

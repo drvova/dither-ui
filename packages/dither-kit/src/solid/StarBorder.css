@@ -8,19 +8,19 @@
 .dither-star-border .star-bottom {
   bottom: -11px;
   right: -250%;
-  animation: dither-star-move linear infinite alternate;
+  animation: dk-star-move linear infinite alternate;
 }
 .dither-star-border .star-top {
   top: -11px;
   left: -250%;
-  animation: dither-star-move-rev linear infinite alternate;
+  animation: dk-star-move-rev linear infinite alternate;
 }
-@keyframes dither-star-move {
+@keyframes dk-star-move {
   to {
     transform: translateX(-100%);
   }
 }
-@keyframes dither-star-move-rev {
+@keyframes dk-star-move-rev {
   to {
     transform: translateX(100%);
   }

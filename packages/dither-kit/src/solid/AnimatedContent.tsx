@@ -6,13 +6,17 @@ import { latestEntry } from "../engine/visibility"
 
 export type AnimatedContentProps = {
   /** px (number) or any CSS length — `"4cqw"` measures the nearest query
-   * container, making the reveal container-relative. */
+   * container, making the reveal container-relative.
+   * @docs number (px) | CSS length: "4cqw" rides the nearest query container */
   distance?: number | string
   direction?: "vertical" | "horizontal"
   reverse?: boolean
+  /** @docs number (ms) */
   duration?: number
+  /** @docs number (ms) */
   delay?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -33,6 +33,7 @@ const styles = stylex.create({
 export type Crumb = { label: string; href?: string }
 
 export type DitherBreadcrumbProps = {
+  /** @docs { label; href? }[] */
   items: Crumb[]
   separator?: string
   class?: string

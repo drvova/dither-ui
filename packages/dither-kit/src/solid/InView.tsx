@@ -8,7 +8,8 @@ export type InViewProps = {
   class?: string
   onEnter?: () => void
   onLeave?: () => void
-  /** Given the scope: `inView` reads live. */
+  /** Given the scope: `inView` reads live.
+   * @docs ({ inView }) => JSX.Element */
   children?: (scope: { readonly inView: boolean }) => JSX.Element
 }
 

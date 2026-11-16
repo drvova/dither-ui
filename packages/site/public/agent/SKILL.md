@@ -164,6 +164,7 @@ Commands (`type` and fields):
 | `view` | `to?` (`all`, `selection`, `in`, `out`, `actual`), `zoom?` (0.2–3, 1 is 100%) or `id?` (fit that frame) — the canvas view; held at 100% while the user inspects |
 | `inspect` | `id?` — the frame as drawn: its controls in Tab order (role, name, states, box in the frame's px) and what the accessibility floor finds (missing names, fields named only by their placeholder, targets under 24px, text under AA contrast, images without alt, positive tabindex); check a screen with it before calling it done. A text field (`DitherInput`, `DitherTextarea`, `DitherSelect`, `DitherEmailInput`, `DitherPasswordInput`, `DitherSearchInput`, `DitherPhoneInput`, `DitherCurrencyInput`) takes a `label` prop: its visible label, tied to it (the field inside a `DitherField`), which is what fixes a placeholder-only name |
 | `image.export` | `id?`, `scale?` (1–4, default 2) — names the PNG's place, `image/<name>.png`; the `export_png` action writes it under your project through the bridge |
+| `svg.export` | `id?` or `ids?` (the selection by default): the frames as drawn, as a layered SVG for Figma, Illustrator, Sketch or Penpot, `{ ids, file, svg }`: one group a layer named after it (a chart's grid, axes, series and legend; a screen's rows and cells), text as `<text>` in the frame's faces, the dither as cells merged into runs, art with no vector form as a PNG `<image>` |
 | `code.get` | `id`, `styling?` — the frame as a Solid component, `{ file, code, sheet }`: a `.tsx` file on the kit's Solid layer; `tailwind` (default) keeps the utility classes, `css` (a stylesheet), `modules` (CSS Modules) or `stylex` write the same look in that system while the kit components keep their own styles; `sheet` is the stylesheet the file then imports, `{ file, text }` (null otherwise) |
 | `document.get` | — |
 | `document.set` | `document` (validated like a file import; undoable) |
@@ -264,3 +265,27 @@ and the requested time (Node 22 + FFmpeg: `npx hyperframes render`).
   `hf-seek` DOM event and screenshots it with Playwright, then assembles the
   MP4 with ffmpeg — no CDP needed. The player also exposes
   `window.ditherClock.seek(seconds)` / `.release()` for any `evaluate` call.
+
+## 6. Add the kit to the user's project
+
+The code the Studio exports (`code.get`, the export dialog) imports the kit
+as `@dither-kit`. Put the components it imports into the user's project
+with the add command, a zero-dependency Node script the site serves, run
+from the project's root:
+
+```sh
+curl -fsSL https://dither-ui.com/add/dither-add.mjs | node --input-type=module - add DitherButton AreaChart Area
+```
+
+It copies each component with every kit file it imports (the engine's
+included) into `src/dither-kit` (`--dir <path>`), in the project's styling
+system (`--styling tailwind|css|modules|stylex`, the values `code.get`
+takes), with an index of just what was added, writes `dither-kit.json`
+with those choices for later runs, and prints the one alias to set:
+`@dither-kit` to the copy's `solid/` folder (`stylex/` for StyleX), in the
+bundler and the tsconfig. `list` names every component it can add, and
+`diff <component>` shows what differs between the copy and the site. It
+never replaces a file the user changed: the run stops, shows the
+difference and writes nothing, unless `--force`; `--dry-run` says what
+would change and writes nothing. Name the components the exported file
+imports from `@dither-kit`.

@@ -49,7 +49,7 @@ const print = (time: number) => {
   return buffer.data
 }
 /** The print's bytes through the kit's own FNV-1a. */
-export const hashOf = (bytes: Uint8ClampedArray) => {
+const hashOf = (bytes: Uint8ClampedArray) => {
   let text = ""
   for (let i = 0; i < bytes.length; i++) text += String.fromCharCode(bytes[i])
   return fnv1a(text).toString(16).padStart(8, "0")

@@ -6,6 +6,8 @@ import DitherInput, { type DitherInputProps } from "./DitherInput"
  * (10-digit NANP input), tel keyboard on mobile. The model is always the
  * formatted string; caret editing is end-anchored by design. */
 type Own = {
+  /** @docs string (with onUpdateModelValue, formatted)
+   * @default "" */
   modelValue?: string
   placeholder?: string
   autocomplete?: string

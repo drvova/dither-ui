@@ -1,6 +1,5 @@
 /* The site header's look: the capsule, its keys and the menu's bottom
-   sheet of tone bands (`menu.ts` holds the bands' fills and the seam,
-   `sheet.ts` how a hand moves it). */
+   sheet of tone bands (`menu.ts` holds the bands' fills and the seam). */
 /* The header's lines, named so a sheet's text can stand on them: the gutter
    the capsule floats in, its width and its inner padding. A sheet's words
    start on the brand mark's left edge (the capsule's start padding and the
@@ -43,6 +42,24 @@
   }
 }
 
+/* A pointer on one of the capsule's links fills its own ground under it
+   (the user's call, after a page they made), on a colour's time; CSS
+   alone, so the ground never travels from link to link. A finger never
+   fills it (no hover), a keyboard keeps the focus ring. */
+.site-nav .nav-a {
+  border-radius: 8px;
+  transition:
+    color 150ms var(--ease-settle),
+    background-color 150ms var(--ease-settle),
+    scale var(--press-t);
+}
+
+@media (hover: hover) {
+  .site-nav .nav-a:hover {
+    background: var(--muted);
+  }
+}
+
 .studio-key {
   height: 34px;
   padding-inline: 16px;
@@ -70,10 +87,8 @@
 /* The menu fills the window, over everything (the top layer), clear: the
    page shows above its sheet, held still. The sheet stands at its foot, as
    wide as the header's lines (so its words stand on them), its top a soft
-   shell on the raised ground; it reaches `--sheet-reach` under the window's
-   foot, so a spring that passes its rest never shows a gap under it. */
+   shell on the raised ground. */
 .site-menu {
-  --sheet-reach: 40px;
   position: fixed;
   inset: 0;
   width: 100%;
@@ -97,11 +112,11 @@
 .menu-sheet {
   position: absolute;
   inset-inline: 0;
-  bottom: calc(-1 * var(--sheet-reach));
+  bottom: 0;
   display: flex;
   flex-direction: column;
   width: min(100%, calc(var(--capsule-width) + 2 * var(--head-gutter)));
-  max-height: calc(100dvh - var(--head, 64px) + var(--sheet-reach));
+  max-height: calc(100dvh - var(--head, 64px));
   margin-inline: auto;
   overflow: hidden;
   border-radius: 20px 20px 0 0;
@@ -109,8 +124,7 @@
   box-shadow: 0 -12px 30px -12px rgb(0 0 0 / 0.6);
 }
 
-/* The head: a handle to drag the sheet down by, what it is, and the close
-   key, on the raised ground. A finger here moves the sheet, never the page. */
+/* The head: what it is and the close key, on the raised ground. */
 .menu-grab {
   position: relative;
   display: flex;
@@ -120,25 +134,32 @@
   gap: 12px;
   padding: 16px var(--sheet-end) 0 var(--sheet-start);
   color: var(--foreground);
-  touch-action: none;
-  cursor: grab;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
-.menu-grab:active {
-  cursor: grabbing;
+/* It slides up from the window's foot as the menu opens and back down as
+   it leaves (the dialog's phase), a sheet's time on the glide; the menu
+   shuts once the slide down has played (`SHEET_OUT`). At once under
+   reduced motion. */
+@keyframes menu-sheet-in {
+  from {
+    translate: 0 100%;
+  }
 }
 
-.menu-handle {
-  position: absolute;
-  top: 7px;
-  left: 50%;
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--muted-foreground);
-  translate: -50% 0;
+@keyframes menu-sheet-out {
+  to {
+    translate: 0 100%;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-menu[data-phase="open"] .menu-sheet {
+    animation: menu-sheet-in 500ms var(--ease-settle);
+  }
+
+  .site-menu[data-phase="leaving"] .menu-sheet {
+    animation: menu-sheet-out 500ms var(--ease-settle) forwards;
+  }
 }
 
 /* The close key: a 44px target, its word on the key word's line. */
@@ -181,7 +202,7 @@
 }
 
 .menu-band:last-child {
-  padding-bottom: calc(14px + var(--sheet-reach) + env(safe-area-inset-bottom));
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
 }
 
 .menu-name {
@@ -252,8 +273,7 @@
 }
 
 @media (forced-colors: active) {
-  .menu-seam,
-  .menu-handle {
+  .menu-seam {
     display: none;
   }
   .menu-sheet {

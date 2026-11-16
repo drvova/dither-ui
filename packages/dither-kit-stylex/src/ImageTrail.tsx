@@ -11,11 +11,16 @@ const styles = stylex.create({
 })
 
 export type ImageTrailProps = {
+  /** @docs string[] (hex)
+   * @default ['#5227FF', '#7CFF67', ...] */
   colors?: string[]
+  /** @docs number (px) */
   size?: number
+  /** @docs number (ms) */
   duration?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

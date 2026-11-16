@@ -1,7 +1,8 @@
 // @rstest-environment jsdom
 import { describe, expect, it } from "rstack/test"
 import { bytesToBase64, fromBase64Url, toBase64Url } from "@/shared/lib/base64"
-import { crc32, zip } from "@/shared/lib/files"
+import { crc32 } from "@dither-ui/kit/engine/png.ts"
+import { zip } from "@/shared/lib/files"
 import { asTsx, snippetKind } from "@/widgets/source/model/snippet"
 import * as stylex from "@/widgets/source/model/stylex"
 
@@ -27,6 +28,8 @@ const SLIDER = "<DitherSlider modelValue={level()} onUpdateModelValue={setLevel}
 describe("source files", () => {
   it("tells a snippet's kind", () => {
     expect(snippetKind(SWITCH)).toBe("file")
+    // a module the formatter left on one line returns its markup bare
+    expect(snippetKind('export default function Example() {\n  return <DitherKbd keys="K" />\n}')).toBe("file")
     expect(snippetKind('<DitherButton color="blue">Deploy</DitherButton>')).toBe("fragment")
     expect(snippetKind(`const [level, setLevel] = createSignal(40)\n\n${SLIDER}`)).toBe("fragment")
     expect(snippetKind(`{/* one */}\n${SLIDER}`)).toBe("fragment")

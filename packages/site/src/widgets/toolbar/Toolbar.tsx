@@ -6,7 +6,7 @@ import type { ArtboardKind } from "@/entities/artboard"
 import { COMPONENT_REGISTRY, type ComponentEntry, type ComponentGroup, SIMPLE_WIDGET_KINDS } from "@/entities/widget"
 import { CHART_TYPES } from "@/shared/config"
 import { addArtboard, addComponentArtboard, addScreenArtboard, history, redo, undo } from "@/entities/editor"
-import type { AgentActivity } from "@/features/agent/tools"
+import type { AgentActivity } from "@/features/agent"
 import {
   activeProjectId,
   activeProjectName,
@@ -31,7 +31,7 @@ export type ToolbarApi = {
   readonly guideKey: HTMLButtonElement | null
 }
 
-export type ToolbarProps = {
+type ToolbarProps = {
   sidebarOpen: boolean
   /** The chat's column is showing. */
   chatOpen: boolean

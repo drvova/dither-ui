@@ -11,7 +11,7 @@
  * `tests/mascot.spec.ts` holds its shape. */
 
 export type MascotPose = "idle" | "blink" | "hop" | "wave" | "fly"
-export type MascotInk = "body" | "ember"
+type MascotInk = "body" | "ember"
 export type MascotCell = { x: number; y: number; ink: MascotInk }
 
 export const MASCOT_W = 11
@@ -111,7 +111,20 @@ const feet = (pose: MascotPose): MascotCell[] =>
  * its feet on the ground row; hopping or flying, it is a row up off the
  * ground. `turn` steps the rotor while it flies. */
 export function mascotCells(pose: MascotPose = "idle", turn = 0): MascotCell[] {
-  const drop = pose === "hop" || pose === "fly" ? 0 : 1
-  const top = pose === "fly" ? rotor(turn) : antennae(pose)
-  return [...top, ...body(pose), ...feet(pose)].map((c) => ({ ...c, y: c.y + drop }))
+  const parts = mascotParts(pose, turn)
+  return [...parts.top, ...parts.body, ...parts.feet].map((c) => ({ ...c, y: c.y + parts.drop }))
+}
+
+/** The mascot in a pose as its parts, each a row up off the ground: its
+ * antennae or, flying, its rotor at `turn`; its body; its feet; and how
+ * far the pose stands it down (standing, a row, its feet on the ground
+ * row; hopping or flying, none). The site's sprite draws each part once
+ * and the page's mascot moves between them. */
+export function mascotParts(pose: MascotPose = "idle", turn = 0) {
+  return {
+    top: pose === "fly" ? rotor(turn) : antennae(pose),
+    body: body(pose),
+    feet: feet(pose),
+    drop: pose === "hop" || pose === "fly" ? 0 : 1,
+  }
 }

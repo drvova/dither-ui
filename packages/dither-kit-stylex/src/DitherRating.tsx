@@ -77,13 +77,19 @@ function paintRating(
 }
 
 export type DitherRatingProps = {
+  /** @docs number (with onUpdateModelValue) */
   modelValue?: number
   onUpdateModelValue?: (value: number) => void
   max?: number
   color?: PixelColor
+  /** @docs number (px per star) */
   size?: number
+  /** @docs boolean (fractions allowed) */
   readonly?: boolean
+  /** @docs string (accessible name) */
   label?: string
+  /** @docs number (star tilt + scatter)
+   * @default clean */
   seed?: number
 }
 

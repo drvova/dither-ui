@@ -2,6 +2,7 @@ import { createSignal, For, onCleanup, onMount } from "solid-js"
 import { DitherIcon, ditherTransition, type WipeDirection } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { type PropRow } from "../PropsTable"
+
 import DocSection from "../DocSection"
 import { latestEntry } from "@dither-ui/kit/engine/visibility.ts"
 
@@ -52,7 +53,7 @@ addEventListener("pagereveal", (e) => {
   if (e.viewTransition) ditherViewTransition(e.viewTransition, { direction: "right" })
 })`
 
-const API: PropRow[] = [
+export const API: PropRow[] = [
   { prop: "update", type: "() => void | Promise<void> (the change)", default: "" },
   { prop: "direction", type: "'none' | 'right' | 'left' | 'down' | 'up' | 'iris'", default: "'none' (dissolve)" },
   { prop: "origin", type: "{ x, y } (viewport px; the iris's centre)", default: "the box's centre" },

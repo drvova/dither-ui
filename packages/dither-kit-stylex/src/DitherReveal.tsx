@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/DitherReveal.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
+import { isServer } from "solid-js/web"
 import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
 import { type EasingInput, resolveEasing } from "@dither-ui/kit/engine/dither-paint.ts"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
@@ -14,6 +15,7 @@ import {
 } from "@dither-ui/kit/engine/wipe.ts"
 import { cn, type StyleProp } from "./lib"
 import { createInviewLoop } from "@dither-ui/kit/solid/runtime/in-view.ts"
+import "@dither-ui/kit/solid/DitherReveal.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -24,25 +26,38 @@ export type { WipeDirection, WipeOptions, WipeStyle }
 export { BAYER8, bayerMatrix, wipeStyle }
 
 export type DitherRevealProps = {
-  /** Manual progress 0-1 (a timeline's); unset, the reveal plays `duration` seconds on the kit clock. */
+  /** Manual progress 0-1 (a timeline's); unset, the reveal plays `duration` seconds on the kit clock.
+   * @docs number 0–1 (manual; unset plays on the clock) */
   progress?: number
+  /** @docs number (s) */
   duration?: number
+  /** @docs number (s) */
   delay?: number
-  /** Where the front travels; "none" dissolves in place. */
+  /** Where the front travels; "none" dissolves in place.
+   * @docs 'none' | 'right' | 'left' | 'down' | 'up' | 'iris'
+   * @default 'none' (dissolve) */
   direction?: WipeDirection
-  /** Cell size in CSS px. */
+  /** Cell size in CSS px.
+   * @docs number (px) */
   cell?: number
-  /** Directional wipes: the dithered band's width in cells. */
+  /** Directional wipes: the dithered band's width in cells.
+   * @docs number (cells; directional wipes) */
   band?: number
-  /** A seeded 4x4 matrix instead of the 8x8 Bayer. */
+  /** A seeded 4x4 matrix instead of the 8x8 Bayer.
+   * @docs number (a seeded 4×4 matrix)
+   * @default none (Bayer 8×8) */
   seed?: number
-  /** Hide instead of reveal as progress grows. */
+  /** Hide instead of reveal as progress grows.
+   * @docs boolean (hide instead) */
   reverse?: boolean
+  /** @default 'ease-in-out' */
   easing?: EasingInput
-  /** Change to play again. */
+  /** Change to play again.
+   * @docs unknown (change to replay) */
   restartKey?: unknown
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
   /** Passed on to the wrapper: a page relies on it. */
   "aria-hidden"?: boolean | "true" | "false"
@@ -150,7 +165,12 @@ export default function DitherReveal(raw: DitherRevealProps) {
       height: size().height,
     }),
   )
+  const state = createMemo(() => (effective() >= 1 ? "shown" : effective() <= 0 ? "hidden" : "playing"))
   const style = createMemo<JSX.CSSProperties | undefined>(() => {
+    // A server's hidden reveal writes no mask: its stylesheet hides it only
+    // where a script will play it (`DitherReveal.css`), so a page read
+    // without one shows what the reveal holds.
+    if (isServer && state() === "hidden") return undefined
     const m = mask()
     return m
       ? {
@@ -165,12 +185,11 @@ export default function DitherReveal(raw: DitherRevealProps) {
         }
       : undefined
   })
-  const state = createMemo(() => (effective() >= 1 ? "shown" : effective() <= 0 ? "hidden" : "playing"))
 
   return (
     <div
       ref={(el) => (wrapRef = el)}
-      class={cn(styles.frame, props.xstyle, props.class)}
+      class={cn([styles.frame, "dk-reveal"], props.xstyle, props.class)}
       style={style()}
       data-reveal={state()}
       aria-hidden={props["aria-hidden"]}

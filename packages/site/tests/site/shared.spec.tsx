@@ -1,21 +1,26 @@
 // The site's shared slice (`src/shared/`, `src/widgets/site-header/`): the
 // header and its menu, the mascot, the fields the Studio's inspector is
-// built from, the theme, the interface sounds and the rise.
+// built from, the theme and the interface sounds.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { Meta, MetaProvider } from "@solidjs/meta"
 import { createSignal } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { COLORS } from "@/shared/config"
 import { installHand } from "@/shared/lib/hand"
-import { RISE_LIVE, RISE_WAIT } from "@/shared/lib/rise-wait"
-import { MARK_CELLS } from "@/shared/ui/brand-mark"
-import { drivenCells, toRuns } from "@/shared/ui/car"
-import { MARKS } from "@/shared/ui/marks"
-import { mascotCells } from "@/shared/ui/mascot"
-import { BAND_INK, CLOSE_CELLS, MENU_LINKS, SEAM_HEIGHT, STUDIO_LINK, bandFill } from "@/widgets/site-header/menu"
-import { SHEET_DRAG, SHEET_SLIDE } from "@/widgets/site-header/sheet"
-import { RISE, rise, riseDelays, useTheme } from "../../src/shared/lib"
+import { drivenCells, WHEEL_STEPS } from "@/shared/ui/car"
+import { runPaths } from "@/shared/ui/cells"
+import { EYE, MASCOT_ROTOR_STEPS } from "@/shared/ui/mascot"
+import { BRAND_SYMBOL, MASCOT_SYMBOLS, markSymbol, spriteRef } from "@/shared/ui/sprite"
+import {
+  BAND_INK,
+  CLOSE_CELLS,
+  MENU_LINKS,
+  SEAM_HEIGHT,
+  SHEET_OUT,
+  STUDIO_LINK,
+  bandFill,
+} from "@/widgets/site-header/menu"
+import { useTheme } from "../../src/shared/lib"
 import { CUES, play, restoreSounds, schedule, setSounds, sounds } from "../../src/shared/lib/sound"
 import {
   AdSlot,
@@ -106,7 +111,6 @@ describe("site header", () => {
   })
 
   it("slides the sheet back down before it shuts, from the close key, Escape and the page above it", () => {
-    vi.useFakeTimers()
     const w = render(() => <SiteHeader current="landing" />)
     const key = w.container.querySelector<HTMLElement>(".menu-key")!
     const dialog = w.container.querySelector("dialog")!
@@ -123,7 +127,9 @@ describe("site header", () => {
       expect(w.container.querySelector(".menu-sheet")).not.toBeNull()
       expect(key.getAttribute("aria-expanded")).toBe("false")
       expect(document.documentElement.style.overflow).toBe("hidden")
-      vi.advanceTimersByTime(SHEET_SLIDE.duration)
+      // Its slide down played (the stylesheet's keyframes): it shuts.
+      const slid = Object.assign(new Event("animationend", { bubbles: true }), { animationName: SHEET_OUT })
+      w.container.querySelector(".menu-sheet")!.dispatchEvent(slid)
       expect(w.container.querySelector("[data-phase]")).toBeNull()
       expect(w.container.querySelector(".menu-sheet")).toBeNull()
       expect(document.documentElement.style.overflow).toBe("")
@@ -149,88 +155,13 @@ describe("site header", () => {
     fireEvent.click(w.container.querySelector(".menu-key")!)
     const head = w.container.querySelector<HTMLElement>(".menu-grab")!
     const close = head.querySelector<HTMLElement>('[aria-label="Close menu"]')!
-    expect(all(close, "svg rect")).toHaveLength(CLOSE_CELLS.length)
+    expect(all(close, "svg path").map((p) => p.getAttribute("d"))).toEqual(
+      runPaths(CLOSE_CELLS, (c: { core?: boolean }) => (c.core ? "core" : "ink")).map((p) => p.d),
+    )
     expect(close.hasAttribute("autofocus")).toBe(true)
-    expect(head.querySelector(".menu-handle")?.getAttribute("aria-hidden")).toBe("true")
+    // no handle: nothing drags the sheet (the user's call: no motion is JS)
+    expect(head.querySelector(".menu-handle")).toBeNull()
     expect(head.style.paddingBottom).toBe(`${8 + SEAM_HEIGHT}px`)
-  })
-
-  // The sheet under a finger: dragged down by its head it follows, and let
-  // go it closes past the distance or on a throw, else springs back.
-  describe("the sheet under the hand", () => {
-    const pointer = (el: Element, type: string, y: number, t: number) => {
-      const e = Object.assign(new Event(type, { bubbles: true, cancelable: true }), {
-        clientY: y,
-        pointerId: 1,
-        isPrimary: true,
-        button: 0,
-      })
-      Object.defineProperty(e, "timeStamp", { value: t })
-      el.dispatchEvent(e)
-    }
-    function open() {
-      vi.useFakeTimers({
-        toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame", "performance"],
-      })
-      const w = render(() => <SiteHeader current="landing" />)
-      fireEvent.click(w.container.querySelector(".menu-key")!)
-      const sheet = w.container.querySelector<HTMLElement>(".menu-sheet")!
-      Object.defineProperty(sheet, "offsetHeight", { value: 400 })
-      return { w, sheet, head: w.container.querySelector<HTMLElement>(".menu-grab")! }
-    }
-    const phase = (w: ReturnType<typeof render>) =>
-      w.container.querySelector("[data-phase]")?.getAttribute("data-phase")
-
-    it("follows a drag down and closes when let go past its share", () => {
-      const { w, sheet, head } = open()
-      pointer(head, "pointerdown", 100, 0)
-      pointer(head, "pointermove", 100 + SHEET_DRAG.slop - 1, 200)
-      expect(sheet.style.transform).toBe("")
-      pointer(head, "pointermove", 260, 400)
-      expect(sheet.style.transform).toBe("translateY(160px)")
-      pointer(head, "pointerup", 260, 600)
-      expect(phase(w)).toBe("leaving")
-      vi.advanceTimersByTime(2000)
-      expect(phase(w)).toBeUndefined()
-      expect(w.container.querySelector(".menu-sheet")).toBeNull()
-      expect(document.documentElement.style.overflow).toBe("")
-    })
-
-    it("closes on a throw, and springs back from a short slow drag or a cancel", () => {
-      const thrown = open()
-      pointer(thrown.head, "pointerdown", 100, 0)
-      pointer(thrown.head, "pointermove", 130, 20)
-      pointer(thrown.head, "pointerup", 160, 40)
-      expect(phase(thrown.w)).toBe("leaving")
-      cleanup()
-      for (const end of ["pointerup", "pointercancel"]) {
-        const { w, sheet, head } = open()
-        pointer(head, "pointerdown", 100, 0)
-        pointer(head, "pointermove", 160, 400)
-        pointer(head, end, 160, 800)
-        expect(phase(w)).toBe("open")
-        vi.advanceTimersByTime(2000)
-        expect(sheet.style.transform).toBe("")
-        expect(phase(w)).toBe("open")
-        cleanup()
-      }
-    })
-
-    it("gives a little to a pull up, and a tap on the close key stays a tap", () => {
-      const { w, sheet, head } = open()
-      pointer(head, "pointerdown", 300, 0)
-      pointer(head, "pointermove", 0, 100)
-      expect(sheet.style.transform).toBe(`translateY(-${SHEET_DRAG.reach}px)`)
-      pointer(head, "pointerup", 0, 1000)
-      vi.advanceTimersByTime(2000)
-      const close = head.querySelector<HTMLElement>('[aria-label="Close menu"]')!
-      pointer(close, "pointerdown", 100, 3000)
-      pointer(close, "pointermove", 102, 3010)
-      pointer(close, "pointerup", 102, 3020)
-      fireEvent.click(close)
-      expect(phase(w)).toBe("leaving")
-      expect(sheet.style.transform).toBe("")
-    })
   })
 
   it("heads any sheet: what it is in the middle, its close key named and first", () => {
@@ -250,96 +181,103 @@ describe("site header", () => {
 })
 
 describe("marks and the mascot", () => {
-  it("draws the brand's diamond, or another mark on its grid, as a decorative SVG", () => {
+  const href = (el: Element | null | undefined) => el?.getAttribute("href")
+  it("draws the brand's diamond from the sprite, or another mark on its grid as its own paths", () => {
     const w = render(() => <BrandMark size={13} />)
     const svg = w.container.querySelector("svg")!
     expect([svg.getAttribute("width"), svg.getAttribute("height")]).toEqual(["13", "13"])
     expect([svg.getAttribute("aria-hidden"), svg.getAttribute("focusable")]).toEqual(["true", "false"])
-    expect(all(svg, "rect")).toHaveLength(MARK_CELLS.length)
-    expect(all(svg, "rect").filter((r) => r.getAttribute("fill") !== "currentColor")).toHaveLength(1)
+    expect(href(svg.querySelector("use"))).toBe(spriteRef(BRAND_SYMBOL))
     const x = render(() => <BrandMark size={14} cells={CLOSE_CELLS} />)
-    expect(all(x.container, "rect")).toHaveLength(CLOSE_CELLS.length)
+    const paths = all(x.container, "path")
+    // one path an ink, its runs covering exactly the close mark's cells
+    expect(paths.map((p) => p.getAttribute("d"))).toEqual(
+      runPaths(CLOSE_CELLS, (c: { core?: boolean }) => (c.core ? "core" : "ink")).map((p) => p.d),
+    )
+    expect(paths.filter((p) => p.getAttribute("fill") !== "currentColor")).toHaveLength(1)
   })
 
-  it("draws a tool's mark in currentColor, at 14px unless told", () => {
+  it("draws a tool's mark from the sprite in currentColor, at 14px unless told", () => {
     const w = render(() => <ToolMark id="github" />)
     const svg = w.container.querySelector("svg")!
-    expect(svg.getAttribute("viewBox")).toBe(MARKS.github.viewBox)
     expect([svg.getAttribute("width"), svg.getAttribute("fill")]).toEqual(["14", "currentColor"])
     expect(svg.getAttribute("aria-hidden")).toBe("true")
-    expect(all(svg, "path").map((p) => p.getAttribute("d"))).toEqual([...MARKS.github.d])
-    const holed = (Object.keys(MARKS) as (keyof typeof MARKS)[]).find((id) => "evenodd" in MARKS[id])
-    if (holed) {
-      const h = render(() => <ToolMark id={holed} size={18} />)
-      expect(h.container.querySelector("svg")!.getAttribute("fill-rule")).toBe("evenodd")
-    }
+    expect(href(svg.querySelector("use"))).toBe(spriteRef(markSymbol("github")))
+    expect(svg.querySelector("path")).toBeNull()
   })
 
-  it("draws the mascot as a decorative SVG, the size its height", () => {
+  it("draws the mascot as a decorative SVG of the sprite's parts, the size its height", () => {
     const w = render(() => <Mascot size={30} class="max-[479px]:hidden" />)
     const svg = w.container.querySelector("svg")!
     expect(svg.getAttribute("aria-hidden")).toBe("true")
     expect(svg.getAttribute("height")).toBe("30")
     expect(svg.classList.contains("mascot") && svg.classList.contains("max-[479px]:hidden")).toBe(true)
-    expect(all(svg, "rect")).toHaveLength(mascotCells("idle").length)
+    expect(all(svg, "use").map(href)).toEqual(
+      [MASCOT_SYMBOLS.antennae, MASCOT_SYMBOLS.body, MASCOT_SYMBOLS.feet].map(spriteRef),
+    )
   })
 
-  it("hops under a pointer, blinks while alive, and holds still under reduced motion", () => {
+  it("poses by its stylesheet: alive, waving, flying on a rotor of every turn, no timer", () => {
     vi.useFakeTimers()
-    vi.spyOn(Math, "random").mockReturnValue(0)
-    const cells = (root: ParentNode) => all(root, "rect").map((r) => `${r.getAttribute("x")}.${r.getAttribute("y")}`)
-    const of = (pose: Parameters<typeof mascotCells>[0], turn = 0) =>
-      mascotCells(pose, turn).map((c) => `${c.x}.${c.y}`)
     const w = render(() => <Mascot size={16} alive />)
     const svg = w.container.querySelector("svg")!
-    vi.advanceTimersByTime(3200)
-    expect(cells(svg)).toEqual(of("blink"))
-    vi.advanceTimersByTime(140)
-    expect(cells(svg)).toEqual(of("idle"))
+    expect([svg.dataset.pose, svg.dataset.alive]).toEqual(["idle", ""])
+    // the lid the blink shows sits on the eye
+    const lid = svg.querySelector(".mascot-lid")!
+    expect([lid.getAttribute("x"), lid.getAttribute("y")]).toEqual(EYE.map(String))
+    expect(vi.getTimerCount()).toBe(0)
     fireEvent.pointerEnter(svg)
-    expect(cells(svg)).toEqual(of("hop"))
-    vi.advanceTimersByTime(220)
-    expect(cells(svg)).toEqual(of("idle"))
-    w.unmount()
+    expect(svg.dataset.pose).toBe("idle")
+
+    const waving = render(() => <Mascot size={16} pose="wave" />)
+    expect(href(waving.container.querySelector("use"))).toBe(spriteRef(MASCOT_SYMBOLS.wave))
+    expect(waving.container.querySelector("svg")!.dataset.alive).toBeUndefined()
 
     const flying = render(() => <Mascot size={16} pose="fly" />)
     const air = flying.container.querySelector("svg")!
-    expect(cells(air)).toEqual(of("fly", 0))
-    vi.advanceTimersByTime(60)
-    expect(cells(air)).toEqual(of("fly", 1))
-    // Flying, a pointer does not take it out of the air.
-    fireEvent.pointerEnter(air)
-    expect(cells(air)).toEqual(of("fly", 1))
-    flying.unmount()
-
-    reduced = true
-    const still = render(() => <Mascot size={16} alive pose="fly" />)
-    vi.advanceTimersByTime(8000)
-    expect(cells(still.container)).toEqual(of("fly", 0))
-    vi.mocked(Math.random).mockRestore()
+    expect(air.dataset.pose).toBe("fly")
+    expect(all(air, ".mascot-turn").map(href)).toEqual(
+      Array.from({ length: MASCOT_ROTOR_STEPS }, (_, t) => spriteRef(MASCOT_SYMBOLS.rotor(t))),
+    )
+    expect(all(air, ".mascot-turn").map((u) => u.style.getPropertyValue("--turn"))).toEqual(["0", "1", "2", "3"])
+    expect(vi.getTimerCount()).toBe(0)
   })
 
-  it("turns the car's wheels only while it drives", () => {
+  it("turns the car's wheels only while it drives, by its stylesheet: no timer, every turn drawn", () => {
     vi.useFakeTimers()
-    const paint = (c: ReturnType<typeof drivenCells>[number]) =>
-      "driver" in c ? (c.ink === "ember" ? "ember" : "light") : c.ink
     const [driving, setDriving] = createSignal(false)
     const w = render(() => <MascotCar size={21} driving={driving()} />)
     const svg = w.container.querySelector("svg")!
-    const widths = () =>
-      all(svg, "rect").map((r) => `${r.getAttribute("x")}.${r.getAttribute("y")}.${r.getAttribute("width")}`)
-    const runs = (turn: number) => toRuns(drivenCells(turn), paint).map((r) => `${r.x}.${r.y}.${r.w}`)
+    /** The cells a list of paths covers. */
+    const cellsOf = (paths: Element[]) =>
+      paths.flatMap((p) =>
+        [...p.getAttribute("d")!.matchAll(/M(\d+) (-?\d+)h(\d+)/g)].flatMap((m) =>
+          Array.from({ length: Number(m[3]) }, (_, i) => `${Number(m[1]) + i}.${m[2]}`),
+        ),
+      )
+    const still = cellsOf(all(svg, ":scope > path"))
+    const turns = all(svg, "g.car-turn")
+    const at = (turn: number) =>
+      drivenCells(turn)
+        .map((c) => `${c.x}.${c.y}`)
+        .sort()
     expect(svg.getAttribute("height")).toBe("21")
     expect(svg.getAttribute("aria-hidden")).toBe("true")
-    expect(widths()).toEqual(runs(0))
-    vi.advanceTimersByTime(700)
-    expect(widths()).toEqual(runs(0))
+    // each turn is the still part and its own group, in its place of the cycle
+    expect(turns).toHaveLength(WHEEL_STEPS)
+    turns.forEach((g, turn) => {
+      expect([...still, ...cellsOf(all(g, "path"))].sort()).toEqual(at(turn))
+      expect(g.style.getPropertyValue("--turn")).toBe(String(turn))
+    })
+    // driving is an attribute the stylesheet reads; nothing steps by a timer
+    expect(svg.hasAttribute("data-driving")).toBe(false)
+    const before = svg.innerHTML
     setDriving(true)
-    vi.advanceTimersByTime(70)
-    expect(widths()).toEqual(runs(1))
-    setDriving(false)
+    expect(svg.hasAttribute("data-driving")).toBe(true)
     vi.advanceTimersByTime(700)
-    expect(widths()).toEqual(runs(1))
+    expect(svg.innerHTML).toBe(before)
+    setDriving(false)
+    expect(svg.hasAttribute("data-driving")).toBe(false)
   })
 })
 
@@ -692,9 +630,9 @@ describe("the theme", () => {
     expect(theme.dark()).toBe(true)
     expect(document.documentElement.classList.contains("dark")).toBe(true)
     // Not inside the mount (that forced a style pass over the fresh page):
-    // once the first frame has painted.
+    // once the page has loaded.
     expect(tints()).toEqual(["#08090b"])
-    await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 1)))
+    await new Promise((r) => setTimeout(r, 1))
     expect(tints()).toEqual(["rgb(8, 9, 11)"])
     document.body.style.backgroundColor = "rgb(255, 255, 255)"
     theme.toggle()
@@ -713,14 +651,34 @@ describe("the theme", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(false)
   })
 
-  it("turns from the control that asked: a plain toggle where the page cannot transition", () => {
+  it("turns through a typed view transition where the browser has one, else at once", () => {
     let theme!: ReturnType<typeof useTheme>
     const w = render(() => {
       theme = useTheme()
-      return <button onClick={(e) => theme.revealToggle(e)}>turn</button>
+      return <button onClick={() => theme.turn()}>turn</button>
     })
     fireEvent.click(w.container.querySelector("button")!)
     expect(theme.dark()).toBe(false)
+    // a browser with typed view transitions: the one call, its motion the stylesheet's
+    const started: { types: string[] }[] = []
+    vi.stubGlobal("ViewTransition", class {})
+    Object.defineProperty(ViewTransition.prototype, "types", { value: new Set(), configurable: true })
+    ;(document as unknown as { startViewTransition: unknown }).startViewTransition = (o: {
+      update: () => void
+      types: string[]
+    }) => {
+      started.push(o)
+      o.update()
+    }
+    fireEvent.click(w.container.querySelector("button")!)
+    expect(started.map((o) => o.types)).toEqual([["theme"]])
+    expect(theme.dark()).toBe(true)
+    // under reduced motion it turns at once
+    reduced = true
+    fireEvent.click(w.container.querySelector("button")!)
+    expect(started).toHaveLength(1)
+    expect(theme.dark()).toBe(false)
+    delete (document as unknown as { startViewTransition?: unknown }).startViewTransition
   })
 })
 
@@ -796,93 +754,5 @@ describe("interface sounds", () => {
     localStorage.setItem("dither-sounds", "off")
     restoreSounds()
     expect(sounds()).toBe(true)
-  })
-})
-
-// The rise: a headline's words come up one after another on the glide, then
-// what stands with it; reduced motion stands everything where it is.
-describe("the rise", () => {
-  let seen: ((entries: { isIntersecting: boolean }[]) => void) | null = null
-  let animated: { el: Element; delay: number; easing: string }[] = []
-  let disconnected = 0
-  const animate = Element.prototype.animate
-
-  beforeEach(() => {
-    seen = null
-    animated = []
-    disconnected = 0
-    vi.stubGlobal(
-      "IntersectionObserver",
-      class {
-        constructor(cb: (entries: { isIntersecting: boolean }[]) => void) {
-          seen = cb
-        }
-        observe() {}
-        disconnect() {
-          disconnected++
-        }
-      },
-    )
-    Element.prototype.animate = function (this: Element, _k: unknown, o: KeyframeAnimationOptions) {
-      animated.push({ el: this, delay: Number(o.delay), easing: String(o.easing) })
-      return {} as Animation
-    } as typeof Element.prototype.animate
-    document.documentElement.className = RISE_WAIT
-    delete document.documentElement.dataset.rise
-  })
-  afterEach(() => {
-    Element.prototype.animate = animate
-    document.documentElement.className = ""
-  })
-
-  const mountHead = () =>
-    render(() => (
-      <div ref={rise}>
-        <h2>
-          <span data-rise="word">Every</span> <span data-rise="word">component,</span>{" "}
-          <span data-rise="word">live.</span>
-        </h2>
-        <p data-rise>lede</p>
-        <a data-rise>more</a>
-      </div>
-    ))
-
-  it("staggers the words, then the blocks after the last word", () => {
-    expect(riseDelays(["word", "word", "word", "block", "block"])).toEqual([0, 60, 120, 240, 330])
-    expect(riseDelays(["block", "block"])).toEqual([0, RISE.block])
-    expect(RISE.easing).toBe(`cubic-bezier(${GLIDE_BEZIER.join(", ")})`)
-  })
-
-  it("rises each riser once it comes into view, on the glide, and lets go with its component", () => {
-    const w = mountHead()
-    expect(document.documentElement.dataset.rise).toBe(RISE_LIVE)
-    expect(animated).toEqual([])
-    seen!([{ isIntersecting: true }])
-    expect(animated.map((a) => a.delay)).toEqual([0, 60, 120, 240, 330])
-    expect(new Set(animated.map((a) => a.easing))).toEqual(new Set([RISE.easing]))
-    expect(all(w.container, "[data-rise]").every((e) => e.getAttribute("data-risen") === "")).toBe(true)
-    const before = disconnected
-    w.unmount()
-    expect(disconnected).toBe(before + 1)
-  })
-
-  it("stands everything where it is under reduced motion", () => {
-    reduced = true
-    const w = mountHead()
-    expect(seen).toBe(null)
-    expect(animated).toEqual([])
-    expect(all(w.container, "[data-rise]").every((e) => e.getAttribute("data-risen") === "")).toBe(true)
-  })
-
-  it("keeps a riser out of sight until it comes into view", () => {
-    document.documentElement.className = ""
-    const w = mountHead()
-    const items = all(w.container, "[data-rise]")
-    expect(items).toHaveLength(5)
-    expect(items.every((e) => e.style.opacity === "0")).toBe(true)
-    seen!([{ isIntersecting: false }])
-    expect(animated).toEqual([])
-    seen!([{ isIntersecting: true }])
-    expect(items.every((e) => e.style.opacity === "")).toBe(true)
   })
 })

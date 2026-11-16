@@ -3,9 +3,12 @@ import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { cn } from "../tailwind/lib"
 
 export type PixelTrailProps = {
+  /** @docs string (hex) */
   color?: string
+  /** @docs number (px) */
   gap?: number
   class?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

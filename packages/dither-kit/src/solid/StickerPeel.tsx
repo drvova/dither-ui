@@ -2,7 +2,11 @@ import type { JSX } from "solid-js"
 import { cn } from "../tailwind/lib"
 import "./StickerPeel.css"
 
-export type StickerPeelProps = { class?: string; children?: JSX.Element }
+export type StickerPeelProps = {
+  class?: string
+  /** @docs content */
+  children?: JSX.Element
+}
 
 export default function StickerPeel(props: StickerPeelProps) {
   return (

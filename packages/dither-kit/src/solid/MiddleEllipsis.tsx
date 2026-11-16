@@ -4,7 +4,16 @@ import { cn } from "../tailwind/lib"
 /** Center-ellipsis for identifiers: paths, keys, hashes — keeps both ends
  * where recognition happens. `head`/`tail` are character counts; the full
  * string lands in `title`. Pure text, so it never fights `truncate`. */
-export type MiddleEllipsisProps = { text?: string; head?: number; tail?: number; title?: boolean; class?: string }
+export type MiddleEllipsisProps = {
+  /** @default "…" */
+  text?: string
+  /** @docs number (chars) */
+  head?: number
+  /** @docs number (chars) */
+  tail?: number
+  title?: boolean
+  class?: string
+}
 
 export default function MiddleEllipsis(raw: MiddleEllipsisProps) {
   const props = mergeProps({ text: "", head: 8, tail: 6, title: true }, raw)

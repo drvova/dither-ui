@@ -1,8 +1,8 @@
 .dither-logoloop {
-  animation: dither-loop linear infinite;
+  animation: dk-loop linear infinite;
   will-change: transform;
 }
-@keyframes dither-loop {
+@keyframes dk-loop {
   to {
     transform: translateX(-50%);
   }

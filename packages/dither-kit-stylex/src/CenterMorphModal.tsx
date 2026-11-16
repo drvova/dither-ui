@@ -63,11 +63,13 @@ const styles = stylex.create({
 
 export type CenterMorphModalProps = {
   open: boolean
+  /** @docs string (accessible name) */
   label?: string
   closeOnBackdrop?: boolean
   class?: string
   xstyle?: StyleProp
   onClose?: () => void
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -52,8 +52,8 @@ const styles = stylex.create({
   frame: {
     position: "relative",
     transitionProperty: { default: "height", "@media (prefers-reduced-motion: reduce)": "none" },
-    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-    transitionDuration: "300ms",
+    transitionTimingFunction: "var(--ease-reorder)",
+    transitionDuration: "var(--duration-reorder)",
   },
   grid: {
     display: "grid",
@@ -119,8 +119,8 @@ const styles = stylex.create({
     paddingInline: "0.75rem",
     textAlign: "left",
     transitionProperty: { default: "transform, opacity", "@media (prefers-reduced-motion: reduce)": "none" },
-    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-    transitionDuration: "300ms",
+    transitionTimingFunction: "var(--ease-reorder)",
+    transitionDuration: "var(--duration-reorder)",
   },
 })
 
@@ -150,17 +150,27 @@ const VARIANTS = {
 export type NotificationStackVariant = keyof typeof VARIANTS
 
 export type NotificationStackProps = {
+  /** @docs { id, title, body?, time?, icon?, color? }[]
+   * @default required */
   items: NotificationItem[]
-  /** Pinned-open state (with `onUpdateModelValue`); hover and focus expand transiently. */
+  /** Pinned-open state (with `onUpdateModelValue`); hover and focus expand transiently.
+   * @docs boolean (with onUpdateModelValue): pinned open; hover/focus expand transiently */
   modelValue?: boolean
   onUpdateModelValue?: (expanded: boolean) => void
-  onViewall?: () => void
+  /** @docs number: cards shown in the stack and list */
   maxVisible?: number
+  /** @docs string: header + toggle aria-label */
   collapsedLabel?: string
+  /** @docs string: view-all button text */
   expandedLabel?: string
+  /** @docs string: empty-state card */
   emptyLabel?: string
+  /** @docs "stack" | "fan" | "condensed": collapsed silhouette */
   variant?: NotificationStackVariant
+  /** @docs PixelColor: icon fallback tint */
   color?: PixelColor
+  /** @docs () when view-all is pressed */
+  onViewall?: () => void
   class?: string
   xstyle?: StyleProp
 }
@@ -169,7 +179,7 @@ export type NotificationStackProps = {
  * readable list on hover, focus or tap — tap pins the list open (the model),
  * hover and focus expand transiently. Three collapsed silhouettes share one
  * expansion: stack (peeked edges), fan (rotated hand), condensed (tight
- * slivers). Cards fan out on the house bouncy bezier with a per-card
+ * slivers). Cards change places on the reorder role (`--ease-reorder`) with a per-card
  * stagger; reduced motion snaps. */
 export default function NotificationStack(raw: NotificationStackProps) {
   const props = mergeProps(
@@ -227,10 +237,7 @@ export default function NotificationStack(raw: NotificationStackProps) {
       </div>
 
       <Show when={visible().length} fallback={<div {...stylex.props(styles.row3)}>{props.emptyLabel}</div>}>
-        <div
-          {...stylex.props(styles.frame)}
-          style={{ height: `${height()}px`, "transition-timing-function": "cubic-bezier(0.2, 1.4, 0.4, 1)" }}
-        >
+        <div {...stylex.props(styles.frame)} style={{ height: `${height()}px` }}>
           <For each={visible()}>
             {(item, i) => (
               <Dynamic
@@ -239,7 +246,7 @@ export default function NotificationStack(raw: NotificationStackProps) {
                   ? { type: "button", "aria-expanded": props.modelValue, "aria-label": props.collapsedLabel }
                   : {})}
                 class={cn([styles.absolute, i() === 0 ? CONTROL_BUTTON : null])}
-                style={{ ...cardStyle(i()), "transition-timing-function": "cubic-bezier(0.2, 1.4, 0.4, 1)" }}
+                style={cardStyle(i())}
                 aria-hidden={i() > 0 && !expanded() ? "true" : undefined}
                 onClick={() => i() === 0 && props.onUpdateModelValue?.(!props.modelValue)}
               >

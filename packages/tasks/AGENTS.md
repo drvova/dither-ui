@@ -10,7 +10,9 @@ by the site's post-build. Paths here are from this package's root.
 
 - `src/kit-css.mjs` (types in `kit-css.d.mts`): `buildKitCss()` compiles
   the kit's standalone stylesheet from `@dither-ui/kit/tailwind/kit.css` with
-  Tailwind's compiler and scanner, the kit's folders the only sources. Run
+  Tailwind's compiler and scanner, the kit's folders the only sources.
+  Its own entry, `@dither-ui/tasks/kit-css`, is what the site's build
+  (`kitAdd`) loads to emit `kit/dither-kit.css`. Run
   alone it writes the file it is given (`npm run build:css` at the root
   writes `kit/dither-kit.css` into the site's build).
 - `src/chromium.ts`: the ONE list of where a Chromium stands
@@ -23,10 +25,58 @@ by the site's post-build. Paths here are from this package's root.
   service keeps a copy (`packages/discord/AGENTS.md`), held to it by the
   workspace's `tests/chromium.spec.ts`.
 - `src/cards.ts`: what the site's post-build does in a browser once the
-  pages stand: the server it draws from (`listen`), every share card (`renderOgCards`), each
-  section's embed with its own lede (`refineEmbed`) and the agent registry
-  (`writeAgentRegistry`).
-- `src/index.ts`: the package's entry, those three modules' exports.
+  pages stand: the server it draws from (`listen`), every share card
+  (`renderOgCards`), each section's embed with its own lede
+  (`refineEmbed`) and the agent registry (`writeAgentRegistry`). Given a
+  cache folder, `renderOgCards` keeps each card there under `cardKey`: a
+  hash of the renderer as built (`rendererHash`: `og/index.html` and every
+  file under `og/assets/`, so the card code, the kit engine it prints
+  with, the route cards' copy, the kit's counts and the display face), the
+  browser that draws (its version and the first frame it paints, which
+  changes with any fallback face), and the card's own data (its manifest
+  entry and lede). A card whose key is kept is copied, never drawn; what a
+  run did not use is removed. A new input a card is drawn from goes into
+  the key, or `CARD_CACHE_VERSION` is bumped.
+- `src/readme-art.ts`: `brandSvg`, the README's banner as one SVG: the
+  lockup's cells and each one's path through the brand's moment in (the
+  site hands them over), a CSS animation stepping whole cells out (CSS,
+  not SMIL, so the file's own `prefers-reduced-motion` query settles it),
+  the brand at rest as merged runs on the obsidian. The emotes and faces
+  stay WebP: their crops of the lossy sheet hold nearly a colour a pixel,
+  so an SVG of them is twelve to twenty-one times the bytes.
+- `src/bake-frames.ts`: `bakeFrames`, the post-build's last step. Each
+  built page with a `<canvas` in its markup is loaded twice in the build's
+  Chromium (1440x900, one device pixel a CSS pixel, every
+  IntersectionObserver reporting its target in view): the first load
+  reads every 2D canvas drawn only by whole-canvas `putImageData` (and
+  `clearRect`), baking one that stopped uploading, shows the same once
+  the page is scrolled through and whose box the scroll never resizes (a
+  scene scaling it into place) as `settled` (what it last uploaded, never
+  a read back, which rounds a translucent cell) and one still moving that
+  stood in the first window as `first` (its first upload); the second
+  load serves the page with those bakes and keeps only the ones the
+  canvas's own first upload matches byte for byte, released by it. The
+  page gets `data-dk-baked` on each kept canvas and one
+  `<style data-dk-bakes>` (a rule an image, a PNG from the kit's
+  `pngBytes`, under the theme class it was painted in; a canvas the server
+  sized 0x0 placed by its insets): a frame in the first window or up to
+  1.5 kB inline, a larger one further down a file, `baked/<id>.png` under
+  the base, shared by every page showing it. A page's bakes are kept in
+  the cache folder by the hash of this module, the window and the page's
+  bytes. Before it, `bakePrintFiles` (the post-build's "chart prints"
+  step, over every page the build writes, the Studio and the player
+  included) moves each chart print (`bakePrints`: the kit's `<image
+  data-dk-print>`, `PRINT_ATTR` in `engine/baked.ts`, a PNG at a pixel a
+  cell as a data URI) into the same folder, named by its bytes, the page's
+  `href` pointing there, for every chart whose prints together pass the
+  same 1.5 kB (a bar chart's two dozen small bars move with the rest): a
+  pure rewrite, so it needs no browser and no cache of its own.
+  Pure parts (numbering, attributes, the stylesheet, inline or file, the
+  prints moved) in
+  `tests/bake-frames.spec.ts`; the browser parts are held by the build,
+  whose check refuses any bake the canvas does not repaint exactly.
+- `src/index.ts`: the package's entry, the cards', the baked frames', the
+  Chromium's and the banner's exports.
 - `src/render-frames.mjs` (`npm run frames`): a composition as PNG frames
   or an MP4, in Chromium, WebKit or Firefox, without CDP.
 - `src/agent-demo.mjs` (`npm run demo:agent`): records the Studio's agent
@@ -49,8 +99,9 @@ by the site's post-build. Paths here are from this package's root.
   lists the registry's components no docs example renders. Every page in
   the dark has its keyboard and screen-reader pass (`--a11y`, below).
   Flags: `--jobs`, `--only`, `--run`, `--styles`, `--light`, `--phone`,
-  `--contrast`, `--a11y`. Out: `<out>/<engine>.json`, `<engine>.md` and
-  `shots/<engine>/`.
+  `--contrast`, `--a11y`, `--paint`, `--shard k/n` (every n-th page of
+  the plan from the k-th, each shard a share of every kind of page). Out:
+  `<out>/<engine>.json`, `<engine>.md` and `shots/<engine>/`.
 - `src/walk-page.js`: the walk's own page scripts, real JavaScript the
   lint reads: one function a script on `window.__walkPage`, given `arg`,
   in every top page before its own scripts (Playwright's
@@ -112,7 +163,13 @@ by the site's post-build. Paths here are from this package's root.
   on a docs section every plain button of a demo, tried) pressed with
   Enter: focus moves in, a modal keeps Tab and Shift+Tab inside, Escape
   closes it and focus comes back to its key; at a phone's size the page is
-  read and its menu sheets walked.
+  read and its menu sheets walked. `PAINT` (`--paint on`, both themes, the
+  desktop, where the contrast is read): every element in the window
+  painted through an SVG filter or a blend (`compositeOf`), shot as it
+  stands, with the feature let go and (a filter's) hidden (`PAINT_SET`),
+  a finding when the feature alone blanks it under its filter or paints
+  half its box black (`paintFinding`, `blackShare`): WebKit's two ways to
+  lose a layer.
 - `src/walk-drivers.mjs`: what the walk stands on: the static server (a
   recorder first in every page's head, the theme set and the docs' styling
   put back to Tailwind before the app reads them, by `SITE_STORAGE`), the
@@ -121,8 +178,8 @@ by the site's post-build. Paths here are from this package's root.
   the one driver shape (`go`, `run`, `shot`, `press`, `drain`, `close`) over
   Playwright for Chromium and plain W3C WebDriver for WebKit
   (`WebKitWebDriver` + `MiniBrowser`) and
-  Firefox (`geckodriver`; with none on the machine, Playwright's own
-  Firefox build, a browser a session, its phone the viewport, ratio,
+  Firefox (`geckodriver`; with none on the machine or `--driver
+  playwright`, Playwright's own Firefox build, a browser a session, its phone the viewport, ratio,
   touch and agent), each window on an Xvfb display of its own where
   the machine has one (a window under another stops its frames, and
   headless Firefox has no GL without a GPU), and the PNG reader for its
@@ -133,19 +190,25 @@ by the site's post-build. Paths here are from this package's root.
 - Depends on `@dither-ui/kit` only, for the stylesheet's entry, found through
   the kit's `exports`, and for WCAG's contrast, which the walk measures by
   the kit's own reading (`@dither-ui/kit/engine/palette.ts`, a file Node
-  loads as it is). It never imports the site: the site's post-build
+  loads as it is), and for the baked frames' encoder and attribute
+  (`engine/png.ts`, `engine/baked.ts`, the same way). It never imports the site: the site's post-build
   imports this package and hands it the folder and the browser to work in
   (`tests/workspace.spec.ts` at the root).
-- `cards.ts`, `chromium.ts` and `index.ts` are loaded by Node as they are
+- `cards.ts`, `bake-frames.ts`, `chromium.ts` and `index.ts` are loaded by Node as they are
   (type stripping): erasable syntax only, relative imports with their
   extension.
 - The recorders take a URL or a file and write where they are told; the
   agent demo runs where the harness is signed in, never with borrowed
   credentials.
 - A missing Chromium is an error, never a skip.
-- The walk is run by hand, never by a build or the gate. Its checks are
-  scripts run in the page, so they hold over WebDriver; it installs no
-  browser: `--executable` and `--driver` name the ones a machine has.
+- The walk is run by hand or by its own workflow (`.github/workflows/walk.yml`:
+  nightly, on dispatch and on a pull request labelled `walk`; the site
+  built once and handed over as an artifact, every engine in three
+  shards, each job's report and shots uploaded), never by a build or the
+  gate. Its checks are scripts run in the page, so they hold over
+  WebDriver; it installs no browser: `--executable` and `--driver` name
+  the ones a machine has (the workflow installs WebKitGTK's driver and
+  Playwright's Firefox, and walks in the runner's Chrome).
   What a machine without a GPU or the walk's own hand brings about
   (`ENVIRONMENT`: its scripted pointer, its unfocused windows, where Gecko
   refuses fullscreen), a media file the
@@ -175,12 +238,19 @@ by the site's post-build. Paths here are from this package's root.
   Discord service's copy run against it.
 - `tests/walk-checks.spec.ts` (jsdom): the walk's accessibility rules, each
   on a page of its own, the contrast measured off a shot and looked at
-  twice, every page script compiling as the drivers run it, and
+  twice, the paint judged off shots (blank under a filter, black under a
+  blend, only for the feature), every page script compiling as the drivers run it, and
   `walk-page.js` standing for every page script `walk.mjs` calls. The site holds the static rules over its built pages
   (`packages/site/tests/site/page-reading.spec.tsx`).
+- Every export is imported somewhere in the workspace, a page script's
+  helpers (`walk-checks.mjs`, carried as source) included
+  (`packages/site/tests/exports.spec.ts`); `walk-checks.d.mts` declares
+  what is exported and no more.
 - The drawing code's pure parts are held where they run, by the site
   (`packages/site/tests/site/cards.spec.ts`), and its browser parts by the
   site's build, which fails when a card or the registry does.
+- `brandSvg` is held by the site's `tests/readme-art.spec.ts`, which
+  writes the committed banner (`npm run readme:art`) and fails on drift.
 
 ## Child DOX Index
 

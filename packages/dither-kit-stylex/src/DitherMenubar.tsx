@@ -98,6 +98,7 @@ export type MenubarItem = {
 export type MenubarMenu = { label: string; items: MenubarItem[] }
 
 export type DitherMenubarProps = {
+  /** @docs { label: string; items: MenubarItem[] }[] */
   menus: MenubarMenu[]
   onSelect?: (menu: string, item: string) => void
 }

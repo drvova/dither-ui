@@ -1,5 +1,5 @@
-// The chart family: every kind paints its canvas, the parts land in the
-// root's layers, the legend and tooltip read whichever root they sit in,
+// The chart family: every kind prints SVG (no canvas, and before any
+// measure), the parts land in the root's layers, the marks name the data, the legend and tooltip read whichever root they sit in,
 // and a part outside its root says which root it belongs in.
 import { cleanup, fireEvent, render } from "@solidjs/testing-library"
 import { createSignal, type JSX } from "solid-js"
@@ -62,12 +62,6 @@ beforeEach(() => {
       disconnect() {}
     },
   )
-  // The charts draw their marker and sparkles straight on the context.
-  const recorded = HTMLCanvasElement.prototype.getContext
-  HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, ...args: unknown[]) {
-    const c = (recorded as (...a: unknown[]) => object).apply(this, args)
-    return Object.assign(c, { fillRect() {}, fillStyle: "" })
-  } as unknown as typeof HTMLCanvasElement.prototype.getContext
 })
 afterEach(() => {
   cleanup()
@@ -83,7 +77,14 @@ async function shown(ui: () => JSX.Element) {
   return view
 }
 
-describe("every chart kind paints its canvas", () => {
+/** The print's marks: every inked path and cell image of its SVG. */
+const inksOf = (root: ParentNode) => [...root.querySelectorAll(".dk-chart-print path[stroke], .dk-chart-print image")]
+const printOf = (root: ParentNode) =>
+  inksOf(root)
+    .map((p) => `${p.getAttribute("stroke")}${p.getAttribute("d")}${p.getAttribute("href")}`)
+    .join()
+
+describe("every chart kind prints SVG", () => {
   const kinds: [string, () => JSX.Element][] = [
     [
       "area",
@@ -131,56 +132,80 @@ describe("every chart kind paints its canvas", () => {
     ["sparkline", () => <Sparkline data={[1, 3, 2, 5, 4]} color="blue" />],
   ]
   for (const [kind, ui] of kinds) {
-    it(`${kind}: mounts with a small dataset and paints`, async () => {
-      const { container } = await shown(ui)
-      const canvas = container.querySelector("canvas")!
-      expect(canvas.width).toBeGreaterThan(0)
-      expect(w.uploads).toContain(canvas)
+    it(`${kind}: mounts with a small dataset and prints its cells as paths, no canvas`, () => {
+      const { container } = render(ui)
+      expect(container.querySelector("canvas")).toBeNull()
+      expect(inksOf(container).length).toBeGreaterThan(0)
+      expect(container.querySelector("svg.dk-chart")!.getAttribute("viewBox")).toBe("0 0 300 200")
     })
   }
 
-  it("paints nothing before it is in view, and nothing after it has left", async () => {
-    const { unmount } = render(() => (
-      <AreaChart data={rows} config={config} sparkles={false} animate={false}>
+  it("prints at its fallback size before anything measures it, scaled into its box", () => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    )
+    const area = render(() => (
+      <AreaChart data={rows} config={config}>
         <Area dataKey="sales" />
       </AreaChart>
     ))
-    await w.frame(50)
-    expect(w.uploads).toEqual([])
-    w.show()
-    await w.frame(100)
-    const painted = w.uploads.length
-    expect(painted).toBeGreaterThan(0)
-    unmount()
-    await w.frame(200)
-    expect(w.uploads.length).toBe(painted)
+    expect(area.container.querySelector("svg.dk-chart")!.getAttribute("viewBox")).toBe("0 0 600 240")
+    expect(inksOf(area.container).length).toBeGreaterThan(0)
+    const pie = render(() => (
+      <PieChart data={slices} config={sliceConfig} dataKey="value" nameKey="name">
+        <Pie />
+      </PieChart>
+    ))
+    expect(pie.container.querySelector("svg.dk-chart")!.getAttribute("viewBox")).toBe("0 0 320 320")
   })
 
-  it("shows a precompiled image in place of the canvases, and paints nothing", async () => {
-    const { container } = await shown(() => (
+  it("shows a precompiled image in place of the print", () => {
+    const { container } = render(() => (
       <BarChart data={rows} config={config} precompiled="data:image/png;base64,AAAA">
         <Bar dataKey="sales" />
       </BarChart>
     ))
-    expect(container.querySelector("canvas")).toBeNull()
-    const img = container.querySelector("img")!
-    expect(img.getAttribute("src")).toBe("data:image/png;base64,AAAA")
+    expect(inksOf(container)).toEqual([])
+    const img = container.querySelector("svg.dk-chart image[aria-hidden]")!
+    expect(img.getAttribute("href")).toBe("data:image/png;base64,AAAA")
     expect(img.getAttribute("aria-hidden")).toBe("true")
-    expect(w.uploads).toEqual([])
   })
 
-  it("repaints when its data changes", async () => {
+  it("prints again when its data changes", () => {
     const [data, setData] = createSignal(rows)
-    await shown(() => (
+    const { container } = render(() => (
       <BarChart data={data()} config={config} animate={false}>
         <Bar dataKey="sales" />
       </BarChart>
     ))
-    await w.frame(200)
-    const before = w.uploads.length
+    const before = printOf(container)
     setData([...rows, { month: "Apr", sales: 50, costs: 9 }])
-    await w.frame(300)
-    expect(w.uploads.length).toBeGreaterThan(before)
+    expect(printOf(container)).not.toBe(before)
+  })
+
+  it("plays its entrance in CSS, timed on the root, and none when it does not animate", () => {
+    const moving = render(() => (
+      <AreaChart data={rows} config={config} animationDuration={400} animationDelay={50} easing="glide">
+        <Area dataKey="sales" />
+      </AreaChart>
+    ))
+    const svg = moving.container.querySelector<SVGSVGElement>("svg.dk-chart")!
+    expect(svg.hasAttribute("data-enter")).toBe(true)
+    expect(svg.style.getPropertyValue("--dk-chart-duration")).toBe("400ms")
+    expect(svg.style.getPropertyValue("--dk-chart-delay")).toBe("50ms")
+    expect(svg.style.getPropertyValue("--dk-chart-ease")).toBe("cubic-bezier(0.22, 1, 0.36, 1)")
+    expect(svg.querySelector(".dk-chart-sweep .dk-chart-fill")).not.toBeNull()
+    const still = render(() => (
+      <AreaChart data={rows} config={config} animate={false}>
+        <Area dataKey="sales" />
+      </AreaChart>
+    ))
+    expect(still.container.querySelector("svg.dk-chart")!.hasAttribute("data-enter")).toBe(false)
   })
 })
 
@@ -219,52 +244,25 @@ describe("a chart under a DitherScreen", () => {
       ),
     ],
   ]
-  /** The bytes each canvas was last handed. */
-  const printed = new WeakMap<HTMLCanvasElement, string>()
-  beforeEach(() => {
-    const recorded = HTMLCanvasElement.prototype.getContext
-    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, ...args: unknown[]) {
-      const c = (recorded as unknown as (...a: unknown[]) => { putImageData: (image: ImageData) => void }).apply(
-        this,
-        args,
-      )
-      const put = c.putImageData
-      return Object.assign(c, {
-        putImageData: (image: ImageData) => {
-          printed.set(this, image.data.join())
-          put(image)
-        },
-      })
-    } as unknown as typeof HTMLCanvasElement.prototype.getContext
-  })
 
   for (const [kind, chart] of charts) {
-    it(`${kind}: reprints through the new screen when the screen changes, and not otherwise`, async () => {
+    it(`${kind}: prints through the new screen when the screen changes, as a fresh mount under it does`, () => {
       const [screen, setScreen] = createSignal<ScreenKind>("bayer")
-      const { container } = await shown(() => <DitherScreen screen={screen()}>{chart()}</DitherScreen>)
-      const canvas = container.querySelector("canvas")!
-      const bayer = printed.get(canvas)
-      expect(bayer).toBeDefined()
-      const uploads = w.uploads.length
-      await w.frame(200)
-      expect(w.uploads.length).toBe(uploads)
-
+      const { container } = render(() => <DitherScreen screen={screen()}>{chart()}</DitherScreen>)
+      const bayer = printOf(container)
+      expect(bayer).not.toBe("")
       setScreen("line")
-      await w.frame(300)
-      expect(w.uploads.length).toBe(uploads + 1)
-      const line = printed.get(canvas)
+      const line = printOf(container)
       expect(line).not.toBe(bayer)
-
-      // What it prints now is what a chart mounted under that screen prints.
-      const fresh = await shown(() => <DitherScreen screen="line">{chart()}</DitherScreen>)
-      expect(line).toBe(printed.get(fresh.container.querySelector("canvas")!))
+      const fresh = render(() => <DitherScreen screen="line">{chart()}</DitherScreen>)
+      expect(printOf(fresh.container)).toBe(line)
     })
   }
 })
 
 describe("a chart root's layers", () => {
-  it("puts the grid behind the canvas, the axes in front, the legend on top", async () => {
-    const { container } = await shown(() => (
+  it("stacks the grid, the print and the axes in one named SVG, the legend over it", () => {
+    const { container } = render(() => (
       <AreaChart data={rows} config={config}>
         <Legend />
         <XAxis dataKey="month" />
@@ -278,38 +276,32 @@ describe("a chart root's layers", () => {
     ))
     const root = container.firstElementChild!
     expect(root.className).toBe("relative h-full w-full")
-    const order = [...root.children].map((c) => c.tagName.toLowerCase())
-    expect(order).toEqual(["svg", "canvas", "canvas", "svg", "div"])
-    const [back, , , front, legend] = [...root.children]
-    expect(back.getAttribute("aria-hidden")).toBe("true")
-    expect(back.getAttribute("role")).toBe("presentation")
+    expect([...root.children].map((c) => c.tagName.toLowerCase())).toEqual(["svg", "div"])
+    const [svg, legend] = [...root.children]
+    expect(svg.getAttribute("role")).toBe("group")
+    expect(svg.getAttribute("aria-label")).toBe("Area chart: Sales, Costs")
+    expect(svg.querySelector("title")!.textContent).toBe("Area chart: Sales, Costs")
+    const [back, plot, front] = [...svg.children].filter((c) => c.tagName === "g")
     expect(back.querySelectorAll("g.stroke-border line").length).toBeGreaterThan(0)
-    expect(front.getAttribute("role")).toBe("img")
-    expect(front.getAttribute("aria-label")).toBe("Chart")
-    expect(front.querySelector("g")!.getAttribute("transform")).toBe("translate(36,10)")
+    expect(inksOf(plot).length).toBeGreaterThan(0)
+    expect(front.getAttribute("transform")).toBe("translate(36,10)")
     expect([...front.querySelectorAll("text")].map((t) => t.textContent)).toEqual(
       expect.arrayContaining(["Jan", "Feb", "Mar"]),
     )
-    // one dot a point, inside its series
-    expect(front.querySelectorAll("circle").length).toBe(rows.length)
+    // one dot a point, inside its series, fading in after the entrance
+    expect(front.querySelectorAll(".dk-chart-after circle").length).toBe(rows.length)
     expect(legend.textContent).toBe("SalesCosts")
   })
 
-  it("draws no back layer with nothing composed into it; a radar always frames itself", async () => {
-    const area = await shown(() => (
-      <AreaChart data={rows} config={config}>
-        <Area dataKey="sales" />
-      </AreaChart>
-    ))
-    expect(area.container.querySelector('svg[role="presentation"]')).toBeNull()
-    const radar = await shown(() => (
+  it("frames a radar behind its print, rings and axis names as text", () => {
+    const radar = render(() => (
       <RadarChart data={axes} config={radarConfig} nameKey="axis" rings={3}>
         <Radar dataKey="now" />
       </RadarChart>
     ))
-    const frame = radar.container.querySelector('svg[role="presentation"]')!
-    expect(frame.querySelectorAll("g.stroke-border path").length).toBe(3)
-    expect([...frame.querySelectorAll("text")].map((t) => t.textContent)).toEqual(["speed", "reach", "depth"])
+    const back = radar.container.querySelector("svg.dk-chart > g")!
+    expect(back.querySelectorAll("g.stroke-border path").length).toBe(3)
+    expect([...back.querySelectorAll("text")].map((t) => t.textContent)).toEqual(["speed", "reach", "depth"])
   })
 
   it("takes the root element's own attributes and class", () => {
@@ -321,6 +313,69 @@ describe("a chart root's layers", () => {
     const root = container.firstElementChild!
     expect(root.className).toContain("h-40")
     expect(root.getAttribute("data-chart")).toBe("sales")
+  })
+})
+
+describe("a chart's marks", () => {
+  const labels = (root: ParentNode) =>
+    [...root.querySelectorAll('.dk-chart-mark[role="img"]')].map((m) => m.getAttribute("aria-label"))
+
+  it("names each data index's values, and shows the one marked", () => {
+    const { container } = render(() => (
+      <AreaChart data={rows} config={config} markerIndex={1}>
+        <Area dataKey="sales" />
+        <Area dataKey="costs" />
+      </AreaChart>
+    ))
+    expect(labels(container)).toEqual(["Jan: Sales 10, Costs 4", "Feb: Sales 30, Costs 8", "Mar: Sales 20, Costs 6"])
+    const marked = container.querySelectorAll(".dk-chart-mark[data-marked]")
+    expect(marked.length).toBe(1)
+    expect([...marked[0].querySelectorAll(".dk-chart-value")].map((t) => t.textContent)).toEqual([
+      "Sales 30",
+      "Costs 8",
+    ])
+  })
+
+  it("names every bar and every slice, and leaves the values to a composed tooltip", () => {
+    const bars = render(() => (
+      <BarChart data={rows} config={config}>
+        <Bar dataKey="sales" />
+        <Tooltip />
+      </BarChart>
+    ))
+    expect(labels(bars.container)).toContain("Feb: Sales 30")
+    expect(bars.container.querySelector("svg.dk-chart")!.hasAttribute("data-tooltip")).toBe(true)
+    const pie = render(() => (
+      <PieChart data={slices} config={sliceConfig} dataKey="value" nameKey="name">
+        <Pie />
+      </PieChart>
+    ))
+    expect(labels(pie.container)).toEqual(["Web: 60 (60%)", "App: 40 (40%)"])
+    expect(pie.container.querySelector("svg.dk-chart")!.hasAttribute("data-tooltip")).toBe(false)
+  })
+
+  it("writes a reader's words into its marks as text, never as markup", () => {
+    const { container } = render(() => (
+      <AreaChart
+        data={[
+          { m: "<i>a</i>", v: 1 },
+          { m: "b", v: 2 },
+        ]}
+        config={{ v: { label: 'Net "x" & <y>', color: "blue" } }}
+        interactive
+      >
+        <Area dataKey="v" />
+      </AreaChart>
+    ))
+    expect(container.querySelector("i")).toBeNull()
+    const first = container.querySelector(".dk-chart-mark")!
+    expect(first.getAttribute("aria-label")).toBe('<i>a</i>: Net "x" & <y> 1')
+    expect(first.querySelector(".dk-chart-value")!.textContent).toBe('Net "x" & <y> 1')
+  })
+
+  it("draws none where the pointer does not read the chart", () => {
+    const { container } = render(() => <Sparkline data={[1, 3, 2]} color="blue" />)
+    expect(container.querySelectorAll(".dk-chart-mark").length).toBe(0)
   })
 })
 
@@ -446,7 +501,7 @@ describe("a series you can press", () => {
         <Bar dataKey="sales" isClickable />
       </BarChart>
     ))
-    const hit = container.querySelectorAll("rect")
+    const hit = container.querySelectorAll<SVGRectElement>('rect[style*="cursor"]')
     expect(hit.length).toBe(rows.length)
     fireEvent.click(hit[0])
     fireEvent.click(hit[1])
@@ -521,7 +576,7 @@ describe("Radar", () => {
     ))
     expect(seen!("now")).toBe("dotted")
     // No background runtime is mounted inside the chart.
-    expect(container.querySelector("canvas.pointer-events-none.absolute.inset-0")).toBeNull()
+    expect(container.querySelector("canvas")).toBeNull()
   })
 
   it("is not the sweep background", () => {

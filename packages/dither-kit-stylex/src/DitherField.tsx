@@ -22,6 +22,7 @@ export type DitherFieldProps = {
   description?: string
   error?: string
   for?: string
+  /** @docs content */
   children?: JSX.Element
 }
 

@@ -1,0 +1,21 @@
+/* The hold's fill: held it rises to full over the hold's time, let go it
+   drains back in about a third of it (a reversed transition drains only
+   what it filled). It is the hold's timer as much as its picture, so it
+   runs under reduced motion too. */
+.dk-hold-fill[data-axis="y"] {
+  height: 0;
+  transition: height calc(var(--dk-hold-ms) * 0.35) linear;
+}
+.dk-hold-fill[data-axis="x"] {
+  width: 0;
+  transition: width calc(var(--dk-hold-ms) * 0.35) linear;
+}
+.dk-hold-fill[data-axis="y"][data-hold] {
+  height: 100%;
+}
+.dk-hold-fill[data-axis="x"][data-hold] {
+  width: 100%;
+}
+.dk-hold-fill[data-hold="hold"] {
+  transition-duration: var(--dk-hold-ms);
+}

@@ -7,7 +7,6 @@ export {
   deleteWarning,
   duplicateProject,
   exportDocument,
-  flushSave,
   hydrate,
   importDocument,
   type ProjectMeta,

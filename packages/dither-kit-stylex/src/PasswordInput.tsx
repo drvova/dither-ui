@@ -29,9 +29,12 @@ const styles = stylex.create({
 /** Password field with a reveal toggle: type flips text/password, the button
  * carries the accessible name and never submits (type=button). */
 type Own = {
+  /** @docs string (with onUpdateModelValue)
+   * @default "" */
   modelValue?: string
   placeholder?: string
   disabled?: boolean
+  /** @default false */
   invalid?: boolean
   class?: string
   xstyle?: StyleProp

@@ -1,7 +1,7 @@
 import { createMemo, createSignal, For, type JSX, Show } from "solid-js"
 import type { Artboard } from "@/entities/artboard"
 import { type Layer, layersOf } from "@/entities/chart"
-import { componentEntry } from "@/entities/widget"
+import { screenLayers } from "@/entities/widget"
 import { cssColor } from "@dither-ui/kit"
 import { cn } from "@dither-ui/kit/tailwind/lib.ts"
 import {
@@ -118,13 +118,8 @@ export default function LayerTree() {
       out.push({ t: "artboard", a, depth })
       if (!isOpen(a.id)) return
       if (a.widget?.kind === "screen") {
-        a.widget.rows.forEach((row, ri) => {
-          out.push({ t: "snode", a, id: `${a.id}:row:${row.id}`, label: `Row ${ri + 1}`, depth: depth + 1 })
-          for (const cell of row.cells) {
-            const label = componentEntry(cell.is)?.label ?? cell.is
-            out.push({ t: "snode", a, id: `${a.id}:cell:${cell.id}`, label, depth: depth + 2 })
-          }
-        })
+        for (const l of screenLayers(a.widget, a.id))
+          out.push({ t: "snode", a, id: l.id, label: l.label, depth: depth + l.depth })
         return
       }
       for (const l of childLayers(a)) out.push({ t: "layer", a, layer: l, depth: depth + 1 })

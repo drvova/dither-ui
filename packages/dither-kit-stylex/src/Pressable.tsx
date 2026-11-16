@@ -75,8 +75,8 @@ const styles = stylex.create({
 export type PressableVariant = "solid" | "outline" | "ghost" | "plain"
 
 type Own = {
-  type?: "button" | "submit" | "reset"
   variant?: PressableVariant
+  type?: "button" | "submit" | "reset"
   disabled?: boolean
   class?: string
   xstyle?: StyleProp

@@ -39,28 +39,46 @@ const MASK = "*******"
  * through one event. Explicit balance/change props override the active
  * account's numbers. */
 export type WalletCardProps = {
+  /** @docs { value, label, address, balance, change?, color? }[]
+   * @default required */
   accounts: WalletAccount[]
+  /** @docs string (with onUpdateModelValue): selected account
+   * @default first account */
   modelValue?: string
-  /** Override the active account's balance. */
+  /** Override the active account's balance.
+   * @docs number: override the active account's numbers
+   * @default account data */
   balance?: number
-  /** Override the active account's change. */
+  /** Override the active account's change.
+   * @docs number: override the active account's numbers
+   * @default account data */
   change?: number
+  /** @docs string: balance prefix */
   currency?: string
-  /** Start with the balance masked. */
+  /** Start with the balance masked.
+   * @docs boolean: start masked */
   defaultHidden?: boolean
   searchPlaceholder?: string
-  /** Recent queries listed in the morphed-open search panel. */
+  /** Recent queries listed in the morphed-open search panel.
+   * @docs string[]: recent queries in the search panel
+   * @default undefined */
   recent?: string[]
-  /** Show an unread pulse on the bell. */
+  /** Show an unread pulse on the bell.
+   * @docs boolean: unread pulse on the bell */
   notifications?: boolean
+  /** @docs PixelColor: card accent */
   color?: PixelColor
   class?: string
   onUpdateModelValue?: (value: string) => void
+  /** @docs ("send" | "deposit" | "swap" | "buy") */
   onAction?: (name: WalletAction) => void
-  /** Live query text on every keystroke. */
+  /** Live query text on every keystroke.
+   * @docs (query), live text on every keystroke */
   onSearch?: (query: string) => void
-  /** Committed query — Enter or a recent row. */
+  /** Committed query — Enter or a recent row.
+   * @docs (query) on Enter or a recent row */
   onSubmit?: (query: string) => void
+  /** @docs () when the bell is pressed */
   onNotify?: () => void
 }
 

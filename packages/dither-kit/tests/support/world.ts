@@ -27,15 +27,15 @@ export function world() {
       disconnect() {}
     },
   )
-  const sizes: (() => void)[] = []
+  const sizes: ((blockSize: number) => void)[] = []
   vi.stubGlobal(
     "ResizeObserver",
     class {
       constructor(private callback: ResizeObserverCallback) {}
       observe(el: Element) {
-        sizes.push(() =>
+        sizes.push((blockSize) =>
           this.callback(
-            [{ target: el, borderBoxSize: [{ inlineSize: 96, blockSize: 40 }] } as unknown as ResizeObserverEntry],
+            [{ target: el, borderBoxSize: [{ inlineSize: 96, blockSize }] } as unknown as ResizeObserverEntry],
             this as never,
           ),
         )
@@ -55,12 +55,17 @@ export function world() {
     for (const cb of due) cb(base + now)
   }
   const uploads: HTMLCanvasElement[] = []
+  // The bytes each canvas's last upload carried.
+  const shown = new WeakMap<HTMLCanvasElement, Uint8ClampedArray>()
   const real = HTMLCanvasElement.prototype.getContext
   HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement) {
     return {
       canvas: this,
       createImageData: (w: number, h: number) => ({ width: w, height: h, data: new Uint8ClampedArray(w * h * 4) }),
-      putImageData: () => uploads.push(this),
+      putImageData: (image: ImageData) => {
+        uploads.push(this)
+        shown.set(this, image.data.slice())
+      },
       clearRect() {},
       drawImage() {},
       beginPath() {},
@@ -70,10 +75,12 @@ export function world() {
   } as unknown as typeof HTMLCanvasElement.prototype.getContext
   return {
     uploads,
+    /** The bytes `canvas` was last given, as a raster. */
+    shown: (canvas: HTMLCanvasElement) => ({ width: canvas.width, height: canvas.height, data: shown.get(canvas)! }),
     /** Every observed element comes into view. */
     show: () => shows.forEach((s) => s()),
-    /** Every observed element reports its size. */
-    size: () => sizes.forEach((s) => s()),
+    /** Every observed element reports its size: 96 wide, `blockSize` (40) tall. */
+    size: (blockSize = 40) => sizes.forEach((s) => s(blockSize)),
     frame,
     /** How many frames are asked for. */
     queued: () => frames.size,

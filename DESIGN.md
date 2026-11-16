@@ -65,6 +65,14 @@ Rules:
 - A lede is two-tone: the muted ink, with the one clause that carries its
   point stepped up to the full ink. One clause a lede, never bold.
 
+### On paper
+
+Printed, every page is ink on a white sheet, the landing included: `#111`
+on `#fff` with `#444` for the muted ink, display type plain, the header,
+the rails and the keys left off, each link's address beside it, the kit's
+art printed as it stands (SVG sharp, a canvas cell by cell) and the scroll
+scenes settled in place (`packages/site/src/app/print.css`).
+
 ### The kit's swatches
 
 The kit's own colours (`@dither-ui/kit/engine/palette.ts`, mirrored as
@@ -156,7 +164,8 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
 
 - Soft shells against a few sharp, machined boundaries; never uniform
   pills.
-- One shaped hardshell a page (two cut corners holding a recessed well);
+- One shaped hardshell a page (two cut corners holding a recessed well,
+  the cut one outline, `--hardshell-cut`, that the shell and its rim share);
   every other panel is a `flat-shell`: the shell ground, one hairline, a
   10px radius.
 - Keys: the primary key is a satin chrome capsule; secondary keys are
@@ -172,35 +181,83 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
   (`GLIDE_BEZIER` in the kit, `--ease-settle` on the site). It leaves at
   full speed and settles long and soft, never past its mark. Every
   transition, wipe, reveal, rise, scroll scene and page transition moves
-  on it.
-- **One lift, for the hand**: what the reader moves directly (a key or a
-  card pressed and let go, a sheet dragged and let go) settles on the
-  hand's spring, which may pass its mark a little and come back (the
-  user's call). One definition, a response of 0.35s and a bounce of 0.25
-  (`HAND_SPRING`, about 3% past its mark, settled in `500ms`), as CSS
+  on it, save the hand's spring and the four roles below.
+- **Four roles, the scoped exceptions** (the user's call): motion that
+  truly is one of these takes its own curve and duration, and nothing
+  else does (`MOTION_ROLES` in the kit's `timing.ts`, written into its
+  `theme.css` as `--ease-<role>` and `--duration-<role>`, which the site
+  imports):
+  - **travel**: a thing hopping from one place to the next along a path
+    (the mascot's flight across the Studio), `cubic-bezier(0.45, 0, 0.55, 1)`
+    (ease in and out, symmetric), 420 to 620ms a hop, `520ms` where one
+    duration serves. Five dots trail it along the same path, each a beat
+    later and fainter.
+  - **reorder**: cards changing places in a list or a grid (a deck
+    rising, a stack fanning into a list),
+    `cubic-bezier(0.16, 1, 0.3, 1)` over `700ms`.
+  - **pill**: a small value pill changing its text, size or place (a
+    readout's figures, a tab's marker, a key's label rolling to its next
+    word), `cubic-bezier(0.2, 0.8, 0.2, 1)` over `300ms`.
+  - **bump**: a hub or a receiver acknowledging an arrival with one small
+    pulse, `cubic-bezier(0.34, 1.4, 0.64, 1)` over `250ms`: the one curve
+    that passes its mark without a hand, and only as the answer to an
+    arrival (timed by CSS: an animation delayed by the hop, or the
+    receiver's own keyframe as its state turns). The kit's keyframes for
+    the two that move along (`dk-travel`, `dk-bump`) are the clock's, so a
+    directed moment holds them.
+  None of them runs under reduced motion: the end state shows.
+- **No motion is a script's** (the user's call: "no animations in JS;
+  class names"): the site's motion is its stylesheets', a class's
+  transition, keyframes or scroll-driven animation. The kit's dithered
+  art still draws in script (no stylesheet can draw dither); motion a
+  stylesheet cannot drive by itself (a sheet dragged under a finger, a
+  spring that follows the finger's velocity) is dropped, never kept as a
+  little script. A script may still toggle the class that starts a
+  motion (a dialog's phase, a car's driving).
+- **One lift, for the hand**: a key or a card let go after a press settles
+  on the hand's spring, which may pass its mark a little and come back
+  (the user's call). One definition,
+  a response of 0.35s and a bounce of 0.25 (`HAND_SPRING`, about 3% past its mark, settled in `500ms`), as CSS
   `linear()` (`--ease-spring` over `--spring-time`, the glide where
-  `linear()` is not supported) and, for a drag let go, run from the
-  finger's own velocity. Nothing that moves by itself springs.
-- **The press**: a key gives to `0.97` in `90ms` on the glide and springs
-  back as it is let go; a card that opts in gives to `0.985`. A scale of
-  its own, so nothing is laid out again. Mouse, pen and finger alike.
+  `linear()` is not supported): the press's way back, a transition.
+  Nothing that moves by itself springs.
+- **The press**: a key gives to `0.97` in `90ms` on the glide while it is
+  held (its own `:active`) and springs back as it is let go; a card that
+  opts in gives to `0.985`, and only where none of its controls took the
+  press. A scale of its own, so nothing is laid out again.
 - **Scroll scenes**: a section's art moves in step with the scroll, on the
-  glide, then lets go: the hero eases back as the page leaves it, the
-  bento's cards slide up into place as they come in, and each plate holds
-  in the middle of the screen while it scales up into place. Transform
-  and opacity only, read only near the viewport; still under reduced
-  motion.
+  glide, on a view timeline of its own (`animation-timeline: view()`):
+  the hero eases back as the page leaves it, the bento's cards slide up
+  into place as they come in, and each plate holds in the middle of the
+  screen while it scales up into place; the headlines' words rise as they
+  come in. Transform and opacity only. Where a browser has no scroll
+  timelines, under reduced motion and with no script, everything stands
+  in its end state.
 - **Three durations**: 150ms for a colour (micro feedback), 350ms for a
   hand's movement, 500ms for a sheet.
 - **One moving layer at a time** against a still ground.
 - **Stepped where it is printed**: the dither art moves in whole cells
   and at a film's cadence (stop-motion), never a smear.
+- **Shapes move by the SVG and its stylesheet**, never by a script: a cell
+  picture that steps (the mascot's rotor, blink and hop, the car's wheels)
+  draws what its frames share once and shows each frame's own cells in its
+  turn by CSS; a filter's own motion (a turbulence) is SMIL that starts
+  where its still filter stands, so a timeline frozen at its start (Firefox
+  without script) shows the same. The kit's clock holds SMIL when a
+  renderer directs it (`directSmil`); under reduced motion the pose stands.
 - **On cue**: art moves as it comes into view (under five seconds, so it
   needs no pause control), then only under the reader's hand. A loop that
   runs longer gets a pause.
-- **Page to page**: a cross-document view transition dithered through the
-  kit's wipe, a band of the signal ink on its front; the theme turns
-  through the same engine as an iris.
+- **Page to page**: a cross-document view transition of the stylesheet's
+  alone, the new page wiping in from the left through three strips of the
+  Bayer ranks in whole tiles, a band of the signal ink on its front; the
+  theme prints in over the old one rank by rank, the one view transition
+  its toggle starts.
+- **Class names, not scripts** (the user's call): the kit's UI moves in
+  CSS, a transition or `dk-*` keyframes in each component's stylesheet
+  over state it sets as an attribute, and the kit clock holds that CSS at
+  a directed moment so a frame exports exact. Only the dither on a canvas
+  is drawn in script; a drag is read as it is let go, never followed.
 - **Reduced motion** is honoured everywhere: still frames, no rolls, no
   smooth scrolling, the final state shown at once.
 
@@ -212,8 +269,18 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
   break into stripes, and keeps a tone its label reads on at AA: a fill
   caught between the inks moves the least tone that reaches 4.5:1, its
   label taking black or the theme's ink (`labelFill`).
+- The dither is class names where it can be: every screen's 17 tones are
+  4x4 tiles in CSS (`dk-tone-<screen>-<level>`), so a labelled fill is
+  printed with the page, no canvas, and a key's hover and press step from
+  tone to tone, never a fade.
 - The cell is the unit. Art is sized in cells, moves in cells and lands
   on whole cells.
+- A chart is a print on the page itself: SVG cells, ink for ink what its
+  canvas showed, there before any script runs. Its axes and values are
+  text; under the pointer a mark shows its crosshair and its values in
+  the mono face over a ground-coloured halo, and its entrance (a sweep, a
+  grow, an arc, a scale) runs on the chart's own easing as it first comes
+  into view.
 - **The heat**: the landing's recurring material, ink in water printed
   through the footer's ramp. It builds up through the page in plates of
   the brand and closes in a band behind the install, hottest along its
@@ -234,6 +301,9 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
   Tailwind, StyleX, CSS Modules, CSS, GitHub, each coding agent), one
   colour, beside their names, never restyled.
 - Every icon button has a name.
+- One sprite: the glyphs, the marks, the brand mark and the mascot's
+  parts are symbols in one SVG file every page shares; the mascot's blink,
+  hop and rotor are its stylesheet's, never a script's.
 
 ## Copy
 
@@ -285,12 +355,15 @@ A floor, not a feature:
 - One focus colour everywhere: the theme's ring ink.
 - Targets of 24px, or spaced to it (WCAG 2.5.8).
 - Reduced motion and reduced transparency honoured in every change: no
-  press, no scroll scene, a sheet that comes and goes at once.
+  press, no scroll scene, no rise, a sheet that comes and goes at once,
+  each held by a `prefers-reduced-motion: no-preference` media query.
+- With no script at all every page reads whole: nothing waits hidden for
+  the app.
 - Fields read at 16px on iOS, so focusing one never zooms the page.
 - Every control a finger drags sets `touch-action` and ends on
   `pointercancel`; every right-click menu opens on a long press.
 - On a phone the site's menu is a bottom sheet: bands at least 44px tall,
-  dragged down by its head to close, Escape and the close key as ever.
+  closed by its close key, Escape or a tap above it.
 - Every operable element has a name, every page one h1 and one main; Tab
   reaches every control that shows and leaves every one, each showing its
   focus; what a scene keeps unseen is out of reach; a dialog takes focus
@@ -311,13 +384,25 @@ Smoothness is part of the look, so these are design rules too:
 - A page holds only what it shows and what was just read: the docs mount
   the open family and the last ones read, never all of them.
 - Art that is not on screen does not move.
+- Turning the theme repaints no art: a canvas prints the kit's own fills
+  over a clear ground, never the theme's inks, which are CSS (tokens,
+  tone classes, SVG in `currentColor`) and turn with the class on the
+  root alone.
 - A page's first load is its own page: the kit's heavy engines that art
   further down shows (the world, the charts) are chunks that come with the
   page, never before its first paint, held to a budget.
+- No script where HTML and CSS can do it: the landing and the docs are
+  their prerendered bytes, and only what a hand or the clock drives is an
+  island, loaded as it nears the view (`packages/site/src/shared/lib/island.tsx`).
 - The first paint is the prerendered page: the app mounts over it once its
   page has loaded, never empties it first; the display face comes with the
   HTML; the page a pointer rests on a link to is made ready before the
   click.
+- The dither is in that first paint: every kit canvas a built page carries
+  shows the frame the kit's engine paints it, baked into the page at a
+  pixel a cell, and the canvas takes over with the same pixels. A still
+  surface shows its settled frame and skips its entrance; a moving one in
+  the first window shows its first frame and moves on from it.
 
 ## Where it lives
 
@@ -327,11 +412,13 @@ Smoothness is part of the look, so these are design rules too:
 | Site materials, chrome, motion | `packages/site/src/app/styles.css` |
 | The landing's print | `packages/site/src/pages/landing/chapters.css`, `packages/site/src/pages/landing/LandingPage.tsx` |
 | The docs' materials | `packages/site/src/pages/docs/` |
-| Motion curves | `@dither-ui/kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `@dither-ui/kit/engine/spring.ts`, the hand's spring `packages/site/src/shared/lib/spring.ts` |
-| The press, scroll scenes | `packages/site/src/shared/lib/press.ts`, `scroll-scene.ts`; the landing's scenes `packages/site/src/pages/landing/scenes.ts` |
-| Print screens | `@dither-ui/kit/engine/pixel.ts` (`SCREENS`) |
+| Motion curves | `@dither-ui/kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `@dither-ui/kit/engine/spring.ts`, the hand's spring `packages/site/src/shared/lib/spring.ts`, the four roles `@dither-ui/kit/engine/timing.ts` (`MOTION_ROLES`) and `@dither-ui/kit/engine/theme.css` |
+| The press, the page and theme transitions | `packages/site/src/app/styles.css` |
+| Scroll scenes, the rise | `packages/site/src/pages/landing/Showcase.css`, `Examples.css`, `Plate.css`, `RiseWords.css` |
+| Print screens | `@dither-ui/kit/engine/pixel.ts` (`SCREENS`); as class names `@dither-ui/kit/engine/tones.css` |
 | The heat and the plates | `packages/site/src/pages/landing/heat.ts`, `plate.ts` |
 | The display face | `packages/site/src/shared/fonts/` |
+| The sprite (glyphs, marks, brand, mascot) | `packages/site/src/shared/ui/sprite.ts`, `sprite-file.ts` |
 | Studio audience and principles | `.impeccable.md` |
 
 Changing the look: change the source, then this file, in the same commit;

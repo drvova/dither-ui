@@ -19,6 +19,7 @@ import {
   walk,
 } from "@/shared/lib/inspect/measure"
 import { DEFAULT_SETTINGS, normalizeSettings } from "@/widgets/workbench/model/settings"
+import { serializeSvg, textWidth, wrapLines } from "@/widgets/workbench/model/svg"
 import {
   createHistory,
   emptyWorkspace,
@@ -187,6 +188,41 @@ function decodeGif(gif: Uint8Array): number[][] {
   }
   return frames
 }
+
+describe("workbench SVG layer", () => {
+  it("sizes a label by the mono face's advance", () => {
+    expect(textWidth("100×30", 10)).toBe(36)
+    expect(textWidth("", 9)).toBe(0)
+  })
+
+  it("wraps a note as the field wraps it: breaks kept, words whole, a long word cut", () => {
+    // 270px of 10px at 0.6: 45 characters a line.
+    expect(wrapLines("tighter\nhere", 10)).toEqual(["tighter", "here"])
+    expect(wrapLines("a\n\nb", 10)).toEqual(["a", "", "b"])
+    const words = `${"word ".repeat(9)}tail`
+    expect(wrapLines(words, 10)).toEqual(["word word word word word word word word word", "tail"])
+    expect(wrapLines("x".repeat(100), 10)).toEqual(["x".repeat(45), "x".repeat(45), "x".repeat(10)])
+    expect(wrapLines("ab cd", 10, 18)).toEqual(["ab", "cd"])
+  })
+
+  it("serialises a group as a standalone SVG file, its classes and data dropped", () => {
+    const ns = "http://www.w3.org/2000/svg"
+    const g = document.createElementNS(ns, "g") as SVGGElement
+    g.setAttribute("class", "wb-annotations")
+    const path = document.createElementNS(ns, "path")
+    path.setAttribute("d", "M0 0L10 10")
+    path.setAttribute("data-note", "n1")
+    g.append(path)
+    const file = serializeSvg(g, 400.4, 300)
+    expect(file.startsWith('<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg"')).toBe(
+      true,
+    )
+    const svg = new DOMParser().parseFromString(file, "image/svg+xml").documentElement
+    expect(svg.getAttribute("viewBox")).toBe("0 0 400 300")
+    expect(svg.querySelector("path")!.getAttribute("d")).toBe("M0 0L10 10")
+    expect(file).not.toMatch(/class=|data-/)
+  })
+})
 
 describe("workbench GIF", () => {
   it("round-trips LZW, including table resets", () => {

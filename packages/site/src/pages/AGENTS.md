@@ -52,6 +52,20 @@ in the page's folder.
   external one says "(opens in a new tab)" to screen readers). No space
   is left empty. Everything that moves is the kit itself (real
   components, hands on); no film player or animation runtime ships.
+- The page is static (`../AGENTS.md`, Islands): `LandingPage.tsx` is the
+  page's bytes (the skip link, the section heads, the copy, the cards'
+  names and lines, the families, what it works with, the spec sheet),
+  and what moves is a row of `LANDING` (`islands.ts`): the header,
+  the pointer's trail (idle), the hero (`Showcase`, with the page), the
+  bento (`Examples`), the plates (`Plate`, by its row's name), the build
+  (`BrandBuild`), the ask (`AgentStory`), each inside card's strip
+  (`InsideArt`, by the card's name; the cards are `inside.ts`, their
+  characters still prints in the bytes),
+  the close's heat (`CloseHeat`), the prompt's copy key (`PromptKey`,
+  idle), the install box (`InstallBlock`) and the footer (`LandingFoot`,
+  the road, the car and the brand on its art), each woken as it nears the
+  view. A new moving part is a row there and a module of its own; a
+  static part takes no state, effect or handler.
 - The landing layer lives ONCE in `chapters.css` (plain CSS under
   `.landing`, imported by `LandingPage`) over the site voice (only
   `.nav-a`, `.led`, `.chrome-type` and `.key-chrome` from it): the ground
@@ -75,13 +89,19 @@ in the page's folder.
   right, on its baseline, a `.sec-lede` (two tones: the muted ink, its one
   key clause, `.lede-key`, in the full ink, so the eye finds the point
   without bold; `tests/ledes.spec.ts`) and a `.more-link`; stacked under
-  900px; it rises as it comes into view: `ref={rise}` on the head, the title's
-  words through `RiseWords`, the lede and the link `data-rise` after them,
-  the hero's statement likewise, and the blocks under a head (the three
-  parts' cards, the families, what it works with, the spec sheet's rows)
-  one after another, 90ms apart; the bento keeps its own reveal and the
-  footer its own motion; `shared/lib/rise.ts`, and every riser
-  stands inside an element `rise` holds, `tests/rise.spec.ts`), `.lead` and `.more-link` (an underline that inks on hover, a
+  900px; it rises as it comes into view (the user's call; CSS alone,
+  `RiseWords.css`, classes the server renders, so the static page
+  rises with no script): the class `rise` on the head, the title's words
+  through `RiseWords` (each its `--rise-word`), the lede and the link
+  `data-rise` after them, and the blocks under a head (the three parts'
+  cards, the families, what it works with, the spec sheet's rows), each on
+  its own view timeline, a block after its row's neighbours (`--rise-n`);
+  the hero's statement and the missing page's line are `rise-open`, played
+  as the page opens (900ms, the words 60ms apart, then the blocks 90ms
+  apart, `--rise-words` on the holder); without scroll timelines, under
+  reduced motion or with no script everything stands; the bento keeps its
+  own reveal and the footer its own motion; every riser stands inside a
+  holder, `tests/site/landing.spec.tsx`), `.lead` and `.more-link` (an underline that inks on hover, a
   24px target through padding cancelled by a negative margin), `.key` (a
   filled shape on `--surface`, never a ring), `.seg` (`aria-pressed`
   buttons, quiet labels, the pressed one filled with `--surface`), and
@@ -106,33 +126,28 @@ in the page's folder.
   `tools` (the docs' search and, under lg, its sections key under the
   Book glyph) and the `.key-chrome` "Open studio" (from md). Under lg the
   menu key (the sheet's bands in miniature + "Menu") opens the menu as a
-  BOTTOM SHEET (the user's call, after a phone's bottom sheet; `sheet.ts`):
+  BOTTOM SHEET (the user's call, after a phone's bottom sheet):
   a native modal `<dialog>` filling the window, itself clear so the page
   shows above the sheet, held still (focus on its close key, focus back
   on the key), the sheet at its foot as wide as the header's lines (the
   capsule's width and its gutters), its top a soft shell (20px) on the
-  raised ground, sliding up from the window's foot on the glide
-  (`SHEET_SLIDE`: 500ms). Every sheet's words stand on the header's lines
+  raised ground, sliding up from the window's foot on the glide (500ms,
+  `site-header.css`'s keyframes on the dialog's `data-phase`). Every sheet's words stand on the header's lines
   (`--sheet-start` and `--sheet-end` in `site-header.css`, from the
   capsule's own gutter, width and padding: the brand mark's edge and the
   key word's, centred capsule included). Its head (`.menu-grab`, the
-  sheet's first stop: a handle, "Menu", the close key, 44px, under the
-  close mark, an X on the brand diamond's 7x7 grid, `CLOSE_CELLS` drawn
-  by `BrandMark`'s `cells`, the ember at its crossing; `SHEET_HEAD_FOOT`
-  under it so the first band's seam never bites into it) is where a
-  finger, a pen or a mouse drags the sheet (`touch-action: none`; a drag
-  only past `SHEET_DRAG.slop`, so a tap on the close key stays a tap):
-  down it follows whole, up it gives a fifth, 24px at most (`pullOf`); let
-  go past 30% of its height or thrown down (0.5px a ms) it closes on the
-  hand's spring from the finger's velocity, else it springs back up
-  (`releaseOf`, `velocityOf`); a `pointercancel` springs it back. The
-  sheet reaches 40px under the window's foot (`--sheet-reach`), so a
-  spring past its rest never shows a gap; the dialog clips, never
-  scrolls (`overflow: clip`: WebKit scrolled a hidden overflow to the
-  focused key). The close key, Escape (the dialog's `cancel`, prevented)
-  and a tap on the page above it slide it back down from where it stands
-  before it shuts (`MenuPhase`: shut, open, leaving; at once under
-  reduced motion, and a drag let go there lands at once); a taken link
+  sheet's first stop: "Menu" and the close key, 44px, under the close
+  mark, an X on the brand diamond's 7x7 grid, `CLOSE_CELLS` drawn by
+  `BrandMark`'s `cells` (its runs inline, where the brand mark itself is
+  the site's sprite's), the ember at its crossing; `SHEET_HEAD_FOOT`
+  under it so the first band's seam never bites into it). Nothing drags
+  the sheet (the user's call: no motion is JS, and a drag that follows a
+  finger cannot be CSS): the dialog clips, never scrolls (`overflow:
+  clip`: WebKit scrolled a hidden overflow to the focused key). The close
+  key, Escape (the dialog's `cancel`, prevented) and a tap on the page
+  above it slide it back down before it shuts (`MenuPhase`: shut, open,
+  leaving; it shuts on the `animationend` of `SHEET_OUT`, at once under
+  reduced motion); a taken link
   and the window reaching lg shut it at once. While a sheet stands it
   covers the page (`coverPage`, the kit's `engine/cover.ts`): every kit
   loop under it holds its frame and wakes as the sheet starts to leave,
@@ -156,11 +171,11 @@ in the page's folder.
   (8px, 12px pressed, on the glide, 350ms; the hover only under
   `(hover: hover)`, since a tap's hover sticks on a phone) and the menu key's bands
   part on a hover (none of it under reduced motion). A focused band rings
-  in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe), `sheet.ts` (the
-  sheet under the hand) and `site-header.css` (the capsule and the sheet)
-  are the one tables and stylesheet; `tests/site/shared.spec.tsx` drags
-  it, `tests/spring.spec.ts` holds its release. The nav's links share
-  one hover ground (`shared/lib/glide.ts`, `ref={glide}`). It stays positioned
+  in the ring ink with the ground inside it. `menu.ts` (fills, seam, wipe) and `site-header.css` (the capsule and the sheet)
+  are the one tables and stylesheet; `tests/site/shared.spec.tsx` opens
+  and shuts it. A pointer on one of the nav's links fills that link's own
+  ground (`.site-nav .nav-a:hover`, a colour's time; it never travels
+  between links, which only a script could do). It stays positioned
   (`z-40`): `main` is `relative isolate`, so a positioned sibling paints
   over a static header.
 - Hero (`Showcase.tsx`, our own): the first screen's height under the
@@ -207,8 +222,9 @@ in the page's folder.
   a resting mouse (`replay`), and the print (and its floor) hold their
   frame until it is home each time (`moving` holds, `settled` frees), one
   moving layer at a time. As the page leaves it the hero eases back in
-  step with the scroll (`SCENES.hero` in `scenes.ts`, a scroll scene from
-  its top at the viewport's top to its foot leaving it, on the glide): the
+  step with the scroll (`Showcase.css`: the hero's own view timeline,
+  `animation-range: exit 0% exit 100%`, from its top at the viewport's
+  top to its foot leaving it, on the glide): the
   statement recedes (to 92%, about its left edge, inside its own box so
   no line passes the hero's clipped edge) and fades (to a fifth), the brand's
   moment in it, the print drifts down behind it (14% of its column, the
@@ -344,17 +360,21 @@ in the page's folder.
   next one's edge in view, every card the rail's height, the rail running
   out past the page's gutter), so it takes one screen on a tablet or a
   phone; one card a flick (`scroll-snap-stop: always`), and under it a
-  dot a card (`rail.ts`, the user's call): a 6px cell in the muted ink,
-  the card at the rail's start a long cell in the ink, each a 24px key
-  that takes the rail to its card. A card is the raised ground (`--surface`, no border, 20px
+  dot a card (the user's call): a 6px cell in the muted ink, each a 24px
+  link to its card (`#example-<id>`; taking it scrolls the rail there and
+  the page to the card's top), the card at the rail's start a long cell
+  in the ink, lit by the rail's own scroll timeline (`timeline-scope:
+  --rail`, each dot its share of the travel); without scroll timelines no
+  dot is lit. A card is the raised ground (`--surface`, no border, 20px
   radius) holding its art over its name at page type (17px; a card's copy
   is the page's, never the size of the UI inside it), the link into
   `/docs/<id>` (no family label). Interactive art keeps its own controls, so the card
   itself is never a link; on flush art the pause chip comes before the
   tools in the DOM, as it sits above them. From 1024px each card slides
-  up into place in step with the scroll as it comes in (`SCENES.tile`:
-  56px, from its top at the viewport's foot to six tenths of the way up,
-  on the glide; a row together); the rail moves only under the finger.
+  up into place in step with the scroll as it comes in (its own view
+  timeline, `entry 0% entry 60vh`: 56px, from its top at the viewport's
+  foot to six tenths of the way up, on the glide; a row together); the
+  rail moves only under the finger.
   A press on a card's ground gives (`data-press="card"`), never one on its
   controls, links or canvases, which take the press themselves.
 - `hub.ts` is the landing's docs data (the landing never loads the docs
@@ -446,7 +466,7 @@ in the page's folder.
   raised ground, 20px radius, like the bento's; one column under 900px),
   each headed by a strip flush to its top (120px, 72px on a phone,
   printing in through `DitherReveal`) in its own ink and printer's screen
-  (`INSIDE`: blue in Bayer cells, the ember in lines, bone in a halftone
+  (`INSIDE`, `inside.ts`: blue in Bayer cells, the ember in lines, bone in a halftone
   dot), its `art` a union: a tone (`DitherGradient` from its ink to
   `STOCK`) for the kit and the Studio, a board (`DitherCircuit` in its
   ink, seed 11, full density on a 3-cell lattice, its signals in the
@@ -455,7 +475,7 @@ in the page's folder.
   footer's road runs on too: 3s as its card comes into view, then the
   reader's scroll); its own
   character standing on the strip's foot at the right, half over the card
-  (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, on a
+  (the kit's `DitherAvatar` seeded by its title, in its ink, 56px, still (a print in the page's bytes, no canvas), on a
   plate of the card's ground so its ink never melts into the strip's), then
   its name chunky in the pixel face (`PixelWord.tsx`, 5px cells: "kit",
   "studio", "bridge"; its title the heading's text for screen readers),
@@ -567,10 +587,12 @@ in the page's folder.
   in the band, pulled in from the right edge (16px clear) where the plate
   is narrow, while the heat prints in through `DitherReveal` (0.72s on the
   glide, the lights coming on). Each holds as a scroll scene
-  (`SCENES.plate`, the user's call): a run of the plate and a hold
+  (`Plate.css`, the run's view timeline, the user's call): a run of the plate and a hold
   (`.plate-hold`, 40svh), the plate pinned mid-screen through it (sticky,
   under the header at least) and scaling up from 88% into place on the
-  glide, then let go; under reduced motion no hold, no pin, no scale. The
+  glide, through exactly the span it is pinned (`--pin-top`), then let
+  go; under reduced motion or without scroll timelines no hold, no pin,
+  no scale. The
   plate reads its height from the run's width (a size container,
   `--plate-h`). `tests/landing-facts.spec.ts` holds every
   plate's mark inside its band; `tests/heat.spec.ts` its clouds full in
@@ -635,18 +657,20 @@ in the page's folder.
 - Marks: tool logos (the package managers, Node, Solid, Tailwind,
   StyleX, CSS Modules, CSS, GitHub and the coding agents) come ONLY from
   `src/shared/ui/marks.ts` through
-  `ToolMark`, one-colour in `currentColor` beside the tool's name, never
-  restyled or dithered; everything else is a kit glyph (`DitherIcon`).
+  `ToolMark` (the site's sprite, `shared/ui/sprite.ts`), one-colour in
+  `currentColor` beside the tool's name, never restyled or dithered;
+  everything else is a kit glyph (`DitherIcon`).
 - No entrance choreography but the bento's art printing itself once as it
   nears and the brand's moment (the hero's sign-off as the page opens,
   each plate's and the footer's brand as it nears); the hero's print waits for it, and the type
-  simply is. Scroll scenes (`scenes.ts`, `shared/lib/scroll-scene.ts`)
-  move only under the reader's scroll: the hero easing back, the bento's
+  simply is. Scroll scenes (scroll-driven animations, each its class's
+  stylesheet) move only under the reader's scroll: the hero easing back, the bento's
   cards sliding in, the plates holding while they scale in; never a
   section's head or the blocks under it, which the rise moves (two
-  motions on one thing read as neither). Pressed keys and cards give and
-  spring back (`shared/lib/press.ts`: the hand's spring, the one motion
-  past its mark, the user's lift for direct manipulation). Motion is the live kit
+  motions on one thing read as neither). Pressed keys and cards give
+  while held and spring back (their own `:active` in `app/styles.css`:
+  the hand's spring, the one motion past its mark, the user's lift for a
+  press let go). Motion is the live kit
   surfaces, one moving layer at a time in the bento. Pause chips
   (`PauseChip.tsx`, WCAG 2.2.2): every surface that moves by itself for
   more than five seconds carries one in its corner, named for it ("Pause
@@ -711,8 +735,10 @@ in the page's folder.
   the one geometry the wordmark and the car read): it drives exactly
   while the art moves (the dance, a scroll, a pointer across the footer),
   so the reader drives it, parks as it settles, leaves at the right of
-  the wordmark's box and comes back in at the left; under reduced motion
-  it stays parked. A scroll drives the road only while it is on screen
+  the wordmark's box and comes back in at the left (`LandingPage.css`: a
+  lap keyframed across the box, a container, `--car-lap` by its width,
+  running only under `data-driving`; its wheels a quarter step every 70ms
+  by `MascotCar.css`); under reduced motion it stays parked. A scroll drives the road only while it is on screen
   (driven from anywhere, the car's loop ran through the whole page), and
   the car's loop reads the road's and the car's widths from a
   ResizeObserver, never from layout each frame. Decorative (`aria-hidden`); no
@@ -850,25 +876,28 @@ in the page's folder.
 - Galleries and chip rows are PICKERS, not decoration: `aria-pressed`
   buttons drive the main preview's props; chart previews also bump a
   replay token so the kit's dither entrance is the transition. Code tabs
-  are computed from the picked state — what you see is what you copy.
+  write the picked state into the example — what you see is what you copy.
 - The World section's rocket (`docs/components/rocket.ts`, guarded by
   `tests/rocket.spec.ts`) is our own atomic-age rocket, never a real
   vehicle, flag or marking: a VRML file whose flame flickers and whose
-  climb and fireball run on its own tracks, the page's Launch key driving
-  one clock (`launchAt`: the file's moment, then `scatter` blowing the
-  pieces apart at the top; reduced motion goes straight to the debris).
+  climb and fireball run on its own tracks; the example
+  (`components/examples/world-2.tsx`, the file as written, held to
+  `ROCKET` by `tests/site/example-copies.spec.ts`) drives one clock from
+  its Launch key: the file's moment, then `scatter` blowing the pieces
+  apart at the top; reduced motion goes straight to the debris.
 - Live readings: the Gauge section's second card is an instrument panel
   reading the page itself (frames a second, the worst frame over the last
-  `FRAME_WINDOW` ms, the page's elements in thousands), measured by one
-  rAF loop that runs only while the card is in view (`createInviewLoop`) and
-  read through `docs/components/frames.ts` (`readFrames`, guarded by
-  `tests/frames.spec.ts`); its snippet measures the same way on its own,
-  so Run plays it.
+  half second, the page's elements in thousands), measured by its own rAF
+  loop that runs only while the panel is in view (`DitherInView`, the
+  example `components/examples/gauge-2.tsx`), so Run plays it as the demo
+  does.
 - Docs serve Solid: snippets are written in Solid, once, for DemoCard
   code tabs and Handbook CodeBlocks (a fragment, or a whole `.tsx`
   module; the source panel completes a fragment, see
-  `widgets/source/AGENTS.md`); the API tables are written in Solid's
-  words. `tests/site/source.spec.tsx` compiles every snippet in every
+  `widgets/source/AGENTS.md`); the API tables are the kit's props types
+  (`kitTable` over `virtual:dither-props/<Component>`,
+  `packages/site/AGENTS.md`), a note or a default the docs show written
+  as the prop's `@docs`/`@default` in the kit, never in a pack. `tests/site/source.spec.tsx` compiles every snippet in every
   styling system and holds every one to Solid (no Vue notation: no
   `<template>`, directives, `:prop`/`@event` bindings, `{{ }}` or HTML
   comments in markup).
@@ -879,15 +908,42 @@ in the page's folder.
   and Handbook block goes through it, so a snippet idiom the rewriter mangles
   gets a rule in `packages/restyle/src/index.ts` + a
   `packages/restyle/tests/restyle.spec.ts` case.
-- `SNIPPETS`/derived code must match what the demo renders — it now
-  RUNS in the source panel, so a snippet that leaves out what the demo
-  has (a chart's height: the chart snippets carry `class="h-64"`) renders
-  differently there. Every example runs as written (its state, handlers
-  and data declared, the data printed by `dataCode` from the demo's own
-  values, no elision, only assets the site holds; see
+- An example is written once: `docs/<pack>/examples/<id>.tsx`
+  (`<section id>.tsx`, `-<n>` for a section's later cards) is the whole
+  module a reader copies, importing the kit as `@dither-kit`; the pack
+  renders it as the demo (`<IdExample />`, inside whatever frame the
+  page lays around it) and hands its text (`./examples/<id>.tsx?raw`) to
+  the card as `code`. It holds its own state, data and controls; what the
+  page owns around it (a gallery or chips that pick a variant, a screen, a
+  palette) reaches it as props, which `exampleCode` writes into the code
+  (`packages/site/AGENTS.md`). A card that renders a component never
+  keeps its code as a string beside its demo; a card of a command, a
+  module or a stylesheet is text, with no demo to drift from.
+- An example about one component (its file named for it or for its
+  section: `knob.tsx` is `DitherKnob`'s, `toast.tsx` `DitherToaster`'s)
+  carries what the kit's props type cannot say beside its
+  code: `export const meta = defineExample({ component, title, studio?,
+  states? })` (`@/shared/lib/example`, imported last, the meta last in the
+  file), its Studio row (shelf, frame, settings in order with a range, an
+  option list, a kind (`number` or `boolean` too, for a union that also
+  takes another kind) or a `demo` value only where the type, the
+  example's own props and the kit's default do not give it, `story` for
+  a setting that is no prop (what the row's `mapProps` or its demo
+  reads), the slot, the model, `field`) and `states` (props a reader
+  would set it to, the specs' second values). The build reads it as
+  data (`build/catalog.ts`:
+  literals only, its component by name) and strips it and its import from
+  the text the card, Run and the zip show, so the reader's copy is the
+  example as before. A component with an example and no `meta` keeps its
+  hand row in `entities/widget/model/registry.ts`; giving it one moves
+  the row here (`../AGENTS.md`, the registry). One module a card: the
+  meta rides on the module the docs page renders, never a second file.
+- Every example runs as written (its state, handlers and data declared,
+  no elision, only assets the site holds; see
   `widgets/source/AGENTS.md`); a demo stays inside its card (an overlay
   demo is `absolute` in its box, never `fixed` over the page); API tables
-  mirror actual kit prop defaults — update both when the kit API changes.
+  print the kit's props as its types say them, so a kit API change is
+  the table's change.
   Core form controls share Field-generated IDs, help/error relationships, and
   unified focus/invalid/disabled states; docs examples should show that path.
 - Wayfinding: one section per page (`docs/pages.ts` holds the rules:
@@ -895,31 +951,30 @@ in the page's folder.
   `neighbours` for the pager, `groupOf` for the breadcrumb; pinned by
   `tests/docs-pages.spec.ts`). The URL names the section (clean
   `/docs/<id>`, its directory form `/docs/<id>/` where a static host serves
-  the section's prerendered page, or legacy `#/docs/<id>`; `/docs` itself
-  opens on the first section and keeps the docs' front, the chrome title,
-  its tags and intro, `data-docs-front`, which a section's page keeps only
-  as the screen readers' h1). `open(id)` shows that section alone (the
-  rest of `.docs-flow` hidden; a pack of sections, `packs.ts` `PACKS`, each
-  pack component and the nav naming its sections, mounts only once one of
-  its sections is opened here and stays while it is among the last
-  `PACKS_KEPT` (3) read (`visitPack`), so going back is instant and keeps
-  each demo's state, while the 300-odd others cost the page nothing:
-  27,564 nodes on a section's page became 4,115, and a long read lets the
-  oldest pack go (every section opened in one tab had kept 62k nodes and
-  461 canvases; now about 37k and 218 at worst, the three heaviest); each
-  pack is a chunk of its own (`pack-loaders.ts`: `PACK_LOADERS`, prefetched
-  at idle, so moving family stays instant; the page evaluates only the
-  pack it shows), the open section's pack loaded before the page first
-  renders (`preloadOpenPacks`, from the section route's preload), so it never shows
-  empty, and a pack's sections, arriving after the page, are hidden and
-  read for "On this page" as they come (a MutationObserver on the flow's
-  children; once missed, a family's every section showed at once);
-  every section is a pack's, DocsPage writing none (the 24 it once wrote
-  itself, a second path, held 3,000 of a section page's 4,200 nodes);
-  `tests/docs-packs.spec.ts` holds the packs kept,
-  `tests/site/docs-page.spec.tsx` every pack's sections to its nav), pushes a history
-  entry and reads from the top; back and forward walk them (`popstate`).
-  The sidebar, search, the sheet and the pager all open through it. Over
+  the section's prerendered page, or legacy `/docs#/docs/<id>`, which the
+  entry sends on; `/docs` itself opens on the first section and keeps the
+  docs' front, the chrome title, its tags and intro, `data-docs-front`,
+  which a section's page keeps only as the screen readers' h1). The page
+  is static (`../AGENTS.md`, Islands): `DocsPage.tsx` is its bytes (the
+  breadcrumb, the pager, the footer, the rails' places) and `DOCS`
+  (`docs/islands.ts`) its islands: the flow (`DocsPack.tsx`, with the page:
+  the front's title over the section's pack, `packs.ts` `PACKS`, each pack
+  component and the nav naming its sections; the pack's other sections
+  held back in the bytes by the flow's rule, a deferred one rendering
+  nothing until its own page), the header with search and the sheet
+  (`DocsHeader.tsx`), the page's switches (`DocsSwitches.tsx`), the rail
+  (`DocsNav`), On this page and Share (`DocsAside.tsx`) and the ad, the
+  switches, the rail and the aside at idle. A section's page holds only its pack: 27,564
+  nodes on a section's page became 4,115; each pack is a chunk of its
+  own (`pack-loaders.ts`: `PACK_LOADERS`), asked for by the section's
+  route as the page loads (`preloadOpenPacks`); every section is a
+  pack's, DocsPage writing none (the 24 it once wrote itself, a second
+  path, held 3,000 of a section page's 4,200 nodes);
+  `tests/docs-packs.spec.ts` holds a section's pack,
+  `tests/site/docs-page.spec.tsx` every pack's sections to its nav. The
+  sidebar, search, the sheet and the pager are links to each section's
+  own page, the browser's to follow (the page transition dithers
+  between them; back and forward are the browser's). Over
   the section a breadcrumb (the docs, then its group, linking to the
   group's first section; each link a 24px target); under it the pager, the sections either side
   in the sidebar's order, each with its group. The section's title is the
@@ -1030,6 +1085,15 @@ in the page's folder.
   packs that were DocsPage's own sections (charts, basics, the example
   pages, the Handbook, Utils) keep their siblings' demos out of a page,
   as before (all rendered hidden, a chart's page held twice its nodes).
+  Under its contents a section with demos prints its add line ("Add it to
+  your project", a `CodeBlock`): the add command for the kit components
+  its cards' code uses (each `DemoCard` hands its code up through
+  `SECTION_KIT`; `kitNamesIn` reads the names it imports from
+  `@dither-kit` and the tags it renders, less Solid's and its own), in
+  the reader's styling system, from the site the page is served by
+  (`--from` once mounted on another). Its text is no `<p>`, so a section's
+  lede stays its own first paragraph. `tests/site/source.spec.tsx` holds
+  every card's names to the kit's.
   No docs source writes a `<section id>` or the
   section heading by hand (`tests/site/docs-page.spec.tsx`, which also
   renders every pack and holds each section's id and heading to its nav
@@ -1073,19 +1137,21 @@ in the page's folder.
 - Chart sections link to `/studio#new/<type>` — keep in sync with `CHART_TYPES`;
   Studio also accepts legacy `#/studio/new/<type>` links.
 - Section packs live in subfolders as self-contained components (sections +
-  snippets + local state) with a sibling `*-nav.ts` exporting nav items,
+  snippets + local state, the examples written once in the subfolder's
+  `examples/`) with a sibling `*-nav.ts` exporting nav items,
   both named in `DOCS`; DocsPage is the shell and renders the packs from
-  the table (`PACK_NAMES`). Data several packs' demos print (the
-  dashboard rows, the stat cards, the palette's colours) is
-  `docs/demo-data.ts`; the gallery tiles' pressed classes `docs/gallery.ts`.
+  the table (`PACK_NAMES`). What several packs' galleries share (the
+  months, the area fills, the palette's colours) is `docs/demo-data.ts`;
+  each example holds its own data; the gallery tiles' pressed classes `docs/gallery.ts`.
   `docs/handbook/` = the Handbook (`HandbookDocs.tsx`), `docs/overview/` =
   the Quick start pack, `docs/utils/` = Utils (`UtilsDocs.tsx`: the
   palette, then `ScreensSection.tsx`).
   `docs/examples/` = Examples packs (`PageExamples.tsx`, the whole
   screens: dashboard, app shell, monitoring, team, usage, sign in; the
-  sidebar pack's app windows,
-  `AppFrame`, keep a desktop's width and scroll in their card on a phone,
-  as the bracket does, rather than crush the page beside the sidebar),
+  sidebar pack's app windows, each example's own frame, keep a desktop's
+  width and scroll in their card on a phone, as the bracket does, rather
+  than crush the page beside the sidebar; the page beside a sidebar is a
+  plain block, as a page holds one main),
   `docs/components/` = component-doc
   packs (`ChartDocs.tsx`: the charts and the sparkline; `BasicsDocs.tsx`:
   button, avatar, gradient, image; form/feedback/structure, ...),
@@ -1104,7 +1170,9 @@ in the page's folder.
   steps from `docs/install.ts` (`INSTALL_STEPS`; `INSTALL_DEPS`, the packages the kit needs), one at a
   time, each its title, why where a reader would ask, and its own
   `CodeBlock` (full width on a phone), then
-  "Without Tailwind" (the kit stylesheet, then theming), short under
+  "One component at a time" (the add command's line and the commands
+  after it, `shared/lib/add-command.ts`), then
+  "Without Tailwind" (the kit stylesheet, then theming), each short under
   its own heading; `INSTALL` is the same steps as the one
   commented script the source panel's prompt.md carries. `docs/primitives/` =
   the Primitives pack (Box, Text, Divider, VisuallyHidden — the paste-list
@@ -1140,6 +1208,7 @@ in the page's folder.
   percentage, which goes to 100%, zoom in, fit every frame), the
   selection's name in a slot of its own width, then Duplicate,
   Group/Ungroup (one slot), Delete; Replay, Evolve, Reel, Data; Code, PNG,
+  Copy as SVG, Save as SVG (the label says for a moment how the copy went),
   Video; Inspect. Every key is a glyph with its name (`aria-label`) and its
   words and keys in the title, always present: one that does not apply is
   disabled, never removed, so the bar keeps its width whatever is picked
@@ -1213,7 +1282,8 @@ in the page's folder.
   each part of the window by the page's own refs (the canvas, its bar,
   the sidebar, the chat, the panel, then its own key; a thin part from
   beside it, over it at the window's foot), opening a part folded
-  away, and it lands to say what the part is for in a bubble: Next flies
+  away (each flight a hop on the travel role, five dots trailing it, the
+  count bumping as it lands), and it lands to say what the part is for in a bubble: Next flies
   on, Skip, Done or Escape ends it and hands the focus back; shortcuts
   read as the keyboard writes them (`modKey`). It runs once on a first
   desktop visit (`GUIDE_SEEN_KEY`), never under automation
@@ -1508,7 +1578,8 @@ in the page's folder.
   macrotask (Solid mounts in the call itself) — never an animation frame: the renderer drives
   Chrome with begin-frame control, so frames and rAF only happen when it
   captures one, and every surface paints its moment synchronously on seek
-  (a chart that measures later repaints the moment through its `wake`).
+  (a chart prints as SVG, its entrance a CSS animation the renderer
+  seeks).
   `routes/play.tsx` is the page (noindex, outside the site's shell,
   prerendered as `play/index.html`) and the
   same `main.ts` (`mountPlayer`) is the entry of the single-file bundle

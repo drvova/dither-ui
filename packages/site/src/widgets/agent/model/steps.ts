@@ -3,13 +3,11 @@
 // gathers per turn so the user keeps them or puts the canvas back. Tools
 // that only read change nothing.
 import type { IconName } from "@dither-ui/kit"
-import { commandRows, type ToolStep } from "@/features/agent/commands"
-import { parseDither } from "@/features/agent/dither"
-import { STUDIO_SERVER } from "@/features/agent/tools"
+import { commandRows, parseDither, STUDIO_SERVER, type ToolStep } from "@/features/agent"
 
 type Result = { ok: true; data: unknown } | { ok: false; error: string }
 export type Changed = { id: string; name: string }
-export type Step = { icon: IconName; title: string; changed: Changed[]; mutates: boolean }
+type Step = { icon: IconName; title: string; changed: Changed[]; mutates: boolean }
 
 /** Every Studio tool's step (the command table's), and the one tool's own
  * `find` and `build`. */

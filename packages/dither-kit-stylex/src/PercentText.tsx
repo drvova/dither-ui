@@ -8,7 +8,15 @@ const styles = stylex.create({
   text: { fontVariantNumeric: "   tabular-nums " },
 })
 
-export type PercentTextProps = { value: number; decimals?: number; locale?: string; class?: string; xstyle?: StyleProp }
+export type PercentTextProps = {
+  /** @docs number (fraction)
+   * @default required */
+  value: number
+  decimals?: number
+  locale?: string
+  class?: string
+  xstyle?: StyleProp
+}
 
 /** Ratio → percent. Input is the FRACTION (0.42 → 42%) because that is what
  * Intl's percent style expects; decimals default to zero for the clean read. */

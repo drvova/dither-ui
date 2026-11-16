@@ -1,17 +1,17 @@
 // Generated from @dither-ui/kit/solid/DitherToggleGroup.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-import { createEffect, createMemo, For, mergeProps, on, onCleanup, onMount } from "solid-js"
+import { createMemo, For, mergeProps, Show } from "solid-js"
 import { labelFill } from "@dither-ui/kit/engine/label-fill.ts"
 import { fillOf, type PixelColor } from "@dither-ui/kit/engine/pixel.ts"
 import { cn, type StyleProp } from "./lib"
 import type { Option } from "./DitherSelect"
-import { paintToggleCanvas } from "./DitherToggle"
+import { TOGGLE_HEIGHT, togglePaint } from "./DitherToggle"
 import { rovingKeys } from "@dither-ui/kit/engine/keys.ts"
+import { LabelFill } from "./runtime/fill-layers"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
-  canvas: { position: "absolute", inset: "0px", zIndex: "-10", height: "100%", width: "100%" },
-  frame: { position: "relative" },
+  frame: { position: "relative", display: "block", lineHeight: "18px" },
   row: {
     display: "inline-flex",
     gap: "0.25rem",
@@ -66,11 +66,9 @@ export default function DitherToggleGroup(raw: DitherToggleGroupProps) {
 
   // A bright fill takes black ink: white on it would sink under AA.
   const darkInk = createMemo(() => labelFill(fillOf(props.color), "gradient", "straight").darkInk)
+  const paint = createMemo(() => togglePaint(fillOf(props.color)))
 
-  let root: HTMLDivElement | undefined
   const btns: HTMLButtonElement[] = []
-  const canvases: HTMLCanvasElement[] = []
-  let ro: ResizeObserver | null = null
 
   function isOn(o: Option): boolean {
     return Array.isArray(props.modelValue) ? props.modelValue.includes(o.value) : props.modelValue === o.value
@@ -92,16 +90,6 @@ export default function DitherToggleGroup(raw: DitherToggleGroupProps) {
     }
   }
 
-  function paintAll() {
-    const fill = fillOf(props.color)
-    props.options.forEach((o, i) => {
-      const btn = btns[i]
-      const canvas = canvases[i]
-      if (!btn || !canvas || !isOn(o)) return
-      paintToggleCanvas(btn, canvas, fill)
-    })
-  }
-
   function onKeydown(e: KeyboardEvent) {
     if (props.type !== "single") return
     const i = rovingKeys(e, props.options, activeIndex())
@@ -110,25 +98,8 @@ export default function DitherToggleGroup(raw: DitherToggleGroupProps) {
     queueMicrotask(() => btns[i]?.focus())
   }
 
-  onMount(() => {
-    // Defer to rAF to avoid forced reflow from getBoundingClientRect()
-    // inside paintToggleCanvas during the mount.
-    requestAnimationFrame(paintAll)
-    if (typeof ResizeObserver !== "undefined") {
-      ro = new ResizeObserver(() => requestAnimationFrame(paintAll))
-      if (root) ro.observe(root)
-    }
-    createEffect(
-      on([() => props.modelValue, () => props.color, () => props.options], () => requestAnimationFrame(paintAll), {
-        defer: true,
-      }),
-    )
-    onCleanup(() => ro?.disconnect())
-  })
-
   return (
     <div
-      ref={(el) => (root = el)}
       role={props.type === "single" ? "radiogroup" : "group"}
       class={cn(styles.row, props.xstyle, props.class)}
       onKeyDown={onKeydown}
@@ -149,12 +120,9 @@ export default function DitherToggleGroup(raw: DitherToggleGroupProps) {
             )}
             onClick={() => pick(o)}
           >
-            <canvas
-              ref={(el) => (canvases[i()] = el)}
-              aria-hidden="true"
-              {...stylex.props(styles.canvas)}
-              style={{ "image-rendering": "pixelated", display: isOn(o) ? undefined : "none" }}
-            />
+            <Show when={isOn(o)}>
+              <LabelFill paint={paint()} height={TOGGLE_HEIGHT} />
+            </Show>
             <span {...stylex.props(styles.frame)}>{o.label}</span>
           </button>
         )}

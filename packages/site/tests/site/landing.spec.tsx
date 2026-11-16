@@ -16,10 +16,7 @@ import { PLATES } from "@/pages/landing/plate"
 import { WORDMARK } from "@/pages/landing/road"
 import { ASK, DEPLOYS, DOES, STEPS } from "@/pages/landing/story"
 import { TOTAL } from "@/pages/landing/stat"
-import { RISE } from "@/shared/lib/rise"
-import { RISE_LIVE } from "@/shared/lib/rise-wait"
 import { STYLING_LABELS } from "@dither-ui/restyle"
-import { rise } from "../../src/shared/lib"
 import LandingPage from "../../src/pages/landing/LandingPage"
 import MissingPage from "../../src/pages/landing/MissingPage"
 import AgentStory from "../../src/pages/landing/AgentStory"
@@ -88,7 +85,6 @@ afterEach(() => {
   vi.useRealTimers()
   vi.restoreAllMocks()
   document.documentElement.className = ""
-  delete document.documentElement.dataset.rise
 })
 
 // Art that moves only on cue: driven for a while, settled when the cues stop.
@@ -112,36 +108,12 @@ describe("the drive", () => {
   })
 })
 
-// The rise: a headline's words each their own box, the line still one text.
+// The rise: a headline's words each their own box, the line still one text,
+// each its place for the stylesheet to stagger it by (`RiseWords.css`).
 describe("the rise of a head", () => {
-  let seen: ((entries: { isIntersecting: boolean }[]) => void) | null = null
-  let animated: { delay: number; easing: string }[] = []
-  beforeEach(() => {
-    seen = null
-    animated = []
-    vi.stubGlobal(
-      "IntersectionObserver",
-      class {
-        constructor(cb: (entries: { isIntersecting: boolean }[]) => void) {
-          seen = cb
-        }
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      },
-    )
-    Element.prototype.animate = function (_k: unknown, o: KeyframeAnimationOptions) {
-      animated.push({ delay: Number(o.delay), easing: String(o.easing) })
-      return {} as Animation
-    } as typeof Element.prototype.animate
-  })
-  afterEach(() => {
-    delete (Element.prototype as { animate?: unknown }).animate
-  })
-
   const head = () =>
     render(() => (
-      <div ref={rise}>
+      <div class="rise">
         <h2>
           <RiseWords text="Every component, live." />
         </h2>
@@ -164,14 +136,14 @@ describe("the rise of a head", () => {
     )
   })
 
-  it("rises each riser once it comes into view, on the glide", () => {
+  it("gives each word its place, and hides nothing itself: the stylesheet moves it", () => {
     const w = head()
-    expect(document.documentElement.dataset.rise).toBe(RISE_LIVE)
-    expect(animated).toEqual([])
-    seen!([{ isIntersecting: true }])
-    expect(animated.map((a) => a.delay)).toEqual([0, 60, 120, 240, 330])
-    expect(new Set(animated.map((a) => a.easing))).toEqual(new Set([RISE.easing]))
-    expect(all(w.container, "[data-rise]").every((e) => e.getAttribute("data-risen") === "")).toBe(true)
+    expect(all(w.container, '[data-rise="word"]').map((s) => s.style.getPropertyValue("--rise-word"))).toEqual([
+      "0",
+      "1",
+      "2",
+    ])
+    expect(all(w.container, "[data-rise]").every((e) => e.style.opacity === "" && !e.style.transform)).toBe(true)
   })
 })
 
@@ -240,7 +212,7 @@ describe("the small parts", () => {
     // jsdom's style parser drops a clamp(): what the lockup is given is read
     // as it is set.
     const set = vi.spyOn(CSSStyleDeclaration.prototype, "setProperty")
-    const w = render(() => <Plate plate={plate} />)
+    const w = render(() => <Plate plate="afterExamples" />)
     // the run: the pin holding the sheet, then the hold it stands through
     const run = w.container.querySelector<HTMLElement>(".plate-run")!
     expect(run.getAttribute("aria-hidden")).toBe("true")
@@ -828,15 +800,19 @@ describe("what it works with", () => {
 
 // The page whole.
 describe("the landing", () => {
-  const landing = () => {
+  // The page as a browser renders it anew: its islands come as lazy parts.
+  const ISLANDS = [".hero", "#examples", ".plate", ".inside-art", ".prompt-key", ".install-block-scope", "footer.foot"]
+  const landing = async () => {
     vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(() => Promise.resolve())
-    return render(() => <LandingPage />)
+    const w = render(() => <LandingPage />)
+    for (let i = 0; i < 400 && ISLANDS.some((s) => !w.container.querySelector(s)); i++)
+      await new Promise((r) => setTimeout(r, 10))
+    return w
   }
 
   it("is one page in the dark: a skip link, one main, its sections in order, a footer", async () => {
-    const w = landing()
+    const w = await landing()
     await tick()
-    expect(document.documentElement.classList.contains("dark")).toBe(true)
     const root = w.container.firstElementChild!
     expect(root.classList.contains("landing")).toBe(true)
     const skip = root.querySelector("a.skip-link")!
@@ -913,21 +889,21 @@ describe("the landing", () => {
     expect(foot.querySelector(".road-car .road-car-art")).not.toBeNull()
   })
 
-  it("gives every section lede exactly one key clause", () => {
-    const w = landing()
+  it("gives every section lede exactly one key clause", async () => {
+    const w = await landing()
     const ledes = all(w.container, "p.sec-lede")
     expect(ledes.length).toBeGreaterThanOrEqual(5)
     for (const l of ledes) expect(all(l, ".lede-key"), text(l).slice(0, 40)).toHaveLength(1)
   })
 
-  it("stands every riser inside a rise, or the wait would hide it for good", () => {
-    // Under reduced motion a rise stands its risers at once: one left
-    // unrisen stands outside every rise.
-    reduced = true
-    const w = landing()
+  it("stands every riser inside a rise, the first screen's playing as the page opens", async () => {
+    // A riser outside every holder would never move: the stylesheet's rules
+    // are a holder's.
+    const w = await landing()
     const risers = all(w.container, "[data-rise]")
     expect(risers.length).toBeGreaterThan(30)
-    expect(risers.filter((r) => !r.hasAttribute("data-risen")).map((r) => r.outerHTML.slice(0, 60))).toEqual([])
+    expect(risers.filter((r) => !r.closest(".rise, .rise-open")).map((r) => r.outerHTML.slice(0, 60))).toEqual([])
+    expect(all(w.container, ".rise-open").map((h) => h.className)).toEqual(["statement rise-open"])
   })
 
   it("copies an agent prompt that names this origin's skill and the install", async () => {
@@ -936,7 +912,7 @@ describe("the landing", () => {
       ...navigator,
       clipboard: { writeText: (t: string) => (written.push(t), Promise.resolve()) },
     })
-    const w = landing()
+    const w = await landing()
     const key = w.getByRole("button", { name: "Copy agent prompt" })
     fireEvent.click(key)
     await tick()
@@ -977,7 +953,7 @@ describe("the missing page", () => {
       ["Open the studio", "/studio", "key"],
     ])
     expect(main.querySelector("svg.lost-mascot")!.hasAttribute("data-rise")).toBe(true)
-    expect(all(main, "[data-rise]").every((r) => r.hasAttribute("data-risen"))).toBe(true)
+    expect(all(main, "[data-rise]").every((r) => r.closest(".rise-open"))).toBe(true)
     w.unmount()
     expect(robots()).toEqual([])
   })

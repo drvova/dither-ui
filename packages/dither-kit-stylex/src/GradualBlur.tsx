@@ -13,10 +13,13 @@ const styles = stylex.create({
 
 export type GradualBlurProps = {
   position?: "bottom" | "top"
+  /** @docs number (px) */
   height?: number
+  /** @docs number (px) */
   strength?: number
   class?: string
   xstyle?: StyleProp
+  /** @docs content */
   children?: JSX.Element
 }
 

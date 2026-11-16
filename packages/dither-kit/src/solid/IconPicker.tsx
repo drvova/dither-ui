@@ -7,9 +7,13 @@ import Icon from "./Icon"
  * and a radio grid (native radio semantics — arrow keys navigate the whole
  * grid, one tab stop). Value = the icon name. */
 export type IconPickerProps = {
+  /** @docs string (icon name)
+   * @default "" */
   modelValue?: string
-  placeholder?: string
+  /** @docs number (px) */
   size?: number
+  /** @docs string (filter) */
+  placeholder?: string
   disabled?: boolean
   class?: string
   onUpdateModelValue?: (value: string) => void

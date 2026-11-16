@@ -26,10 +26,10 @@ export const inApp = (pathname: string) => `${pathname}/`.startsWith(`/${OFFLINE
  * page (network first, the copy kept for offline), a hashed asset (from the
  * cache once kept), or another of the site's files (the kept copy at once,
  * refreshed behind it). */
-export type Strategy = "network" | "page" | "static" | "asset"
+type Strategy = "network" | "page" | "static" | "asset"
 
 /** What of a request the rules read. */
-export type Ask = { method: string; mode: string; range: boolean }
+type Ask = { method: string; mode: string; range: boolean }
 
 /** Paths under the site the worker leaves to the network: the film and the
  * share cards (large, range-read media), their embeds, the player and the
@@ -67,6 +67,8 @@ export function pageAssets(html: string, page: URL, site: URL): string[] {
   const found = new Set<string>()
   for (const m of html.matchAll(/\s(?:src|href)="([^"]+)"/g)) {
     const url = new URL(m[1].replace(/&amp;/g, "&"), page)
+    // a sprite's symbols are one file (`#id` names a part of it)
+    url.hash = ""
     if (url.origin === site.origin && url.pathname.startsWith(site.pathname)) {
       if (HASHED.test(url.pathname.slice(site.pathname.length))) found.add(url.href)
     }

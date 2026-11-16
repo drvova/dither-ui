@@ -1,8 +1,34 @@
+/* Words reveal as the block rises through the page, in CSS: the block is a
+   view timeline, and word i of n sharpens, rises and lights over its share
+   of the block's rise (from a quarter of the way in to four fifths), word
+   by word. Without scroll timelines, or under reduced motion, every word
+   stands shown. */
 .dither-reveal-word {
   display: inline-block;
   white-space: pre;
-  transition:
-    opacity 120ms linear,
-    filter 120ms linear,
-    transform 120ms linear;
+}
+@keyframes dk-reveal-word {
+  from {
+    opacity: 0.06;
+    filter: blur(3.76px);
+    transform: translateY(0.282em);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .dk-scroll-reveal {
+      view-timeline: --dk-reveal block;
+    }
+    .dither-reveal-word {
+      animation: dk-reveal-word linear both;
+      animation-timeline: --dk-reveal;
+      animation-range: cover calc(25% + 55% * var(--dk-i) / var(--dk-n)) cover
+        calc(25% + 55% * (var(--dk-i) + 1) / var(--dk-n));
+    }
+  }
 }

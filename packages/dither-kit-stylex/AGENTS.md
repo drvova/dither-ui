@@ -10,7 +10,10 @@ with no Tailwind. Paths here are from this package's root.
 
 - `src/`: one generated file per component and module of the kit's Solid
   layer (`@dither-ui/kit/solid/`), the index among them, plus
-  `runtime/chart-layer.tsx` (the one runtime file that writes classes) and
+  the runtime files that write classes (`runtime/chart-layer.tsx`,
+  `runtime/fill-layers.tsx`, and the charts' prints: `chart-plot.tsx`,
+  `cartesian-plot.tsx`, `bar-plot.tsx`, `polar-plot.tsx`; a runtime file's
+  stylesheet stays the kit's, `@dither-ui/kit/solid/runtime/<name>.css`) and
   `control.ts` (from `@dither-ui/kit/tailwind/control.ts`). Only `src/lib.ts`
   (`cn` over `stylex.props`, `StyleProp`) is written by hand.
 - `tests/stylex-layer-solid.spec.ts`: writes the source and fails on any
@@ -38,7 +41,11 @@ with no Tailwind. Paths here are from this package's root.
   `src/` imports it (`tests/workspace.spec.ts` at the root).
 - A reader who copies folders instead of installing takes this `src/`
   beside the kit's, aliases `@dither-kit` to it and `@dither-ui/kit` to their
-  copy of the kit (`README.md`).
+  copy of the kit (`README.md`). The add command (`--styling stylex`,
+  `packages/add/AGENTS.md`) takes only the files a component needs and
+  serves this source with its imports of `@dither-ui/kit/<layer>/` made
+  relative (`packages/site/build/kit-add.ts`), so its copy needs the one
+  alias, `@dither-kit` to its `stylex/` folder.
 
 ## Work Guidance
 

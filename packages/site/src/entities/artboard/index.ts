@@ -1,3 +1,7 @@
 export type { Artboard } from "./model/types"
 export { type ArtboardKind, cloneArtboard, createArtboard } from "./model/factory"
+export { fileBase } from "./model/name"
 export { normalizeArtboard } from "./model/normalize"
+export { artboardPng, surfaceOf } from "./picture"
+export { copyFramesSvg, copySvg, saveFramesSvg, saveSvg, SVG_COPY_SAID, type SvgCopy, svgFileOf } from "./svg-copy"
+export { elementSvg, framesSvg, layerMark } from "./vector"

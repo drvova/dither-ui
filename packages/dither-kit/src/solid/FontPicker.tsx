@@ -18,6 +18,8 @@ const FONT_STACKS: Array<{ label: string; stack: string }> = [
 ]
 
 export type FontPickerProps = {
+  /** @docs string (CSS font stack)
+   * @default "" */
   modelValue?: string
   onUpdateModelValue?: (value: string) => void
   disabled?: boolean

@@ -98,7 +98,14 @@ describe("the Solid StyleX layer", () => {
   it("reaches no Tailwind-layer module and copies no runtime file that writes no class", async () => {
     const { files } = await generate()
     expect([...files].filter(([, t]) => /from "[^"]*tailwind\//.test(t)).map(([n]) => n)).toEqual([])
-    expect([...files.keys()].filter((n) => n.startsWith("runtime/"))).toEqual(["runtime/chart-layer.tsx"])
+    expect([...files.keys()].filter((n) => n.startsWith("runtime/"))).toEqual([
+      "runtime/bar-plot.tsx",
+      "runtime/cartesian-plot.tsx",
+      "runtime/chart-layer.tsx",
+      "runtime/chart-plot.tsx",
+      "runtime/fill-layers.tsx",
+      "runtime/polar-plot.tsx",
+    ])
   }, 120_000)
 
   it("keeps no Tailwind class: only the components' own hooks stay class names", async () => {
