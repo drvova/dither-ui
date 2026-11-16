@@ -31,8 +31,6 @@ const ALLOWED: Record<string, string> = {
   "pages/landing/BrandGather.tsx":
     "the brand's cells, each on its own path choreographed from the field it is laid out in, stepped whole cells",
   "pages/landing/BrandBuild.tsx": "drives the kit's world (a canvas) from the scroll, read in the frame",
-  "pages/docs/components/MediaDocs.tsx": "the rocket demo's clock, which drives the kit's world (a canvas)",
-  "pages/docs/components/SurfaceDocs.tsx": "the frame meter demo: it reads the frame clock and moves nothing",
   "pages/docs/animations/TransitionSection.tsx": "the docs' demo of the kit's own transition engine, its API",
   "pages/docs/": "a docs example: the code a reader copies, the kit's API at work",
   "widgets/frame-renderer/ReelRenderer.tsx": "a reel's clips played on the kit clock: the Studio's film",
