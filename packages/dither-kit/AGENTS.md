@@ -270,8 +270,21 @@ generated twin. Inside the kit every import is relative
   `frameSteps` derives a `frame(fps)` cadence, `frameIndex` is the wall-clock
   frame gate drivers paint through, and `cssSteps` serializes one config for
   the CSS surface so JS and CSS can never disagree. Drivers pick cadence and
-  own the clock — the engine never reads time itself.
-  `tests/timing.spec.ts` holds the MDN step-graph parity table; change code
+  own the clock — the engine never reads time itself. It also holds the
+  four motion roles (the user's call, the scoped exceptions to the glide):
+  `MOTION_ROLES` (`travel`, a hop along a path, 420 to 620ms; `reorder`,
+  cards changing places; `pill`, a value pill changing its text, size or
+  place; `bump`, a receiver's pulse on an arrival, the one curve past its
+  mark), `ROLE_EASINGS` (`cssEasing` spells each) and `motionRoleCss()`,
+  the lines `theme.css` carries as `--ease-<role>` / `--duration-<role>`,
+  beside the roles' keyframes `dk-travel` (`--dk-from` to `--dk-to`) and
+  `dk-bump` (from `--dk-bump-from`). A component moves on a role only when
+  its motion truly is that role (CardStack and NotificationStack reorder;
+  the tabs' marker, the nav menu's underline, ExpandTabs, NumberFlow, the
+  wallet's figures and the preview rail's label are pills); everything
+  else keeps its own curve or the glide.
+  `tests/timing.spec.ts` holds the MDN step-graph parity table and the roles
+  against `theme.css`; change code
   and table together.
 - `sequence.ts` is the pure timeline algebra — the many-animations engine.
   Four node kinds (`track` | `serial` | `parallel` | `stagger`) flatten once

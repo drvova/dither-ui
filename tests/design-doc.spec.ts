@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from "node:fs"
 import { describe, expect, it } from "rstack/test"
 import { GLIDE_BEZIER } from "@dither-ui/kit/engine/dither-paint.ts"
 import { FRAME_BUDGET_MS } from "@dither-ui/kit/engine/frame-budget.ts"
+import { MOTION_ROLES } from "@dither-ui/kit/engine/timing.ts"
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8")
 const doc = read("DESIGN.md")
@@ -22,6 +23,20 @@ describe("DESIGN.md", () => {
     const curve = `cubic-bezier(${GLIDE_BEZIER.join(", ")})`
     expect(doc).toContain(curve)
     expect(read("packages/site/src/app/styles.css")).toContain(`--ease-settle: ${curve};`)
+  })
+
+  it("names the four motion roles, each curve and duration as the kit defines it and the site takes it", () => {
+    const styles = read("packages/site/src/app/styles.css")
+    expect(styles).toContain('@import "@dither-ui/kit/engine/theme.css";')
+    for (const [role, { bezier, ms }] of Object.entries(MOTION_ROLES)) {
+      expect(doc, role).toContain(`**${role}**`)
+      expect(doc, role).toContain(`\`cubic-bezier(${bezier.join(", ")})\``)
+      expect(doc, role).toContain(`\`${ms}ms\``)
+      // one copy: the kit's stylesheet, which the site imports
+      expect(styles, role).not.toMatch(new RegExp(`--(ease|duration)-${role}:`))
+    }
+    const [lo, hi] = MOTION_ROLES.travel.span
+    expect(doc).toContain(`${lo} to ${hi}ms a hop`)
   })
 
   it("moves the cell pictures by their stylesheets, no timer, and SMIL on the clock a renderer directs", () => {

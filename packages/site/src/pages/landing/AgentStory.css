@@ -247,7 +247,8 @@
 
 /* The render chip, centred on the screen's top-left corner, half over the
    stage: a step above both grounds, so it reads on either. Its words share
-   one cell and crossfade. */
+   one cell and crossfade. A value pill: it comes and changes its words on
+   the pill role, and as the film arrives ready it gives one bump. */
 .agent-story-scope .render {
   position: absolute;
   top: 0;
@@ -263,8 +264,15 @@
   background: color-mix(in oklab, var(--foreground) 14%, var(--background));
   translate: -50% -50%;
   transition:
-    opacity 240ms var(--ease-settle),
-    translate 350ms var(--ease-settle);
+    opacity var(--duration-pill) var(--ease-pill),
+    translate var(--duration-pill) var(--ease-pill);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .agent-story-scope .render.done {
+    --dk-bump-from: 0.92;
+    animation: dk-bump var(--duration-bump) var(--ease-bump);
+  }
 }
 
 .agent-story-scope .render.ahead {
@@ -280,7 +288,7 @@
 .agent-story-scope .render-words > span {
   grid-area: 1 / 1;
   opacity: 0;
-  transition: opacity 150ms var(--ease-settle);
+  transition: opacity var(--duration-pill) var(--ease-pill);
 }
 
 .agent-story-scope .render-words > span[data-on] {

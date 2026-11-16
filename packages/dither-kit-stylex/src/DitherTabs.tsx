@@ -83,8 +83,8 @@ const styles = stylex.create({
   canvas: {
     position: "absolute",
     transitionProperty: { default: "left, top, width, height", "@media (prefers-reduced-motion: reduce)": "none" },
-    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-    transitionDuration: "200ms",
+    transitionTimingFunction: "var(--ease-pill)",
+    transitionDuration: "var(--duration-pill)",
   },
   rounded2: { borderRadius: "0.25rem" },
 })

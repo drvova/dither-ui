@@ -263,7 +263,7 @@ export default function DitherTabs(raw: DitherTabsProps) {
               ref={(el) => (canvas = el)}
               aria-hidden="true"
               class={cn(
-                "absolute transition-[left,top,width,height] duration-200 motion-reduce:transition-none",
+                "absolute transition-[left,top,width,height] ease-[var(--ease-pill)] duration-[var(--duration-pill)] motion-reduce:transition-none",
                 props.variant === "washed" && "rounded",
               )}
               style={{ ...markerStyle(), "image-rendering": "pixelated" }}

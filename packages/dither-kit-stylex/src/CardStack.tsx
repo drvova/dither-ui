@@ -30,8 +30,8 @@ const styles = stylex.create({
       default: "transform, translate, scale, rotate",
       "@media (prefers-reduced-motion: reduce)": "none",
     },
-    transitionTimingFunction: "ease",
-    transitionDuration: "200ms",
+    transitionTimingFunction: "var(--ease-reorder)",
+    transitionDuration: "var(--duration-reorder)",
   },
   cursorGrab: { cursor: { default: "grab", ":active": "grabbing" }, touchAction: " pan-y " },
   pointerEventsNone: { pointerEvents: "none" },
@@ -56,7 +56,8 @@ export type CardStackProps<T> = {
 
 /** Swipe deck — a flick or a far swipe of the top card sends it flying the
  * way it went and the stack rises beneath, both CSS transitions
- * (`CardStack.css`); the card never follows the finger. Cycles forever.
+ * (`CardStack.css`) on the reorder role (`--ease-reorder`, the cards
+ * changing places); the card never follows the finger. Cycles forever.
  * Reduced motion swaps instantly. */
 export default function CardStack<T>(raw: CardStackProps<T>) {
   const props = mergeProps({ depth: 2 }, raw)

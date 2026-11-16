@@ -15,8 +15,8 @@ const styles = stylex.create({
     bottom: "0px",
     height: "2px",
     transitionProperty: { default: "left, width", "@media (prefers-reduced-motion: reduce)": "none" },
-    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-    transitionDuration: "200ms",
+    transitionTimingFunction: "var(--ease-pill)",
+    transitionDuration: "var(--duration-pill)",
   },
   pb2: {
     paddingBottom: "0.5rem",

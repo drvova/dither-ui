@@ -362,7 +362,7 @@ export default function Examples() {
                 Roll a seed
               </button>
               <span class="readout">
-                seed <DitherNumberFlow value={fills()} duration={320} />
+                seed <DitherNumberFlow value={fills()} />
               </span>
             </div>
           </div>
@@ -482,7 +482,7 @@ export default function Examples() {
               onConfirm={() => setConfirmed((n) => n + 1)}
             />
             <span class="readout">
-              confirmed <DitherNumberFlow value={confirmed()} duration={320} />
+              confirmed <DitherNumberFlow value={confirmed()} />
             </span>
           </div>
         )
@@ -490,7 +490,7 @@ export default function Examples() {
         return (
           <div class="panel stat">
             <span class="panel-d">Frames exported</span>
-            <DitherNumberFlow value={shown(day())} duration={240} class="stat-v" />
+            <DitherNumberFlow value={shown(day())} class="stat-v" />
             <span class="panel-d stat-sub">
               <span data-on={day() === null ? "" : undefined} aria-hidden={day() !== null}>
                 <b>+{WEEK_CHANGE}%</b> on the week before

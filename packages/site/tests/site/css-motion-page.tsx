@@ -11,6 +11,7 @@ import {
   release,
   seek,
 } from "@dither-ui/kit"
+import "@dither-ui/kit/engine/theme.css"
 import type { JSX } from "solid-js"
 import { render } from "solid-js/web"
 
@@ -27,6 +28,22 @@ const PIECES: Record<string, () => JSX.Element> = {
     </DitherSequence>
   ),
   decrypt: () => <DitherDecryptedText text="KIT" speed={3} />,
+  // a hop on the travel role and the bump of its receiver as it lands
+  arrival: () => (
+    <>
+      <div
+        class="cell hop"
+        style={{
+          "--dk-to": "100px 0px",
+          animation: "dk-travel var(--duration-travel) var(--ease-travel) both",
+        }}
+      />
+      <div
+        class="cell receiver"
+        style={{ animation: "dk-bump var(--duration-bump) var(--ease-bump) var(--duration-travel)" }}
+      />
+    </>
+  ),
 }
 
 declare global {

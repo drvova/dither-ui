@@ -2,7 +2,18 @@
 // (css-easing-1) and pinned here against MDN's documented step graphs — if a
 // refactor moves a boundary or an endpoint, this table fails first.
 import { describe, expect, it } from "rstack/test"
-import { cssEasing, cssSteps, frameIndex, frameSteps, linear, steps } from "../src/engine/timing"
+import { readFileSync } from "node:fs"
+import {
+  cssEasing,
+  cssSteps,
+  frameIndex,
+  frameSteps,
+  linear,
+  MOTION_ROLES,
+  motionRoleCss,
+  ROLE_EASINGS,
+  steps,
+} from "../src/engine/timing"
 
 describe("steps() — MDN step-graph parity", () => {
   // steps(4, jump-end): segments (0,0) (0.25,0.25) (0.5,0.5) (0.75,0.75),
@@ -168,5 +179,44 @@ describe("cssEasing()", () => {
     expect(cssEasing(steps(3.7, "jump-none"))).toBe("steps(3, jump-none)")
     expect(cssEasing(frameSteps(24, 500))).toBe("steps(12, jump-end)")
     expect(cssEasing((p) => p * p)).toBeUndefined()
+  })
+})
+
+describe("the motion roles", () => {
+  const theme = readFileSync(new URL("../src/engine/theme.css", import.meta.url), "utf8")
+  const root = theme.slice(theme.indexOf(":root {"), theme.indexOf("\n}", theme.indexOf(":root {")))
+
+  it("are the user's four curves and durations", () => {
+    expect(MOTION_ROLES).toEqual({
+      travel: { bezier: [0.45, 0, 0.55, 1], ms: 520, span: [420, 620] },
+      reorder: { bezier: [0.16, 1, 0.3, 1], ms: 700 },
+      pill: { bezier: [0.2, 0.8, 0.2, 1], ms: 300 },
+      bump: { bezier: [0.34, 1.4, 0.64, 1], ms: 250 },
+    })
+    const [lo, hi] = MOTION_ROLES.travel.span
+    expect(MOTION_ROLES.travel.ms).toBeGreaterThanOrEqual(lo)
+    expect(MOTION_ROLES.travel.ms).toBeLessThanOrEqual(hi)
+  })
+
+  it("are written into the kit's stylesheet as the module writes them, once", () => {
+    for (const line of motionRoleCss()) {
+      expect(root, line).toContain(line)
+      expect(theme.split(line.slice(0, line.indexOf(":") + 1)), line).toHaveLength(2)
+    }
+  })
+
+  it("spell each curve for CSS, and only the bump passes its mark", () => {
+    expect(cssEasing(ROLE_EASINGS.travel)).toBe("cubic-bezier(0.45, 0, 0.55, 1)")
+    const peak = (role: keyof typeof ROLE_EASINGS) =>
+      Math.max(...Array.from({ length: 201 }, (_, i) => ROLE_EASINGS[role](i / 200)))
+    expect(peak("bump")).toBeGreaterThan(1.01)
+    for (const role of ["travel", "reorder", "pill"] as const) expect(peak(role), role).toBeLessThanOrEqual(1)
+    // travel is symmetric: half its time, half its way
+    expect(ROLE_EASINGS.travel(0.5)).toBeCloseTo(0.5, 4)
+  })
+
+  it("give the clock its two keyframes, dk-travel and dk-bump", () => {
+    expect(theme).toMatch(/@keyframes dk-travel \{/)
+    expect(theme).toMatch(/@keyframes dk-bump \{/)
   })
 })

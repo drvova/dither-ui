@@ -9,8 +9,10 @@ export type NumberFlowProps = {
   /** @default required */
   value: number
   decimals?: number
-  /** Roll time per change, ms.
-   * @docs number (ms): roll time per change */
+  /** Roll time per change, ms; unset, the pill role's (a readout changing
+   * its figures rolls on `--ease-pill` over `--duration-pill`).
+   * @docs number (ms): roll time per change
+   * @default the pill's 300ms */
   duration?: number
   /** @default undefined */
   class?: string
@@ -19,7 +21,7 @@ export type NumberFlowProps = {
 const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 export default function NumberFlow(raw: NumberFlowProps) {
-  const props = mergeProps({ decimals: 0, duration: 600 }, raw)
+  const props = mergeProps({ decimals: 0 }, raw)
 
   const chars = createMemo(() => formatFixed(props.value, props.decimals).split(""))
 
@@ -42,10 +44,10 @@ export default function NumberFlow(raw: NumberFlowProps) {
               >
                 <span aria-hidden="true" class="inline-block h-[1em] overflow-hidden">
                   <span
-                    class="grid transition-transform ease-out motion-reduce:transition-none"
+                    class="grid transition-transform ease-[var(--ease-pill)] duration-[var(--duration-pill)] motion-reduce:transition-none"
                     style={{
                       transform: `translateY(-${Number(c())}em)`,
-                      "transition-duration": `${props.duration}ms`,
+                      "transition-duration": props.duration === undefined ? undefined : `${props.duration}ms`,
                     }}
                   >
                     <For each={DIGITS}>{(d) => <span class="h-[1em] leading-none">{d}</span>}</For>

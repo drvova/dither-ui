@@ -130,7 +130,17 @@ export {
 } from "./transition"
 export { scoreCut, wavBytes, type ScoreAudio, type ScorePlan } from "./score"
 export { ICONS, ICON_NAMES, type IconName } from "./icons"
-export { linear, steps, frameSteps, frameIndex, cssSteps, cssEasing } from "./timing"
+export {
+  linear,
+  steps,
+  frameSteps,
+  frameIndex,
+  cssSteps,
+  cssEasing,
+  MOTION_ROLES,
+  ROLE_EASINGS,
+  motionRoleCss,
+} from "./timing"
 export {
   directAnimation,
   directFromHyperframes,
@@ -157,5 +167,5 @@ export type {
   TrackSample,
   TrackState,
 } from "./sequence"
-export type { Easing, StepPosition } from "./timing"
+export type { Easing, MotionRole, StepPosition } from "./timing"
 export type { CqRange, CqScale, CqState } from "./containers"

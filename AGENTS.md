@@ -595,7 +595,13 @@ Default section order:
   pass its mark a little (`HAND_SPRING` in
   `packages/site/src/shared/lib/spring.ts`, its CSS `--ease-spring`, the
   press's way back as an `:active` transition; nothing that moves by
-  itself springs); no motion is JS (the user's call: "I don't want any
+  itself springs), and four roles scoped out of the glide (the user's
+  call): `travel` (a hop along a path, 420 to 620ms, five dots trailing),
+  `reorder` (cards changing places), `pill` (a value pill changing) and
+  `bump` (a receiver's pulse on an arrival, timed in CSS), each its own
+  curve and duration (`MOTION_ROLES` in `@dither-ui/kit/engine/timing.ts`,
+  `--ease-<role>`/`--duration-<role>` in the kit's `theme.css`, DESIGN.md's
+  Motion), taken only by motion that truly is that role; no motion is JS (the user's call: "I don't want any
   animations to be JS; I want them to be no JS and be class names"): the
   site's and the kit's UI motion are CSS classes (transitions,
   `@keyframes`, scroll-driven animation, each under a

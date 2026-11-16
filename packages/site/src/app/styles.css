@@ -547,6 +547,13 @@
      tests/spring.spec.ts). Where `linear()` is not supported it glides. */
   --ease-spring: var(--ease-settle);
   --spring-time: 500ms;
+  /* The four motion roles, the only other curves (the user's call): a hop
+     along a path (`--ease-travel`), cards changing places (`--ease-reorder`),
+     a value pill changing (`--ease-pill`) and a receiver's bump on an
+     arrival (`--ease-bump`), each over its `--duration-<role>`. They come
+     from the kit's theme.css, imported above, written once there from
+     `MOTION_ROLES` (@dither-ui/kit/engine/timing.ts); never redeclared here
+     (tests/design-doc.spec.ts). */
   /* A press's travel down, on the glide (`PRESS_DOWN_MS`). */
   --press-time: 90ms;
   --cut: 16px;

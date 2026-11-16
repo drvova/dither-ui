@@ -11,8 +11,8 @@ const styles = stylex.create({
   grid: {
     display: "grid",
     transitionProperty: { default: "grid-template-columns", "@media (prefers-reduced-motion: reduce)": "none" },
-    transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-    transitionDuration: "200ms",
+    transitionTimingFunction: "var(--ease-pill)",
+    transitionDuration: "var(--duration-pill)",
   },
   pl2: { paddingLeft: "0.5rem" },
   text2: { minWidth: "0px", overflow: "hidden", whiteSpace: "nowrap" },

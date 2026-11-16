@@ -121,8 +121,8 @@
 }
 
 /* Label roll: both words stacked in a one-line window; copy slides the
-   column up with a little overshoot. The window keeps the button's width
-   steady at the longer word. */
+   column up to the next word, a value pill changing its text (the pill
+   role). The window keeps the button's width steady at the longer word. */
 .install-block-scope .roll {
   display: block;
   height: 1.3em;
@@ -132,7 +132,7 @@
 
 .install-block-scope .roll > span {
   display: block;
-  transition: transform 380ms var(--ease-settle);
+  transition: transform var(--duration-pill) var(--ease-pill);
 }
 
 .install-block-scope .roll > span > span {
@@ -162,8 +162,8 @@
 .install-block-scope .swap-a,
 .install-block-scope .swap-b {
   transition:
-    opacity 380ms var(--ease-settle),
-    scale 380ms var(--ease-settle);
+    opacity var(--duration-pill) var(--ease-pill),
+    scale var(--duration-pill) var(--ease-pill);
 }
 
 .install-block-scope .copy[data-copied="true"] .swap-a {

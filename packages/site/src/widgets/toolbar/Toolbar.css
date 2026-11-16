@@ -114,6 +114,12 @@
     .agent-dot[data-state="working"] {
       animation: agent-breathe 1.6s var(--ease-settle) infinite alternate;
     }
+    /* A reply that waits on you has arrived: the dot takes it with one
+       bump as its state turns (the bump role). */
+    .agent-dot[data-state="waiting"] {
+      --dk-bump-from: 0.4;
+      animation: dk-bump var(--duration-bump) var(--ease-bump);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .pop-enter-active,

@@ -128,7 +128,7 @@ export default function PreviewRail(raw: PreviewRailProps) {
             aria-hidden="true"
             class={cn(
               POPOVER,
-              "pointer-events-none absolute z-10 whitespace-nowrap px-3 py-2 transition-[top] duration-150 ease-out motion-reduce:transition-none",
+              "pointer-events-none absolute z-10 whitespace-nowrap px-3 py-2 transition-[top] ease-[var(--ease-pill)] duration-[var(--duration-pill)] motion-reduce:transition-none",
               props.side === "right" ? "right-full mr-2" : "left-full ml-2",
             )}
             style={{ top: `${previewTop()}px`, transform: "translateY(-50%)" }}

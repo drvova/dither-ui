@@ -10,6 +10,7 @@ import { type Browser, chromium, type Page } from "playwright-core"
 import { build } from "vite"
 import solid from "vite-plugin-solid"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { MOTION_ROLES, ROLE_EASINGS } from "@dither-ui/kit/engine"
 import { findChromium } from "@dither-ui/tasks"
 
 const HERE = import.meta.dirname
@@ -189,6 +190,35 @@ describe("the kit's CSS motion under the kit clock", () => {
     expect(await rows()).toEqual([2, 2, 2])
     await seek(10_000)
     expect(await rows()).toEqual([2, 3, 4])
+  })
+
+  it("the travel and the bump roles: a hop where its curve puts it, its receiver's pulse after it lands", async () => {
+    await mount("arrival")
+    const travel = MOTION_ROLES.travel.ms
+    const bump = MOTION_ROLES.bump.ms
+    const at = () =>
+      read(() => ({
+        x: parseFloat(getComputedStyle(document.querySelector(".hop")!).translate),
+        scale: parseFloat(getComputedStyle(document.querySelector(".receiver")!).scale),
+      }))
+    for (const p of [0.25, 0.5, 0.75]) {
+      await seek(travel * p)
+      const { x, scale } = await at()
+      expect(x, `hop at ${p}`).toBeCloseTo(100 * ROLE_EASINGS.travel(p), 0)
+      // the receiver waits out the hop at its size
+      expect(Number.isNaN(scale) ? 1 : scale).toBe(1)
+    }
+    for (const p of [0.2, 0.5, 0.8]) {
+      await seek(travel + bump * p)
+      const { x, scale } = await at()
+      expect(x).toBe(100)
+      expect(scale, `bump at ${p}`).toBeCloseTo(0.9 + 0.1 * ROLE_EASINGS.bump(p), 3)
+    }
+    // the bump passes its mark: past 1 on its way back
+    await seek(travel + bump * 0.6)
+    expect((await at()).scale).toBeGreaterThan(1)
+    await seek(travel / 2)
+    expect((await at()).x).toBeCloseTo(50, 0)
   })
 
   it("holds what starts while it is directed, and plays it on from the moment when released", async () => {

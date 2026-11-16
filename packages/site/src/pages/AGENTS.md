@@ -1282,7 +1282,8 @@ in the page's folder.
   each part of the window by the page's own refs (the canvas, its bar,
   the sidebar, the chat, the panel, then its own key; a thin part from
   beside it, over it at the window's foot), opening a part folded
-  away, and it lands to say what the part is for in a bubble: Next flies
+  away (each flight a hop on the travel role, five dots trailing it, the
+  count bumping as it lands), and it lands to say what the part is for in a bubble: Next flies
   on, Skip, Done or Escape ends it and hands the focus back; shortcuts
   read as the keyboard writes them (`modKey`). It runs once on a first
   desktop visit (`GUIDE_SEEN_KEY`), never under automation

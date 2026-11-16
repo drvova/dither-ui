@@ -29,7 +29,7 @@ export const meta = defineExample({
     controls: {
       value: { min: 0, max: 1000000, step: 1, demo: 12480 },
       decimals: { min: 0, max: 4, step: 1 },
-      duration: { min: 100, max: 2000, step: 50 },
+      duration: { min: 100, max: 2000, step: 50, demo: 300 },
     },
   },
 })

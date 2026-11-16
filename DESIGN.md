@@ -181,7 +181,31 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
   (`GLIDE_BEZIER` in the kit, `--ease-settle` on the site). It leaves at
   full speed and settles long and soft, never past its mark. Every
   transition, wipe, reveal, rise, scroll scene and page transition moves
-  on it.
+  on it, save the hand's spring and the four roles below.
+- **Four roles, the scoped exceptions** (the user's call): motion that
+  truly is one of these takes its own curve and duration, and nothing
+  else does (`MOTION_ROLES` in the kit's `timing.ts`, written into its
+  `theme.css` as `--ease-<role>` and `--duration-<role>`, which the site
+  imports):
+  - **travel**: a thing hopping from one place to the next along a path
+    (the mascot's flight across the Studio), `cubic-bezier(0.45, 0, 0.55, 1)`
+    (ease in and out, symmetric), 420 to 620ms a hop, `520ms` where one
+    duration serves. Five dots trail it along the same path, each a beat
+    later and fainter.
+  - **reorder**: cards changing places in a list or a grid (a deck
+    rising, a stack fanning into a list),
+    `cubic-bezier(0.16, 1, 0.3, 1)` over `700ms`.
+  - **pill**: a small value pill changing its text, size or place (a
+    readout's figures, a tab's marker, a key's label rolling to its next
+    word), `cubic-bezier(0.2, 0.8, 0.2, 1)` over `300ms`.
+  - **bump**: a hub or a receiver acknowledging an arrival with one small
+    pulse, `cubic-bezier(0.34, 1.4, 0.64, 1)` over `250ms`: the one curve
+    that passes its mark without a hand, and only as the answer to an
+    arrival (timed by CSS: an animation delayed by the hop, or the
+    receiver's own keyframe as its state turns). The kit's keyframes for
+    the two that move along (`dk-travel`, `dk-bump`) are the clock's, so a
+    directed moment holds them.
+  None of them runs under reduced motion: the end state shows.
 - **No motion is a script's** (the user's call: "no animations in JS;
   class names"): the site's motion is its stylesheets', a class's
   transition, keyframes or scroll-driven animation. The kit's dithered
@@ -382,7 +406,7 @@ Smoothness is part of the look, so these are design rules too:
 | Site materials, chrome, motion | `packages/site/src/app/styles.css` |
 | The landing's print | `packages/site/src/pages/landing/chapters.css`, `packages/site/src/pages/landing/LandingPage.tsx` |
 | The docs' materials | `packages/site/src/pages/docs/` |
-| Motion curves | `@dither-ui/kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `@dither-ui/kit/engine/spring.ts`, the hand's spring `packages/site/src/shared/lib/spring.ts` |
+| Motion curves | `@dither-ui/kit/engine/dither-paint.ts` (`GLIDE_BEZIER`), `@dither-ui/kit/engine/spring.ts`, the hand's spring `packages/site/src/shared/lib/spring.ts`, the four roles `@dither-ui/kit/engine/timing.ts` (`MOTION_ROLES`) and `@dither-ui/kit/engine/theme.css` |
 | The press, the page and theme transitions | `packages/site/src/app/styles.css` |
 | Scroll scenes, the rise | `packages/site/src/pages/landing/Showcase.css`, `Examples.css`, `Plate.css`, `RiseWords.css` |
 | Print screens | `@dither-ui/kit/engine/pixel.ts` (`SCREENS`); as class names `@dither-ui/kit/engine/tones.css` |

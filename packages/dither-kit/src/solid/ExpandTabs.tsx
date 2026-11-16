@@ -54,7 +54,7 @@ export default function ExpandTabs(raw: ExpandTabsProps) {
               }}
             />
             <span
-              class="grid transition-[grid-template-columns] duration-200 motion-reduce:transition-none"
+              class="grid transition-[grid-template-columns] ease-[var(--ease-pill)] duration-[var(--duration-pill)] motion-reduce:transition-none"
               style={{ "grid-template-columns": props.modelValue === t.value ? "1fr" : "0fr" }}
             >
               <span

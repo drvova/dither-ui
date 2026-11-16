@@ -1,5 +1,6 @@
 .dk-wc-digit {
-  animation: dk-wc-rise 260ms cubic-bezier(0.2, 0, 0, 1) both;
+  /* The balance is a value pill changing its figures: the pill role. */
+  animation: dk-wc-rise var(--duration-pill) var(--ease-pill) both;
 }
 @keyframes dk-wc-rise {
   from {

@@ -22,7 +22,8 @@ export type CardStackProps<T> = {
 
 /** Swipe deck — a flick or a far swipe of the top card sends it flying the
  * way it went and the stack rises beneath, both CSS transitions
- * (`CardStack.css`); the card never follows the finger. Cycles forever.
+ * (`CardStack.css`) on the reorder role (`--ease-reorder`, the cards
+ * changing places); the card never follows the finger. Cycles forever.
  * Reduced motion swaps instantly. */
 export default function CardStack<T>(raw: CardStackProps<T>) {
   const props = mergeProps({ depth: 2 }, raw)
@@ -87,7 +88,7 @@ export default function CardStack<T>(raw: CardStackProps<T>) {
           return (
             <div
               class={cn(
-                "dk-card absolute inset-0 transition-transform duration-200 ease-[ease] motion-reduce:transition-none",
+                "dk-card absolute inset-0 transition-transform ease-[var(--ease-reorder)] duration-[var(--duration-reorder)] motion-reduce:transition-none",
                 top() ? "cursor-grab touch-pan-y active:cursor-grabbing" : "pointer-events-none",
               )}
               style={cardStyle(d())}
