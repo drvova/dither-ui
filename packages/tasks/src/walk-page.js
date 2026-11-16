@@ -7,6 +7,16 @@
 // page (a built tool's sandbox) is not walked.
 ;(() => {
   if (window !== window.top || window.__walkPage) return
+  /** A chart printed as SVG (the kit's charts since they left the canvas,
+   * `engine/chart-svg.ts`): a `<svg class="dk-chart">` under `root` whose
+   * print, or the precompiled image in its place, has a box on the page. */
+  const chartPrinted = (root) =>
+    [...root.querySelectorAll("svg.dk-chart")].some((svg) =>
+      [...svg.querySelectorAll(".dk-chart-print path, .dk-chart-print image, image")].some((m) => {
+        const r = m.getBoundingClientRect()
+        return r.width > 0 && r.height > 0
+      }),
+    )
   window.__walkPage = {
     /** The app has mounted over the prerendered bytes and the page is at rest. */
     async ready(arg) {
@@ -336,8 +346,10 @@
       const before = frames().length
       step("a frame stands on the canvas", before > 0, before)
       const first = W.until(() => {
-        const c = frames()[0] && frames()[0].querySelector("canvas")
-        return c && W.canvas(c).state === "painted"
+        const f = frames()[0]
+        if (!f) return false
+        const c = f.querySelector("canvas")
+        return (c && W.canvas(c).state === "painted") || chartPrinted(f)
       }, 5000)
       step("its chart is painted", await first)
 
@@ -470,6 +482,7 @@
       return {
         surface: surface ? surface.className.split(" ").find((c) => c === "play-surface" || c === "play-empty") : "",
         canvases,
+        charts: chartPrinted(document),
         text: document.body.innerText.trim().slice(0, 160),
         clock: typeof window.ditherClock,
       }

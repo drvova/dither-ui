@@ -145,7 +145,12 @@ const ENVIRONMENT = [
  * Gecko calls every scroll-linked effect a risk under its async panning,
  * and a wheel turned by its scroll or a word floated by the page's scroll
  * is one by nature. Counted apart, as the engine's notes. */
-const ADVISORIES = [/This site appears to use a scroll-linked positioning effect/]
+const ADVISORIES = [
+  /This site appears to use a scroll-linked positioning effect/,
+  // Chromium's WebGL on a GPU-less runner (SwiftShader) notes a buffer read
+  // back after a second write: a cost of its shadow copy, nothing drawn wrong
+  /performance warning: READ-usage buffer was written, then fenced, but written again before being read back/,
+]
 /** Gecko's note on a lost GL context: the page's own when it released
  * that many (the recorder counts `loseContext` calls, the kit's unmount). */
 const RELEASED = /WebGL context was lost\./
@@ -711,8 +716,9 @@ async function walkPage(session, server, page) {
     if (play.surface !== want)
       issue("play", `expected ${want}, the page shows ${play.surface || "nothing"}: ${play.text}`)
     if (play.clock !== "object") issue("play", "no window.ditherClock")
-    if (page.hash && !play.canvases.some((c) => c.state === "painted"))
-      issue("canvas", "the played frame painted no canvas")
+    // the Studio's first frame is a chart, and a chart prints as SVG, no canvas
+    if (page.hash && !play.charts && !play.canvases.some((c) => c.state === "painted"))
+      issue("canvas", "the played frame painted no canvas and printed no chart")
     if (measure) await sampleContrast(s, rec, ready, issue, "the player")
     if (painting) await samplePaint(s, rec, ready, issue, "the player")
     writeFileSync(join(shots, `${slug(page)}.png`), await s.shot())
@@ -746,6 +752,10 @@ async function walkPage(session, server, page) {
   for (const e of seen.errors) issue("error", strip(e))
   for (const l of seen.logs) {
     if (/Failed to load resource/.test(l)) continue
+    if (ADVISORIES.some((a) => a.test(l))) {
+      rec.engine.push(strip(l))
+      continue
+    }
     issue(l.startsWith("warn") ? "warning" : "console", strip(l))
   }
   const refused = new Set()
