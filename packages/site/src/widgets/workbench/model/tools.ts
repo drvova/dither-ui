@@ -160,6 +160,8 @@ export const ICONS = {
   undo: "M5 4L2 7l3 3M2 7h7.5a3.5 3.5 0 0 1 0 7H7",
   redo: "M11 4l3 3-3 3M14 7H6.5a3.5 3.5 0 0 0 0 7H9",
   agent: "M5.5 2h5v2h-5zM4 3H2.5v11.5h11V3H12M5 8h6M5 11h4",
+  // A curve between two anchors, its handle above: a vector, for a design tool.
+  svg: "M3 12.5C4 6 12 6 13 12.5M2 11.5h2v2H2zM12 11.5h2v2h-2zM7.25 2.5h1.5v1.5h-1.5zM4 3.25h3.25M8.75 3.25H12",
   settings:
     "M8 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M13 3l-1.4 1.4M4.4 11.6L3 13",
   close: "M3.5 3.5l9 9M12.5 3.5l-9 9",

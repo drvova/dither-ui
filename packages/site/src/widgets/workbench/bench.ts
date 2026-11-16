@@ -13,6 +13,7 @@
 // the tool in hand, the agent hand-off and the controller's lifecycle.
 import { createEffect } from "solid-js"
 import { copyText, isDirected, release } from "@dither-ui/kit"
+import { copySvg, elementSvg, saveSvg, SVG_COPY_SAID } from "@/entities/artboard"
 import { play } from "@/shared/lib/sound"
 import { TOGGLES, toolById, type ToggleId, type ToolId } from "@/widgets/workbench/model/tools"
 import { feedbackMarkdown } from "@/widgets/workbench/model/workspace"
@@ -127,6 +128,27 @@ export function createBench(o: BenchOptions) {
     toggles[id] = !toggles[id]
     play(toggles[id] ? "on" : "off")
     say(`${TOGGLES.find((t) => t.id === id)!.label} ${toggles[id] ? "on" : "off"}`)
+  }
+
+  // --- the preview as SVG ---------------------------------------------------------
+
+  /** The stage as it stands, its live state, as a layered SVG read the way
+   * the Studio reads a frame (`elementSvg`), the overlay left out. */
+  const svgOf = () => elementSvg(o.host, o.title, (el) => el.classList.contains("wb"))
+
+  async function copyAsSvg() {
+    const svg = svgOf()
+    if (!svg) return say("Nothing to copy: the preview is not laid out")
+    const how = await copySvg(svg)
+    if (how !== "failed") play("copy")
+    say(how === "failed" ? "Copy failed" : SVG_COPY_SAID[how])
+  }
+
+  function downloadSvg() {
+    const svg = svgOf()
+    if (!svg) return say("Nothing to save: the preview is not laid out")
+    saveSvg(svg, `${o.key.replace(/[^\w-]+/g, "-")}.svg`)
+    say("SVG saved")
   }
 
   // --- the agent hand-off ---------------------------------------------------------
@@ -252,6 +274,8 @@ export function createBench(o: BenchOptions) {
     discardCapture,
     copyForAgent,
     feedbackVerb,
+    copyAsSvg,
+    downloadSvg,
     setTool,
     setGroup,
     toggle,

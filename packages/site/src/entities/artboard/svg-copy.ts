@@ -36,7 +36,12 @@ function takesSvg(): boolean {
  * takes both, else the text alone. */
 export async function copyFramesSvg(frames: Artboard[]): Promise<SvgCopy> {
   const svg = framesSvg(frames)
-  if (!svg) return "failed"
+  return svg ? copySvg(svg) : "failed"
+}
+
+/** Copy an SVG file's text: `image/svg+xml` with `text/plain` where the
+ * browser takes both, else the text alone (the docs previews' copy too). */
+export async function copySvg(svg: string): Promise<SvgCopy> {
   if (takesSvg()) {
     try {
       await navigator.clipboard.write([
@@ -57,6 +62,9 @@ export async function copyFramesSvg(frames: Artboard[]): Promise<SvgCopy> {
 export function saveFramesSvg(frames: Artboard[]): boolean {
   const svg = framesSvg(frames)
   if (!svg) return false
-  download(new Blob([svg], { type: "image/svg+xml" }), svgFileOf(frames))
+  saveSvg(svg, svgFileOf(frames))
   return true
 }
+
+/** Save an SVG file's text under a name. */
+export const saveSvg = (svg: string, name: string): void => download(new Blob([svg], { type: "image/svg+xml" }), name)

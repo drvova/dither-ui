@@ -601,7 +601,12 @@ around this tree (entries, routes, the build, how Solid is written) is
   the browser takes it (Chromium), else the text alone through the kit's
   `copyText` (Safari, Firefox; Figma, Penpot and Illustrator read SVG text
   on paste), and says which (`SVG_COPY_SAID`); `saveFramesSvg` downloads
-  `<name>.svg` (`selection.svg` for several). UI: the canvas bar's "Copy
+  `<name>.svg` (`selection.svg` for several); `copySvg` and `saveSvg` do
+  the same for any SVG's text. Any element is read the same way by
+  `elementSvg(root, name, skip?)` (zoom 1, no model layers, `skip`
+  leaving out what it names): the docs previews' workbench copies and
+  saves its stage with it (`widgets/workbench/AGENTS.md`), so the Studio
+  and the docs write one SVG. UI: the canvas bar's "Copy
   as SVG" and "Save as SVG" keys (the selection) and the export dialog's
   "Copy as SVG" and "Download SVG" (its frame). Protocol: `svg.export {
   id? | ids? }` (the selection by default; malformed ids refused, a frame

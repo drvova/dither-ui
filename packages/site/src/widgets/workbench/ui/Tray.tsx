@@ -144,6 +144,24 @@ export default function Tray() {
         <button
           type="button"
           class="wb-key"
+          aria-label="Copy as SVG, for a design tool"
+          title="Copy as SVG"
+          onClick={() => void b.copyAsSvg()}
+        >
+          <Icon d={ICONS.svg} />
+        </button>
+        <button
+          type="button"
+          class="wb-key"
+          aria-label="Download SVG"
+          title="Download SVG"
+          onClick={() => void b.downloadSvg()}
+        >
+          <Icon d={ICONS.download} />
+        </button>
+        <button
+          type="button"
+          class="wb-key"
           aria-pressed={b.panel() === "settings"}
           aria-label="Settings (,)"
           aria-keyshortcuts=","

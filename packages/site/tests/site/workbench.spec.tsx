@@ -40,7 +40,17 @@ afterEach(() => {
 })
 
 const rect = (x: number, y: number, w: number, h: number) =>
-  ({ left: x, top: y, right: x + w, bottom: y + h, width: w, height: h, x, y, toJSON() {} }) as DOMRect
+  ({
+    left: x,
+    top: y,
+    right: x + w,
+    bottom: y + h,
+    width: w,
+    height: h,
+    x,
+    y,
+    toJSON() {},
+  }) as DOMRect
 
 /** A preview on a card, the way a docs card or the Studio hands it over:
  * one button at 40,60 (100x30) on a 400x300 stage. */
@@ -96,11 +106,16 @@ function bench(props: { send?: (md: string) => void; render?: () => Element } = 
     window.dispatchEvent(new KeyboardEvent("keydown", { key: k, cancelable: true, ...init }))
   /** A pointer event on the surface the tool in hand lays over the preview. */
   const point = (type: string, x: number, y: number, init: MouseEventInit = {}) =>
-    overlay
-      .querySelector(".wb-surface")!
-      .dispatchEvent(
-        new MouseEvent(type, { clientX: x, clientY: y, button: 0, bubbles: true, cancelable: true, ...init }),
-      )
+    overlay.querySelector(".wb-surface")!.dispatchEvent(
+      new MouseEvent(type, {
+        clientX: x,
+        clientY: y,
+        button: 0,
+        bubbles: true,
+        cancelable: true,
+        ...init,
+      }),
+    )
   const drag = (from: [number, number], to: [number, number], init: MouseEventInit = {}) => {
     point("pointerdown", ...from, init)
     point("pointermove", ...to, init)
@@ -138,6 +153,66 @@ describe("the workbench's feedback", () => {
     await tick()
     expect(written[0]).toContain("https://x/docs/button")
     expect(w.card.querySelector('[role="status"]')!.textContent).toBe("Copied the feedback for an agent")
+  })
+})
+
+describe("the workbench's SVG", () => {
+  /** The stage laid out at 400x300, read the way the Studio reads a frame. */
+  const laid = () => {
+    const w = bench()
+    w.host.getBoundingClientRect = () => rect(0, 0, 400, 300)
+    return w
+  }
+
+  it("copies the preview as SVG, the image type and its text, from a named key", async () => {
+    const w = laid()
+    const key = w.tray().querySelector<HTMLButtonElement>('[aria-label="Copy as SVG, for a design tool"]')!
+    expect(key.title).toBe("Copy as SVG")
+    const items: Record<string, Blob>[] = []
+    vi.stubGlobal(
+      "ClipboardItem",
+      class {
+        static supports = (type: string) => type === "image/svg+xml"
+        constructor(parts: Record<string, Blob>) {
+          items.push(parts)
+        }
+      },
+    )
+    Object.defineProperty(navigator, "clipboard", {
+      value: { write: async () => {} },
+      configurable: true,
+    })
+    key.click()
+    await tick()
+    await tick()
+    expect(Object.keys(items[0]).sort()).toEqual(["image/svg+xml", "text/plain"])
+    const svg = await items[0]["text/plain"].text()
+    // The stage at its size, the button's label as text, the overlay and tray left out.
+    expect(svg).toMatch(/^<svg xmlns="http:\/\/www.w3.org\/2000\/svg"[^>]* width="400" height="300"/)
+    expect(svg).toContain('data-name="Button"')
+    expect(svg).toContain(">Deploy</text>")
+    expect(svg).not.toContain("Workbench tools")
+    expect(svg).not.toContain("Undo")
+    expect(w.card.querySelector('[role="status"]')!.textContent).toBe("Copied as SVG")
+  })
+
+  it("downloads the SVG under the preview's key", () => {
+    const w = laid()
+    const saved: string[] = []
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      saved.push(this.download)
+    })
+    URL.createObjectURL ??= () => "blob:x"
+    URL.revokeObjectURL ??= () => {}
+    w.tray().querySelector<HTMLButtonElement>('[aria-label="Download SVG"]')!.click()
+    expect(saved).toEqual(["button-1.svg"])
+    expect(w.card.querySelector('[role="status"]')!.textContent).toBe("SVG saved")
+  })
+
+  it("says so when the preview is not laid out", () => {
+    const w = bench()
+    w.tray().querySelector<HTMLButtonElement>('[aria-label="Download SVG"]')!.click()
+    expect(w.card.querySelector('[role="status"]')!.textContent).toBe("Nothing to save: the preview is not laid out")
   })
 })
 
@@ -272,7 +347,15 @@ describe("the controller", () => {
   it("loads what the preview kept and one set of settings for all", () => {
     localStorage.setItem("dither-workbench-settings", JSON.stringify({ ...DEFAULT_SETTINGS, tray: "top" }))
     const first = bench()
-    first.b.change((d) => d.notes.push({ id: "n1", at: { x: 5, y: 6 }, text: "tighter", color: "red", size: 13 }))
+    first.b.change((d) =>
+      d.notes.push({
+        id: "n1",
+        at: { x: 5, y: 6 },
+        text: "tighter",
+        color: "red",
+        size: 13,
+      }),
+    )
     first.unmount()
     document.body.innerHTML = ""
     const again = bench()
@@ -295,7 +378,14 @@ describe("the controller", () => {
   it("runs outside a component too, on signals", () => {
     const p = preview()
     createRoot((dispose) => {
-      const b: Bench = createBench({ ...p, key: "k", section: "s", title: "T", url: "u", exit() {} })
+      const b: Bench = createBench({
+        ...p,
+        key: "k",
+        section: "s",
+        title: "T",
+        url: "u",
+        exit() {},
+      })
       expect(b.tool()).toBe("inspect")
       b.setTool("inspect")
       expect(b.tool()).toBeNull()
@@ -350,7 +440,11 @@ describe("the measuring loop", () => {
     w.key("y")
     w.point("pointermove", 50, 70)
     step(1000)
-    expect(w.b.a11y()).toMatchObject({ role: "button", name: "Deploy", control: true })
+    expect(w.b.a11y()).toMatchObject({
+      role: "button",
+      name: "Deploy",
+      control: true,
+    })
     expect(w.b.order()).toHaveLength(1)
     expect(w.overlay.querySelector(".wb-marks .label.guide")!.textContent).toBe("1")
     expect(w.card.querySelector(".wb-readout")!.textContent).toContain("1 tab stops")
@@ -496,7 +590,13 @@ describe("the overlay's layers", () => {
     field.dispatchEvent(new Event("input", { bubbles: true }))
     expect(field.rows).toBe(2)
     // A key in the field is the field's, never a tool's.
-    field.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }))
+    field.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
     expect(w.b.editing()).toBeNull()
     expect(w.b.tool()).toBe("text")
     // Kept, it is drawn in the SVG layer: a line a tspan, its box behind.
@@ -515,7 +615,13 @@ describe("the overlay's layers", () => {
     expect(again.value).toBe("tighter\nhere")
     again.value = " "
     again.dispatchEvent(new Event("input", { bubbles: true }))
-    again.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))
+    again.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Escape",
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
     expect(w.b.ws().notes).toHaveLength(0)
     expect(w.exits).toHaveLength(0)
   })
@@ -527,7 +633,10 @@ describe("the overlay's layers", () => {
     step(1000)
     expect(w.overlay.querySelector(".wb-marks .aim .label")!.textContent).toContain("comment on ")
     w.point("pointerdown", 50, 70)
-    expect(w.b.draftThread()).toMatchObject({ at: { x: 50, y: 70 }, offset: { x: 10, y: 10 } })
+    expect(w.b.draftThread()).toMatchObject({
+      at: { x: 50, y: 70 },
+      offset: { x: 10, y: 10 },
+    })
     expect(w.b.draftThread()!.selector.startsWith("#button ")).toBe(true)
     await tick()
     const pop = () => w.overlay.querySelector<HTMLElement>('.wb-comments [role="dialog"]')!
@@ -541,7 +650,13 @@ describe("the overlay's layers", () => {
       field().dispatchEvent(new Event("input", { bubbles: true }))
     }
     write("Too wide")
-    field().dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }))
+    field().dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
     expect(w.b.ws().threads).toMatchObject([{ n: 1, resolved: false, messages: [{ text: "Too wide" }] }])
     step(2000)
     const pin = w.overlay.querySelector<HTMLButtonElement>(".wb-comments button.pin")!
@@ -572,7 +687,13 @@ describe("the overlay's layers", () => {
     expect(pin.getAttribute("aria-label")).toBe("Comment 1, resolved: Too wide")
     expect(act("Reopen")).toBeDefined()
     // Escape in the field closes the thread and nothing more.
-    field().dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))
+    field().dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Escape",
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
     expect(w.b.openThread()).toBeNull()
     expect(w.b.tool()).toBe("comment")
     pin.click()
@@ -629,7 +750,13 @@ describe("the overlay's layers", () => {
     const keys = [...w.tray().querySelectorAll<HTMLButtonElement>("button:not(:disabled)")]
     keys[0].focus()
     const press = (k: string) =>
-      document.activeElement!.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true }))
+      document.activeElement!.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: k,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
     press("ArrowRight")
     expect(document.activeElement).toBe(keys[1])
     press("End")

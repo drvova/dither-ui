@@ -35,7 +35,8 @@ controller's Solid-bound parts (below).
   `keys.ts` (the keyboard and its listeners); a part names what it takes
   from another by that part's type (`Pick<Selection, …>`), never by an
   import of `bench.ts`. `bench.ts` keeps the tool switch, the agent
-  hand-off and start / stop, and returns the same surface.
+  hand-off, the preview as SVG (`copyAsSvg`, `downloadSvg`, below) and
+  start / stop, and returns the same surface.
 - The DOM readings live a layer down, in `shared/lib/inspect/` (the
   agent's `inspect` reads with them too): `color.ts` (parse every computed
   form, print hex/rgb/hsl/oklch, WCAG contrast), `geometry.ts` (boxes,
@@ -140,6 +141,16 @@ controller's Solid-bound parts (below).
   cap; trims re-record the cut, scaling frames that change size; export
   as WebM/MP4 (as recorded) or a GIF (12 fps, ≤ 480 px, ≤ 240 frames,
   dithered by the kit — a GIF of the dither stays crisp).
+- SVG: the tray's Copy as SVG and Download SVG keys (beside K's; no key
+  of their own) turn the stage as it stands, its live state, into one
+  layered SVG for a design tool, read and written by the Studio's own
+  reader (`entities/artboard`: `elementSvg` over the stage, the overlay
+  left out; `../../AGENTS.md`, SVG, says what the file holds), copied by
+  its `copySvg` (`image/svg+xml` with `text/plain` in Chromium, the text
+  alone in Safari and Firefox, which design tools paste as vectors too)
+  and saved by its `saveSvg` as `<section>-<n>.svg`; the status line says
+  which (`SVG_COPY_SAID`). The SVG is made in the press, so the copy
+  keeps the gesture Safari asks for.
 - The tray docks to the stage's bottom (default) or top (`settings.tray`);
   the workbench sets `data-tray` on the frame and DemoCard keeps that
   edge's lane free (`data-[tray=…]` padding).
@@ -150,7 +161,7 @@ controller's Solid-bound parts (below).
   workbench releases a clock it held.
 - Sounds (`shared/lib/sound.ts`, Kobra's cues): a tool or group switch and
   undo/redo tap, toggles sound on/off, copies (colours, CSS, selectors,
-  the image, the agent feedback) chime, settings and the minimized tray
+  the image, the agent feedback, the SVG) chime, settings and the minimized tray
   fold/unfold; Settings carries the site's interface-sounds switch.
 
 ## Verification
@@ -166,7 +177,8 @@ controller's Solid-bound parts (below).
   mounted on a preview, the controller's undoable workspace, its keys and
   its Escape ladder, the measuring loop, every layer of the overlay (one
   SVG) and panel under the frame, the feedback sent or copied, the
-  annotations copied as SVG, and what unmounting gives back.
+  annotations copied as SVG, the preview copied as SVG (both types, the
+  overlay left out) and downloaded, and what unmounting gives back.
 - Browser walk (`npm run dev`): every tool on `/docs/button` (hover, pin, Alt
   distances and Alt+S, X-ray, Typography's contrast, Accessibility's Tab
   order, guides placed / dragged off, the loupe over a dithered canvas,

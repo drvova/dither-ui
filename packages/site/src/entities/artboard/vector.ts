@@ -44,6 +44,8 @@ type Walk = {
   h: number
   anchors: Anchors
   defs: Map<string, string>
+  /** What is left out with all it holds (the docs workbench's overlay). */
+  skip?: (el: Element) => boolean
 }
 
 const SHAPES = new Set(["path", "line", "rect", "circle", "ellipse", "polyline", "polygon", "image"])
@@ -149,6 +151,7 @@ function layerOf(el: Element, k: Walk, out: SvgNode[]): SvgNode[] {
 
 /** The element and what it holds, appended to `out` in paint order. */
 function walkElement(el: Element, k: Walk, out: SvgNode[], alpha: number) {
+  if (k.skip?.(el)) return
   const style = getComputedStyle(el)
   if (style.display === "none") return
   const opacity = Number.parseFloat(style.opacity || "1")
@@ -652,6 +655,20 @@ function groundOf(el: Element): Paint {
   return { hex: "#ffffff", alpha: 1 }
 }
 
+/** The ground a surface stands on, as the page shows it (its own fill
+ * over what is under it), with its corner. */
+function groundNode(surface: Element, w: number, h: number): SvgNode {
+  const style = getComputedStyle(surface)
+  const fill = paintOf(style.backgroundColor)
+  const under = groundOf(surface)
+  const rx = Math.min(Number.parseFloat(style.borderTopLeftRadius) || 0, w / 2, h / 2)
+  return {
+    t: "g",
+    name: "Background",
+    children: [{ t: "rect", x: 0, y: 0, w, h, rx, fill: fill ? over(fill, under) : under }],
+  }
+}
+
 /** A frame as drawn, read into one frame of a picture, or null when it is
  * not on the page. Its ground is the surface's fill as the page shows it
  * (over the canvas), its content one group a layer. */
@@ -664,11 +681,6 @@ function frameOf(a: Artboard, x = 0, y = 0, defs = new Map<string, string>()): S
   const w = a.widget
   if (!w) chartAnchors(a, surface, k, k.anchors)
   else if (w.kind === "screen") screenAnchors(w, a, surface, k.anchors)
-  const style = getComputedStyle(surface)
-  const fill = paintOf(style.backgroundColor)
-  const under = groundOf(surface)
-  const ground = fill ? over(fill, under) : under
-  const rx = Math.min(Number.parseFloat(style.borderTopLeftRadius) || 0, a.w / 2, a.h / 2)
   const content: SvgNode[] = []
   for (const child of surface.children) walkElement(child, k, content, 1)
   // A widget is one layer under the frame, named after its component.
@@ -680,11 +692,33 @@ function frameOf(a: Artboard, x = 0, y = 0, defs = new Map<string, string>()): S
     w: a.w,
     h: a.h,
     clip: true,
-    nodes: [
-      { t: "g", name: "Background", children: [{ t: "rect", x: 0, y: 0, w: a.w, h: a.h, rx, fill: ground }] },
-      ...body,
-    ],
+    nodes: [groundNode(surface, a.w, a.h), ...body],
   }
+}
+
+/**
+ * Any element as drawn, as one SVG file its size: its ground, then what it
+ * holds, read as a frame is (the docs previews' Copy as SVG). `skip` leaves
+ * out an element with all it holds (the workbench's own overlay). Null
+ * when it is not laid out.
+ */
+export function elementSvg(root: Element, name: string, skip?: (el: Element) => boolean): string | null {
+  const r = root.getBoundingClientRect()
+  if (!(r.width > 0 && r.height > 0)) return null
+  const defs = new Map<string, string>()
+  const k: Walk = { ox: r.left, oy: r.top, zoom: 1, w: r.width, h: r.height, anchors: new Map(), defs, skip }
+  const content: SvgNode[] = []
+  for (const child of root.children) walkElement(child, k, content, 1)
+  const frame: SvgFrame = {
+    name,
+    x: 0,
+    y: 0,
+    w: r.width,
+    h: r.height,
+    clip: true,
+    nodes: [groundNode(root, r.width, r.height), ...content],
+  }
+  return svgDocument([frame], r.width, r.height, [...defs.values()])
 }
 
 /**

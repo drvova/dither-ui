@@ -6,7 +6,8 @@
 import { cleanup, render } from "@solidjs/testing-library"
 import { For } from "solid-js"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { framesSvg } from "@/entities/artboard"
+import { DitherBadge, DitherButton } from "@dither-ui/kit"
+import { elementSvg, framesSvg } from "@/entities/artboard"
 import { editor } from "@/entities/editor"
 import { runCommand } from "@/features/agent"
 import { CHART_TYPES } from "@/shared/config"
@@ -78,7 +79,13 @@ describe("a frame as SVG", () => {
   })
 
   it("a component: its layer is the component, its words are text", () => {
-    const id = idOf(runCommand({ type: "component.add", is: "DitherBadge", name: "Badge frame" }))
+    const id = idOf(
+      runCommand({
+        type: "component.add",
+        is: "DitherBadge",
+        name: "Badge frame",
+      }),
+    )
     draw()
     const doc = parse(framesSvg([editor.artboards.find((x) => x.id === id)!]))
     expect(layers(doc, "Badge frame")).toContain("Badge")
@@ -163,5 +170,33 @@ describe("svg.export", () => {
     expect(runCommand({ type: "svg.export", id }).ok).toBe(false)
     editor.selectedIds = []
     expect(runCommand({ type: "svg.export" }).ok).toBe(false)
+  })
+})
+
+describe("any element as SVG (the docs previews' workbench)", () => {
+  it("reads a stage of kit components the way it reads a frame, what it skips left out", () => {
+    const view = render(() => (
+      <div data-stage>
+        <DitherButton>Deploy now</DitherButton>
+        <DitherBadge>Beta</DitherBadge>
+        <div class="wb">overlay</div>
+      </div>
+    ))
+    const stage = view.container.querySelector<HTMLElement>("[data-stage]")!
+    stage.getBoundingClientRect = () => new DOMRect(0, 0, 320, 120)
+    const svg = elementSvg(stage, "Button (dither-ui docs)", (el) => el.classList.contains("wb"))!
+    expect(svg).toMatch(/<svg [^>]*width="320" height="120" viewBox="0 0 320 120"/)
+    expect(svg).toContain('data-name="Button (dither-ui docs)"')
+    expect(svg).toContain(">Deploy now</text>")
+    expect(svg).toContain(">Beta</text>")
+    expect(svg).not.toContain("overlay")
+    const doc = new DOMParser().parseFromString(svg, "image/svg+xml")
+    expect(doc.querySelector("parsererror")).toBeNull()
+  })
+
+  it("reads nothing from an element not laid out", () => {
+    const hidden = document.createElement("div")
+    hidden.getBoundingClientRect = () => new DOMRect(0, 0, 0, 0)
+    expect(elementSvg(hidden, "x")).toBeNull()
   })
 })
