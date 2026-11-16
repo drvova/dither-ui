@@ -90,6 +90,11 @@ export function rasterInks(frame: RasterBuffer, owner?: Int16Array, groups = 1):
   )
 }
 
+/** Text as SVG markup: a reader's words (a label, a value) in an element
+ * or an attribute, escaped. */
+export const escapeXml = (text: string): string =>
+  text.replace(/[&<>"']/g, (c) => `&${{ "&": "amp", "<": "lt", ">": "gt", '"': "quot", "'": "#39" }[c]};`)
+
 /** Inks as SVG markup: a path each, a 1-unit stroke over its runs. Only
  * digits, hex colours and path commands. */
 export const inksMarkup = (inks: Ink[]): string =>

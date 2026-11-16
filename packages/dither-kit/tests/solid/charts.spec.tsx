@@ -354,6 +354,25 @@ describe("a chart's marks", () => {
     expect(pie.container.querySelector("svg.dk-chart")!.hasAttribute("data-tooltip")).toBe(false)
   })
 
+  it("writes a reader's words into its marks as text, never as markup", () => {
+    const { container } = render(() => (
+      <AreaChart
+        data={[
+          { m: "<i>a</i>", v: 1 },
+          { m: "b", v: 2 },
+        ]}
+        config={{ v: { label: 'Net "x" & <y>', color: "blue" } }}
+        interactive
+      >
+        <Area dataKey="v" />
+      </AreaChart>
+    ))
+    expect(container.querySelector("i")).toBeNull()
+    const first = container.querySelector(".dk-chart-mark")!
+    expect(first.getAttribute("aria-label")).toBe('<i>a</i>: Net "x" & <y> 1')
+    expect(first.querySelector(".dk-chart-value")!.textContent).toBe('Net "x" & <y> 1')
+  })
+
   it("draws none where the pointer does not read the chart", () => {
     const { container } = render(() => <Sparkline data={[1, 3, 2]} color="blue" />)
     expect(container.querySelectorAll(".dk-chart-mark").length).toBe(0)

@@ -10,6 +10,7 @@ import {
   cartesianSurfaces,
   chartName,
   cssEasing,
+  escapeXml,
   groupRaster,
   type Ink,
   inksMarkup,
@@ -173,6 +174,10 @@ describe("a chart's print as SVG inks", () => {
       expect(inksOf(SCREENS.line)).not.toBe(inksOf(SCREENS.bayer))
     })
   }
+
+  it("escapes a reader's words for the markup it writes them into", () => {
+    expect(escapeXml(`Q1 <b> & "net" 'x'`)).toBe("Q1 &lt;b&gt; &amp; &quot;net&quot; &#39;x&#39;")
+  })
 
   it("names the chart and its series, and writes its easing for CSS", () => {
     expect(chartName("area", ["Revenue", "Expenses"])).toBe("Area chart: Revenue, Expenses")

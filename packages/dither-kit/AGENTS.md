@@ -1304,8 +1304,10 @@ generated twin. Inside the kit every import is relative
   the page into files
   (`packages/tasks/src/bake-frames.ts`, `bakePrints`), so a prerendered
   chart's HTML is its markup and words; a chart drawn with no build (the
-  Studio, the docs' Run) keeps its data URI. Its sparkles are one markup
-  string too (`sparklesMarkup`): as elements each carried a hydration key.
+  Studio, the docs' Run) keeps its data URI. Its sparkles and an area or
+  line chart's marks are one markup string too (`sparklesMarkup`; the
+  marks' words through `escapeXml`): as elements each carried a
+  hydration key.
   Either is cell for cell the canvas, every family, and pixel for pixel
   in Chromium at 1x and 2x and in Gecko at 1x (measured at even and odd
   sizes). Tone patterns (`<pattern>` Bayer levels) were measured and not

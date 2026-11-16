@@ -2,11 +2,12 @@
 // PNG, `engine/chart-svg.ts`), the live edge's sparkles over it, and a mark per
 // data index that shows its crosshair and its values under the pointer.
 
-import { createMemo, Index, onMount, Show } from "solid-js"
+import { createMemo, onMount, Show } from "solid-js"
 import {
   blankPrint,
   cartesianSurfaces,
   crosshairAt,
+  escapeXml,
   headingOf,
   paintCartesian,
   printMarkup,
@@ -113,65 +114,49 @@ export function CartesianPlot() {
     return { left, width: Math.max(0, right - left) }
   }
 
+  // One markup string (a mark's crosshair cells and values are dozens of
+  // elements a chart; as elements each carried a hydration key), its words
+  // escaped. Hover is the stylesheet's; `markerIndex` marks one.
+  const n = (v: number) => +v.toFixed(2)
+  const marksMarkup = createMemo(() => {
+    const { cols, rows } = backing()
+    return ctx.data
+      .map((row, i) => {
+        const column = columnOf(i)
+        const values = ctx.configKeys.map((key) => `${ctx.common.labelOf(key)} ${spokenValue(row[key])}`)
+        const x = ctx.xCenter(i) ?? 0
+        const right = x > ctx.plot.width * 0.6
+        const cross = ctx.crosshair
+          ? crosshairAt(ctx, surfaces(), cols, i)
+              .map(
+                (c) =>
+                  `<rect x="${c.x}" y="${c.y}" width="1" height="${Math.max(0, rows - c.y)}" fill="${c.color}" fill-opacity="${n(c.alpha)}"/>` +
+                  `<rect x="${c.x - 1}" y="${c.y - 1}" width="3" height="3" fill="${c.color}"/>`,
+              )
+              .join("")
+          : ""
+        const texts = values
+          .map(
+            (text, k) =>
+              `<text class="dk-chart-value" x="${n(x + (right ? -6 : 6))}" y="${2 + k * 12}" text-anchor="${right ? "end" : "start"}" dominant-baseline="hanging">${escapeXml(text)}</text>`,
+          )
+          .join("")
+        const label = escapeXml(`${headingOf(row, ctx.configKeys, i)}: ${values.join(", ")}`)
+        return (
+          `<g class="dk-chart-mark" role="img" aria-label="${label}"${ctx.markerIndex === i ? " data-marked" : ""}>` +
+          `<rect x="${n(column.left)}" width="${n(column.width)}" height="${n(ctx.plot.height)}" fill="transparent"/>` +
+          `<g class="dk-chart-reveal"><svg class="dk-chart-print" width="${n(ctx.plot.width)}" height="${n(ctx.plot.height)}" viewBox="0 0 ${cols} ${rows}" preserveAspectRatio="none">${cross}</svg>${texts}</g></g>`
+        )
+      })
+      .join("")
+  })
+
   return (
     <PlotFrame
       chart={ctx}
       marks={
         <Show when={marks()}>
-          <g>
-            <Index each={ctx.data}>
-              {(row, i) => {
-                const column = createMemo(() => columnOf(i))
-                const cross = createMemo(() => (ctx.crosshair ? crosshairAt(ctx, surfaces(), backing().cols, i) : []))
-                const values = createMemo(() =>
-                  ctx.configKeys.map((key) => `${ctx.common.labelOf(key)} ${spokenValue(row()[key])}`),
-                )
-                const right = createMemo(() => (ctx.xCenter(i) ?? 0) > ctx.plot.width * 0.6)
-                return (
-                  <g
-                    class="dk-chart-mark"
-                    role="img"
-                    aria-label={`${headingOf(row(), ctx.configKeys, i)}: ${values().join(", ")}`}
-                    data-marked={ctx.markerIndex === i ? "" : undefined}
-                  >
-                    <rect x={column().left} width={column().width} height={ctx.plot.height} fill="transparent" />
-                    <g class="dk-chart-reveal">
-                      <Cells plot={ctx.plot} cols={backing().cols} rows={backing().rows}>
-                        <Index each={cross()}>
-                          {(c) => (
-                            <>
-                              <rect
-                                x={c().x}
-                                y={c().y}
-                                width={1}
-                                height={Math.max(0, backing().rows - c().y)}
-                                fill={c().color}
-                                fill-opacity={c().alpha}
-                              />
-                              <rect x={c().x - 1} y={c().y - 1} width={3} height={3} fill={c().color} />
-                            </>
-                          )}
-                        </Index>
-                      </Cells>
-                      <Index each={values()}>
-                        {(text, k) => (
-                          <text
-                            class="dk-chart-value"
-                            x={(ctx.xCenter(i) ?? 0) + (right() ? -6 : 6)}
-                            y={2 + k * 12}
-                            text-anchor={right() ? "end" : "start"}
-                            dominant-baseline="hanging"
-                          >
-                            {text()}
-                          </text>
-                        )}
-                      </Index>
-                    </g>
-                  </g>
-                )
-              }}
-            </Index>
-          </g>
+          <g innerHTML={marksMarkup()} />
         </Show>
       }
     >
