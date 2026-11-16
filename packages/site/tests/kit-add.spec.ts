@@ -85,7 +85,7 @@ describe("the manifest", () => {
     // a worker by `new URL`, the model parsers by their imports, the chart roots' runtime
     expect(world).toContain("engine/world-worker.ts")
     expect(world).toContain("engine/models/gltf.ts")
-    expect(manifest.components.AreaChart.solid).toContain("solid/runtime/plot-canvas.tsx")
+    expect(manifest.components.AreaChart.solid).toContain("solid/runtime/chart-plot.tsx")
     expect(manifest.files["solid/DitherButton.tsx"].imports).toContain("tailwind/control.ts")
     expect(manifest.files["engine/scales.ts"].packages).toContain("d3-scale")
     expect(manifest.files["tailwind/kit.css"].imports).toEqual(["engine/base.css", "engine/theme.css"])
