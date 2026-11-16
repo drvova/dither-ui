@@ -6,7 +6,7 @@
 // `agent-demo.mjs`) are run by hand, through the workspace root's
 // `npm run frames` and `npm run demo:agent`.
 export * from "./cards.ts"
-export { bakeFrames } from "./bake-frames.ts"
+export { bakeFrames, bakePrintFiles } from "./bake-frames.ts"
 export { chromiumCandidates, chromiumPath, findChromium } from "./chromium.ts"
 export { brandSvg } from "./readme-art.ts"
 export type { BrandArt } from "./readme-art.ts"

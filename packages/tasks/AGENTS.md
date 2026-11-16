@@ -63,12 +63,14 @@ by the site's post-build. Paths here are from this package's root.
   1.5 kB inline, a larger one further down a file, `baked/<id>.png` under
   the base, shared by every page showing it. A page's bakes are kept in
   the cache folder by the hash of this module, the window and the page's
-  bytes. Before its canvases, each page's chart prints (`bakePrints`: the
-  kit's `<image data-dk-print>`, `PRINT_ATTR` in `engine/baked.ts`, a PNG
-  at a pixel a cell as a data URI) past the same 1.5 kB move into the same
-  folder, named by their bytes, the page's `href` pointing there: a pure
-  rewrite, so it needs no browser and no cache of its own; a page with no
-  canvas is written back with only that change.
+  bytes. Before it, `bakePrintFiles` (the post-build's "chart prints"
+  step, over every page the build writes, the Studio and the player
+  included) moves each chart print (`bakePrints`: the kit's `<image
+  data-dk-print>`, `PRINT_ATTR` in `engine/baked.ts`, a PNG at a pixel a
+  cell as a data URI) into the same folder, named by its bytes, the page's
+  `href` pointing there, for every chart whose prints together pass the
+  same 1.5 kB (a bar chart's two dozen small bars move with the rest): a
+  pure rewrite, so it needs no browser and no cache of its own.
   Pure parts (numbering, attributes, the stylesheet, inline or file, the
   prints moved) in
   `tests/bake-frames.spec.ts`; the browser parts are held by the build,

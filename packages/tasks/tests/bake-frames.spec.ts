@@ -64,20 +64,24 @@ describe("baked frames in a page", () => {
     expect(css.match(/url\(data:image\/png;base64,/g)).toHaveLength(2)
   })
 
-  it("moves a chart print's large PNG into a file named by its bytes, a small one and any other image left", () => {
+  it("moves a chart's prints into files named by their bytes when together they pass 1.5 kB, else keeps them", () => {
     const large = "QUJD".repeat(600)
+    const small = "QUJD".repeat(150)
     const print = (png: string) => `<image ${PRINT_ATTR} width="3" height="2" href="data:image/png;base64,${png}"/>`
+    const chart = (...pngs: string[]) =>
+      `<svg data-hk="1" class="dk-chart absolute"><g><svg class="dk-chart-print">${pngs.map(print).join("")}</svg></g></svg>`
     const page =
-      `<html><head></head><body><svg>${print(large)}${print("AAAA")}${print(large)}` +
-      `<image width="1" height="1" href="data:image/png;base64,${large}"/></svg>` +
-      `<script>const s = '${print(large)}'</script></body></html>`
+      `<html><head></head><body>${chart(large)}${chart(small)}${chart(small, small, small, small)}${chart(large)}` +
+      `<svg><image width="1" height="1" href="data:image/png;base64,${large}"/></svg>` +
+      `<script>const s = '${chart(large)}'</script></body></html>`
     const { html, prints } = bakePrints(page, "/base/baked/")
-    expect(prints).toHaveLength(1)
-    expect(prints[0]!.png).toBe(large)
-    expect(html.match(new RegExp(`href="/base/baked/${prints[0]!.name}"`, "g"))).toHaveLength(2)
-    expect(html).toContain(print("AAAA"))
+    expect(prints.map((p) => p.png).sort()).toEqual([large, small].sort())
+    const file = (png: string) => `href="/base/baked/${prints.find((p) => p.png === png)!.name}"`
+    expect(html.split(file(large))).toHaveLength(3) // both large charts, one file
+    expect(html.split(file(small))).toHaveLength(5) // the four small bars of one chart, over the limit together
+    expect(html).toContain(chart(small)) // one small print alone stays
     expect(html).toContain(`<image width="1" height="1" href="data:image/png;base64,${large}"/>`)
-    expect(html).toContain(`<script>const s = '${print(large)}'</script>`)
+    expect(html).toContain(`<script>const s = '${chart(large)}'</script>`)
     expect(bakePrints(html, "/base/baked/").prints).toEqual([])
   })
 })

@@ -13,6 +13,7 @@ import {
   paintCartesian,
   printMarkup,
   sparklesAt,
+  sparklesMarkup,
   type Star,
 } from "@dither-ui/kit/engine/chart-svg.ts"
 import {
@@ -188,23 +189,13 @@ export function CartesianPlot() {
         </g>
         <Show when={sparkles().length > 0}>
           <Cells plot={ctx.plot} cols={backing().cols} rows={backing().rows}>
-            <Index each={sparkles()}>
-              {(star) => (
-                <g
-                  class="dk-chart-sparkle"
-                  fill={star().color}
-                  style={{
-                    "--dk-twinkle": `${Math.round(twinkle().half)}ms`,
-                    "--dk-twinkle-low": twinkle().low.toFixed(3),
-                    "--dk-phase": `${-Math.round((star().phase / 360) * 2 * twinkle().half)}ms`,
-                  }}
-                >
-                  <Index each={star().cells}>
-                    {(c) => <rect x={c().x} y={c().y} width={1} height={1} fill-opacity={c().a} />}
-                  </Index>
-                </g>
-              )}
-            </Index>
+            <g
+              style={{
+                "--dk-twinkle": `${Math.round(twinkle().half)}ms`,
+                "--dk-twinkle-low": twinkle().low.toFixed(3),
+              }}
+              innerHTML={sparklesMarkup(sparkles(), twinkle().half)}
+            />
           </Cells>
         </Show>
       </g>

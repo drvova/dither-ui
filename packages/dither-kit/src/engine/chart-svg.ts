@@ -298,6 +298,22 @@ export function sparklesAt(
   return out
 }
 
+/** Sparkles as SVG markup, one string (a chart holds dozens; as elements
+ * each would carry a hydration key): a group a sparkle, its colour and its
+ * phase (`--dk-phase`, ms into a wink of `half` ms; the wink's period and
+ * floor are set once around them), a 1x1 rect a cell. */
+export const sparklesMarkup = (sparkles: Sparkle[], half: number): string =>
+  sparkles
+    .map(
+      (s) =>
+        `<g class="dk-chart-sparkle" fill="${s.color}" style="--dk-phase:${-Math.round((s.phase / 360) * 2 * half)}ms">` +
+        s.cells
+          .map((c) => `<rect x="${c.x}" y="${c.y}" width="1" height="1"${c.a < 1 ? ` fill-opacity="${c.a}"` : ""}/>`)
+          .join("") +
+        "</g>",
+    )
+    .join("")
+
 // ---- bar -------------------------------------------------------------------
 
 /** A series' bars per data index, in backing rows. */

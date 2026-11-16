@@ -16,7 +16,15 @@ import { readFile, writeFile } from "node:fs/promises"
 import { join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { chromium } from "playwright-core"
-import { bakeFrames, findChromium, listen, refineEmbed, renderOgCards, writeAgentRegistry } from "@dither-ui/tasks"
+import {
+  bakeFrames,
+  bakePrintFiles,
+  findChromium,
+  listen,
+  refineEmbed,
+  renderOgCards,
+  writeAgentRegistry,
+} from "@dither-ui/tasks"
 import { ROUTE_CARDS, sectionsManifest } from "../src/pages/docs/crawler-files.ts"
 import { buildOgPage } from "./og-page.ts"
 
@@ -101,7 +109,18 @@ try {
   // Last, once nothing else reads the pages: each page's kit canvases with
   // the frame the engine paints them, in the HTML (packages/tasks'
   // bake-frames.ts), kept by the page's bytes between builds.
-  const { pages: baked, prints } = await step("baked frames", () =>
+  // First every page's chart prints, a pure rewrite (the Studio's and the
+  // player's too): the PNG past 1.5 kB a file beside the pages.
+  const pagesBuilt = [
+    "index.html",
+    "404.html",
+    "docs/index.html",
+    "studio/index.html",
+    "play/index.html",
+    ...sections.map((s) => `docs/${s.id}/index.html`),
+  ]
+  const prints = await step("chart prints", () => bakePrintFiles({ base: BASE, dist: OUT, pages: pagesBuilt }))
+  const baked = await step("baked frames", () =>
     bakeFrames({
       browser,
       origin,

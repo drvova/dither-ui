@@ -177,34 +177,83 @@ export function bakeHtml(html: string, bakes: Bake[], files?: string): string {
 }
 
 /** A chart print's PNG moved out of a page: its file in `baked/`. */
-export interface PrintFile {
+interface PrintFile {
   name: string
   png: string
 }
 
+/** A chart's root `<svg class="dk-chart ...">` to its closing tag, `at`
+ * its start: the end of its markup (nested `<svg>`s counted). */
+function chartEnd(text: string, at: number): number {
+  const tag = /<svg\b|<\/svg>/g
+  tag.lastIndex = at
+  let depth = 0
+  for (let m = tag.exec(text); m; m = tag.exec(text)) {
+    depth += m[0] === "</svg>" ? -1 : 1
+    if (depth === 0) return m.index + m[0].length
+  }
+  return text.length
+}
+
 /**
- * The page with each chart print's PNG past `INLINE_BYTES` read from
- * `files` (the build's `baked/` folder as the page addresses it) in place
- * of its data URI, and the files to write, each named by its bytes (a
- * print two pages show is one file). Only the kit's print images, never
- * one inside a script or a style.
+ * The page with its charts' print PNGs read from `files` (the build's
+ * `baked/` folder as the page addresses it) in place of their data URIs,
+ * and the files to write, each named by its bytes (a print two pages show
+ * is one file). A chart whose prints together stay within `INLINE_BYTES`
+ * keeps them in its markup; past that (a bar chart's two dozen small
+ * bars, an area's one large fill) each is a file. Only the kit's print
+ * images, never one inside a script or a style.
  */
 export function bakePrints(html: string, files: string): { html: string; prints: PrintFile[] } {
   const prints = new Map<string, PrintFile>()
   const image = new RegExp(`(<image ${PRINT_ATTR}\\b[^>]*?href=")data:image/png;base64,([A-Za-z0-9+/=]+)"`, "g")
+  const bytes = (part: string) => [...part.matchAll(image)].reduce((n, m) => n + (m[2]!.length * 3) / 4, 0)
+  const move = (part: string) =>
+    part.replace(image, (_, head: string, png: string) => {
+      const name = `${createHash("sha256").update(png).digest("hex").slice(0, 10)}.png`
+      prints.set(name, { name, png })
+      return `${head}${files}${name}"`
+    })
+  /** Each chart of a markup segment, moved together or kept together. */
+  const charts = (text: string) => {
+    let out = ""
+    let from = 0
+    for (const m of text.matchAll(/<svg\b[^>]*\bclass="dk-chart[\s"]/g)) {
+      if (m.index < from) continue
+      const end = chartEnd(text, m.index)
+      const chart = text.slice(m.index, end)
+      out += text.slice(from, m.index) + (bytes(chart) > INLINE_BYTES ? move(chart) : chart)
+      from = end
+    }
+    return out + text.slice(from)
+  }
   const out = segments(html)
-    .map((s) =>
-      s.code
-        ? s.text
-        : s.text.replace(image, (whole, head: string, png: string) => {
-            if ((png.length * 3) / 4 <= INLINE_BYTES) return whole
-            const name = `${createHash("sha256").update(png).digest("hex").slice(0, 10)}.png`
-            prints.set(name, { name, png })
-            return `${head}${files}${name}"`
-          }),
-    )
+    .map((s) => (s.code ? s.text : charts(s.text)))
     .join("")
   return { html: out, prints: [...prints.values()] }
+}
+
+/** Move the chart prints of every page named (paths under `dist`) into the
+ * build's `baked/` folder (`base` as the pages address it): a pure rewrite
+ * of each page, run on every page the build writes before its canvases
+ * are baked. Returns how many files it wrote. */
+export async function bakePrintFiles(opts: { base: string; dist: string; pages: string[] }): Promise<number> {
+  await mkdir(join(opts.dist, BAKED_DIR), { recursive: true })
+  const files = `${opts.base.replace(/\/?$/, "/")}${BAKED_DIR}/`
+  const written = new Set<string>()
+  for (const page of opts.pages) {
+    const path = join(opts.dist, page)
+    if (!existsSync(path)) continue
+    const { html, prints } = bakePrints(await readFile(path, "utf8"), files)
+    if (!prints.length) continue
+    for (const p of prints)
+      if (!written.has(p.name)) {
+        written.add(p.name)
+        await writeFile(join(opts.dist, BAKED_DIR, p.name), Buffer.from(p.png, "base64"))
+      }
+    await writeFile(path, html)
+  }
+  return written.size
 }
 
 /** What a page's canvas showed, read in the page. */
@@ -510,7 +559,7 @@ export async function bakeFrames(opts: {
   pages: string[]
   cache: string
   jobs?: number
-}): Promise<{ pages: PageBake[]; prints: number }> {
+}): Promise<PageBake[]> {
   await mkdir(opts.cache, { recursive: true })
   await mkdir(join(opts.dist, BAKED_DIR), { recursive: true })
   const files = `${opts.base.replace(/\/?$/, "/")}${BAKED_DIR}/`
@@ -519,18 +568,11 @@ export async function bakeFrames(opts: {
   const self = await readFile(fileURLToPath(import.meta.url), "utf8")
   const queue = opts.pages.filter((p) => existsSync(join(opts.dist, p)))
   const done: PageBake[] = []
-  const printed: string[] = []
   const work = async () => {
     for (let page = queue.shift(); page !== undefined; page = queue.shift()) {
       const path = join(opts.dist, page)
-      // The charts' prints first: a pure rewrite of the page by its bytes.
-      const { html, prints } = bakePrints(await readFile(path, "utf8"), files)
-      for (const p of prints) await writeFile(join(opts.dist, BAKED_DIR, p.name), Buffer.from(p.png, "base64"))
-      printed.push(...prints.map((p) => p.name))
-      if (!tagCanvases(html).zero.length) {
-        if (prints.length) await writeFile(path, html)
-        continue
-      }
+      const html = await readFile(path, "utf8")
+      if (!tagCanvases(html).zero.length) continue
       const key = createHash("sha256").update(self).update(JSON.stringify(BAKE_VIEWPORT)).update(html).digest("hex")
       const file = join(opts.cache, `${key}.json`)
       const hit = existsSync(file)
@@ -546,5 +588,5 @@ export async function bakeFrames(opts: {
     }
   }
   await Promise.all(Array.from({ length: opts.jobs ?? 3 }, work))
-  return { pages: done.sort((a, b) => a.page.localeCompare(b.page)), prints: new Set(printed).size }
+  return done.sort((a, b) => a.page.localeCompare(b.page))
 }
