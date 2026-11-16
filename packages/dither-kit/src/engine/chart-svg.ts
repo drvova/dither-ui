@@ -24,6 +24,7 @@ import {
   sparklesFromSeed,
 } from "./dither-paint"
 import { distToPolygonEdge, pointInPolygon, polarX, polarY, sliceAtAngle } from "./polar"
+import { PRINT_ATTR } from "./baked"
 import { rasterSrc } from "./png"
 import { createRasterBuffer, type RasterBuffer, setOrBlendRasterPixel } from "./raster"
 import { springLinear } from "./spring"
@@ -129,7 +130,7 @@ export function printMarkup(frame: RasterBuffer, owner?: Int16Array, groups = 1)
     const paths = inksMarkup(group)
     const raster = groupRaster(frame, owner, g)
     if (!raster) return paths
-    const image = `<image width="${raster.width}" height="${raster.height}" preserveAspectRatio="none" style="image-rendering:pixelated" href="${rasterSrc(raster)}"/>`
+    const image = `<image ${PRINT_ATTR} width="${raster.width}" height="${raster.height}" preserveAspectRatio="none" style="image-rendering:pixelated" href="${rasterSrc(raster)}"/>`
     return image.length < paths.length ? image : paths
   })
 }

@@ -32,3 +32,9 @@ export function bakedSettled(canvas: Baked): boolean {
 export function releaseBaked(canvas: { hasAttribute?(n: string): boolean; removeAttribute(n: string): void }) {
   if (canvas.hasAttribute?.(BAKED_ATTR)) canvas.removeAttribute(BAKED_ATTR)
 }
+
+/** The attribute a chart print's cell image carries (`chart-svg.ts`): a
+ * build that writes the page moves its PNG out of the markup into a file
+ * of the same `baked/` folder (`packages/tasks/src/bake-frames.ts`,
+ * `bakePrints`). */
+export const PRINT_ATTR = "data-dk-print"

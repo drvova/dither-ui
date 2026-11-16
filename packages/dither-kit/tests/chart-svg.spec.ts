@@ -24,6 +24,7 @@ import {
 import { resolveMatrix } from "../src/engine/dither-paint"
 import { seedFromColor } from "../src/engine/palette"
 import { SCREENS } from "../src/engine/pixel"
+import { PRINT_ATTR } from "../src/engine/baked"
 import { rasterSrc } from "../src/engine/png"
 import { pieSlices, radarAxes } from "../src/engine/polar"
 import { createRasterBuffer, type RasterBuffer } from "../src/engine/raster"
@@ -201,7 +202,7 @@ describe("a chart's print as SVG inks", () => {
           expect([...own.data.subarray(i * 4, i * 4 + 4)]).toEqual(
             !owner || owner[i] === g ? [...frame.data.subarray(i * 4, i * 4 + 4)] : [0, 0, 0, 0],
           )
-        const image = `<image width="${COLS}" height="${ROWS}" preserveAspectRatio="none" style="image-rendering:pixelated" href="${rasterSrc(own)}"/>`
+        const image = `<image ${PRINT_ATTR} width="${COLS}" height="${ROWS}" preserveAspectRatio="none" style="image-rendering:pixelated" href="${rasterSrc(own)}"/>`
         expect(markup, `${family} ${g}`).toBe(image.length < paths.length ? image : paths)
       })
     }

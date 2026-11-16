@@ -19,6 +19,15 @@
 // fillRect) is never baked. What a page bakes is kept by the page's bytes
 // (its scripts are named by their hashes), so a build that changes nothing
 // loads nothing.
+//
+// A chart's print is no canvas: the kit writes its cells as an SVG
+// `<image>` of a PNG at one pixel a cell (`@dither-ui/kit/engine/chart-svg.ts`,
+// `PRINT_ATTR` from `baked.ts`), a data URI in the page as the server rendered it.
+// `bakePrints` moves every such PNG past `INLINE_BYTES` out of the HTML into
+// the same `baked/<id>.png` files the canvases' frames use, named by its
+// bytes, so a page of charts carries their markup and words and the images
+// load beside it. Charts drawn without a build (the Studio, the docs' Run)
+// keep their data URI.
 // Loaded by Node as it is (type stripping): erasable syntax only.
 import { createHash } from "node:crypto"
 import { existsSync } from "node:fs"
@@ -26,7 +35,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { pngBytes } from "@dither-ui/kit/engine/png.ts"
-import { BAKED_ATTR, BAKED_PREFIX, type BakedKind } from "@dither-ui/kit/engine/baked.ts"
+import { BAKED_ATTR, BAKED_PREFIX, type BakedKind, PRINT_ATTR } from "@dither-ui/kit/engine/baked.ts"
 import type { Browser, BrowserContext } from "playwright-core"
 
 /** The window a page is baked at: the desktop the site is drawn for. */
@@ -165,6 +174,37 @@ export function bakeHtml(html: string, bakes: Bake[], files?: string): string {
   const head = out.search(/<\/head>/i)
   if (head < 0) throw new Error("bake: a page without a </head>")
   return out.slice(0, head) + style + out.slice(head)
+}
+
+/** A chart print's PNG moved out of a page: its file in `baked/`. */
+export interface PrintFile {
+  name: string
+  png: string
+}
+
+/**
+ * The page with each chart print's PNG past `INLINE_BYTES` read from
+ * `files` (the build's `baked/` folder as the page addresses it) in place
+ * of its data URI, and the files to write, each named by its bytes (a
+ * print two pages show is one file). Only the kit's print images, never
+ * one inside a script or a style.
+ */
+export function bakePrints(html: string, files: string): { html: string; prints: PrintFile[] } {
+  const prints = new Map<string, PrintFile>()
+  const image = new RegExp(`(<image ${PRINT_ATTR}\\b[^>]*?href=")data:image/png;base64,([A-Za-z0-9+/=]+)"`, "g")
+  const out = segments(html)
+    .map((s) =>
+      s.code
+        ? s.text
+        : s.text.replace(image, (whole, head: string, png: string) => {
+            if ((png.length * 3) / 4 <= INLINE_BYTES) return whole
+            const name = `${createHash("sha256").update(png).digest("hex").slice(0, 10)}.png`
+            prints.set(name, { name, png })
+            return `${head}${files}${name}"`
+          }),
+    )
+    .join("")
+  return { html: out, prints: [...prints.values()] }
 }
 
 /** What a page's canvas showed, read in the page. */
@@ -470,7 +510,7 @@ export async function bakeFrames(opts: {
   pages: string[]
   cache: string
   jobs?: number
-}): Promise<PageBake[]> {
+}): Promise<{ pages: PageBake[]; prints: number }> {
   await mkdir(opts.cache, { recursive: true })
   await mkdir(join(opts.dist, BAKED_DIR), { recursive: true })
   const files = `${opts.base.replace(/\/?$/, "/")}${BAKED_DIR}/`
@@ -479,11 +519,18 @@ export async function bakeFrames(opts: {
   const self = await readFile(fileURLToPath(import.meta.url), "utf8")
   const queue = opts.pages.filter((p) => existsSync(join(opts.dist, p)))
   const done: PageBake[] = []
+  const printed: string[] = []
   const work = async () => {
     for (let page = queue.shift(); page !== undefined; page = queue.shift()) {
       const path = join(opts.dist, page)
-      const html = await readFile(path, "utf8")
-      if (!tagCanvases(html).zero.length) continue
+      // The charts' prints first: a pure rewrite of the page by its bytes.
+      const { html, prints } = bakePrints(await readFile(path, "utf8"), files)
+      for (const p of prints) await writeFile(join(opts.dist, BAKED_DIR, p.name), Buffer.from(p.png, "base64"))
+      printed.push(...prints.map((p) => p.name))
+      if (!tagCanvases(html).zero.length) {
+        if (prints.length) await writeFile(path, html)
+        continue
+      }
       const key = createHash("sha256").update(self).update(JSON.stringify(BAKE_VIEWPORT)).update(html).digest("hex")
       const file = join(opts.cache, `${key}.json`)
       const hit = existsSync(file)
@@ -499,5 +546,5 @@ export async function bakeFrames(opts: {
     }
   }
   await Promise.all(Array.from({ length: opts.jobs ?? 3 }, work))
-  return done.sort((a, b) => a.page.localeCompare(b.page))
+  return { pages: done.sort((a, b) => a.page.localeCompare(b.page)), prints: new Set(printed).size }
 }

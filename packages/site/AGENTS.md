@@ -269,7 +269,8 @@ are from the repository's.
   every card (`og/<id>.png`, `.gif`), rewrites each section's embed with the
   lede its page prints, writes `agent/registry.json` off the mounted
   Studio, and last bakes the kit canvases of the landing, the missing page
-  and every docs page into their HTML (`bakeFrames`,
+  and every docs page into their HTML, their charts' prints moved from the
+  markup into the same `baked/` files (`bakeFrames`,
   `packages/tasks/src/bake-frames.ts`), printing each step's time. The
   drawing code is the `@dither-ui/tasks` package's
   (`packages/tasks/src/cards.ts`). Each card is

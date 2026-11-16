@@ -1,0 +1,10 @@
+/* A reveal the server printed hidden carries no mask of its own: it is
+ * hidden here, and only where a script runs to play it. A page read without
+ * one (or in a browser older than the `scripting` query) shows the content
+ * whole. The script's first frame writes the reveal's own mask inline. */
+@media (scripting: enabled) {
+  .dk-reveal[data-reveal="hidden"]:not([style*="mask"]) {
+    mask-image: linear-gradient(transparent, transparent);
+    -webkit-mask-image: linear-gradient(transparent, transparent);
+  }
+}

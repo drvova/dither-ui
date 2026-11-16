@@ -399,6 +399,11 @@ generated twin. Inside the kit every import is relative
   loop, its delay waited out before the first play and a pause resuming
   where it left off, the kit clock's moment when directed, shown at once under reduced
   motion; `reverse` hides instead; `data-reveal` = hidden|playing|shown.
+  A server writes no mask on a hidden reveal: `DitherReveal.css` hides it
+  under `@media (scripting: enabled)` until the script's first frame
+  writes the mask inline, so a page read without a script shows what it
+  holds (`packages/site/tests/site/page-reading.spec.tsx` reads every
+  built page for art masked shut).
   The Studio's reels cut between frames with it. Pinned by
   `tests/wipe.spec.ts` and the `DitherReveal` cases of
   `tests/solid/carried-motion.spec.tsx`.
@@ -1259,8 +1264,9 @@ generated twin. Inside the kit every import is relative
   (`releaseBaked`) in the call that puts the canvas's own pixels, so the
   same pixels replace it and nothing shows twice; `bakedSettled(canvas)`
   starts a surface whose frame the bake shows with its entrance played
-  (the cartesian and the bar, pie and radar loops, `DitherAvatar`), so its
-  first paint is the bake's own bytes. A canvas drawn any other way
+  (`DitherAvatar`), so its first paint is the bake's own bytes; a chart is
+  no canvas, and its print's PNG carries `PRINT_ATTR` so the build can
+  write it beside the page. A canvas drawn any other way
   (`drawImage`, `fillRect`, a GL context) is never baked. Nothing in the
   kit writes the attribute (`tests/baked.spec.ts`).
 - `precompiled` replaces only the dither plot/surface image; surrounding chart
@@ -1293,6 +1299,11 @@ generated twin. Inside the kit every import is relative
   at a fractional pixel resamples its edges, 93% of a bar chart's pixels
   in Chromium at an odd size). A gradient holds hundreds of inks, so the
   PNG wins, 4 to 8 times shorter; a fill of few inks keeps its paths.
+  The PNG's `<image>` carries `PRINT_ATTR` (`engine/baked.ts`): the
+  site's build moves one past 1.5 kB out of the page into a file
+  (`packages/tasks/src/bake-frames.ts`, `bakePrints`), so a prerendered
+  chart's HTML is its markup and words; a chart drawn with no build (the
+  Studio, the docs' Run) keeps its data URI.
   Either is cell for cell the canvas, every family, and pixel for pixel
   in Chromium at 1x and 2x and in Gecko at 1x (measured at even and odd
   sizes). Tone patterns (`<pattern>` Bayer levels) were measured and not

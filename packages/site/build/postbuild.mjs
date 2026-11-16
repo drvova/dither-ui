@@ -101,7 +101,7 @@ try {
   // Last, once nothing else reads the pages: each page's kit canvases with
   // the frame the engine paints them, in the HTML (packages/tasks'
   // bake-frames.ts), kept by the page's bytes between builds.
-  const baked = await step("baked frames", () =>
+  const { pages: baked, prints } = await step("baked frames", () =>
     bakeFrames({
       browser,
       origin,
@@ -114,7 +114,8 @@ try {
   const sum = (k) => baked.reduce((s, p) => s + p[k], 0)
   console.log(
     `bake: ${baked.length} pages (${baked.filter((p) => p.cached).length} cached), ${sum("canvases")} canvases: ` +
-      `${sum("settled")} settled, ${sum("first")} first frames, ${sum("live")} live, ${sum("refused")} refused`,
+      `${sum("settled")} settled, ${sum("first")} first frames, ${sum("live")} live, ${sum("refused")} refused; ` +
+      `${prints} chart prints moved to files`,
   )
 } finally {
   await browser.close()

@@ -4,8 +4,8 @@
 // attribute, the stylesheet showing it at the end of the head, one rule an
 // image, and the kit's runtime reading that attribute as the build wrote it.
 import { describe, expect, it } from "rstack/test"
-import { bakedSettled, BAKED_ATTR, releaseBaked } from "@dither-ui/kit/engine/baked.ts"
-import { bakedCss, bakedValue, bakeHtml, tagCanvases, type Bake } from "../src/bake-frames.ts"
+import { bakedSettled, BAKED_ATTR, PRINT_ATTR, releaseBaked } from "@dither-ui/kit/engine/baked.ts"
+import { bakedCss, bakedValue, bakeHtml, bakePrints, tagCanvases, type Bake } from "../src/bake-frames.ts"
 
 const PAGE =
   `<!doctype html><html class="dark"><head><title>t</title></head><body>` +
@@ -62,5 +62,22 @@ describe("baked frames in a page", () => {
     const css = bakedCss([bake(0, { png: large }), bake(1, { png: large + "B", above: true }), bake(2)], "/base/baked/")
     expect(css.match(/url\(\/base\/baked\/[0-9a-f]{10}\.png\)/g)).toHaveLength(1)
     expect(css.match(/url\(data:image\/png;base64,/g)).toHaveLength(2)
+  })
+
+  it("moves a chart print's large PNG into a file named by its bytes, a small one and any other image left", () => {
+    const large = "QUJD".repeat(600)
+    const print = (png: string) => `<image ${PRINT_ATTR} width="3" height="2" href="data:image/png;base64,${png}"/>`
+    const page =
+      `<html><head></head><body><svg>${print(large)}${print("AAAA")}${print(large)}` +
+      `<image width="1" height="1" href="data:image/png;base64,${large}"/></svg>` +
+      `<script>const s = '${print(large)}'</script></body></html>`
+    const { html, prints } = bakePrints(page, "/base/baked/")
+    expect(prints).toHaveLength(1)
+    expect(prints[0]!.png).toBe(large)
+    expect(html.match(new RegExp(`href="/base/baked/${prints[0]!.name}"`, "g"))).toHaveLength(2)
+    expect(html).toContain(print("AAAA"))
+    expect(html).toContain(`<image width="1" height="1" href="data:image/png;base64,${large}"/>`)
+    expect(html).toContain(`<script>const s = '${print(large)}'</script>`)
+    expect(bakePrints(html, "/base/baked/").prints).toEqual([])
   })
 })

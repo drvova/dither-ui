@@ -1,10 +1,12 @@
 import { createEffect, createMemo, createSignal, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
+import { isServer } from "solid-js/web"
 import { directedTime, isDirected, onSeek } from "../engine/clock"
 import { type EasingInput, resolveEasing } from "../engine/dither-paint"
 import { pixelPrefersReducedMotion } from "../engine/pixel"
 import { BAYER8, bayerMatrix, type WipeDirection, type WipeOptions, type WipeStyle, wipeStyle } from "../engine/wipe"
 import { cn } from "../tailwind/lib"
 import { createInviewLoop } from "./runtime/in-view"
+import "./DitherReveal.css"
 
 export type { WipeDirection, WipeOptions, WipeStyle }
 export { BAYER8, bayerMatrix, wipeStyle }
@@ -148,7 +150,12 @@ export default function DitherReveal(raw: DitherRevealProps) {
       height: size().height,
     }),
   )
+  const state = createMemo(() => (effective() >= 1 ? "shown" : effective() <= 0 ? "hidden" : "playing"))
   const style = createMemo<JSX.CSSProperties | undefined>(() => {
+    // A server's hidden reveal writes no mask: its stylesheet hides it only
+    // where a script will play it (`DitherReveal.css`), so a page read
+    // without one shows what the reveal holds.
+    if (isServer && state() === "hidden") return undefined
     const m = mask()
     return m
       ? {
@@ -163,12 +170,11 @@ export default function DitherReveal(raw: DitherRevealProps) {
         }
       : undefined
   })
-  const state = createMemo(() => (effective() >= 1 ? "shown" : effective() <= 0 ? "hidden" : "playing"))
 
   return (
     <div
       ref={(el) => (wrapRef = el)}
-      class={cn("relative", props.class)}
+      class={cn("dk-reveal relative", props.class)}
       style={style()}
       data-reveal={state()}
       aria-hidden={props["aria-hidden"]}

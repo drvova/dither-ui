@@ -1,6 +1,7 @@
 // Generated from @dither-ui/kit/solid/DitherReveal.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
 import { createEffect, createMemo, createSignal, type JSX, mergeProps, on, onCleanup, onMount } from "solid-js"
+import { isServer } from "solid-js/web"
 import { directedTime, isDirected, onSeek } from "@dither-ui/kit/engine/clock.ts"
 import { type EasingInput, resolveEasing } from "@dither-ui/kit/engine/dither-paint.ts"
 import { pixelPrefersReducedMotion } from "@dither-ui/kit/engine/pixel.ts"
@@ -14,6 +15,7 @@ import {
 } from "@dither-ui/kit/engine/wipe.ts"
 import { cn, type StyleProp } from "./lib"
 import { createInviewLoop } from "@dither-ui/kit/solid/runtime/in-view.ts"
+import "@dither-ui/kit/solid/DitherReveal.css"
 import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
@@ -163,7 +165,12 @@ export default function DitherReveal(raw: DitherRevealProps) {
       height: size().height,
     }),
   )
+  const state = createMemo(() => (effective() >= 1 ? "shown" : effective() <= 0 ? "hidden" : "playing"))
   const style = createMemo<JSX.CSSProperties | undefined>(() => {
+    // A server's hidden reveal writes no mask: its stylesheet hides it only
+    // where a script will play it (`DitherReveal.css`), so a page read
+    // without one shows what the reveal holds.
+    if (isServer && state() === "hidden") return undefined
     const m = mask()
     return m
       ? {
@@ -178,12 +185,11 @@ export default function DitherReveal(raw: DitherRevealProps) {
         }
       : undefined
   })
-  const state = createMemo(() => (effective() >= 1 ? "shown" : effective() <= 0 ? "hidden" : "playing"))
 
   return (
     <div
       ref={(el) => (wrapRef = el)}
-      class={cn(styles.frame, props.xstyle, props.class)}
+      class={cn([styles.frame, "dk-reveal"], props.xstyle, props.class)}
       style={style()}
       data-reveal={state()}
       aria-hidden={props["aria-hidden"]}
