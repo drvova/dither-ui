@@ -31,7 +31,7 @@ export const meta = defineExample({
     group: "display",
     frame: { w: 260, h: 160 },
     controls: {
-      src: { kind: "url" },
+      src: { demo: "/sprites.webp", kind: "url" },
       alt: { demo: "Sprite sheet preview" },
       href: { kind: "url", demo: "https://dither-ui.com/docs" },
       ratio: {},

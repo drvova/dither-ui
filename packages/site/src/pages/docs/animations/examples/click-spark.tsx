@@ -15,6 +15,7 @@ export const meta = defineExample({
   studio: {
     group: "display",
     frame: { w: 240, h: 140 },
+    slot: "Click anywhere here",
     controls: {
       color: { kind: "color", demo: "blue" },
       count: { min: 3, max: 20, step: 1 },

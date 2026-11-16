@@ -49,7 +49,7 @@ export const meta = defineExample({
     controls: {
       from: { min: 0, max: 23, step: 1 },
       to: { min: 1, max: 24, step: 1 },
-      now: { min: 0, max: 24, step: 0.5 },
+      now: { demo: 13.5, min: 0, max: 24, step: 0.5 },
     },
   },
 })
