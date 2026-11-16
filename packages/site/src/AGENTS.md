@@ -128,7 +128,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   writes it; `charts.tsx`, the kit's charts as lazy parts (`lazyPart`, each
   loaded before a server renders it), so their scales (d3) and engines stay out
   of a page's first load, read by the landing's cards and the docs' chart
-  sections in place of the kit's index), config (CHART_TYPES; `titles.ts`, the routes' titles, a leaf the
+  sections in place of the kit's index; it imports the charts' stylesheet,
+  `@dither-ui/kit/solid/chart.css`, itself, so the page links it and a
+  prerendered chart is styled with no script: a lazy chunk's CSS arrives
+  only with its script), config (CHART_TYPES; `titles.ts`, the routes' titles, a leaf the
   landing can load without the docs IA; `storage.ts`, `STORAGE_KEYS` and
   `STORAGE_PREFIXES`, every localStorage key the site keeps, the ONE place
   one is spelled (never renamed: a reader's browser holds them); `player.ts`,

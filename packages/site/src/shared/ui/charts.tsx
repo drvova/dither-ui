@@ -8,6 +8,10 @@
 // so it loads them first (as it does the docs' packs): none suspends and
 // streams in after the shell.
 import { lazyPart } from "@/shared/lib/lazy-part"
+// The charts' stylesheet goes with the page, not with the lazy chunk: a
+// prerendered chart is drawn, hovered and timed by it before (or without)
+// any script, and a chunk's CSS reaches the page only as its script loads.
+import "@dither-ui/kit/solid/chart.css"
 
 export const AreaChart = lazyPart(() =>
   import("@dither-ui/kit/solid/area-chart.ts").then((m) => ({ default: m.AreaChart })),
