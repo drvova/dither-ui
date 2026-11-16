@@ -26,10 +26,11 @@ export const meta = defineExample({
   studio: {
     group: "inputs",
     frame: { w: 280, h: 220 },
+    model: { demo: "" },
     controls: {
       color: {},
       options: { kind: "list", demo: ["One", "Two", "Three"] },
-      placeholder: {},
+      placeholder: { demo: "Select…" },
       invalid: {},
       disabled: {},
     },

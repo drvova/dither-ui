@@ -15,6 +15,7 @@ export const meta = defineExample({
   studio: {
     group: "structure",
     frame: { w: 260, h: 110 },
-    controls: { as: { kind: "select", options: ["div", "section", "span", "article"] } },
+    slot: "Box content",
+    controls: { as: { demo: "div", kind: "select", options: ["div", "section", "span", "article"] } },
   },
 })

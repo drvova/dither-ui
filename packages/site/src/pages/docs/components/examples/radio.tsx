@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { DitherRadioGroup } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example() {
   const [bloomLevel, setBloomLevel] = createSignal("low")
@@ -22,3 +23,14 @@ export default function Example() {
     </div>
   )
 }
+
+export const meta = defineExample({
+  component: DitherRadioGroup,
+  title: "Radio group",
+  studio: {
+    group: "inputs",
+    frame: { w: 260, h: 160 },
+    controls: { color: {}, label: { demo: "Choose one" }, options: { kind: "list", demo: ["One", "Two", "Three"] } },
+    model: { demo: "one" },
+  },
+})

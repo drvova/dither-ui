@@ -25,6 +25,6 @@ export const meta = defineExample({
   studio: {
     group: "display",
     frame: { w: 160, h: 80 },
-    controls: { name: {}, size: { min: 8, max: 48 }, strokeWidth: { min: 1, max: 3 } },
+    controls: { name: { demo: "Check" }, size: { demo: 16, min: 8, max: 48 }, strokeWidth: { min: 1, max: 3 } },
   },
 })

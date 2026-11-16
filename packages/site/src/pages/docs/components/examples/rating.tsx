@@ -46,6 +46,6 @@ export const meta = defineExample({
   studio: {
     group: "inputs",
     frame: { w: 240, h: 90 },
-    controls: { color: {}, max: { min: 1, max: 10 }, size: { min: 12, max: 48 }, readonly: {}, label: {} },
+    controls: { color: {}, max: { min: 1, max: 10 }, size: { demo: 22, min: 12, max: 48 }, readonly: {}, label: {} },
   },
 })

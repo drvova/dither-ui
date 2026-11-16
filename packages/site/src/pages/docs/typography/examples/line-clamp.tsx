@@ -19,6 +19,7 @@ export const meta = defineExample({
   studio: {
     group: "display",
     frame: { w: 300, h: 120 },
+    slot: "Body copy that stops after N lines with an ellipsis…",
     controls: {
       lines: { kind: "select", options: ["1", "2", "3", "4", "5", "6"], demo: "3" },
       as: { kind: "select", options: ["p", "span", "div"] },

@@ -16,7 +16,7 @@ export const meta = defineExample({
     group: "display",
     frame: { w: 320, h: 220 },
     controls: {
-      colors: {},
+      colors: { demo: ["#CFF6FF", "#7CE0FF"] },
       density: { min: 6, max: 100, step: 1 },
       speed: { min: 0, max: 3, step: 0.1 },
       opacity: { min: 0, max: 1, step: 0.05 },

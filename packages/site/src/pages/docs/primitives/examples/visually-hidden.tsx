@@ -23,5 +23,10 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherVisuallyHidden,
   title: "Visually hidden",
-  studio: { group: "display", frame: { w: 280, h: 80 }, controls: { focusable: {} } },
+  studio: {
+    group: "display",
+    frame: { w: 280, h: 80 },
+    slot: "Visible to screen readers only",
+    controls: { focusable: {} },
+  },
 })

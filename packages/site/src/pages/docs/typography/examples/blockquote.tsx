@@ -13,5 +13,5 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherBlockquote,
   title: "Blockquote",
-  studio: { group: "display", frame: { w: 320, h: 120 }, controls: {} },
+  studio: { group: "display", frame: { w: 320, h: 120 }, slot: "The threshold is the style.", controls: {} },
 })

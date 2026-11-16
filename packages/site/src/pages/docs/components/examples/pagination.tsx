@@ -25,6 +25,6 @@ export const meta = defineExample({
     group: "navigation",
     frame: { w: 380, h: 80 },
     controls: { total: { min: 1, max: 100 }, siblings: { min: 0, max: 3 } },
-    model: { prop: "page", event: "update:page" },
+    model: { demo: 4, prop: "page", event: "update:page" },
   },
 })

@@ -22,5 +22,5 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherKbd,
   title: "Kbd",
-  studio: { group: "display", frame: { w: 140, h: 80 }, controls: {} },
+  studio: { group: "display", frame: { w: 140, h: 80 }, slot: "⌘K", controls: {} },
 })

@@ -34,5 +34,5 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherSpinner,
   title: "Spinner",
-  studio: { group: "display", frame: { w: 120, h: 90 }, controls: { color: {}, size: { min: 8, max: 96 } } },
+  studio: { group: "display", frame: { w: 120, h: 90 }, controls: { color: {}, size: { demo: 24, min: 8, max: 96 } } },
 })

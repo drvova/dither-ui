@@ -35,11 +35,12 @@ export const meta = defineExample({
   studio: {
     group: "inputs",
     frame: { w: 200, h: 180 },
+    model: { demo: "jan" },
     controls: {
       color: {},
       options: { kind: "list", demo: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"] },
       rows: { min: 3, max: 9, step: 2 },
-      label: {},
+      label: { demo: "Month" },
     },
   },
 })

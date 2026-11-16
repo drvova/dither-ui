@@ -15,5 +15,5 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherLabel,
   title: "Label",
-  studio: { group: "inputs", frame: { w: 200, h: 80 }, controls: { required: {} } },
+  studio: { group: "inputs", frame: { w: 200, h: 80 }, controls: { required: { demo: false } } },
 })

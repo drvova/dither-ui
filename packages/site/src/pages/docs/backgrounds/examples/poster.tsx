@@ -18,7 +18,7 @@ export const meta = defineExample({
     group: "display",
     frame: { w: 320, h: 220 },
     controls: {
-      inks: { kind: "list" },
+      inks: { demo: ["blue", "orange", "grey"], kind: "list" },
       screen: { demo: "bayer" },
       seed: { min: 0, max: 99999, step: 1 },
       speed: { min: 0, max: 12, step: 0.5 },

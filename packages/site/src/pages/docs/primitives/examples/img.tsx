@@ -15,5 +15,9 @@ export default function Example(props: { src?: string }) {
 export const meta = defineExample({
   component: DitherImg,
   title: "Image",
-  studio: { group: "display", frame: { w: 240, h: 140 }, controls: { src: { kind: "url" }, alt: {}, loading: {} } },
+  studio: {
+    group: "display",
+    frame: { w: 240, h: 140 },
+    controls: { src: { demo: "/faces.webp", kind: "url" }, alt: { demo: "Portrait" }, loading: {} },
+  },
 })

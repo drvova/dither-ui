@@ -18,5 +18,5 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherToggle,
   title: "Toggle",
-  studio: { group: "inputs", frame: { w: 160, h: 80 }, controls: { color: {}, disabled: {} } },
+  studio: { group: "inputs", frame: { w: 160, h: 80 }, slot: "Bold", controls: { color: {}, disabled: {} } },
 })

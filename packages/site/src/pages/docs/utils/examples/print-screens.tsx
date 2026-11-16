@@ -7,6 +7,7 @@ import {
   type ChartConfig,
   type ScreenKind,
 } from "@dither-kit"
+import { defineExample } from "@/shared/lib/example"
 
 export default function Example(props: { screen?: ScreenKind }) {
   const rows = [
@@ -46,3 +47,9 @@ export default function Example(props: { screen?: ScreenKind }) {
     </DitherScreen>
   )
 }
+
+export const meta = defineExample({
+  component: DitherScreen,
+  title: "Print screen",
+  studio: { group: "display", frame: { w: 260, h: 140 }, controls: { screen: { demo: "diagonal" } } },
+})

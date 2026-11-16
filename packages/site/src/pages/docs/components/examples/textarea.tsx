@@ -18,8 +18,9 @@ export const meta = defineExample({
   studio: {
     group: "inputs",
     frame: { w: 300, h: 150 },
+    model: { demo: "" },
     controls: {
-      placeholder: {},
+      placeholder: { demo: "Write a note…" },
       rows: { min: 2, max: 12 },
       resize: { options: ["none", "vertical", "horizontal", "both"] },
       invalid: {},

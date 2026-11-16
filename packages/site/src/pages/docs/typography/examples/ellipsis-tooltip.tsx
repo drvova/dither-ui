@@ -17,6 +17,7 @@ export const meta = defineExample({
   studio: {
     group: "overlays",
     frame: { w: 260, h: 90 },
+    slot: "Text that only tooltips while clipped",
     controls: { enabled: {}, as: { kind: "select", options: ["span", "div"] } },
   },
 })

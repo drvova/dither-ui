@@ -17,6 +17,7 @@ export const meta = defineExample({
   studio: {
     group: "display",
     frame: { w: 240, h: 80 },
+    slot: "a file name that clips in this box",
     controls: { as: { kind: "select", options: ["span", "div"] }, title: { demo: "" } },
   },
 })

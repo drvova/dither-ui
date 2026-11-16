@@ -16,7 +16,7 @@ export const meta = defineExample({
     group: "display",
     frame: { w: 320, h: 220 },
     controls: {
-      colors: {},
+      colors: { demo: ["#3DA5FF", "#7CE0FF", "#CFF6FF"] },
       gap: { min: 4, max: 80, step: 1 },
       dotSize: { min: 0.1, max: 1, step: 0.05 },
       frequency: { min: 4, max: 60, step: 1 },

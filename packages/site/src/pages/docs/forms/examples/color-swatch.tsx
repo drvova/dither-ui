@@ -34,7 +34,7 @@ export const meta = defineExample({
   studio: {
     group: "inputs",
     frame: { w: 220, h: 90 },
-    controls: { color: {}, label: {}, selected: {}, size: { min: 12, max: 64 }, disabled: {} },
+    controls: { color: {}, label: { demo: "Iris" }, selected: {}, size: { min: 12, max: 64 }, disabled: {} },
   },
   states: [{ color: "#3DA5FF" }],
 })

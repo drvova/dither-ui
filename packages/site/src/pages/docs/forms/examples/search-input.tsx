@@ -14,7 +14,7 @@ export const meta = defineExample({
   studio: {
     group: "inputs",
     frame: { w: 280, h: 90 },
-    controls: { placeholder: {}, disabled: { demo: false } },
+    controls: { placeholder: { demo: "Search…" }, disabled: { demo: false } },
     field: true,
   },
 })

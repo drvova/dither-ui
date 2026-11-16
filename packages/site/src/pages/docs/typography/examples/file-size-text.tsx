@@ -23,7 +23,7 @@ export const meta = defineExample({
   studio: {
     group: "display",
     frame: { w: 220, h: 80 },
-    controls: { bytes: { min: 0, max: 1099511627776 }, decimals: { min: 0, max: 3 }, locale: {} },
+    controls: { bytes: { demo: 1536, min: 0, max: 1099511627776 }, decimals: { min: 0, max: 3 }, locale: {} },
   },
   states: [{ locale: "de-DE" }],
 })

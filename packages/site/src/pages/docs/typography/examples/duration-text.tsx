@@ -20,5 +20,5 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherDurationText,
   title: "Duration",
-  studio: { group: "display", frame: { w: 240, h: 80 }, controls: { ms: { min: 0, max: 172800000 } } },
+  studio: { group: "display", frame: { w: 240, h: 80 }, controls: { ms: { demo: 80400000, min: 0, max: 172800000 } } },
 })

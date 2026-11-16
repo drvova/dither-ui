@@ -21,6 +21,7 @@ export const meta = defineExample({
   studio: {
     group: "inputs",
     frame: { w: 200, h: 80 },
+    slot: "Press me",
     controls: { variant: { options: ["solid", "outline", "ghost", "plain"] }, type: {}, disabled: {} },
   },
 })

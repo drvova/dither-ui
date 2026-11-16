@@ -16,5 +16,5 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherSpacer,
   title: "Spacer",
-  studio: { group: "structure", frame: { w: 200, h: 80 }, controls: { axis: {}, size: {} } },
+  studio: { group: "structure", frame: { w: 200, h: 80 }, controls: { axis: { demo: "y" }, size: { demo: "md" } } },
 })

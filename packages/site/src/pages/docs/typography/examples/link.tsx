@@ -13,5 +13,10 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherLink,
   title: "Link",
-  studio: { group: "display", frame: { w: 220, h: 80 }, controls: { href: { kind: "url", demo: "#" }, external: {} } },
+  studio: {
+    group: "display",
+    frame: { w: 220, h: 80 },
+    slot: "Docs home",
+    controls: { href: { kind: "url", demo: "#" }, external: {} },
+  },
 })

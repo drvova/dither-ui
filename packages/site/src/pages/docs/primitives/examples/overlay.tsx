@@ -26,5 +26,9 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherOverlay,
   title: "Overlay",
-  studio: { group: "overlays", frame: { w: 260, h: 120 }, controls: { dim: {}, interactive: {} } },
+  studio: {
+    group: "overlays",
+    frame: { w: 260, h: 120 },
+    controls: { dim: { demo: "soft" }, interactive: { demo: false } },
+  },
 })

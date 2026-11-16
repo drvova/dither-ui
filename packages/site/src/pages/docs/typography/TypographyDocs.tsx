@@ -1,4 +1,4 @@
-import { DitherCode, DitherExternalLink, DitherHighlight } from "@dither-ui/kit"
+import { DitherExternalLink } from "@dither-ui/kit"
 import DemoCard from "../DemoCard"
 import PropsTable, { kitTable, type PropRow } from "../PropsTable"
 import headingProps from "virtual:dither-props/DitherHeading"
@@ -68,14 +68,12 @@ import DateTimeTextExample from "./examples/date-time-text"
 import dateTimeTextCode from "./examples/date-time-text.tsx?raw"
 import PluralTextExample from "./examples/plural-text"
 import pluralTextCode from "./examples/plural-text.tsx?raw"
+import CodeExample from "./examples/code"
+import codeCode from "./examples/code.tsx?raw"
+import HighlightExample from "./examples/highlight"
+import highlightCode from "./examples/highlight.tsx?raw"
 import EmojiExample from "./examples/emoji"
 import emojiCode from "./examples/emoji.tsx?raw"
-
-const SNIPPET_CODE = `Run <DitherCode>npm run build</DitherCode> before shipping:
-the <DitherCode>dist/</DitherCode> folder is the artifact.`
-
-const SNIPPET_HIGHLIGHT = `Matches are <DitherHighlight>highlighted inline</DitherHighlight>
-without breaking the reading flow.`
 
 export const API: Record<string, PropRow[]> = {
   heading: kitTable(headingProps),
@@ -162,11 +160,8 @@ export default function TypographyDocs() {
           Inline code: the <code class="text-foreground/80">&lt;code&gt;</code> element in house chrome. For the
           copyable block form, that's CodeBlock in the app layer; this one lives inside prose.
         </p>
-        <DemoCard code={SNIPPET_CODE}>
-          <p class="text-[13px] leading-relaxed text-muted-foreground">
-            Run <DitherCode>npm run build</DitherCode> before shipping: the <DitherCode>dist/</DitherCode> folder is the
-            artifact.
-          </p>
+        <DemoCard code={codeCode}>
+          <CodeExample />
         </DemoCard>
         {/* no props: the element or behavior is the API */}
       </DocSection>
@@ -200,10 +195,8 @@ export default function TypographyDocs() {
           The <code class="text-foreground/80">&lt;mark&gt;</code> element with a neutral token wash. Colored variants
           belong in <code class="text-foreground/80">class</code> because house color comes from palette seeds.
         </p>
-        <DemoCard code={SNIPPET_HIGHLIGHT}>
-          <p class="text-[13px] leading-relaxed text-muted-foreground">
-            Matches are <DitherHighlight>highlighted inline</DitherHighlight> without breaking the reading flow.
-          </p>
+        <DemoCard code={highlightCode}>
+          <HighlightExample />
         </DemoCard>
         {/* no props: the element or behavior is the API */}
       </DocSection>

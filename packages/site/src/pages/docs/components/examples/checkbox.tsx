@@ -23,5 +23,11 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherCheckbox,
   title: "Checkbox",
-  studio: { group: "inputs", frame: { w: 180, h: 80 }, controls: { color: {}, disabled: {} } },
+  studio: {
+    group: "inputs",
+    frame: { w: 180, h: 80 },
+    model: { demo: true },
+    slot: "Remember me",
+    controls: { color: {}, disabled: {} },
+  },
 })

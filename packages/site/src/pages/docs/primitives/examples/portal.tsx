@@ -28,6 +28,7 @@ export const meta = defineExample({
   studio: {
     group: "structure",
     frame: { w: 240, h: 100 },
-    controls: { to: { kind: "select", options: ["body"] }, disabled: {} },
+    slot: "Teleported content",
+    controls: { to: { demo: "body", kind: "select", options: ["body"] }, disabled: { demo: true } },
   },
 })

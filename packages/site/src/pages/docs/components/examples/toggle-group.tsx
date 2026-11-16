@@ -38,6 +38,7 @@ export const meta = defineExample({
   studio: {
     group: "inputs",
     frame: { w: 300, h: 100 },
+    model: { demo: "bold" },
     controls: { color: {}, type: {}, options: { kind: "list", demo: ["Bold", "Italic", "Underline"] } },
   },
 })

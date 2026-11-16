@@ -32,6 +32,7 @@ export const meta = defineExample({
   studio: {
     group: "display",
     frame: { w: 160, h: 80 },
-    controls: { color: {}, variant: { options: ["gradient", "solid", "dotted", "hatched"] } },
+    slot: "beta",
+    controls: { color: { demo: "blue" }, variant: { options: ["gradient", "solid", "dotted", "hatched"] } },
   },
 })

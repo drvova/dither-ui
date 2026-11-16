@@ -14,6 +14,6 @@ export const meta = defineExample({
   studio: {
     group: "inputs",
     frame: { w: 260, h: 90 },
-    controls: { includeDefault: {}, defaultLabel: {}, disabled: {} },
+    controls: { includeDefault: { demo: false }, defaultLabel: {}, disabled: {} },
   },
 })

@@ -29,5 +29,9 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherMeter,
   title: "Meter",
-  studio: { group: "display", frame: { w: 300, h: 80 }, controls: { value: { min: 0, max: 100 }, min: {}, max: {} } },
+  studio: {
+    group: "display",
+    frame: { w: 300, h: 80 },
+    controls: { value: { demo: 65, min: 0, max: 100 }, min: {}, max: {} },
+  },
 })

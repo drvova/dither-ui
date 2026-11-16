@@ -32,5 +32,13 @@ export default function Example() {
 export const meta = defineExample({
   component: DitherAutocomplete,
   title: "Autocomplete",
-  studio: { group: "inputs", frame: { w: 280, h: 220 }, controls: { suggestions: {}, placeholder: {}, disabled: {} } },
+  studio: {
+    group: "inputs",
+    frame: { w: 280, h: 220 },
+    controls: {
+      suggestions: { demo: ["Area chart", "Avatar", "Button"] },
+      placeholder: { demo: "Search…" },
+      disabled: {},
+    },
+  },
 })

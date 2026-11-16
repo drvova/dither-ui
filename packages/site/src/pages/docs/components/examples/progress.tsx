@@ -27,6 +27,6 @@ export const meta = defineExample({
   studio: {
     group: "display",
     frame: { w: 300, h: 80 },
-    controls: { color: {}, value: { min: 0, max: 100 }, indeterminate: {} },
+    controls: { color: {}, value: { demo: 60, min: 0, max: 100 }, indeterminate: {} },
   },
 })
