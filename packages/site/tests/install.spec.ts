@@ -141,19 +141,25 @@ describe("the service worker's rules", () => {
   // that scope and updates its worker in place, so the landing and the docs
   // stayed under it (their keys dead in a profile that had visited then).
   it("retires where it was registered for anything but the Studio, at any base", () => {
-    expect(strayScope(new URL("https://dither-ui.com/studio/"))).toBe(false)
-    expect(strayScope(new URL("https://drvova.github.io/dither-ui/studio/"))).toBe(false)
-    for (const scope of [
-      "https://dither-ui.com/",
-      "https://drvova.github.io/dither-ui/",
-      "https://dither-ui.com/docs/",
-    ])
-      expect(strayScope(new URL(scope))).toBe(true)
+    const stray = (scope: string, script: string) => strayScope(new URL(scope), new URL(script))
+    expect(stray("https://dither-ui.com/studio/", "https://dither-ui.com/sw.js")).toBe(false)
+    expect(stray("https://drvova.github.io/dither-ui/studio/", "https://drvova.github.io/dither-ui/sw.js")).toBe(false)
+    for (const scope of ["https://dither-ui.com/", "https://dither-ui.com/docs/", "https://dither-ui.com/x/studio/"])
+      expect(stray(scope, "https://dither-ui.com/sw.js")).toBe(true)
+    expect(stray("https://drvova.github.io/dither-ui/", "https://drvova.github.io/dither-ui/sw.js")).toBe(true)
+    // A site served under a base that is itself the app's name: its root is
+    // stray, its Studio is not.
+    expect(stray("https://x.dev/studio/", "https://x.dev/studio/sw.js")).toBe(true)
+    expect(stray("https://x.dev/studio/studio/", "https://x.dev/studio/sw.js")).toBe(false)
   })
 
-  it("answers nothing, drops the site's caches, unregisters and reloads its pages when it is stray", () => {
+  it("answers nothing, drops older caches, unregisters and reloads its pages when it is stray", () => {
     const sw = readFileSync(new URL("../src/app/sw.ts", import.meta.url), "utf8")
-    expect(sw).toMatch(/const stray = strayScope\(scope\)/)
+    expect(sw).toMatch(/const stray = strayScope\(scope, new URL\(location\.href\)\)/)
+    // This build's caches are the live Studio worker's too: retiring keeps them.
+    expect(sw).toMatch(
+      /async function retire\(\) \{\n {2}for \(const name of await caches\.keys\(\)\) if \(old\(name\)\)/,
+    )
     for (const step of ["caches.delete(name)", "registration.unregister()", "page.navigate(page.url)"])
       expect(sw).toContain(step)
     for (const event of ["install", "activate", "fetch"])

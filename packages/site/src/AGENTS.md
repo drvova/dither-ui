@@ -1048,10 +1048,10 @@ around this tree (entries, routes, the build, how Solid is written) is
   which `build/standalone.ts` defines as it builds the worker),
   versioned cache names (a new `OFFLINE.version` drops the
   old), `inApp`, `strayScope` (a registration whose scope is not the
-  app's: the first PWA build registered at the site's root, and a browser
+  app's, the app's path beside the worker's script: the first PWA build registered at the site's root, and a browser
   keeps that scope while updating its worker in place, so the landing and
-  the docs stayed under it; such a worker answers nothing, drops the site's
-  caches, unregisters and reloads the pages it held), and `registerOffline`, which the Studio's route calls
+  the docs stayed under it; such a worker answers nothing, drops older
+  builds' caches (this build's are the Studio worker's too), unregisters and reloads the pages it held), and `registerOffline`, which the Studio's route calls
   as it mounts: it registers only on the Studio's path, after load,
   production builds only, scoped to the app. `app/sw.ts` only wires them to the
   worker's events (types of its own: the DOM and WebWorker libs cannot

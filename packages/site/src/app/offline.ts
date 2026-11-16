@@ -25,7 +25,7 @@ export const inApp = (pathname: string) => `${pathname}/`.startsWith(`/${OFFLINE
 /** Whether a registration's scope is not the app's: one an older build made
  * at the site's root, which a browser keeps (updating its worker in place),
  * so the landing and the docs stayed under a worker. Such a worker retires. */
-export const strayScope = (scope: URL) => !scope.pathname.endsWith(`/${OFFLINE.app}`)
+export const strayScope = (scope: URL, script: URL) => scope.href !== new URL(OFFLINE.app, script).href
 
 /** How the worker answers a request from the app: left to the network, a
  * page (network first, the copy kept for offline), a hashed asset (from the

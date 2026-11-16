@@ -24,12 +24,16 @@ const worker = self as unknown as Worker
 const scope = new URL(worker.registration.scope)
 const site = new URL(OFFLINE.app.replace(/[^/]+/g, ".."), scope)
 // Registered anywhere but the app (an older build's root scope): the
-// worker answers nothing, drops the site's caches, unregisters and reloads
+// worker answers nothing, drops older builds' caches (the Studio's own
+// worker shares this build's), unregisters and reloads
 // the pages it held, so the landing and the docs are pages of the web again.
-const stray = strayScope(scope)
+const stray = strayScope(scope, new URL(location.href))
+// This build's caches, which a live Studio worker shares with a stray one.
+const current = new Set(Object.keys(OFFLINE.caches).map((k) => cacheName(k as CacheKind)))
+const old = (name: string) => name.startsWith("dither-ui-") && !current.has(name)
 
 async function retire() {
-  for (const name of await caches.keys()) if (name.startsWith("dither-ui-")) await caches.delete(name)
+  for (const name of await caches.keys()) if (old(name)) await caches.delete(name)
   await worker.registration.unregister()
   for (const page of await worker.clients.matchAll({ type: "window" })) await page.navigate(page.url).catch(() => {})
 }
@@ -70,11 +74,9 @@ worker.addEventListener("install", (event) => {
 
 worker.addEventListener("activate", (event) => {
   if (stray) return event.waitUntil(retire())
-  const current = new Set(Object.keys(OFFLINE.caches).map((k) => cacheName(k as CacheKind)))
   event.waitUntil(
     (async () => {
-      for (const name of await caches.keys())
-        if (name.startsWith("dither-ui-") && !current.has(name)) await caches.delete(name)
+      for (const name of await caches.keys()) if (old(name)) await caches.delete(name)
       await worker.clients.claim()
     })(),
   )
