@@ -42,6 +42,8 @@ const ALLOWED: Record<string, string> = {
   "widgets/workbench/ui/Loupe.tsx": "the loupe's magnified canvas",
   "widgets/workbench/ui/Motion.tsx": "the motion inspector lists the page's animations; it plays none",
   "widgets/source/SourcePanel.tsx": "waits a frame to measure its tabs and to reveal an editor's line; moves nothing",
+  // a file written, not a page moved
+  "entities/artboard/css-svg.ts": "writes an exported SVG's static transform attributes; nothing on the page moves",
   // placements under the hand, or a stylesheet's travel
   "widgets/canvas/Canvas.tsx": "the canvas's pan and zoom, where the reader's hand put it",
   "widgets/workbench/ui/Responsive.tsx": "a preview scaled to fit its frame",
