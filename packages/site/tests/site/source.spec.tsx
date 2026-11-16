@@ -552,8 +552,10 @@ export const mode = import.meta.env.MODE`,
       // script written under its markup with no block around it is read as text
       if (tsx.includes('{"{"}')) failures.push(`${where} prints its script as text`)
       // a note between two tags is a comment of the markup, or it prints
-      const said = tsx
-        .slice(tsx.lastIndexOf("  return ("))
+      const markup = tsx.slice(tsx.lastIndexOf("  return ("))
+      // the markup ends with its component; a meta after it is no markup
+      const said = markup
+        .slice(0, markup.indexOf("\n}\n") + 1 || undefined)
         .split("\n")
         .find((l) => l.trim().startsWith("// "))
       if (said) failures.push(`${where} prints a note as text: ${said.trim()}`)

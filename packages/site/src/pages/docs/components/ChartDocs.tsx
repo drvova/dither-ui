@@ -6,6 +6,7 @@ import { type DitherColor, type DotVariant } from "@dither-ui/kit"
 import { For, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
 import { routePath } from "@/shared/lib"
+import { lazyPart } from "@/shared/lib/lazy-part"
 import { Bar, BarChart, Dot, Line, LineChart, Pie, PieChart, Sparkline } from "@/shared/ui/charts"
 import DemoCard from "../DemoCard"
 import { VARIANTS, wave } from "../demo-data"
@@ -23,18 +24,27 @@ import radarChartProps from "virtual:dither-props/RadarChart"
 import sparklineProps from "virtual:dither-props/Sparkline"
 import { exampleCode } from "../example-code"
 import type { AreaVariant } from "@dither-ui/kit"
-import RadarExample from "./examples/radar"
 import radarCode from "./examples/radar.tsx?raw"
-import SparklineExample from "./examples/sparkline"
 import sparklineCode from "./examples/sparkline.tsx?raw"
-import AreaExample from "./examples/area"
 import areaCode from "./examples/area.tsx?raw"
-import LineExample from "./examples/line"
 import lineCode from "./examples/line.tsx?raw"
-import BarExample from "./examples/bar"
 import barCode from "./examples/bar.tsx?raw"
-import PieExample from "./examples/pie"
 import pieCode from "./examples/pie.tsx?raw"
+
+// The chart examples load with their charts, as chunks of their own: the
+// kit's scales and shapes are the heaviest part a section holds, so the
+// flow's first load stays its own (`shared/ui/charts.tsx` the same way).
+// A server renders the page whole, so it loads them first.
+const RadarExample = lazyPart(() => import("./examples/radar"))
+const SparklineExample = lazyPart(() => import("./examples/sparkline"))
+const AreaExample = lazyPart(() => import("./examples/area"))
+const LineExample = lazyPart(() => import("./examples/line"))
+const BarExample = lazyPart(() => import("./examples/bar"))
+const PieExample = lazyPart(() => import("./examples/pie"))
+if (import.meta.env.SSR)
+  await Promise.all(
+    [RadarExample, SparklineExample, AreaExample, LineExample, BarExample, PieExample].map((part) => part.preload()),
+  )
 
 const DOT_VARIANTS: DotVariant[] = ["border", "colored-border", "filled"]
 
