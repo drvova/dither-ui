@@ -22,6 +22,11 @@ export const cacheName = (kind: CacheKind) => `dither-ui-${OFFLINE.caches[kind]}
 /** Whether a path under the site is the app's: where the worker registers. */
 export const inApp = (pathname: string) => `${pathname}/`.startsWith(`/${OFFLINE.app}`)
 
+/** Whether a registration's scope is not the app's: one an older build made
+ * at the site's root, which a browser keeps (updating its worker in place),
+ * so the landing and the docs stayed under a worker. Such a worker retires. */
+export const strayScope = (scope: URL) => !scope.pathname.endsWith(`/${OFFLINE.app}`)
+
 /** How the worker answers a request from the app: left to the network, a
  * page (network first, the copy kept for offline), a hashed asset (from the
  * cache once kept), or another of the site's files (the kept copy at once,

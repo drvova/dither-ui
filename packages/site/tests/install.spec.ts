@@ -16,7 +16,7 @@ import {
   ICON_HEAD,
   webManifest,
 } from "@/app/install-files"
-import { OFFLINE, cacheName, inApp, pageAssets, strategyFor } from "@/app/offline"
+import { OFFLINE, cacheName, inApp, pageAssets, strategyFor, strayScope } from "@/app/offline"
 import { MARK_CELLS } from "@/shared/ui/brand-mark"
 
 const root = new URL("../../..", import.meta.url).pathname
@@ -135,6 +135,29 @@ describe("the service worker's rules", () => {
     expect(inApp("/studio")).toBe(true)
     expect(inApp("/studio/")).toBe(true)
     for (const path of ["/", "/docs", "/docs/slider", "/studios"]) expect(inApp(path)).toBe(false)
+  })
+
+  // An older build registered the worker at the site's root; a browser keeps
+  // that scope and updates its worker in place, so the landing and the docs
+  // stayed under it (their keys dead in a profile that had visited then).
+  it("retires where it was registered for anything but the Studio, at any base", () => {
+    expect(strayScope(new URL("https://dither-ui.com/studio/"))).toBe(false)
+    expect(strayScope(new URL("https://drvova.github.io/dither-ui/studio/"))).toBe(false)
+    for (const scope of [
+      "https://dither-ui.com/",
+      "https://drvova.github.io/dither-ui/",
+      "https://dither-ui.com/docs/",
+    ])
+      expect(strayScope(new URL(scope))).toBe(true)
+  })
+
+  it("answers nothing, drops the site's caches, unregisters and reloads its pages when it is stray", () => {
+    const sw = readFileSync(new URL("../src/app/sw.ts", import.meta.url), "utf8")
+    expect(sw).toMatch(/const stray = strayScope\(scope\)/)
+    for (const step of ["caches.delete(name)", "registration.unregister()", "page.navigate(page.url)"])
+      expect(sw).toContain(step)
+    for (const event of ["install", "activate", "fetch"])
+      expect(sw).toMatch(new RegExp(`addEventListener\\("${event}", \\(event\\) => \\{\\n  if \\(stray\\)`))
   })
 
   it("answers pages network first, hashed assets from the cache, the rest stale while it refreshes", () => {

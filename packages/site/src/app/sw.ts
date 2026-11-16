@@ -3,16 +3,19 @@
 // keeps the app's page and its assets at install, answers each request the
 // app makes by its strategy (`offline.ts`), and drops an older version's
 // caches as it takes over.
-import { buildKeep, type CacheKind, cacheName, OFFLINE, pageAssets, strategyFor } from "./offline"
+import { buildKeep, type CacheKind, cacheName, OFFLINE, pageAssets, strategyFor, strayScope } from "./offline"
 
 // The worker's own globals, typed here: the DOM lib the app compiles
 // against has no ServiceWorkerGlobalScope, and the two libs cannot meet.
 type Waits = { waitUntil(p: Promise<unknown>): void }
 type Fetching = Waits & { request: Request; respondWith(r: Promise<Response>): void }
 type Worker = {
-  registration: { scope: string }
+  registration: { scope: string; unregister(): Promise<boolean> }
   skipWaiting(): Promise<void>
-  clients: { claim(): Promise<void> }
+  clients: {
+    claim(): Promise<void>
+    matchAll(o: { type: "window" }): Promise<{ url: string; navigate(url: string): Promise<unknown> }[]>
+  }
   addEventListener(type: "install" | "activate", fn: (e: Waits) => void): void
   addEventListener(type: "fetch", fn: (e: Fetching) => void): void
 }
@@ -20,6 +23,16 @@ const worker = self as unknown as Worker
 // The app's scope, and the site's root its assets live under.
 const scope = new URL(worker.registration.scope)
 const site = new URL(OFFLINE.app.replace(/[^/]+/g, ".."), scope)
+// Registered anywhere but the app (an older build's root scope): the
+// worker answers nothing, drops the site's caches, unregisters and reloads
+// the pages it held, so the landing and the docs are pages of the web again.
+const stray = strayScope(scope)
+
+async function retire() {
+  for (const name of await caches.keys()) if (name.startsWith("dither-ui-")) await caches.delete(name)
+  await worker.registration.unregister()
+  for (const page of await worker.clients.matchAll({ type: "window" })) await page.navigate(page.url).catch(() => {})
+}
 
 /** Keeps a response, dropping the oldest entries past the cache's keep. */
 async function keep(kind: CacheKind, request: Request | string, response: Response) {
@@ -31,6 +44,7 @@ async function keep(kind: CacheKind, request: Request | string, response: Respon
 }
 
 worker.addEventListener("install", (event) => {
+  if (stray) return event.waitUntil(worker.skipWaiting())
   event.waitUntil(
     (async () => {
       const response = await fetch(scope, { cache: "reload" }).catch(() => null)
@@ -55,6 +69,7 @@ worker.addEventListener("install", (event) => {
 })
 
 worker.addEventListener("activate", (event) => {
+  if (stray) return event.waitUntil(retire())
   const current = new Set(Object.keys(OFFLINE.caches).map((k) => cacheName(k as CacheKind)))
   event.waitUntil(
     (async () => {
@@ -66,6 +81,7 @@ worker.addEventListener("activate", (event) => {
 })
 
 worker.addEventListener("fetch", (event) => {
+  if (stray) return
   const request = event.request
   const strategy = strategyFor(new URL(request.url), site, {
     method: request.method,
