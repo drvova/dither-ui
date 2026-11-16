@@ -49,8 +49,9 @@ by the site's post-build. Paths here are from this package's root.
   Chromium (1440x900, one device pixel a CSS pixel, every
   IntersectionObserver reporting its target in view): the first load
   reads every 2D canvas drawn only by whole-canvas `putImageData` (and
-  `clearRect`), baking one that stopped uploading and shows the same once
-  the page is scrolled through as `settled` (what it last uploaded, never
+  `clearRect`), baking one that stopped uploading, shows the same once
+  the page is scrolled through and whose box the scroll never resizes (a
+  scene scaling it into place) as `settled` (what it last uploaded, never
   a read back, which rounds a translucent cell) and one still moving that
   stood in the first window as `first` (its first upload); the second
   load serves the page with those bakes and keeps only the ones the

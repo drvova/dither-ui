@@ -340,7 +340,7 @@ async function load(
   html: string,
   settle: number,
   scroll = false,
-): Promise<{ seen: Seen[]; scrolled: Seen[] }> {
+): Promise<{ seen: Seen[]; scrolled: Seen[]; resized: number[] }> {
   const context: BrowserContext = await browser.newContext({
     viewport: BAKE_VIEWPORT,
     deviceScaleFactor: 1,
@@ -361,16 +361,28 @@ async function load(
       const w = window as unknown as BakeWindow & { __quiet: (c: HTMLCanvasElement) => number }
       return w.__bake.read(w.__quiet)
     })
-    if (!scroll) return { seen, scrolled: [] }
-    await page.evaluate(async () => {
-      for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight / 2) {
-        scrollTo(0, y)
-        await new Promise((r) => setTimeout(r, 120))
+    if (!scroll) return { seen, scrolled: [], resized: [] }
+    // Each canvas's laid-out box at every step: one the scroll resizes (a
+    // scene scaling it into place) has no one grid a bake could hold.
+    const resized = await page.evaluate(async (tag) => {
+      const canvases = [...document.querySelectorAll<HTMLCanvasElement>(`canvas[${tag}]`)]
+      const box = (c: HTMLCanvasElement) => {
+        const r = c.getBoundingClientRect()
+        return `${Math.round(r.width)}x${Math.round(r.height)}`
       }
-    })
+      const first = canvases.map(box)
+      const moved = new Set<number>()
+      const end = document.documentElement.scrollHeight - innerHeight
+      for (let y = 0; y <= end + innerHeight / 8; y += innerHeight / 8) {
+        scrollTo(0, Math.min(y, end))
+        await new Promise((r) => setTimeout(r, 150))
+        canvases.forEach((c, i) => box(c) !== first[i] && moved.add(Number(c.getAttribute(tag))))
+      }
+      return [...moved]
+    }, TAG)
     await page.waitForTimeout(QUIET_MS)
     const scrolled = await page.evaluate(() => (window as unknown as BakeWindow).__bake.read(() => 0))
-    return { seen, scrolled }
+    return { seen, scrolled, resized }
   } finally {
     await context.close()
   }
@@ -390,15 +402,16 @@ async function bakePage(
   html: string,
 ): Promise<Omit<PageBake, "page" | "cached"> & { bakes: Bake[] }> {
   const { html: tagged, zero } = tagCanvases(html)
-  const { seen, scrolled } = await load(browser, url, tagged, SETTLE_MS, true)
+  const { seen, scrolled, resized } = await load(browser, url, tagged, SETTLE_MS, true)
   // A still canvas that shows something else once the page has scrolled
-  // past it is art the scroll drives: never settled.
+  // past it, or whose box the scroll resizes, is art the scroll drives:
+  // never settled.
   const after = new Map(scrolled.map((s) => [s.n, s]))
   const offered: Bake[] = []
   let live = 0
   for (const s of seen) {
     const plain = s.puts > 0 && s.other.length === 0 && s.width > 0 && s.height > 0
-    const still = !!s.now && after.get(s.n)?.now === s.now
+    const still = !!s.now && after.get(s.n)?.now === s.now && !resized.includes(s.n)
     const kind: BakedKind | null = !plain
       ? null
       : s.recent === 0 && still
