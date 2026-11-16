@@ -1,15 +1,15 @@
 // Generated from @dither-ui/kit/solid/runtime/bar-plot.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-// Solid's binding of the bar chart's print: every bar its own inks
+// Solid's binding of the bar chart's print: every bar its own print
 // (`engine/chart-svg.ts`) in a mark that grows from its base, fades while
 // another is under the pointer, and shows its value.
 
 import { createMemo, Index, onMount } from "solid-js"
-import { barTargets, blankPrint, headingOf, paintBars, rasterInks } from "@dither-ui/kit/engine/chart-svg.ts"
+import { barTargets, blankPrint, headingOf, paintBars, printMarkup } from "@dither-ui/kit/engine/chart-svg.ts"
 import { backingSize, prefersReducedMotion } from "@dither-ui/kit/engine/dither-paint.ts"
 import { clamp01 } from "@dither-ui/kit/engine/pixel.ts"
 import { useChart } from "@dither-ui/kit/solid/runtime/chart-context.ts"
-import { Cells, Inks, PlotFrame, spokenValue } from "./chart-plot"
+import { Cells, PlotFrame, Print, spokenValue } from "./chart-plot"
 
 /**
  * The bar chart's print. Each category owns a band; grouped series split it
@@ -23,8 +23,8 @@ export function BarPlot() {
     const { cols, rows } = backing()
     const { frame, owner } = blankPrint(cols, rows)
     const bars = paintBars(frame, ctx, barTargets(ctx, rows), owner)
-    const inks = rasterInks(frame, owner, ctx.dataLength * ctx.configKeys.length)
-    return bars.map((bar) => ({ ...bar, inks: inks[bar.index * ctx.configKeys.length + bar.si] ?? [] }))
+    const inks = printMarkup(frame, owner, ctx.dataLength * ctx.configKeys.length)
+    return bars.map((bar) => ({ ...bar, inks: inks[bar.index * ctx.configKeys.length + bar.si] ?? "" }))
   })
   // The wave: a bar starts `stagger` of the run later across the chart and
   // grows over the rest of it.
@@ -69,7 +69,7 @@ export function BarPlot() {
                 >
                   <g class="dk-chart-fill">
                     <Cells plot={ctx.plot} cols={backing().cols} rows={backing().rows}>
-                      <Inks inks={bar().inks} />
+                      <Print markup={bar().inks} />
                     </Cells>
                   </g>
                 </g>

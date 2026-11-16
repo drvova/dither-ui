@@ -77,11 +77,11 @@ async function shown(ui: () => JSX.Element) {
   return view
 }
 
-/** The print's inks: every stroked path of its SVG. */
-const inksOf = (root: ParentNode) => [...root.querySelectorAll(".dk-chart-print path[stroke]")]
+/** The print's marks: every inked path and cell image of its SVG. */
+const inksOf = (root: ParentNode) => [...root.querySelectorAll(".dk-chart-print path[stroke], .dk-chart-print image")]
 const printOf = (root: ParentNode) =>
   inksOf(root)
-    .map((p) => `${p.getAttribute("stroke")}${p.getAttribute("d")}`)
+    .map((p) => `${p.getAttribute("stroke")}${p.getAttribute("d")}${p.getAttribute("href")}`)
     .join()
 
 describe("every chart kind prints SVG", () => {
@@ -171,7 +171,7 @@ describe("every chart kind prints SVG", () => {
       </BarChart>
     ))
     expect(inksOf(container)).toEqual([])
-    const img = container.querySelector("image")!
+    const img = container.querySelector("svg.dk-chart image[aria-hidden]")!
     expect(img.getAttribute("href")).toBe("data:image/png;base64,AAAA")
     expect(img.getAttribute("aria-hidden")).toBe("true")
   })

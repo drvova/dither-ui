@@ -1,7 +1,7 @@
 // Generated from @dither-ui/kit/solid/runtime/cartesian-plot.tsx by packages/restyle/src/stylex-layer-solid.ts: edit that
 // file, then npx rs test -u packages/dither-kit-stylex/tests/stylex-layer-solid.spec.ts
-// Solid's binding of the area and line chart's print: the fill as SVG inks
-// (`engine/chart-svg.ts`), the live edge's sparkles over it, and a mark per
+// Solid's binding of the area and line chart's print: the fill as SVG (paths or a cell
+// PNG, `engine/chart-svg.ts`), the live edge's sparkles over it, and a mark per
 // data index that shows its crosshair and its values under the pointer.
 
 import { createMemo, Index, onMount, Show } from "solid-js"
@@ -11,7 +11,7 @@ import {
   crosshairAt,
   headingOf,
   paintCartesian,
-  rasterInks,
+  printMarkup,
   sparklesAt,
   type Star,
 } from "@dither-ui/kit/engine/chart-svg.ts"
@@ -25,7 +25,7 @@ import {
   sparklesFromSeed,
 } from "@dither-ui/kit/engine/dither-paint.ts"
 import { useChart } from "@dither-ui/kit/solid/runtime/chart-context.ts"
-import { Cells, Inks, PlotFrame, spokenValue } from "./chart-plot"
+import { Cells, PlotFrame, Print, spokenValue } from "./chart-plot"
 
 /** The edge motion with no seed: steady, no drift, a light twinkle. */
 const STILL_EDGE = {
@@ -55,7 +55,7 @@ export function CartesianPlot() {
     const { cols, rows } = backing()
     const { frame } = blankPrint(cols, rows)
     paintCartesian(frame, ctx, surfaces())
-    return rasterInks(frame)[0]
+    return printMarkup(frame)[0]
   })
 
   // The live edge: a dedicated `effect` seed pins its motion, else the
@@ -183,7 +183,7 @@ export function CartesianPlot() {
       >
         <g class="dk-chart-fill">
           <Cells plot={ctx.plot} cols={backing().cols} rows={backing().rows}>
-            <Inks inks={inks()} />
+            <Print markup={inks()} />
           </Cells>
         </g>
         <Show when={sparkles().length > 0}>

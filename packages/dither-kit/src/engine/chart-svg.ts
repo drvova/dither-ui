@@ -1,10 +1,12 @@
 // The charts' print as SVG, framework-free. Each family paints its resting
 // frame into a raster exactly as its canvas did (the same thresholds, alphas
-// and blends, cell for cell), and `rasterInks` writes that raster as SVG
-// paths: one path an ink (a cell's exact RGBA), each row's runs of it a
-// 1-unit stroke. The paths draw in a viewBox of the raster's cells, scaled
-// to the plot the way the canvas was (`preserveAspectRatio="none"`), so a
-// server render shows the chart with no script and no canvas. Motion is
+// and blends, cell for cell), and `printMarkup` writes that raster in the
+// smaller of two exact forms: SVG paths (`rasterInks`: one path an ink, a
+// cell's exact RGBA, each row's runs of it a 1-unit stroke) or a PNG at a
+// pixel a cell (`png.ts`) as an `<image>` over the cells it covers. Both
+// draw in a viewBox of the raster's cells, scaled to the plot the way the
+// canvas was (`preserveAspectRatio="none"`, crisp), so a server render
+// shows the chart with no script and no canvas. Motion is
 // the stylesheet's (`solid/chart.css`): the entrance, the hover lift, the
 // pie's pop, the sparkles' twinkle; `cssEasing` writes the chart's easing
 // for it.
@@ -22,6 +24,7 @@ import {
   sparklesFromSeed,
 } from "./dither-paint"
 import { distToPolygonEdge, pointInPolygon, polarX, polarY, sliceAtAngle } from "./polar"
+import { rasterSrc } from "./png"
 import { createRasterBuffer, type RasterBuffer, setOrBlendRasterPixel } from "./raster"
 import { springLinear } from "./spring"
 
@@ -84,6 +87,51 @@ export function rasterInks(frame: RasterBuffer, owner?: Int16Array, groups = 1):
       return o.ink
     }),
   )
+}
+
+/** Inks as SVG markup: a path each, a 1-unit stroke over its runs. Only
+ * digits, hex colours and path commands. */
+export const inksMarkup = (inks: Ink[]): string =>
+  inks
+    .map(
+      (ink) =>
+        `<path d="${ink.d}" fill="none" stroke="${ink.color}"${ink.opacity < 1 ? ` stroke-opacity="${ink.opacity}"` : ""}/>`,
+    )
+    .join("")
+
+/** The cells of group `g` (every painted cell, with no `owner`) in a
+ * raster of the whole frame, every other cell clear; null when it has
+ * none. The whole frame, never a crop: an image laid over the cells the
+ * way the canvas was scales exactly as the canvas did, where one cropped
+ * to a box at a fractional pixel resamples its edges (measured in
+ * Chromium: 93% of a bar chart's pixels at an odd size). */
+export function groupRaster(frame: RasterBuffer, owner: Int16Array | undefined, g: number): RasterBuffer | null {
+  const { width: w, height: h, data } = frame
+  const raster = createRasterBuffer(w, h)
+  let any = false
+  for (let i = 0; i < w * h; i++)
+    if (data[i * 4 + 3] > 0 && (!owner || owner[i] === g)) {
+      raster.data.set(data.subarray(i * 4, i * 4 + 4), i * 4)
+      any = true
+    }
+  return any ? raster : null
+}
+
+/**
+ * A raster's print as SVG markup, a string a group (one with no `owner`):
+ * whichever of its two exact forms is shorter, the inks as paths or its
+ * cells as a PNG `<image>` over the whole frame. A gradient fill holds
+ * hundreds of inks, so the PNG is mostly 4 to 8 times shorter; a fill of
+ * few inks can be shorter as paths.
+ */
+export function printMarkup(frame: RasterBuffer, owner?: Int16Array, groups = 1): string[] {
+  return rasterInks(frame, owner, groups).map((group, g) => {
+    const paths = inksMarkup(group)
+    const raster = groupRaster(frame, owner, g)
+    if (!raster) return paths
+    const image = `<image width="${raster.width}" height="${raster.height}" preserveAspectRatio="none" style="image-rendering:pixelated" href="${rasterSrc(raster)}"/>`
+    return image.length < paths.length ? image : paths
+  })
 }
 
 /** The chart's easing as a CSS timing function, for its entrance. */

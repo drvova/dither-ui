@@ -1,10 +1,9 @@
 // What every chart family's print is drawn with: the plot's group at the
 // margins (the precompiled image in place of the print, the bloom over it),
-// a viewBox of the backing's cells laid over the plot, and a print's inks
-// as paths in it (`engine/chart-svg.ts`).
+// a viewBox of the backing's cells laid over the plot, and a print's
+// markup in it (`engine/chart-svg.ts`: paths or a cell PNG, the shorter).
 
 import { createMemo, createUniqueId, type JSX, Show } from "solid-js"
-import type { Ink } from "../../engine/chart-svg"
 import type { ChartContextValue, PolarChartContextValue } from "../../engine/chart-types"
 import { bloomOf } from "../../engine/dither-paint"
 
@@ -34,20 +33,12 @@ export function Cells(props: {
   )
 }
 
-/** A print's inks: a path each, a 1-unit stroke over its runs, written
- * as one markup string (a chart holds hundreds; as elements each would
- * carry its own hydration key and its own reactive attributes). The
- * markup is digits, hex colours and path commands only. */
-export function Inks(props: { inks: Ink[] }) {
-  const markup = createMemo(() =>
-    props.inks
-      .map(
-        (ink) =>
-          `<path d="${ink.d}" fill="none" stroke="${ink.color}"${ink.opacity < 1 ? ` stroke-opacity="${ink.opacity}"` : ""}/>`,
-      )
-      .join(""),
-  )
-  return <g innerHTML={markup()} />
+/** A print, as one markup string (`printMarkup`: a chart's paths number
+ * in the hundreds; as elements each would carry its own hydration key and
+ * reactive attributes). It is the engine's own: path commands, hex
+ * colours, numbers and a PNG data URI, nothing a reader wrote. */
+export function Print(props: { markup: string }) {
+  return <g innerHTML={props.markup} />
 }
 
 /**

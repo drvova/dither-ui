@@ -1282,17 +1282,22 @@ generated twin. Inside the kit every import is relative
   and no script needed to see it. `engine/chart-svg.ts` paints each
   family's resting frame (no hover, the entrance done, the sparkles
   apart) into a raster with the same thresholds, alphas and blends the
-  canvas loops used, and `rasterInks` writes it as paths, one a distinct
-  RGBA (the cell's stored bytes as the colour, its alpha byte as the
-  opacity, so the SVG composites what `putImageData` showed), each row's
-  runs a 1-unit stroke, in a viewBox of the backing's cells over the plot
-  (`preserveAspectRatio="none"`, `crispEdges`): cell for cell the canvas,
-  every family, and pixel for pixel in Chromium at 1x and 2x (Gecko's
-  canvas premultiplies, so there the two differ by at most 8/255). Tone
-  patterns (`<pattern>` Bayer levels) were measured and not taken: a
-  fill's alpha ramps cell by cell, so 16 tones hold 7 to 49% of a chart's
-  cells. Bars and slices are inked per owner (`rasterInks`' owner map),
-  each its own mark. The root's one `<svg>` (`chart-layer.tsx`) is named
+  canvas loops used, and `printMarkup` writes each group of it (the
+  whole print, or a bar's or a slice's cells: `rasterInks`' owner map,
+  each its own mark) in the shorter of two exact forms, laid in a viewBox
+  of the backing's cells over the plot (`preserveAspectRatio="none"`):
+  its inks as paths (`rasterInks`: one a distinct RGBA, the cell's stored
+  bytes as the colour, its alpha byte as the opacity, each row's runs a
+  1-unit stroke, `crispEdges`) or its cells as a PNG at a pixel a cell
+  (`png.ts`) in an `<image>` over the WHOLE frame (`groupRaster`: a crop
+  at a fractional pixel resamples its edges, 93% of a bar chart's pixels
+  in Chromium at an odd size). A gradient holds hundreds of inks, so the
+  PNG wins, 4 to 8 times shorter; a fill of few inks keeps its paths.
+  Either is cell for cell the canvas, every family, and pixel for pixel
+  in Chromium at 1x and 2x and in Gecko at 1x (measured at even and odd
+  sizes). Tone patterns (`<pattern>` Bayer levels) were measured and not
+  taken: a fill's alpha ramps cell by cell, so 16 tones hold 7 to 49% of
+  a chart's cells. The root's one `<svg>` (`chart-layer.tsx`) is named
   for the chart and its series (`chartName`: `role="group"`, a `<title>`),
   sized to the measured box, or before a measure to `CHART_FALLBACK`
   (600x240, polar 320x320) scaled into the box; axes, ring labels and
@@ -1302,20 +1307,31 @@ generated twin. Inside the kit every import is relative
   series) shows its crosshair cells and its values under `:hover` or
   `data-marked` (`markerIndex`), none while a composed `<Tooltip>` shows
   them (`data-tooltip`), none on a chart that is not `interactive`. The
-  motion is `solid/chart.css`'s: the entrance (`data-enter`, timed by
-  `--dk-chart-duration`/`-delay`/`-ease` from the root's props,
-  `cssEasing`): a clip sweep (reversed where the seed reverses it), bars
-  growing from their base in the stagger's wave, the pie's arc mask going
-  round, the radar scaling out of its centre, dots after it; the lift
+  motion is `solid/chart.css`'s, every keyframe `dk-*` (the kit clock
+  holds it at a directed moment like the rest of the kit's CSS motion;
+  `tests/css-motion.spec.ts` reads every stylesheet of the Solid layer):
+  the entrance (`data-enter`, timed by `--dk-chart-duration`/`-delay`/
+  `-ease` from the root's props, `cssEasing`): a clip sweep (reversed
+  where the seed reverses it), bars growing from their base in the
+  stagger's wave, the pie's arc mask going round, the radar scaling out
+  of its centre, dots after it. It plays the first time the chart comes
+  on screen: until the runtime sets `data-in-view` (`watchVisibility`,
+  once) the entrance holds at its first frame; it is declared under
+  `@media (scripting: enabled) and (prefers-reduced-motion:
+  no-preference)`, so without a script, in a browser older than that
+  query, or under reduced motion the chart stands shown. Then the lift
   (`data-lift`, an alpha slope filter), bars fading under another's
   hover, a slice popping along its middle, the bloom (an SVG filter of the
   same blur, brightness and saturation, `bloomOf`) and the sparkles'
-  twinkle; all of it off under reduced motion. A replay or new data
-  remounts the `<svg>`, so the entrance runs again; `entranceDone` (the
-  active dot) lands on the entrance's `animationend`, at once without
-  one. Pinned by `tests/chart-svg.spec.ts` (the inks draw back the raster
-  byte for byte, each cell in its owner's group; a new screen, new inks)
-  and `tests/solid/charts.spec.tsx`.
+  twinkle (off under reduced motion). A replay or new data remounts the
+  `<svg>`, so the entrance runs again (at once: the chart was seen);
+  `entranceDone` (the active dot) lands on the entrance's `animationend`,
+  at once without one. Pinned by `tests/chart-svg.spec.ts` (the inks draw
+  back the raster byte for byte, each cell in its owner's group; each
+  group in its shorter form; a new screen, new inks),
+  `tests/solid/charts.spec.tsx` and the chart case of
+  `packages/site/tests/site/css-motion.spec.ts` (bars grown to the
+  directed moment's share, and held below the fold until scrolled to).
 - A component's props type is the one description of its props: the
   docs' API tables print it (`packages/site/build/props.ts`), the Studio's
   registry is held to it, and a reader copying the kit reads it in their

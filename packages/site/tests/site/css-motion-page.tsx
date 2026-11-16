@@ -2,6 +2,8 @@
 // kit's CSS-driven components mounted one by one, and the kit clock's two
 // doors, so the spec can direct a moment and read what CSS shows at it.
 import {
+  Bar,
+  BarChart,
   DitherCountUp,
   DitherDecryptedText,
   DitherRotatingText,
@@ -44,6 +46,36 @@ const PIECES: Record<string, () => JSX.Element> = {
       />
     </>
   ),
+  // a bar chart's entrance, linear and unstaggered: every bar grown to the moment's share
+  bars: () => <div style={{ width: "300px", height: "200px" }}>{bars()}</div>,
+  // the same chart a screen below the fold: its entrance waits to be seen
+  "bars-below": () => (
+    <>
+      <div style={{ height: "300vh" }} />
+      <div id="below" style={{ width: "300px", height: "200px" }}>
+        {bars()}
+      </div>
+    </>
+  ),
+}
+
+function bars() {
+  return (
+    <BarChart
+      data={[
+        { m: "a", v: 3 },
+        { m: "b", v: 5 },
+        { m: "c", v: 4 },
+      ]}
+      config={{ v: { color: "blue" } }}
+      animationDuration={1000}
+      animationDelay={0}
+      easing="linear"
+      stagger={0}
+    >
+      <Bar dataKey="v" />
+    </BarChart>
+  )
 }
 
 declare global {

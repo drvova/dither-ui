@@ -8,9 +8,21 @@
 // chrome (grid) behind the family's print, the print, front chrome (axes,
 // dots), then the DOM legend and tooltip on top of it.
 
-import { children, type Component, createComponent, createMemo, createUniqueId, type JSX, Show } from "solid-js"
+import {
+  children,
+  type Component,
+  createComponent,
+  createMemo,
+  createSignal,
+  createUniqueId,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js"
 import { cssEasing } from "@dither-ui/kit/engine/chart-svg.ts"
 import type { EasingInput } from "@dither-ui/kit/engine/dither-paint.ts"
+import { watchVisibility } from "@dither-ui/kit/engine/visibility.ts"
 import { cn } from "../lib"
 
 import * as stylex from "@stylexjs/stylex"
@@ -71,6 +83,23 @@ export function ChartLayers(props: {
   children?: JSX.Element
 }) {
   const lift = createUniqueId()
+  // The entrance waits for the chart to come on screen once (the
+  // stylesheet holds it at its first frame until `data-in-view`); a
+  // replay after that plays at once.
+  let root: SVGSVGElement | undefined
+  const [inView, setInView] = createSignal(false)
+  onMount(() => {
+    if (typeof IntersectionObserver === "undefined") return void setInView(true)
+    const seen = watchVisibility(
+      () => root,
+      () => {
+        setInView(true)
+        seen.dispose()
+      },
+    )
+    seen.mount()
+    onCleanup(seen.dispose)
+  })
   const resolved = children(() => props.children)
   const sorted = createMemo(() => {
     const back: JSX.Element[] = []
@@ -101,11 +130,13 @@ export function ChartLayers(props: {
       <Show when={String(props.motion.revision)} keyed>
         {(_run) => (
           <svg
+            ref={(el) => (root = el)}
             class={cn(styles.svg, "dk-chart")}
             viewBox={`0 0 ${props.width} ${props.height}`}
             role="group"
             aria-label={props.label}
             data-enter={props.motion.enter ? "" : undefined}
+            data-in-view={inView() ? "" : undefined}
             data-lift={props.motion.lift > 0 ? "" : undefined}
             data-hovered={props.motion.hovered ? "" : undefined}
             data-bloom-hover={props.motion.bloomOnHover ? "" : undefined}

@@ -10,17 +10,21 @@ import {
   cartesianSurfaces,
   chartName,
   cssEasing,
+  groupRaster,
   type Ink,
+  inksMarkup,
   paintBars,
   paintCartesian,
   paintPie,
   paintRadar,
+  printMarkup,
   rasterInks,
   slicePath,
 } from "../src/engine/chart-svg"
 import { resolveMatrix } from "../src/engine/dither-paint"
 import { seedFromColor } from "../src/engine/palette"
 import { SCREENS } from "../src/engine/pixel"
+import { rasterSrc } from "../src/engine/png"
 import { pieSlices, radarAxes } from "../src/engine/polar"
 import { createRasterBuffer, type RasterBuffer } from "../src/engine/raster"
 import { buildYScale, computeBands } from "../src/engine/scales"
@@ -182,5 +186,28 @@ describe("a chart's print as SVG inks", () => {
     expect(slicePath(0, 0, 0, 10, 0, Math.PI / 2)).toBe("M10.00 0.00A10 10 0 0 1 0.00 10.00L0 0Z")
     expect(slicePath(0, 0, 5, 10, 0, Math.PI / 2)).toMatch(/L0\.00 5\.00A5 5 0 0 0 5\.00 0\.00Z$/)
     expect(slicePath(0, 0, 0, 10, 0, Math.PI * 2).match(/A/g)).toHaveLength(2)
+  })
+
+  it("writes each group in the shorter exact form: its inks as paths, or its cells as a PNG over the frame", () => {
+    for (const [family, print] of Object.entries(families)) {
+      const { frame, owner, groups } = print({ matrix: SCREENS.bayer })
+      const inks = rasterInks(frame, owner, groups)
+      printMarkup(frame, owner, groups).forEach((markup, g) => {
+        const own = groupRaster(frame, owner, g)
+        const paths = inksMarkup(inks[g]!)
+        if (!own) return expect(markup, family).toBe(paths)
+        // only the group's own cells, in place, over the whole frame
+        for (let i = 0; i < COLS * ROWS; i++)
+          expect([...own.data.subarray(i * 4, i * 4 + 4)]).toEqual(
+            !owner || owner[i] === g ? [...frame.data.subarray(i * 4, i * 4 + 4)] : [0, 0, 0, 0],
+          )
+        const image = `<image width="${COLS}" height="${ROWS}" preserveAspectRatio="none" style="image-rendering:pixelated" href="${rasterSrc(own)}"/>`
+        expect(markup, `${family} ${g}`).toBe(image.length < paths.length ? image : paths)
+      })
+    }
+    // one ink of two cells is shorter as a path
+    const { frame } = blankPrint(COLS, ROWS)
+    frame.data.set([10, 20, 30, 255, 10, 20, 30, 255], 0)
+    expect(printMarkup(frame)).toEqual(['<path d="M0 0.5h2" fill="none" stroke="#0a141e"/>'])
   })
 })

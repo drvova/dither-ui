@@ -235,4 +235,34 @@ describe("the kit's CSS motion under the kit clock", () => {
     const time = await read(() => Number(document.getAnimations()[0]!.currentTime))
     expect(time).toBeGreaterThanOrEqual(1250)
   })
+
+  it("a chart's entrance: every bar grown to the moment's share, and none before it is seen", async () => {
+    await mount("bars")
+    const grown = () =>
+      read(() =>
+        [...document.querySelectorAll(".dk-chart-grow")].map((g) => new DOMMatrix(getComputedStyle(g).transform).d),
+      )
+    await seek(500)
+    for (const scale of await grown()) expect(scale).toBeCloseTo(0.5, 2)
+    await seek(1000)
+    expect(await grown()).toEqual([1, 1, 1])
+    await seek(200)
+    for (const scale of await grown()) expect(scale).toBeCloseTo(0.2, 2)
+    await page.evaluate(() => window.kit.release())
+
+    // below the fold, free-running: held at its first frame until it comes on screen
+    await mount("bars-below")
+    const states = () =>
+      read(() =>
+        document
+          .getAnimations()
+          .filter((a) => (a as CSSAnimation).animationName === "dk-chart-grow")
+          .map((a) => a.playState),
+      )
+    expect(await states()).toEqual(["paused", "paused", "paused"])
+    for (const scale of await grown()) expect(scale).toBe(0)
+    await page.evaluate(() => document.getElementById("below")!.scrollIntoView())
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+    expect(await states()).toEqual(["running", "running", "running"])
+  })
 })

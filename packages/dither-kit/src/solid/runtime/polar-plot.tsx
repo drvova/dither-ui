@@ -1,13 +1,13 @@
 // Solid's binding of the polar charts' prints (`engine/chart-svg.ts`): the
-// pie's slices, each its own inks in a mark that pops out under the
+// pie's slices, each its own print in a mark that pops out under the
 // pointer, revealed by an arc going round; the radar's polygons scaling
 // out of the centre, with a mark an axis that shows its vertices' values.
 
 import { type Component, createMemo, createUniqueId, Index } from "solid-js"
-import { blankPrint, paintPie, paintRadar, radarVertices, rasterInks, slicePath } from "../../engine/chart-svg"
+import { blankPrint, paintPie, paintRadar, printMarkup, radarVertices, slicePath } from "../../engine/chart-svg"
 import { backingSize } from "../../engine/dither-paint"
 import { polarX, polarY } from "../../engine/polar"
-import { Cells, Inks, PlotFrame, spokenValue } from "./chart-plot"
+import { Cells, PlotFrame, Print, spokenValue } from "./chart-plot"
 import { usePolarChart } from "./polar-context"
 
 const TAU = Math.PI * 2
@@ -23,7 +23,7 @@ export const PiePlot: Component = () => {
     const { cols, rows } = backing()
     const { frame, owner } = blankPrint(cols, rows)
     paintPie(frame, ctx, owner)
-    const inks = rasterInks(frame, owner, pie.length)
+    const inks = printMarkup(frame, owner, pie.length)
     const total = pie.reduce((n, s) => n + s.value, 0) || 1
     return pie.map((slice, i) => ({ ...slice, inks: inks[i], share: Math.round((slice.value / total) * 100) }))
   })
@@ -66,7 +66,7 @@ export const PiePlot: Component = () => {
             >
               <g class="dk-chart-fill">
                 <Cells plot={ctx.plot} cols={backing().cols} rows={backing().rows}>
-                  <Inks inks={slice().inks} />
+                  <Print markup={slice().inks} />
                 </Cells>
               </g>
               <path
@@ -98,7 +98,7 @@ export const RadarPlot: Component = () => {
     const { cols, rows } = backing()
     const { frame } = blankPrint(cols, rows)
     paintRadar(frame, ctx)
-    return rasterInks(frame)[0]
+    return printMarkup(frame)[0]
   })
   const vertices = createMemo(() => radarVertices(ctx, backing().cols, backing().rows))
   const axes = createMemo(() => ctx.radar?.axes ?? [])
@@ -174,7 +174,7 @@ export const RadarPlot: Component = () => {
           <g transform={`translate(${-ctx.center.x},${-ctx.center.y})`}>
             <g class="dk-chart-fill">
               <Cells plot={ctx.plot} cols={backing().cols} rows={backing().rows}>
-                <Inks inks={inks()} />
+                <Print markup={inks()} />
               </Cells>
             </g>
           </g>

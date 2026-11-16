@@ -65,7 +65,7 @@ function frame(kind: Parameters<typeof createArtboard>[0], x = 10, y = 20) {
 describe("the chart renderer", () => {
   it.each(["area", "line", "bar", "pie", "radar"] as const)("draws a %s chart as the kit's SVG print", (type) => {
     const { container } = render(() => <ChartRenderer chart={createChart(type)} />)
-    expect(container.querySelector("svg.dk-chart .dk-chart-print path")).not.toBeNull()
+    expect(container.querySelector("svg.dk-chart .dk-chart-print :is(path, image)")).not.toBeNull()
   })
 
   it("follows the chart as the editor changes it: its kind, and the parts switched off", () => {

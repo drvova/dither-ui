@@ -45,8 +45,9 @@ const STILL_JS: Record<string, string> = {
   "PixelTrail.tsx": "canvas trail behind the pointer",
   "SplashCursor.tsx": "canvas fluid under the pointer",
   "ScrollProgress.tsx": "canvas: the dithered bar printed at the scroll",
-  "runtime/chart-context.ts": "canvas: the charts",
-  "runtime/polar-context.ts": "canvas: the charts",
+  // no frames: the root's `animate` prop reads as `.animate(` (the charts print SVG, their motion CSS)
+  "runtime/chart-context.ts": "no frames: the `animate` prop",
+  "runtime/polar-context.ts": "no frames: the `animate` prop",
   "runtime/kit-time.ts": "the kit clock's moment for a canvas that changes on a cadence",
   // the dither over DOM, and the scene clock its painters read
   "DitherReveal.tsx": "the wipe's dithered mask, a mask a moment",
@@ -75,6 +76,15 @@ const files = (dir: URL, prefix = ""): string[] =>
         : [],
   )
 
+const cssFiles = (dir: URL, prefix = ""): string[] =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+    e.isDirectory()
+      ? cssFiles(new URL(`${e.name}/`, dir), `${prefix}${e.name}/`)
+      : e.name.endsWith(".css")
+        ? [`${prefix}${e.name}`]
+        : [],
+  )
+
 describe("the kit's UI motion", () => {
   it("is CSS: only the listed pieces run frames in JS", () => {
     const driving = files(SOLID).filter((f) => DRIVES.test(readFileSync(new URL(f, SOLID), "utf8")))
@@ -86,10 +96,10 @@ describe("the kit's UI motion", () => {
   })
 
   it("names every keyframe dk-*, so the kit clock holds it", () => {
-    const named = files(SOLID)
-      .map((f) => f.replace(/\.tsx?$/, ".css"))
-      .filter((f) => existsSync(new URL(f, SOLID)))
-      .flatMap((f) => [...readFileSync(new URL(f, SOLID), "utf8").matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]))
+    // every stylesheet of the Solid layer, a component's or a family's (the charts' `chart.css`)
+    const named = cssFiles(SOLID).flatMap((f) =>
+      [...readFileSync(new URL(f, SOLID), "utf8").matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]),
+    )
     // the container's two are the docs' demo of a stylesheet that reads it
     expect(named.filter((n) => !/^dk-/.test(n!) && !/^dither-cq-/.test(n!))).toEqual([])
   })

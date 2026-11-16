@@ -279,7 +279,8 @@ Banned materials: iridescent pearl, frosted glass, arbitrary glow, neon.
   canvas showed, there before any script runs. Its axes and values are
   text; under the pointer a mark shows its crosshair and its values in
   the mono face over a ground-coloured halo, and its entrance (a sweep, a
-  grow, an arc, a scale) runs on the chart's own easing.
+  grow, an arc, a scale) runs on the chart's own easing as it first comes
+  into view.
 - **The heat**: the landing's recurring material, ink in water printed
   through the footer's ramp. It builds up through the page in plates of
   the brand and closes in a band behind the install, hottest along its
