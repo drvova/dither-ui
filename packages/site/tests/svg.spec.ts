@@ -1,8 +1,10 @@
 // @rstest-environment jsdom
 // The SVG writer a frame's vector picture goes through: cells merged into
 // runs per ink, colours and faces as a design tool reads them, names as
-// layer ids, and a known frame written whole.
+// layer ids, a known frame written whole, and computed CSS read as SVG
+// (`css-svg.ts`: gradients, tiles, clips, corners, shadows).
 import { describe, expect, it } from "rstack/test"
+import { clipShape, gradientDef, radiiOf, shadowsOf, tileOf } from "@/entities/artboard/css-svg"
 import {
   cellRuns,
   fontStack,
@@ -186,5 +188,121 @@ describe("the document", () => {
     expect(new Set(ids).size).toBe(ids.length)
     expect(doc.querySelectorAll("text")).toHaveLength(2)
     expect(doc.getElementById("Sign in 2")?.getAttribute("transform")).toBe("translate(160 0)")
+  })
+})
+
+describe("computed CSS as SVG", () => {
+  const paint = (css: string) => parseColor(css)
+
+  it("turns a linear gradient into one over the box, its stops spread, a corner to this box's corner", () => {
+    const def = gradientDef(
+      "linear-gradient(90deg, rgb(255, 0, 0), rgb(0, 255, 0), rgb(0, 0, 255))",
+      { x: 0, y: 0, w: 100, h: 50 },
+      "g",
+      paint,
+    )!
+    expect(def).toContain('x1="0" y1="25" x2="100" y2="25"')
+    expect(def).toContain('<stop offset="0.5" stop-color="#00ff00"/>')
+    const black = () => ({ hex: "#000000", alpha: 1 })
+    const corner = gradientDef("linear-gradient(to right top, red, blue)", { x: 0, y: 0, w: 200, h: 100 }, "c", black)!
+    const at = (k: string) => Number(new RegExp(` ${k}="([-\\d.]+)"`).exec(corner)![1])
+    // Perpendicular to the box's other diagonal (200, 100).
+    expect(Math.abs((at("x2") - at("x1")) * 200 + (at("y2") - at("y1")) * 100)).toBeLessThan(1)
+    expect(gradientDef("conic-gradient(red, blue)", { x: 0, y: 0, w: 1, h: 1 }, "x", paint)).toBeNull()
+  })
+
+  it("keeps a dot screen as a radial gradient in a repeating tile", () => {
+    expect(tileOf("16px 16px", "0% 0%", "repeat", { x: 0, y: 0, w: 200, h: 100 }, null)).toEqual({
+      tile: { x: 0, y: 0, w: 16, h: 16 },
+      repeats: true,
+    })
+    const def = gradientDef(
+      "radial-gradient(rgb(255, 255, 255) 1px, rgba(0, 0, 0, 0) 1px)",
+      { x: 0, y: 0, w: 16, h: 16 },
+      "d",
+      paint,
+    )!
+    expect(def).toContain('cx="8" cy="8" r="11.31"')
+    expect(def).toContain(
+      '<stop offset="0.0884" stop-color="#ffffff"/><stop offset="0.0884" stop-color="#000000" stop-opacity="0"/>',
+    )
+    expect(tileOf("auto", "0% 0%", "repeat", { x: 0, y: 0, w: 50, h: 50 }, null).repeats).toBe(false)
+  })
+
+  it("reads clip-path basic shapes, and none it cannot", () => {
+    expect(clipShape("polygon(0px 0px, 100% 0px, 100% 100%)", { x: 10, y: 10, w: 20, h: 20 })).toBe(
+      '<path d="M10 10L30 10L30 30Z"/>',
+    )
+    expect(clipShape("inset(2px round 4px)", { x: 0, y: 0, w: 20, h: 20 })).toContain("A4 4")
+    expect(clipShape("circle(50% at 50% 50%)", { x: 0, y: 0, w: 20, h: 20 })).toContain("a10 10")
+    expect(clipShape('url("#c")', { x: 0, y: 0, w: 1, h: 1 })).toBeNull()
+  })
+
+  it("reads each corner's radius and a shadow list", () => {
+    expect(radiiOf(["8px", "0px", "50%", "4px 2px"], 100, 40)).toEqual([
+      [8, 8],
+      [0, 0],
+      [50, 20],
+      [4, 2],
+    ])
+    expect(shadowsOf("rgba(0, 0, 0, 0.2) 0px 4px 12px 0px, rgb(255, 0, 0) 0px 0px 0px 1px inset")).toEqual([
+      { x: 0, y: 4, blur: 12, spread: 0, color: "rgba(0, 0, 0, 0.2)", inset: false },
+      { x: 0, y: 0, blur: 0, spread: 1, color: "rgb(255, 0, 0)", inset: true },
+    ])
+  })
+
+  it("writes a box whose corners differ as arcs, agreeing corners as a rect, a ref'd fill, a clip and the notes", () => {
+    const svg = svgDocument(
+      [
+        {
+          name: "F",
+          x: 0,
+          y: 0,
+          w: 100,
+          h: 40,
+          clip: false,
+          nodes: [
+            {
+              t: "g",
+              name: "Clipped",
+              clip: "clip-1",
+              children: [
+                {
+                  t: "rect",
+                  x: 0,
+                  y: 0,
+                  w: 100,
+                  h: 40,
+                  rx: 0,
+                  radii: radiiOf(["8px", "0px", "8px", "0px"], 100, 40),
+                  fill: null,
+                  ref: "gradient-1",
+                },
+                {
+                  t: "rect",
+                  x: 0,
+                  y: 0,
+                  w: 100,
+                  h: 40,
+                  rx: 0,
+                  radii: radiiOf(["6px", "6px", "6px", "6px"], 100, 40),
+                  fill: parseColor("#101214"),
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      100,
+      40,
+      ['<clipPath id="clip-1"><rect width="10" height="10"/></clipPath>'],
+      ["a mask, drawn unmasked (2)"],
+    )
+    expect(svg).toContain(
+      '<path d="M8 0H100L100 0V32A8 8 0 0 1 92 40H0L0 40V8A8 8 0 0 1 8 0Z" fill="url(#gradient-1)"/>',
+    )
+    expect(svg).toContain('<rect x="0" y="0" width="100" height="40" rx="6" fill="#101214"/>')
+    expect(svg).toContain('clip-path="url(#clip-1)"')
+    expect(svg).toContain("<desc>Approximated from the page: a mask, drawn unmasked (2).</desc>")
   })
 })

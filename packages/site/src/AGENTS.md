@@ -568,9 +568,11 @@ around this tree (entries, routes, the build, how Solid is written) is
 - SVG: a frame (or the selection, each frame at its place) as a layered
   SVG a design tool keeps editing (Figma, Illustrator, Sketch, Penpot),
   read off the frame as drawn (`surfaceOf`) at the canvas's zoom by
-  `entities/artboard/vector.ts` (`framesSvg`) and written by `svg.ts`
+  `entities/artboard/vector.ts` (`framesSvg`; the walk's shared state and
+  colours in `walk.ts`, a box's paint in `box.ts`) and written by `svg.ts`
   (framework-free: the scene's nodes, `svgDocument`, `cellRuns`,
-  `fontStack`, `parseColor`). Each frame is a group named after it (ids
+  `fontStack`, `parseColor`; computed CSS read as SVG in `css-svg.ts`:
+  radii, gradients, tiles, basic-shape clips, shadows). Each frame is a group named after it (ids
   are the names design tools show as layers, each once), clipped to its
   box, a `Background` layer (the surface's fill over what the page shows
   under it, opaque) and then the frame's own layers: a chart's as the
@@ -579,7 +581,17 @@ around this tree (entries, routes, the build, how Solid is written) is
   by where they stand, else the series' markers, the page layer as the
   legend), a screen's rows and cells (`screenLayers`; the renderer marks
   each with `layerMark(id)`), any other widget one layer named after its
-  component. Inside a layer: a box's fill and its edge as rectangles,
+  component. Inside a layer: a box as the page paints it (`box.ts`):
+  outer shadows (blurred by a filter), its fill and each background
+  layer (a linear or radial gradient as an SVG gradient, a tiled layer
+  as a pattern, so a dot grid stays a pattern; a kit tone class,
+  `dk-tone*`, as that tone's own pattern from the kit's `tonePatterns` in
+  its ink at `--dk-cell`), inset rings (an inset shadow of spread alone:
+  a pressed key), its border and outline, each corner its own radius (a
+  `<rect>` where they agree, arcs where not); what a box clips (overflow,
+  a basic-shape `clip-path`) in a clipped group; a positioned
+  `::before`/`::after` as a box; a checkbox, radio or slider the browser
+  draws as plain shapes in its accent;
   each line of text (a field's value or placeholder, an SVG tick's text
   too, its anchor resolved) a `<text>` at its baseline, no anchor or
   baseline attribute, in its size, weight and face (the stack from
@@ -594,7 +606,13 @@ around this tree (entries, routes, the build, how Solid is written) is
   the inks would move past `INK_TOLERANCE` or that runs past `MAX_RUNS`
   (a photo, a smooth ramp) as its current frame in a PNG `<image>`, as
   an `<img>` is (one drawn pixelated, a still avatar or spinner, is cells
-  like a canvas).
+  like a canvas). What SVG cannot say is approximated and listed in the
+  file's `<desc>`: blurred or offset inset shadows, a masked or filtered
+  `::before`/`::after` and one in the flow left out, a mask other than a
+  tone drawn unmasked, a `clip-path` that is not a basic shape left
+  unclipped, a conic gradient in its first colour, a rounded border with
+  unequal sides drawn square, a native control drawn as plain shapes (the
+  reader is synchronous, so it never rasterises).
   Every colour is written as hex (`oklch()` and `color-mix()` read back
   through a pixel). Delivery: `svg-copy.ts`'s `copyFramesSvg` writes
   `image/svg+xml` with `text/plain` where `ClipboardItem.supports` says

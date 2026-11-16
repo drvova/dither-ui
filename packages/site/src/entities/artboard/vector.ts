@@ -11,13 +11,13 @@
 import { layersOf } from "@/entities/chart"
 import { componentEntry, type ScreenModel, screenLayers, type WidgetModel } from "@/entities/widget"
 import type { Artboard } from "./model/types"
+import { boxNodes, clipOf, isNative, isTone, nativeNodes, pseudoNodes } from "./box"
 import { surfaceOf } from "./picture"
 import {
   cellRuns,
   fontStack,
   inkPaint,
   type Paint,
-  parseColor,
   quantizeInks,
   runsPath,
   type SvgFrame,
@@ -25,28 +25,12 @@ import {
   svgDocument,
   xmlText,
 } from "./svg"
+import { type Anchors, boxOf, notesOf, outside, over, paintOf, type Walk, withAlpha } from "./walk"
 
 /** The attribute a renderer marks a layer of a frame with (a screen's row
  * or cell), its value the layer tree's id. Spread `layerMark(id)` on it. */
 const LAYER_ATTR = "data-layer-id"
 export const layerMark = (id: string): Record<string, string> => ({ [LAYER_ATTR]: id })
-
-/** A layer's group, by the element it starts at. */
-type Anchors = Map<Element, string>
-
-type Walk = {
-  /** The surface's top-left on the page and the canvas's zoom. */
-  ox: number
-  oy: number
-  zoom: number
-  /** The frame's box, for what lies wholly outside it. */
-  w: number
-  h: number
-  anchors: Anchors
-  defs: Map<string, string>
-  /** What is left out with all it holds (the docs workbench's overlay). */
-  skip?: (el: Element) => boolean
-}
 
 const SHAPES = new Set(["path", "line", "rect", "circle", "ellipse", "polyline", "polygon", "image"])
 const PAINT_PROPS = [
@@ -62,65 +46,6 @@ const PAINT_PROPS = [
   "opacity",
 ] as const
 const DEF_TAGS = new Set(["linearGradient", "radialGradient", "pattern", "clipPath", "mask", "filter", "symbol"])
-
-/* --------------------------------- colour -------------------------------- */
-
-const colorCache = new Map<string, Paint | null>()
-let probe: CanvasRenderingContext2D | null | undefined
-
-/** Any CSS colour the page computes (`oklch()`, `color-mix()`'s `oklab()`,
- * `color(srgb …)`) as a paint: rgb and hex read here, the rest drawn on a
- * pixel and read back. Null for a clear colour. */
-function paintOf(css: string): Paint | null {
-  if (!css || css === "transparent" || css === "none") return null
-  const cached = colorCache.get(css)
-  if (cached !== undefined) return cached
-  let paint = parseColor(css)
-  if (!paint && !/^(rgba?|#)/i.test(css.trim())) {
-    if (probe === undefined) {
-      const c = document.createElement("canvas")
-      c.width = c.height = 1
-      try {
-        probe = c.getContext("2d", { willReadFrequently: true })
-      } catch {
-        probe = null
-      }
-    }
-    try {
-      if (probe) {
-        probe.clearRect(0, 0, 1, 1)
-        probe.fillStyle = "#000"
-        probe.fillStyle = css
-        probe.fillRect(0, 0, 1, 1)
-        const [r, g, b, a] = probe.getImageData(0, 0, 1, 1).data
-        paint = a ? parseColor(`rgba(${r}, ${g}, ${b}, ${a / 255})`) : null
-      }
-    } catch {
-      paint = null // a context that cannot read back: the colour is left out
-    }
-  }
-  colorCache.set(css, paint)
-  return paint
-}
-
-/** `top` over `under`, as one opaque colour. */
-function over(top: Paint, under: Paint): Paint {
-  const ch = (h: string, i: number) => Number.parseInt(h.slice(1 + i * 2, 3 + i * 2), 16)
-  const mix = [0, 1, 2].map((i) => Math.round(ch(top.hex, i) * top.alpha + ch(under.hex, i) * (1 - top.alpha)))
-  return { hex: `#${mix.map((v) => v.toString(16).padStart(2, "0")).join("")}`, alpha: 1 }
-}
-
-const withAlpha = (p: Paint, a: number): Paint => ({ hex: p.hex, alpha: p.alpha * a })
-
-/* -------------------------------- geometry ------------------------------- */
-
-type Box = { x: number; y: number; w: number; h: number }
-
-function boxOf(r: { left: number; top: number; width: number; height: number }, k: Walk): Box {
-  return { x: (r.left - k.ox) / k.zoom, y: (r.top - k.oy) / k.zoom, w: r.width / k.zoom, h: r.height / k.zoom }
-}
-const outside = (b: Box, k: Walk) =>
-  b.w <= 0 || b.h <= 0 || b.x >= k.w || b.y >= k.h || b.x + b.w <= 0 || b.y + b.h <= 0
 
 /** The element's user space to the frame's px, as an SVG transform. */
 function matrixOf(el: SVGGraphicsElement, k: Walk): string {
@@ -169,57 +94,25 @@ function walkElement(el: Element, k: Walk, out: SvgNode[], alpha: number) {
     if (shown) imageNode(el, style, k, into, a)
     return
   }
-  if (shown) boxNodes(el, style, k, into, a)
-  if (shown && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) fieldText(el, style, k, into, a)
-  for (const child of el.childNodes) {
-    if (child.nodeType === Node.TEXT_NODE) {
-      if (shown) textNodes(child as Text, style, k, into, a)
-    } else if (child instanceof Element) walkElement(child, k, into, a)
-  }
-}
-
-/** A box's fill and its edge (one width and colour on every side: a stroke
- * inside it; otherwise each side its own bar). */
-function boxNodes(el: Element, style: CSSStyleDeclaration, k: Walk, out: SvgNode[], a: number) {
-  const fill = paintOf(style.backgroundColor)
-  const sides = (["Top", "Right", "Bottom", "Left"] as const).map((s) => ({
-    width: Number.parseFloat(style.getPropertyValue(`border-${s.toLowerCase()}-width`)) || 0,
-    paint:
-      style.getPropertyValue(`border-${s.toLowerCase()}-style`) === "none"
-        ? null
-        : paintOf(style.getPropertyValue(`border-${s.toLowerCase()}-color`)),
-  }))
-  const edged = sides.some((s) => s.width > 0 && s.paint)
-  if (!fill && !edged) return
-  const b = boxOf(el.getBoundingClientRect(), k)
-  if (outside(b, k)) return
-  const rx = Math.min(Number.parseFloat(style.borderTopLeftRadius) || 0, b.w / 2, b.h / 2)
-  const same = sides.every((s) => s.width === sides[0].width && s.paint?.hex === sides[0].paint?.hex)
-  if (fill) out.push({ t: "rect", ...b, rx, fill: withAlpha(fill, a) })
-  if (!edged) return
-  if (same && sides[0].paint) {
-    const sw = sides[0].width
-    out.push({
-      t: "rect",
-      x: b.x + sw / 2,
-      y: b.y + sw / 2,
-      w: Math.max(0, b.w - sw),
-      h: Math.max(0, b.h - sw),
-      rx: Math.max(0, rx - sw / 2),
-      fill: null,
-      stroke: { paint: withAlpha(sides[0].paint, a), width: sw },
-    })
+  if (isNative(el, style)) {
+    if (shown) nativeNodes(el, style, k, into, a)
     return
   }
-  const [t, r, bo, l] = sides
-  const bars: [typeof t, Box][] = [
-    [t, { x: b.x, y: b.y, w: b.w, h: t.width }],
-    [r, { x: b.x + b.w - r.width, y: b.y, w: r.width, h: b.h }],
-    [bo, { x: b.x, y: b.y + b.h - bo.width, w: b.w, h: bo.width }],
-    [l, { x: b.x, y: b.y, w: l.width, h: b.h }],
-  ]
-  for (const [s, box] of bars)
-    if (s.width > 0 && s.paint) out.push({ t: "rect", ...box, rx: 0, fill: withAlpha(s.paint, a) })
+  // What the box clips (overflow, a `clip-path`) is drawn in a clipped group.
+  const clip = clipOf(el, style, k)
+  const body: SvgNode[] = clip ? [] : into
+  if (clip) into.push({ t: "g", name: "Clip", clip, children: body })
+  if (shown) boxNodes(el, style, k, body, a)
+  // A tone's mask is all it shows of itself and what it holds.
+  if (isTone(el)) return
+  if (shown && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) fieldText(el, style, k, body, a)
+  if (shown) pseudoNodes(el, "::before", k, body, a)
+  for (const child of el.childNodes) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      if (shown) textNodes(child as Text, style, k, body, a)
+    } else if (child instanceof Element) walkElement(child, k, body, a)
+  }
+  if (shown) pseudoNodes(el, "::after", k, body, a)
 }
 
 let metrics: CanvasRenderingContext2D | null | undefined
@@ -672,12 +565,18 @@ function groundNode(surface: Element, w: number, h: number): SvgNode {
 /** A frame as drawn, read into one frame of a picture, or null when it is
  * not on the page. Its ground is the surface's fill as the page shows it
  * (over the canvas), its content one group a layer. */
-function frameOf(a: Artboard, x = 0, y = 0, defs = new Map<string, string>()): SvgFrame | null {
+function frameOf(
+  a: Artboard,
+  x = 0,
+  y = 0,
+  defs = new Map<string, string>(),
+  notes = new Map<string, number>(),
+): SvgFrame | null {
   const surface = surfaceOf(a.id)
   if (!surface) return null
   const r = surface.getBoundingClientRect()
   const zoom = r.width > 0 && a.w > 0 ? r.width / a.w : 1
-  const k: Walk = { ox: r.left, oy: r.top, zoom, w: a.w, h: a.h, anchors: new Map(), defs }
+  const k: Walk = { ox: r.left, oy: r.top, zoom, w: a.w, h: a.h, anchors: new Map(), defs, notes }
   const w = a.widget
   if (!w) chartAnchors(a, surface, k, k.anchors)
   else if (w.kind === "screen") screenAnchors(w, a, surface, k.anchors)
@@ -706,7 +605,17 @@ export function elementSvg(root: Element, name: string, skip?: (el: Element) => 
   const r = root.getBoundingClientRect()
   if (!(r.width > 0 && r.height > 0)) return null
   const defs = new Map<string, string>()
-  const k: Walk = { ox: r.left, oy: r.top, zoom: 1, w: r.width, h: r.height, anchors: new Map(), defs, skip }
+  const k: Walk = {
+    ox: r.left,
+    oy: r.top,
+    zoom: 1,
+    w: r.width,
+    h: r.height,
+    anchors: new Map(),
+    defs,
+    notes: new Map(),
+    skip,
+  }
   const content: SvgNode[] = []
   for (const child of root.children) walkElement(child, k, content, 1)
   const frame: SvgFrame = {
@@ -718,7 +627,7 @@ export function elementSvg(root: Element, name: string, skip?: (el: Element) => 
     clip: true,
     nodes: [groundNode(root, r.width, r.height), ...content],
   }
-  return svgDocument([frame], r.width, r.height, [...defs.values()])
+  return svgDocument([frame], r.width, r.height, [...defs.values()], notesOf(k))
 }
 
 /**
@@ -731,13 +640,20 @@ export function framesSvg(frames: Artboard[]): string | null {
   const x0 = Math.min(...frames.map((a) => a.x))
   const y0 = Math.min(...frames.map((a) => a.y))
   const defs = new Map<string, string>()
+  const notes = new Map<string, number>()
   const read: SvgFrame[] = []
   for (const a of frames) {
-    const f = frames.length === 1 ? frameOf(a, 0, 0, defs) : frameOf(a, a.x - x0, a.y - y0, defs)
+    const f = frames.length === 1 ? frameOf(a, 0, 0, defs, notes) : frameOf(a, a.x - x0, a.y - y0, defs, notes)
     if (!f) return null
     read.push(f)
   }
   const w = Math.max(...read.map((f) => f.x + f.w))
   const h = Math.max(...read.map((f) => f.y + f.h))
-  return svgDocument(read, w, h, [...defs.values()])
+  return svgDocument(
+    read,
+    w,
+    h,
+    [...defs.values()],
+    [...notes].map(([what, n]) => (n > 1 ? `${what} (${n})` : what)),
+  )
 }

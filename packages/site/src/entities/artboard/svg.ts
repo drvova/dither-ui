@@ -3,6 +3,7 @@
 // as cells merged into runs, one path an ink) and the SVG file it is
 // written as. Framework-free: `vector.ts` reads a drawn frame into a scene,
 // this module writes any scene, so its rules are tested without a browser.
+import { num, type Radii, roundedPath, uniformRadii } from "./css-svg"
 
 /** A colour as a design tool takes it: `#rrggbb` and its alpha apart. */
 export type Paint = { hex: string; alpha: number }
@@ -12,8 +13,30 @@ type Font = { family: string; size: number; weight: string; style: string }
 
 /** What a picture is made of. A group carries its layer's name. */
 export type SvgNode =
-  | { t: "g"; name: string; opacity?: number; filter?: string; blend?: string; children: SvgNode[] }
-  | { t: "rect"; x: number; y: number; w: number; h: number; rx: number; fill: Paint | null; stroke?: Stroke }
+  | {
+      t: "g"
+      name: string
+      opacity?: number
+      filter?: string
+      blend?: string
+      /** A `<clipPath>` in the defs (overflow, a CSS `clip-path`). */
+      clip?: string
+      children: SvgNode[]
+    }
+  /** A box: `rx` on every corner, or `radii` each its own; its fill a paint
+   * or a gradient or pattern in the defs (`ref`). */
+  | {
+      t: "rect"
+      x: number
+      y: number
+      w: number
+      h: number
+      rx: number
+      radii?: Radii
+      fill: Paint | null
+      ref?: string
+      stroke?: Stroke
+    }
   | { t: "text"; x: number; y: number; text: string; font: Font; fill: Paint; spacing: number }
   | { t: "cells"; d: string; fill: Paint }
   | { t: "image"; x: number; y: number; w: number; h: number; href: string; fit: string }
@@ -195,8 +218,6 @@ export const inkPaint = (ink: number): Paint => ({
   alpha: (ink & 255) / 255,
 })
 
-const num = (v: number): string => String(Math.round(v * 100) / 100)
-
 /** Runs as one path: a closed rectangle a run, each cell `cw` by `ch` px,
  * the raster's origin at `ox`, `oy`. */
 export function runsPath(runs: Run[], cw: number, ch: number, ox: number, oy: number): string {
@@ -296,13 +317,17 @@ function writeNode(node: SvgNode, id: (name: string) => string, pad: string): st
   switch (node.t) {
     case "g": {
       const name = id(node.name)
-      const attrs = `id="${xmlText(name)}" data-name="${xmlText(node.name)}"${node.opacity !== undefined && node.opacity < 1 ? ` opacity="${num(node.opacity)}"` : ""}${node.filter ? ` filter="url(#${node.filter})"` : ""}${node.blend ? ` style="mix-blend-mode:${node.blend}"` : ""}`
+      const attrs = `id="${xmlText(name)}" data-name="${xmlText(node.name)}"${node.opacity !== undefined && node.opacity < 1 ? ` opacity="${num(node.opacity)}"` : ""}${node.filter ? ` filter="url(#${node.filter})"` : ""}${node.clip ? ` clip-path="url(#${node.clip})"` : ""}${node.blend ? ` style="mix-blend-mode:${node.blend}"` : ""}`
       if (!node.children.length) return `${pad}<g ${attrs}/>`
       return `${pad}<g ${attrs}>\n${node.children.map((c) => writeNode(c, id, `${pad}  `)).join("\n")}\n${pad}</g>`
     }
     case "rect": {
       const s = node.stroke
-      return `${pad}<rect x="${num(node.x)}" y="${num(node.y)}" width="${num(node.w)}" height="${num(node.h)}"${node.rx > 0 ? ` rx="${num(node.rx)}"` : ""}${fillAttrs(node.fill)}${s ? `${fillAttrs(s.paint, "stroke")} stroke-width="${num(s.width)}"` : ""}/>`
+      const paint = `${node.ref ? ` fill="url(#${node.ref})"` : fillAttrs(node.fill)}${s ? `${fillAttrs(s.paint, "stroke")} stroke-width="${num(s.width)}"` : ""}`
+      const r = node.radii
+      if (r && !uniformRadii(r)) return `${pad}<path d="${roundedPath(node, r)}"${paint}/>`
+      const [rx, ry] = r ? r[0] : [node.rx, node.rx]
+      return `${pad}<rect x="${num(node.x)}" y="${num(node.y)}" width="${num(node.w)}" height="${num(node.h)}"${rx > 0 && ry > 0 ? ` rx="${num(rx)}"${ry !== rx ? ` ry="${num(ry)}"` : ""}` : ""}${paint}/>`
     }
     case "text": {
       const f = node.font
@@ -324,9 +349,16 @@ export type SvgFrame = { name: string; x: number; y: number; w: number; h: numbe
 /**
  * The picture as an SVG file, `w` by `h` px: each frame a group named after
  * it at its place (clipped to its box when it asks), `defs` (filters,
- * gradients a copied SVG refers to) written once before them.
+ * gradients, patterns and clips the nodes refer to) written once before
+ * them, and `notes`, what the reader approximated, as its `<desc>`.
  */
-export function svgDocument(frames: SvgFrame[], w: number, h: number, defs: string[] = []): string {
+export function svgDocument(
+  frames: SvgFrame[],
+  w: number,
+  h: number,
+  defs: string[] = [],
+  notes: string[] = [],
+): string {
   const id = namer()
   const clips: string[] = []
   const body = frames.map((f, i) => {
@@ -341,6 +373,7 @@ export function svgDocument(frames: SvgFrame[], w: number, h: number, defs: stri
   const allDefs = [...clips, ...defs]
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${num(w)}" height="${num(h)}" viewBox="0 0 ${num(w)} ${num(h)}" fill="none">`,
+    ...(notes.length ? [`<desc>${xmlText(`Approximated from the page: ${notes.join("; ")}.`)}</desc>`] : []),
     ...(allDefs.length ? [`<defs>\n${allDefs.join("\n")}\n</defs>`] : []),
     ...body,
     "</svg>",
