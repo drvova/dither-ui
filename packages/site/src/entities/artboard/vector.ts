@@ -11,6 +11,7 @@
 import { layersOf } from "@/entities/chart"
 import { componentEntry, type ScreenModel, screenLayers, type WidgetModel } from "@/entities/widget"
 import type { Artboard } from "./model/types"
+import { gradientDef, splitTop, tileOf } from "./css-svg"
 import { boxNodes, clipOf, isNative, isTone, nativeNodes, pseudoNodes } from "./box"
 import { surfaceOf } from "./picture"
 import {
@@ -75,7 +76,7 @@ function layerOf(el: Element, k: Walk, out: SvgNode[]): SvgNode[] {
 }
 
 /** The element and what it holds, appended to `out` in paint order. */
-function walkElement(el: Element, k: Walk, out: SvgNode[], alpha: number) {
+function walkElement(el: Element, k: Walk, out: SvgNode[], alpha: number, glyphs?: string) {
   if (k.skip?.(el)) return
   const style = getComputedStyle(el)
   if (style.display === "none") return
@@ -103,14 +104,15 @@ function walkElement(el: Element, k: Walk, out: SvgNode[], alpha: number) {
   const body: SvgNode[] = clip ? [] : into
   if (clip) into.push({ t: "g", name: "Clip", clip, children: body })
   if (shown) boxNodes(el, style, k, body, a)
+  const ref = glyphFill(el, style, k) ?? glyphs
   // A tone's mask is all it shows of itself and what it holds.
   if (isTone(el)) return
   if (shown && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) fieldText(el, style, k, body, a)
   if (shown) pseudoNodes(el, "::before", k, body, a)
   for (const child of el.childNodes) {
     if (child.nodeType === Node.TEXT_NODE) {
-      if (shown) textNodes(child as Text, style, k, body, a)
-    } else if (child instanceof Element) walkElement(child, k, body, a)
+      if (shown) textNodes(child as Text, style, k, body, a, ref)
+    } else if (child instanceof Element) walkElement(child, k, body, a, ref)
   }
   if (shown) pseudoNodes(el, "::after", k, body, a)
 }
@@ -184,14 +186,40 @@ function svgText(el: SVGTextElement, style: CSSStyleDeclaration, k: Walk, out: S
   })
 }
 
-function textNodes(node: Text, style: CSSStyleDeclaration, k: Walk, out: SvgNode[], a: number) {
+/** A background clipped to the glyphs (`background-clip: text`, a
+ * gradient headline): its first gradient as a def over the box, for the
+ * text inside to fill with. */
+function glyphFill(el: Element, style: CSSStyleDeclaration, k: Walk): string | undefined {
+  const clip = `${style.backgroundClip} ${style.getPropertyValue("-webkit-background-clip")}`
+  if (!/text/.test(clip) || !style.backgroundImage || style.backgroundImage === "none") return undefined
+  const id = `glyphs-${k.defs.size + 1}`
+  // Over the layer's own tile (a moving headline's gradient is wider than
+  // its box, placed by its position at this moment).
+  const first = (v: string, d: string) => splitTop(v || d)[0] ?? d
+  const { tile } = tileOf(
+    first(style.backgroundSize, "auto"),
+    first(style.backgroundPosition, "0% 0%"),
+    first(style.backgroundRepeat, "repeat"),
+    boxOf(el.getBoundingClientRect(), k),
+    null,
+  )
+  const def = gradientDef(splitTop(style.backgroundImage)[0], tile, id, paintOf)
+  if (!def) return undefined
+  k.defs.set(id, def)
+  return id
+}
+
+function textNodes(node: Text, style: CSSStyleDeclaration, k: Walk, out: SvgNode[], a: number, glyphs?: string) {
   const raw = node.data
   if (!raw.trim()) return
-  const fill = paintOf(
+  const painted = paintOf(
     style.webkitTextFillColor && style.webkitTextFillColor !== style.color && paintOf(style.webkitTextFillColor)
       ? style.webkitTextFillColor
       : style.color,
   )
+  // Clear glyphs over a background clipped to them take that background.
+  const ref = painted ? undefined : glyphs
+  const fill = painted ?? (ref ? { hex: "#000000", alpha: 1 } : null)
   if (!fill) return
   const { font, spacing, cased, baseline } = typeOf(style)
   const size = font.size
@@ -233,7 +261,7 @@ function textNodes(node: Text, style: CSSStyleDeclaration, k: Walk, out: SvgNode
     const text = cased(pre ? l.text.replace(/\s+$/, "") : l.text.replace(/\s+/g, " ").trim())
     if (!text) continue
     if (l.x >= k.w || l.top >= k.h) continue
-    out.push({ t: "text", x: l.x, y: baseline(l.top, l.h), text, font, fill: withAlpha(fill, a), spacing })
+    out.push({ t: "text", x: l.x, y: baseline(l.top, l.h), text, font, fill: withAlpha(fill, a), ref, spacing })
   }
 }
 

@@ -37,7 +37,9 @@ export type SvgNode =
       ref?: string
       stroke?: Stroke
     }
-  | { t: "text"; x: number; y: number; text: string; font: Font; fill: Paint; spacing: number }
+  /** A line of text; `ref`, a gradient in the defs, paints it where the
+   * page clips a background to the glyphs. */
+  | { t: "text"; x: number; y: number; text: string; font: Font; fill: Paint; ref?: string; spacing: number }
   | { t: "cells"; d: string; fill: Paint }
   | { t: "image"; x: number; y: number; w: number; h: number; href: string; fit: string }
   /** An element of an inline SVG, copied with its paints written on it. */
@@ -331,7 +333,7 @@ function writeNode(node: SvgNode, id: (name: string) => string, pad: string): st
     }
     case "text": {
       const f = node.font
-      return `${pad}<text x="${num(node.x)}" y="${num(node.y)}" font-family="${xmlText(f.family)}" font-size="${num(f.size)}"${f.weight !== "400" && f.weight !== "normal" ? ` font-weight="${xmlText(f.weight)}"` : ""}${f.style !== "normal" ? ` font-style="${xmlText(f.style)}"` : ""}${node.spacing ? ` letter-spacing="${num(node.spacing)}"` : ""}${fillAttrs(node.fill)} xml:space="preserve">${xmlText(node.text)}</text>`
+      return `${pad}<text x="${num(node.x)}" y="${num(node.y)}" font-family="${xmlText(f.family)}" font-size="${num(f.size)}"${f.weight !== "400" && f.weight !== "normal" ? ` font-weight="${xmlText(f.weight)}"` : ""}${f.style !== "normal" ? ` font-style="${xmlText(f.style)}"` : ""}${node.spacing ? ` letter-spacing="${num(node.spacing)}"` : ""}${node.ref ? ` fill="url(#${node.ref})"` : fillAttrs(node.fill)} xml:space="preserve">${xmlText(node.text)}</text>`
     }
     case "cells":
       return `${pad}<path d="${node.d}"${fillAttrs(node.fill)} shape-rendering="crispEdges"/>`

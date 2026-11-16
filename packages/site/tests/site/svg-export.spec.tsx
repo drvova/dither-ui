@@ -271,6 +271,17 @@ describe("a box's paint as SVG", () => {
     expect(svg).toContain("<desc>Approximated from the page: a blurred or offset inset shadow, left out.</desc>")
   })
 
+  it("fills clear glyphs with the gradient their background is clipped to", () => {
+    const root = stage(
+      `<span data-box="0 0 120 20" style="display: block; color: transparent; background-clip: text; background-image: linear-gradient(90deg, rgb(255, 0, 0), rgb(0, 0, 255))">Beautifully dithered</span>`,
+    )
+    const svg = elementSvg(root, "Stage")!
+    expect(svg).toMatch(/<linearGradient id="(glyphs-\d+)"/)
+    expect(svg).toMatch(/<text [^>]*fill="url\(#glyphs-\d+\)"[^>]*>Beautifully dithered<\/text>/)
+    // The background shows only through the glyphs: no box of it is drawn.
+    expect(svg).not.toMatch(/<rect [^>]*fill="url\(#gradient-/)
+  })
+
   it("draws a control the browser draws as plain shapes, checked", () => {
     const root = stage(`<input type="checkbox" checked data-box="0 0 16 16" aria-label="Agree">`)
     const svg = elementSvg(root, "Stage")!
