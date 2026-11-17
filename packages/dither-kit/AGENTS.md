@@ -713,7 +713,11 @@ generated twin. Inside the kit every import is relative
   `triangulate` bridges each hole and ear-clips once, and each filled
   shape becomes a slab, caps and walls, a later shape a step in front;
   stroke-only shapes are lines; `Geometry.drawn` keeps a cap's diagonals
-  out of the wire; bounded by `MAX_POINTS`; guarded by
+  out of the wire; its own SMIL (`models/svg-motion.ts`: `animateMotion`
+  along a path, `rotate="auto"` unwound, and `animateTransform`
+  translate, rotate about a centre, scale, `keyTimes`, `additive`) as
+  node tracks, the motion outermost, framed by the viewBox when it
+  moves; path numbers in `models/svg-path.ts`; bounded by `MAX_POINTS`; guarded by
   `tests/svg-model.spec.ts`), and Gaussian captures (`splat`: the
   32-byte `.splat` record). Splats live in `splats.ts` (no world import; world.ts imports
   it): a `SplatCloud` (positions, covariances from scale and rotation,

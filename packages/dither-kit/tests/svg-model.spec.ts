@@ -3,6 +3,8 @@
 import { describe, expect, it } from "rstack/test"
 import { flattenPath, formatOf, nest, parseSvg, parseWorld, sniffFormat, triangulate } from "../src/engine/models"
 import { MAX_POINTS } from "../src/engine/models/svg"
+import { clockSeconds } from "../src/engine/models/svg-motion"
+import { nodeMatrices } from "../src/engine/world"
 
 const enc = (s: string) => new TextEncoder().encode(s)
 const svg = (body: string, box = "0 0 10 10") =>
@@ -167,5 +169,70 @@ describe("an SVG as a model", () => {
     const world = parseSvg(svg(path.repeat(20)))
     const points = world.meshes.reduce((s, m) => s + m.positions.length / 6, 0)
     expect(points).toBeLessThan(MAX_POINTS * 1.5)
+  })
+})
+
+describe("an SVG's own animation", () => {
+  const at = (world: ReturnType<typeof parseSvg>, t: number) => nodeMatrices(world, t)
+
+  it("reads SMIL clock values", () => {
+    expect([clockSeconds("2s"), clockSeconds("350ms"), clockSeconds("1.5"), clockSeconds("0:01.5")]).toEqual([
+      2, 0.35, 1.5, 1.5,
+    ])
+    expect(clockSeconds("indefinite")).toBe(0)
+  })
+
+  it("moves along a path paced by length, heading along it, the page's y turned over", () => {
+    const world = parseSvg(
+      svg(
+        `<g><animateMotion dur="4s" repeatCount="indefinite" rotate="auto" path="M0 0 H10 V10"/><rect width="1" height="1"/></g>`,
+      ),
+    )
+    expect(world.nodes).toHaveLength(1)
+    expect(world.duration).toBe(4)
+    const half = at(world, 2)[0]
+    expect(half[12]).toBeCloseTo(10)
+    expect(half[13]).toBeCloseTo(0)
+    // heading down the page is heading down the world: the x axis points to -y
+    const down = at(world, 3)[0]
+    expect(down[13]).toBeCloseTo(-5)
+    expect(down[1]).toBeCloseTo(-1)
+    // the drawing frames by its page, which the motion keeps to
+    expect(world.center[0]).toBe(5)
+    expect(world.radius).toBeCloseTo(Math.hypot(10, 10) / 2)
+  })
+
+  it("turns about its centre the long way when told to, and sums onto the element's own transform", () => {
+    const world = parseSvg(
+      svg(
+        `<g transform="translate(5 5)"><animateTransform attributeName="transform" type="rotate" values="0 1 0;360 1 0" dur="4s" additive="sum"/><rect width="2" height="1"/></g>`,
+      ),
+    )
+    const m = (t: number) => at(world, t)[0]
+    // a half turn about (1, 0), after the move to (5, 5): the origin lands at (7, 5)
+    expect(m(2)[12]).toBeCloseTo(7)
+    expect(m(2)[13]).toBeCloseTo(-5)
+    // a full turn is not the short way back to no turn at all
+    expect(m(1)[0]).toBeCloseTo(0)
+    expect(m(4)[0]).toBeCloseTo(1)
+  })
+
+  it("takes keyTimes, and a scale through zero turns a shape about", () => {
+    const world = parseSvg(
+      svg(
+        `<g><animateTransform attributeName="transform" type="scale" values="1 1;-1 1;-1 1" keyTimes="0;0.25;1" dur="4s"/><rect width="1" height="1"/></g>`,
+      ),
+    )
+    expect(at(world, 1)[0][0]).toBeCloseTo(-1)
+    expect(at(world, 0.5)[0][0]).toBeCloseTo(0)
+  })
+
+  it("stays still where nothing animates, and leaves an animation it cannot read", () => {
+    expect(parseSvg(svg('<rect width="1" height="1"/>')).nodes).toHaveLength(0)
+    const odd = parseSvg(
+      svg(`<g><animateTransform type="skewX" values="0;10" dur="1s"/><rect width="1" height="1"/></g>`),
+    )
+    expect(odd.nodes).toHaveLength(0)
+    expect(odd.meshes).toHaveLength(1)
   })
 })

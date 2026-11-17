@@ -4,6 +4,7 @@
 // through the same raster as any mesh (the GPU engine takes it when it is
 // big). Stroke-only shapes become lines on the front face. Later shapes
 // stand a step in front of earlier ones, as they paint in the drawing.
+// Its own SMIL animation (`svg-motion.ts`) plays on the kit clock.
 // Bounded like every parser: curves are cut by size, and a drawing stops
 // taking points past MAX_POINTS.
 
@@ -12,58 +13,24 @@ import type { Rgb } from "../palette"
 import { hexToRgb } from "../palette"
 import { MAX_NODES } from "./shared"
 import { parseXml, type XmlEl } from "./x3d"
+import { animatedNode } from "./svg-motion"
+import {
+  apply,
+  dist,
+  flattenPath,
+  IDENTITY,
+  mul,
+  nums,
+  parseTransform,
+  type Affine,
+  type Pt,
+  type Ring,
+} from "./svg-path"
+
+export { flattenPath, parseTransform } from "./svg-path"
 
 /** The most outline points one drawing is read into. */
 export const MAX_POINTS = 200_000
-
-type Pt = [number, number]
-type Ring = Pt[]
-/** A 2D affine transform: x' = a x + c y + e, y' = b x + d y + f. */
-type Affine = [number, number, number, number, number, number]
-const IDENTITY: Affine = [1, 0, 0, 1, 0, 0]
-
-const mul = (m: Affine, n: Affine): Affine => [
-  m[0] * n[0] + m[2] * n[1],
-  m[1] * n[0] + m[3] * n[1],
-  m[0] * n[2] + m[2] * n[3],
-  m[1] * n[2] + m[3] * n[3],
-  m[0] * n[4] + m[2] * n[5] + m[4],
-  m[1] * n[4] + m[3] * n[5] + m[5],
-]
-const apply = (m: Affine, [x, y]: Pt): Pt => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]]
-
-const nums = (s: string) => (s.match(/[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi) ?? []).map(Number)
-
-/** An SVG `transform` list. */
-export function parseTransform(s: string | undefined): Affine {
-  let m = IDENTITY
-  for (const [, op, args] of (s ?? "").matchAll(/(\w+)\s*\(([^)]*)\)/g)) {
-    const v = nums(args)
-    const rad = ((v[0] ?? 0) * Math.PI) / 180
-    const t: Affine | null =
-      op === "matrix" && v.length >= 6
-        ? [v[0], v[1], v[2], v[3], v[4], v[5]]
-        : op === "translate"
-          ? [1, 0, 0, 1, v[0] ?? 0, v[1] ?? 0]
-          : op === "scale"
-            ? [v[0] ?? 1, 0, 0, v[1] ?? v[0] ?? 1, 0, 0]
-            : op === "rotate"
-              ? mul(
-                  mul(
-                    [1, 0, 0, 1, v[1] ?? 0, v[2] ?? 0],
-                    [Math.cos(rad), Math.sin(rad), -Math.sin(rad), Math.cos(rad), 0, 0],
-                  ),
-                  [1, 0, 0, 1, -(v[1] ?? 0), -(v[2] ?? 0)],
-                )
-              : op === "skewX"
-                ? [1, 0, Math.tan(rad), 1, 0, 0]
-                : op === "skewY"
-                  ? [1, Math.tan(rad), 0, 1, 0, 0]
-                  : null
-    if (t) m = mul(m, t)
-  }
-  return m
-}
 
 const NAMED: Record<string, Rgb> = {
   black: [0, 0, 0],
@@ -90,177 +57,6 @@ export function parsePaint(s: string | undefined): Rgb | "none" | null {
     return [r || 0, g || 0, b || 0]
   }
   return NAMED[v] ?? null
-}
-
-// ---- outlines -----------------------------------------------------------------------
-
-/** Segments a curve of this (control polygon) length is cut into. */
-const steps = (len: number, tol: number) => Math.max(2, Math.min(64, Math.ceil(Math.sqrt(len / tol) * 2)))
-const dist = (a: Pt, b: Pt) => Math.hypot(b[0] - a[0], b[1] - a[1])
-
-/** A path's `d` as flattened subpaths, each flagged closed or open. `tol`
- * is the drawing's size over which a curve's cut stays invisible. */
-export function flattenPath(d: string, tol = 0.25): { ring: Ring; closed: boolean }[] {
-  const out: { ring: Ring; closed: boolean }[] = []
-  const toks = d.match(/[a-df-z]|[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi) ?? []
-  let i = 0
-  let cmd = ""
-  let cur: Pt = [0, 0]
-  let start: Pt = [0, 0]
-  let ring: Ring = []
-  let ctrl: Pt | null = null
-  let prev = ""
-  const num = () => +toks[i++]
-  const flag = () => {
-    // arc flags may be written without separators ("a1 1 0 011 1")
-    const t = toks[i]
-    if (t.length > 1 && (t[0] === "0" || t[0] === "1")) {
-      toks[i] = t.slice(1)
-      return t[0] === "1"
-    }
-    i++
-    return t === "1"
-  }
-  const end = (closed: boolean) => {
-    if (ring.length > 1) out.push({ ring, closed })
-    ring = []
-  }
-  const line = (p: Pt) => {
-    if (!ring.length) ring.push(cur)
-    ring.push(p)
-    cur = p
-  }
-  const cubic = (c1: Pt, c2: Pt, p: Pt) => {
-    const n = steps(dist(cur, c1) + dist(c1, c2) + dist(c2, p), tol)
-    const p0 = cur
-    for (let k = 1; k <= n; k++) {
-      const t = k / n
-      const u = 1 - t
-      line([
-        u * u * u * p0[0] + 3 * u * u * t * c1[0] + 3 * u * t * t * c2[0] + t * t * t * p[0],
-        u * u * u * p0[1] + 3 * u * u * t * c1[1] + 3 * u * t * t * c2[1] + t * t * t * p[1],
-      ])
-    }
-    ctrl = c2
-  }
-  const quad = (c: Pt, p: Pt) => {
-    const n = steps(dist(cur, c) + dist(c, p), tol)
-    const p0 = cur
-    for (let k = 1; k <= n; k++) {
-      const t = k / n
-      const u = 1 - t
-      line([u * u * p0[0] + 2 * u * t * c[0] + t * t * p[0], u * u * p0[1] + 2 * u * t * c[1] + t * t * p[1]])
-    }
-    ctrl = c
-  }
-  const arc = (rx: number, ry: number, phi: number, large: boolean, sweep: boolean, p: Pt) => {
-    rx = Math.abs(rx)
-    ry = Math.abs(ry)
-    if (!rx || !ry) return line(p)
-    // the endpoint form to the centre form (SVG 1.1, F.6.5)
-    const cos = Math.cos(phi)
-    const sin = Math.sin(phi)
-    const dx = (cur[0] - p[0]) / 2
-    const dy = (cur[1] - p[1]) / 2
-    const x1 = cos * dx + sin * dy
-    const y1 = -sin * dx + cos * dy
-    const grow = (x1 * x1) / (rx * rx) + (y1 * y1) / (ry * ry)
-    if (grow > 1) {
-      rx *= Math.sqrt(grow)
-      ry *= Math.sqrt(grow)
-    }
-    const num2 = rx * rx * ry * ry - rx * rx * y1 * y1 - ry * ry * x1 * x1
-    const k = (large === sweep ? -1 : 1) * Math.sqrt(Math.max(0, num2 / (rx * rx * y1 * y1 + ry * ry * x1 * x1)))
-    const cx1 = (k * rx * y1) / ry
-    const cy1 = (-k * ry * x1) / rx
-    const cx = cos * cx1 - sin * cy1 + (cur[0] + p[0]) / 2
-    const cy = sin * cx1 + cos * cy1 + (cur[1] + p[1]) / 2
-    const angle = (ux: number, uy: number, vx: number, vy: number) => Math.atan2(ux * vy - uy * vx, ux * vx + uy * vy)
-    const t0 = angle(1, 0, (x1 - cx1) / rx, (y1 - cy1) / ry)
-    let span = angle((x1 - cx1) / rx, (y1 - cy1) / ry, (-x1 - cx1) / rx, (-y1 - cy1) / ry)
-    if (!sweep && span > 0) span -= 2 * Math.PI
-    if (sweep && span < 0) span += 2 * Math.PI
-    const n = steps(Math.abs(span) * Math.max(rx, ry) * 1.5, tol)
-    for (let s = 1; s <= n; s++) {
-      const t = t0 + (span * s) / n
-      const ex = rx * Math.cos(t)
-      const ey = ry * Math.sin(t)
-      line(s === n ? p : [cos * ex - sin * ey + cx, sin * ex + cos * ey + cy])
-    }
-  }
-  while (i < toks.length) {
-    if (/[a-z]/i.test(toks[i])) cmd = toks[i++]
-    else if (!cmd) {
-      i++
-      continue
-    }
-    const rel = cmd === cmd.toLowerCase()
-    const at = (x: number, y: number): Pt => (rel ? [cur[0] + x, cur[1] + y] : [x, y])
-    const C = cmd.toUpperCase()
-    const need = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 }[C] ?? 0
-    if (C !== "Z" && i + need > toks.length) break
-    const reflected = (): Pt => (ctrl && "CSQT".includes(prev) ? [2 * cur[0] - ctrl[0], 2 * cur[1] - ctrl[1]] : cur)
-    const smoothOf = (letters: string): Pt => (ctrl && letters.includes(prev) ? reflected() : cur)
-    switch (C) {
-      case "M":
-        end(false)
-        cur = at(num(), num())
-        start = cur
-        // further pairs are lines
-        cmd = rel ? "l" : "L"
-        break
-      case "L":
-        line(at(num(), num()))
-        break
-      case "H":
-        line([rel ? cur[0] + num() : num(), cur[1]])
-        break
-      case "V":
-        line([cur[0], rel ? cur[1] + num() : num()])
-        break
-      case "C": {
-        const c1 = at(num(), num())
-        const c2 = at(num(), num())
-        cubic(c1, c2, at(num(), num()))
-        break
-      }
-      case "S": {
-        const c1 = smoothOf("CS")
-        const c2 = at(num(), num())
-        cubic(c1, c2, at(num(), num()))
-        break
-      }
-      case "Q": {
-        const c = at(num(), num())
-        quad(c, at(num(), num()))
-        break
-      }
-      case "T":
-        quad(smoothOf("QT"), at(num(), num()))
-        break
-      case "A": {
-        const rx = num()
-        const ry = num()
-        const phi = (num() * Math.PI) / 180
-        const large = flag()
-        const sweep = flag()
-        arc(rx, ry, phi, large, sweep, at(num(), num()))
-        break
-      }
-      case "Z":
-        if (ring.length) end(true)
-        cur = start
-        break
-      default:
-        i++
-    }
-    prev = C
-    if (!"CSQT".includes(C)) ctrl = null
-  }
-  end(false)
-  // a closed ring does not repeat its first point
-  for (const r of out) if (r.ring.length > 1 && dist(r.ring[0], r.ring[r.ring.length - 1]) < 1e-9) r.ring.pop()
-  return out.filter((r) => r.ring.length > (r.closed ? 2 : 1))
 }
 
 /** An element's outline as path data: the basic shapes written as paths. */
@@ -444,7 +240,7 @@ const styleOf = (el: XmlEl, key: string) =>
 /** An SVG drawing as a world of slabs. */
 export function parseSvg(text: string, opts: SvgOptions = {}): World {
   const world = emptyWorld()
-  const items: { rings: { ring: Ring; closed: boolean }[]; paint: Paint }[] = []
+  const items: { rings: { ring: Ring; closed: boolean }[]; node: number; paint: Paint }[] = []
   let points = 0
   let visited = 0
   const root = parseXml(text).children.find((c) => c.name === "svg" || c.name.endsWith(":svg"))
@@ -452,7 +248,9 @@ export function parseSvg(text: string, opts: SvgOptions = {}): World {
   const box = nums(root.attrs.viewBox ?? "")
   const size = box.length === 4 ? Math.max(box[2], box[3]) : parseFloat(root.attrs.width ?? "") || 100
   const tol = Math.max(size, 1) / 1000
-  const walk = (el: XmlEl, m: Affine, inherited: Paint) => {
+  // `m` runs from the frame of `node` (the nearest animated element, -1 for
+  // the page) to the element's parent
+  const walk = (el: XmlEl, m: Affine, node: number, inherited: Paint) => {
     if (++visited > MAX_NODES || points > MAX_POINTS) return
     if (
       ["defs", "clipPath", "mask", "symbol", "pattern", "linearGradient", "radialGradient", "style"].includes(el.name)
@@ -465,22 +263,25 @@ export function parseSvg(text: string, opts: SvgOptions = {}): World {
       stroke: stroke === undefined ? inherited.stroke : parsePaint(stroke),
     }
     if (styleOf(el, "display") === "none" || styleOf(el, "visibility") === "hidden") return
-    const here = mul(m, parseTransform(el.attrs.transform))
+    const own = parseTransform(el.attrs.transform)
+    const moving = animatedNode(world, el, m, own, node, tol)
+    const here = moving ? moving.local : mul(m, own)
+    const at = moving ? moving.node : node
     const d = pathOf(el)
     if (d) {
       const rings = flattenPath(d, tol).map((r) => ({ ring: r.ring.map((p) => apply(here, p)), closed: r.closed }))
       points += rings.reduce((s, r) => s + r.ring.length, 0)
-      if (rings.length) items.push({ rings, paint: el.name === "line" ? { ...paint, fill: "none" } : paint })
+      if (rings.length) items.push({ rings, node: at, paint: el.name === "line" ? { ...paint, fill: "none" } : paint })
     }
-    for (const c of el.children) walk(c, here, paint)
+    for (const c of el.children) walk(c, here, at, paint)
   }
   // SVG's default paint: filled black, no stroke
-  walk(root, IDENTITY, { fill: [0, 0, 0], stroke: "none" })
-  const depth = size * (opts.depth ?? 0.08)
+  walk(root, IDENTITY, -1, { fill: [0, 0, 0], stroke: "none" })
+  const depth = size * (opts.depth ?? 0.03)
   const step = depth * 0.04
   // y runs down the page and up the world
   const flip = ([x, y]: Pt): Pt => [x, -y]
-  items.forEach(({ rings, paint }, order) => {
+  items.forEach(({ rings, node, paint }, order) => {
     const front = order * step
     if (paint.fill !== "none") {
       const geo = slab(
@@ -488,7 +289,7 @@ export function parseSvg(text: string, opts: SvgOptions = {}): World {
         front,
         front - depth,
       )
-      if (geo) addMesh(world, geo, null, paint.fill ?? [204, 204, 204], true)
+      if (geo) addMesh(world, geo, null, paint.fill ?? [204, 204, 204], true, { node })
     } else if (paint.stroke && paint.stroke !== "none") {
       const pts: number[] = []
       const lines: number[][] = []
@@ -497,10 +298,16 @@ export function parseSvg(text: string, opts: SvgOptions = {}): World {
         for (const p of ring.map(flip)) pts.push(p[0], p[1], front)
         lines.push([...ring.map((_, k) => base + k), ...(closed ? [base] : [])])
       }
-      addMesh(world, { points: pts, faces: lines }, null, paint.stroke, false, { kind: "lines" })
+      addMesh(world, { points: pts, faces: lines }, null, paint.stroke, false, { kind: "lines", node })
     }
   })
-  return finishWorld(world)
+  finishWorld(world)
+  // a drawing that moves is framed by its page, which its motion keeps to
+  if (world.nodes.length && box.length === 4) {
+    world.center = [box[0] + box[2] / 2, -(box[1] + box[3] / 2), -depth / 2]
+    world.radius = Math.hypot(box[2], box[3]) / 2
+  }
+  return world
 }
 
 /** Shapes extruded between two depths: both caps (their triangulation's

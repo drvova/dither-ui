@@ -885,6 +885,11 @@ in the page's folder.
   `ROCKET` by `tests/site/example-copies.spec.ts`) drives one clock from
   its Launch key: the file's moment, then `scatter` blowing the pieces
   apart at the top; reduced motion goes straight to the debris.
+- The World section's whale (`components/examples/world-4.tsx`, guarded
+  by `tests/whale.spec.ts`) is our own whale, never another product's
+  mark: one SVG whose own SMIL swims it round a loop, turns it about at
+  each end (a scale through zero, smaller on the far side), bobs it and
+  beats its tail; the kit reads it as a model and plays it on its clock.
 - Live readings: the Gauge section's second card is an instrument panel
   reading the page itself (frames a second, the worst frame over the last
   half second, the page's elements in thousands), measured by its own rAF

@@ -23,6 +23,8 @@ import worldCode from "./examples/world.tsx?raw"
 import World2Example from "./examples/world-2"
 import world2Code from "./examples/world-2.tsx?raw"
 import World3Example from "./examples/world-3"
+import World4Example from "./examples/world-4"
+import world4Code from "./examples/world-4.tsx?raw"
 import world3Code from "./examples/world-3.tsx?raw"
 import ShaderExample from "./examples/shader"
 import shaderCode from "./examples/shader.tsx?raw"
@@ -141,6 +143,13 @@ export default function MediaDocs() {
         </p>
         <DemoCard code={world2Code}>
           <World2Example />
+        </DemoCard>
+        <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
+          An SVG is a model too: each filled shape is triangulated once into a slab, and the file's own animation plays
+          on the kit clock. This whale is one SVG: it swims a loop, turns about at each end, and beats its tail.
+        </p>
+        <DemoCard code={world4Code}>
+          <World4Example />
         </DemoCard>
         <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
           Gaussian splats print too: a capture is a cloud of soft ellipsoids, each laid on the cells as its footprint,

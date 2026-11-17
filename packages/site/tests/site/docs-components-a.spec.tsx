@@ -348,10 +348,11 @@ describe("MediaDocs", () => {
   it("stands the worlds under their names and brings the texture's aurora on its switch", () => {
     const { container } = shown(MediaDocs)
     const s = section(container, "world")
-    expect(cards(s)).toHaveLength(3)
+    expect(cards(s)).toHaveLength(4)
     expect([...s.querySelectorAll(".demo-well [role='img']")].map((el) => el.getAttribute("aria-label"))).toEqual([
       "Sample probe, seed 7",
       "A rocket that climbs and bursts",
+      "A whale swimming round",
       "The mascot as a Gaussian capture",
     ])
     const well = cards(s)[0].querySelector(".demo-well")!
@@ -367,7 +368,7 @@ describe("MediaDocs", () => {
     fireEvent.click(texture)
     expect(well.querySelector(".mb-2.h-\\[48px\\]")).toBeNull()
     expect(well.querySelector<HTMLSelectElement>("select")?.value).toBe("cpu")
-    expect((cards(s)[2].querySelector("input[type='checkbox']") as HTMLInputElement).checked).toBe(true)
+    expect((cards(s)[3].querySelector("input[type='checkbox']") as HTMLInputElement).checked).toBe(true)
   })
 
   it("flies the rocket on one clock from its key", () => {

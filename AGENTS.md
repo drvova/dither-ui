@@ -452,7 +452,7 @@ Default section order:
 - 3D + GLSL: the kit renders model files and fragment shaders through the
   same Bayer raster. `DitherWorld` (`@dither-ui/kit/engine/world.ts` engine,
   `models.ts` parsers, `world-gl.ts` GPU engine) loads VRML97 / VRML 1.0
-  `.wrl`, X3D, glTF / GLB, OBJ + MTL, STL, PLY, OFF and SVG (filled shapes extruded) by URL or inline,
+  `.wrl`, X3D, glTF / GLB, OBJ + MTL, STL, PLY, OFF and SVG (filled shapes extruded, its SMIL played) by URL or inline,
   and Gaussian splat captures (`.splat`, a trained capture's `.ply`;
   `engine/splats.ts`),
   plays the file's animations (VRML ROUTEs, glTF) on the kit clock, and
