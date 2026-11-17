@@ -22,6 +22,11 @@ function covered(points: Pt[], tris: number[]) {
 describe("an SVG as a model", () => {
   it("is named and sniffed apart from X3D", () => {
     expect(formatOf("logo.svg?v=1")).toBe("svg")
+    // a data URI by its media type, its payload never taken for a name
+    expect(formatOf(`data:image/svg+xml,${svg('<rect fill="#fff" width="1.off"/>')}`)).toBe("svg")
+    expect(formatOf("data:image/svg+xml;base64,PHN2Zy8+")).toBe("svg")
+    expect(formatOf("data:model/gltf-binary;base64,Z2xURg==")).toBe("gltf")
+    expect(formatOf("data:text/plain,a.obj")).toBeNull()
     expect(sniffFormat(enc(svg("")))).toBe("svg")
     expect(sniffFormat(enc(`<?xml version="1.0"?>\n${svg("")}`))).toBe("svg")
     expect(sniffFormat(enc('<?xml version="1.0"?><X3D></X3D>'))).toBe("x3d")
@@ -140,6 +145,16 @@ describe("an SVG as a model", () => {
     expect(Math.min(...xs)).toBeCloseTo(3, 1)
     const front = (m: typeof disc) => Math.max(...[...m.positions].filter((_, i) => i % 3 === 2))
     expect(front(stroke)).toBeGreaterThan(front(disc))
+  })
+
+  it("loads from a data URI as the component fetches it, URL-encoded or base64", async () => {
+    const text = svg('<polygon points="0,0 10,0 5,8" fill="#ff8000"/>')
+    for (const uri of [`data:image/svg+xml,${encodeURIComponent(text)}`, `data:image/svg+xml;base64,${btoa(text)}`]) {
+      const bytes = await (await fetch(uri)).arrayBuffer()
+      const world = parseWorld(bytes, formatOf(uri) ?? "auto")
+      expect(world.meshes[0].indices.length / 3).toBe(8)
+      expect(world.palette[world.meshes[0].color]).toEqual([255, 128, 0])
+    }
   })
 
   it("is the same world through parseWorld, by name or by bytes", () => {

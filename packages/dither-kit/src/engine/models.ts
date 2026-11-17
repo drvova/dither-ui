@@ -45,8 +45,23 @@ export { flattenPath, nest, parseSvg, triangulate } from "./models/svg"
 export const MODEL_FORMATS = ["vrml", "x3d", "obj", "stl", "ply", "off", "gltf", "splat", "svg"] as const
 export type ModelFormat = (typeof MODEL_FORMATS)[number]
 
-/** Format from a file name or URL (query/hash ignored), null when unknown. */
+/** A data URI's media types, as the formats they carry. */
+const MEDIA: Record<string, ModelFormat> = {
+  "image/svg+xml": "svg",
+  "model/gltf+json": "gltf",
+  "model/gltf-binary": "gltf",
+  "model/vrml": "vrml",
+  "model/x3d+vrml": "vrml",
+  "model/x3d+xml": "x3d",
+  "model/obj": "obj",
+  "model/stl": "stl",
+  "model/ply": "ply",
+}
+
+/** Format from a file name or URL (query/hash ignored), or a data URI's
+ * media type (its payload never read as a name); null when unknown. */
 export function formatOf(name: string): ModelFormat | null {
+  if (/^data:/i.test(name)) return MEDIA[name.slice(5).split(/[;,]/)[0].trim().toLowerCase()] ?? null
   const ext = name
     .split(/[?#]/)[0]
     .toLowerCase()

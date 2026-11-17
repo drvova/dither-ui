@@ -101,7 +101,8 @@ export type DitherWorldApi = { surface: DitherSurface }
 
 export type DitherWorldProps = {
   /** URL of a model: .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj (+ .mtl), .stl, .ply, .off, an .svg
-   * (its filled shapes extruded into slabs), or a Gaussian capture (.splat, or a trained capture's .ply).
+   * (its filled shapes extruded into slabs), or a Gaussian capture (.splat, or a trained capture's .ply);
+   * a data URI too, its format read from its media type (`data:image/svg+xml,...`).
    * @docs string: URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply,
    *   .off, .svg (extruded), or a Gaussian capture (.splat, a trained .ply)
    * @default undefined */
