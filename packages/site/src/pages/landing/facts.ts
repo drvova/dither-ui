@@ -67,4 +67,5 @@ export const MODEL_NAMES: Record<ModelFormat, string> = {
   off: "OFF",
   gltf: "glTF and GLB",
   splat: "Gaussian splats",
+  svg: "SVG",
 }

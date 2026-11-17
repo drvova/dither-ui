@@ -707,8 +707,15 @@ generated twin. Inside the kit every import is relative
   two-sided, z-up swung to y-up by default), PLY (ASCII, binary little and
   big endian; vertex and face colours, edges, point clouds; a binary vertex
   element of float32 Gaussians, a trained capture, becomes splats) and OFF
-  (face colours), and Gaussian captures (`splat`: the 32-byte `.splat`
-  record). Splats live in `splats.ts` (no world import; world.ts imports
+  (face colours), SVG (`models/svg.ts`: paths with every command,
+  arcs and packed flags, the basic shapes, `transform`, inherited
+  `fill`/`stroke`; rings nested even-odd into outlines and holes,
+  `triangulate` bridges each hole and ear-clips once, and each filled
+  shape becomes a slab, caps and walls, a later shape a step in front;
+  stroke-only shapes are lines; `Geometry.drawn` keeps a cap's diagonals
+  out of the wire; bounded by `MAX_POINTS`; guarded by
+  `tests/svg-model.spec.ts`), and Gaussian captures (`splat`: the
+  32-byte `.splat` record). Splats live in `splats.ts` (no world import; world.ts imports
   it): a `SplatCloud` (positions, covariances from scale and rotation,
   colours, opacities, at most `MAX_SPLATS`, every k-th past it) on
   `World.splats`, its colours snapping to a 6-level colour cube in the

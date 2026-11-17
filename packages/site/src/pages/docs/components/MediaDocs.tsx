@@ -125,10 +125,11 @@ export default function MediaDocs() {
       {/* World (3D) */}
       <DocSection id="world">
         <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          A 3D model viewer in the house raster: VRML, X3D, glTF / GLB, OBJ with its MTL, STL, PLY, OFF and Gaussian
-          splats, by URL or inline, drawn on the CPU or through WebGL for big meshes. Files bring their own materials,
-          lights and animations, played on the kit clock; any kit surface can skin the model (the aurora below), and any
-          model comes apart along its seams and builds itself back. Drag to orbit.
+          A 3D model viewer in the house raster: VRML, X3D, glTF / GLB, OBJ with its MTL, STL, PLY, OFF, SVG (each
+          filled shape extruded into a slab) and Gaussian splats, by URL or inline, drawn on the CPU or through WebGL
+          for big meshes. Files bring their own materials, lights and animations, played on the kit clock; any kit
+          surface can skin the model (the aurora below), and any model comes apart along its seams and builds itself
+          back. Drag to orbit.
         </p>
         <DemoCard code={worldCode}>
           <WorldExample />

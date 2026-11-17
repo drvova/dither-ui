@@ -87,7 +87,7 @@ export default function Example() {
           <DitherAurora colors={["#1f6fd6", "#9ec5ff", "#ffffff"]} speed={0.8} class="mb-2 h-[48px]" />
         </Source>
       </Show>
-      {/* .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off, .splat:
+      {/* .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj + .mtl, .stl, .ply, .off, .svg, .splat:
            by URL (src) or inline (source). The file's materials, lights, viewpoint
            and animations are honoured. CPU engine by default (same bytes everywhere,
            frame-exact in the video export); engine="gpu" rasterizes big meshes

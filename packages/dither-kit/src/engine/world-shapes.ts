@@ -10,7 +10,17 @@ import type { Vec3 } from "./world-math"
  * texture coordinates — st pairs per point (`uvs`), or per corner when
  * `faceUvs` indexes `uvs` ring by ring (a point on a seam then bakes into
  * one vertex per uv it is used with). (0, 0) is the texture's top-left. */
-export type Geometry = { points: number[]; faces: number[][]; colors?: number[]; uvs?: number[]; faceUvs?: number[][] }
+export type Geometry = {
+  points: number[]
+  faces: number[][]
+  colors?: number[]
+  uvs?: number[]
+  faceUvs?: number[][]
+  /** Per face, which of its outline edges the wire draws (edge k runs from
+   * corner k to k + 1); every edge when absent. A triangulated cap hides
+   * its diagonals so. */
+  drawn?: boolean[][]
+}
 
 /** Texture coordinates: a pair's index for the per-corner rings. */
 const pairs = (uvs: number[]) => (s: number, t: number) => uvs.push(s, t) / 2 - 1

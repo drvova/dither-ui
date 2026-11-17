@@ -224,7 +224,12 @@ export function addMesh(
         indices.push(ring[0], ring[k], ring[k + 1])
         tri.push(f)
       }
-      for (let k = 0; k < n; k++) edges.push(ring[k], ring[(k + 1) % n], tri0 + Math.min(Math.max(k - 1, 0), n - 3))
+      const shown = geo.drawn?.[f]
+      for (let k = 0; k < n; k++) {
+        // a reversed ring's edge k is the file's edge n - 2 - k
+        if (shown && !shown[flip ? (2 * n - 2 - k) % n : k]) continue
+        edges.push(ring[k], ring[(k + 1) % n], tri0 + Math.min(Math.max(k - 1, 0), n - 3))
+      }
     })
     if (corners) {
       positions = Float32Array.from(xyz)

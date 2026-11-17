@@ -2,7 +2,8 @@
 // VRML97 / X3D classic and VRML 1.0 (.wrl), X3D XML (.x3d), glTF 2.0 (.gltf
 // with data: URIs or pre-fetched buffers, .glb), Wavefront OBJ (+ MTL
 // colours), STL (ASCII + binary), PLY (ASCII + binary; a trained capture's
-// Gaussians become splats), the `.splat` capture and OFF. Lenient by
+// Gaussians become splats), the `.splat` capture, OFF and SVG (each filled
+// shape triangulated and extruded into a slab). Lenient by
 // design — unknown nodes are walked for children and otherwise ignored, bad
 // indices are dropped, nothing throws on a file that is merely odd. Bounded
 // too: a file's counts are held to the data it carries and a scene graph is
@@ -27,6 +28,7 @@ import { parseOff } from "./models/off"
 import { gltfJson, parseGltf } from "./models/gltf"
 import { parseX3d } from "./models/x3d"
 import { parseVrml } from "./models/vrml"
+import { parseSvg } from "./models/svg"
 
 export { MAX_NODES, splatWorld } from "./models/shared"
 export { parseMtl, parseObj } from "./models/obj"
@@ -37,9 +39,10 @@ export { parseGltf } from "./models/gltf"
 export { parseVrmlNodes, tokenizeVrml, type VrmlNode, type VrmlRoute, type VrmlValue } from "./models/vrml-grammar"
 export { parseX3d, parseXml } from "./models/x3d"
 export { facesOf, parseVrml, vrmlTransform } from "./models/vrml"
+export { flattenPath, nest, parseSvg, triangulate } from "./models/svg"
 
 /** Every format the kit reads (VRML covers 97 and 1.0, glTF covers GLB). */
-export const MODEL_FORMATS = ["vrml", "x3d", "obj", "stl", "ply", "off", "gltf", "splat"] as const
+export const MODEL_FORMATS = ["vrml", "x3d", "obj", "stl", "ply", "off", "gltf", "splat", "svg"] as const
 export type ModelFormat = (typeof MODEL_FORMATS)[number]
 
 /** Format from a file name or URL (query/hash ignored), null when unknown. */
@@ -68,6 +71,8 @@ export function formatOf(name: string): ModelFormat | null {
       return "gltf"
     case "splat":
       return "splat"
+    case "svg":
+      return "svg"
     default:
       return null
   }
@@ -79,7 +84,7 @@ export function sniffFormat(bytes: Uint8Array): ModelFormat {
     return "gltf"
   const head = decode(bytes.subarray(0, Math.min(1024, bytes.length))).trimStart()
   if (head.startsWith("#VRML") || head.startsWith("#X3D")) return "vrml"
-  if (head.startsWith("<")) return "x3d"
+  if (head.startsWith("<")) return /<svg[\s>]/.test(head) ? "svg" : "x3d"
   if (head.startsWith("{") && /"asset"/.test(head)) return "gltf"
   if (/^ply\s/.test(head)) return "ply"
   if (/^(C|N|4|ST)*OFF\s/.test(head)) return "off"
@@ -145,7 +150,9 @@ export function parseWorld(
                 ? splatWorld(parseSplat(bytes))
                 : fmt === "x3d"
                   ? parseX3d(text())
-                  : parseVrml(text())
+                  : fmt === "svg"
+                    ? parseSvg(text())
+                    : parseVrml(text())
   const up = opts.up ?? (fmt === "stl" ? "z" : world.splats ? "-y" : "y")
   if (up !== "y") {
     // a turn about x: a quarter for z-up, a half for y-down

@@ -119,6 +119,7 @@ const triangle = (): Record<ModelFormat, string | Uint8Array> => {
     off: "OFF\n3 1 0\n0 0 0\n1 0 0\n0 1 0\n3 0 1 2\n",
     gltf: JSON.stringify(gltf),
     splat: gaussian(),
+    svg: '<svg viewBox="0 0 1 1"><polygon points="0,0 1,0 0,1"/></svg>',
   }
 }
 

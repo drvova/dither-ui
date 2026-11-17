@@ -100,18 +100,18 @@ export {
 export type DitherWorldApi = { surface: DitherSurface }
 
 export type DitherWorldProps = {
-  /** URL of a model: .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj (+ .mtl), .stl, .ply, .off, or a
-   * Gaussian capture (.splat, or a trained capture's .ply).
+  /** URL of a model: .wrl (VRML97 / 1.0), .x3d, .gltf / .glb, .obj (+ .mtl), .stl, .ply, .off, an .svg
+   * (its filled shapes extruded into slabs), or a Gaussian capture (.splat, or a trained capture's .ply).
    * @docs string: URL of .wrl (VRML97 / 1.0 / X3D classic), .x3d, .gltf / .glb (+ .bin), .obj (+ .mtl), .stl, .ply,
-   *   .off, or a Gaussian capture (.splat, a trained .ply)
+   *   .off, .svg (extruded), or a Gaussian capture (.splat, a trained .ply)
    * @default undefined */
   src?: string
-  /** Inline model text (VRML, X3D, glTF JSON, OBJ, ASCII STL / PLY, OFF): wins over `src`.
+  /** Inline model text (VRML, X3D, glTF JSON, OBJ, ASCII STL / PLY, OFF, SVG): wins over `src`.
    * @docs string: inline model text; wins over src
    * @default undefined */
   source?: string
   /** File format; "auto" reads the name, then the bytes.
-   * @docs "auto" | "vrml" | "x3d" | "gltf" | "obj" | "stl" | "ply" | "off" */
+   * @docs "auto" | "vrml" | "x3d" | "gltf" | "obj" | "stl" | "ply" | "off" | "svg" */
   format?: ModelFormat | "auto"
   /** The file's up axis; "auto" is y, z for STL, -y (a capture's camera space) for splats.
    * @docs "auto" | "y" | "z" | "-y": the file's up axis (STL defaults to z, a capture to -y) */

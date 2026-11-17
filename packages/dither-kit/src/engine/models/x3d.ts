@@ -5,7 +5,7 @@ import { emptyWorld, finishWorld, type World } from "../world-scene"
 import { isNumber, type VrmlNode, type VrmlRoute, type VrmlValue } from "./vrml-grammar"
 import { buildV2 } from "./vrml"
 
-type XmlEl = { name: string; attrs: Record<string, string>; children: XmlEl[] }
+export type XmlEl = { name: string; attrs: Record<string, string>; children: XmlEl[] }
 
 const XML_ENTITIES: Record<string, string> = { quot: '"', amp: "&", lt: "<", gt: ">", apos: "'" }
 const unescapeXml = (s: string) =>

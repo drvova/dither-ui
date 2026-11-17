@@ -108,6 +108,7 @@ describe("the format list", () => {
       "a.gltf",
       "a.glb",
       "a.splat",
+      "a.svg",
     ].map(formatOf)
     expect(new Set(named)).toEqual(new Set(MODEL_FORMATS))
   })
