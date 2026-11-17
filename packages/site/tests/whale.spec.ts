@@ -1,43 +1,41 @@
-// The World section's whale: one SVG that carries its own swim, read by the
-// kit as a model. It rounds its loop, faces the way it swims, and beats its tail.
-import { readFileSync } from "node:fs"
+// The World section's whale: a file the kit reads, a chain of segments that
+// one wave bends more toward the tail, so the body swims.
 import { describe, expect, it } from "rstack/test"
 import { parseWorld } from "@dither-ui/kit/engine/models.ts"
 import { nodeMatrices } from "@dither-ui/kit/engine/world.ts"
+import { STROKE_S, WHALE } from "@/pages/docs/components/whale"
 
-const source = readFileSync(new URL("../src/pages/docs/components/examples/world-4.tsx", import.meta.url), "utf8")
-const whale = /^const WHALE = `([\s\S]*?)`$/m.exec(source)![1]
-const world = parseWorld(whale, "auto")
-const at = (t: number) => nodeMatrices(world, t)
+const world = parseWorld(WHALE, "vrml")
+/** How far a node's own frame is turned from its parent's, in radians, at `t`. */
+function bend(node: number, t: number) {
+  const m = nodeMatrices(world, t)
+  const own = m[node]
+  const parent = m[world.nodes[node].parent]
+  return Math.atan2(own[1], own[0]) - Math.atan2(parent[1], parent[0])
+}
 
 describe("the whale", () => {
-  it("is an SVG the kit reads, its body, belly, fin, eye and tail each a slab", () => {
-    expect(world.meshes).toHaveLength(5)
-    // the loop, the turn, the bob, the tail
-    expect(world.nodes).toHaveLength(4)
-    expect(world.duration).toBe(14)
+  it("is a body of segments, its fins, flukes and eyes riding on them", () => {
+    // the whole whale, then a node a segment
+    expect(world.nodes).toHaveLength(7)
+    expect(world.meshes.length).toBeGreaterThanOrEqual(12)
+    expect(world.duration).toBeCloseTo(STROKE_S)
   })
 
-  it("rounds its loop, away to the left and back to the right", () => {
-    const [x0, y0] = [at(0)[0][12], at(0)[0][13]]
-    const far = at(3.5)[0]
-    const near = at(10.5)[0]
-    expect(far[13]).toBeGreaterThan(y0)
-    expect(near[13]).toBeLessThan(y0)
-    expect(at(7)[0][12]).toBeLessThan(x0 - 150)
-  })
-
-  it("faces the way it swims, smaller on the far side", () => {
-    // the turn node's x axis, after the loop's
-    const facing = (t: number) => at(t)[1][0]
-    expect(facing(3.5)).toBeLessThan(0)
-    expect(facing(10.5)).toBeGreaterThan(0)
-    expect(Math.abs(facing(3.5))).toBeLessThan(facing(10.5))
-  })
-
-  it("beats its tail about the tail's root", () => {
-    const tail = world.meshes[0]
-    const tilt = (t: number) => Math.atan2(at(t)[tail.node][1], at(t)[tail.node][0])
-    expect(Math.abs(tilt(0.4) - tilt(1.2))).toBeGreaterThan(0.3)
+  it("bends more toward the tail, and the bend travels down it", () => {
+    const swing = (node: number) => {
+      let most = 0
+      for (let i = 0; i < 16; i++) most = Math.max(most, Math.abs(bend(node, (i / 16) * STROKE_S)))
+      return most
+    }
+    expect(swing(6)).toBeGreaterThan(swing(3))
+    expect(swing(3)).toBeGreaterThan(swing(2))
+    // the tail lags the middle: its peak comes later in the stroke
+    const peak = (node: number) => {
+      let best = 0
+      for (let i = 1; i < 64; i++) if (bend(node, (i / 64) * STROKE_S) > bend(node, (best / 64) * STROKE_S)) best = i
+      return best
+    }
+    expect((peak(6) - peak(3) + 64) % 64).toBeGreaterThan(0)
   })
 })

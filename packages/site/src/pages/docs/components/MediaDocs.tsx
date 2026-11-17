@@ -145,8 +145,9 @@ export default function MediaDocs() {
           <World2Example />
         </DemoCard>
         <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
-          An SVG is a model too: each filled shape is triangulated once into a slab, and the file's own animation plays
-          on the kit clock. This whale is one SVG: it swims a loop, turns about at each end, and beats its tail.
+          A file's animation can bend a body. This whale is a VRML file of segments, each hinged inside the one before,
+          and one wave that grows toward the tail swims it; the page cuts between poses through the kit's own dissolve,
+          the cells growing coarse and the pieces drifting apart.
         </p>
         <DemoCard code={world4Code}>
           <World4Example />

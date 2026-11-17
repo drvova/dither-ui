@@ -4,8 +4,10 @@
 import { describe, expect, it } from "vitest"
 import { sampleShader, sampleWorld } from "@dither-ui/kit"
 import { ROCKET } from "@/pages/docs/components/rocket"
+import { WHALE } from "@/pages/docs/components/whale"
 import world from "@/pages/docs/components/examples/world.tsx?raw"
 import rocket from "@/pages/docs/components/examples/world-2.tsx?raw"
+import whale from "@/pages/docs/components/examples/world-4.tsx?raw"
 import shader from "@/pages/docs/components/examples/shader.tsx?raw"
 
 /** The text of the template literal a module declares as `name`. */
@@ -16,9 +18,10 @@ function literal(source: string, name: string): string {
 }
 
 describe("the files the docs' examples carry", () => {
-  it("are the kit's seeded world and shader, and the site's rocket, as written", () => {
+  it("are the kit's seeded world and shader, and the site's rocket and whale, as written", () => {
     expect(literal(world, "WORLD")).toBe(sampleWorld(7))
     expect(literal(shader, "SHADER")).toBe(sampleShader(3))
     expect(literal(rocket, "ROCKET")).toBe(ROCKET)
+    expect(literal(whale, "WHALE")).toBe(WHALE)
   })
 })

@@ -352,7 +352,7 @@ describe("MediaDocs", () => {
     expect([...s.querySelectorAll(".demo-well [role='img']")].map((el) => el.getAttribute("aria-label"))).toEqual([
       "Sample probe, seed 7",
       "A rocket that climbs and bursts",
-      "A whale swimming round",
+      "A whale swimming",
       "The mascot as a Gaussian capture",
     ])
     const well = cards(s)[0].querySelector(".demo-well")!
