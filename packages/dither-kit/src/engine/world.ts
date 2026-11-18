@@ -16,7 +16,7 @@
 // (`world-shapes.ts`), the scene and its animation (`world-scene.ts`) and
 // the default content (`world-sample.ts`).
 
-import { nodeMatrices, posedPositions, type World, type WorldMesh } from "./world-scene"
+import { morphedMesh, nodeMatrices, posedPositions, type World, type WorldMesh } from "./world-scene"
 import type { Mat4 } from "./world-math"
 import { clamp01 } from "./pixel"
 import { sampleRgbGradient, type Rgb } from "./palette"
@@ -286,10 +286,10 @@ function rasterizeMeshes(world: World, view: WorldView, target: WorldTarget, sty
 
   for (const mesh of world.meshes) {
     if (mesh.kind !== "faces") continue
-    project(c, world, posedPositions(mesh, mats))
+    project(c, world, posedPositions(mesh, mats, view.time ?? 0))
     const grain = grainAmt > 0 ? meshGrain(mesh, world, style.seed ?? 0, style.grainScale ?? 4) : null
     const muv = mesh.uv
-    const smooth = mesh.normals
+    const smooth = morphedMesh(mesh, view.time ?? 0).normals
     const pose = mesh.node >= 0 && mats ? mats[mesh.node] : null
     const tc = mesh.indices.length / 3
     for (let t = 0; t < tc; t++) {
@@ -579,7 +579,7 @@ export function drawOverlays(
     if (faces && !style.wire) continue
     const mc = style.material ? world.palette[mesh.color] : top ? top : style.fill
     const [r, g, b] = mc
-    project(c, world, posedPositions(mesh, mats))
+    project(c, world, posedPositions(mesh, mats, view.time ?? 0))
     if (faces) {
       for (let e = 0; e < mesh.edges.length; e += 3) {
         if (mesh.solid) {

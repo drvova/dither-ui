@@ -20,6 +20,9 @@ export type Geometry = {
    * corner k to k + 1); every edge when absent. A triangulated cap hides
    * its diagonals so. */
   drawn?: boolean[][]
+  /** The points keyed over time (VRML's CoordinateInterpolator): `frames[k]`
+   * is every point at `key[k]` seconds, in the order of `points`. */
+  morph?: { key: number[]; frames: number[][]; duration: number; loop: boolean; start: number }
 }
 
 /** Texture coordinates: a pair's index for the per-corner rings. */

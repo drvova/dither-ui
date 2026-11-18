@@ -145,9 +145,10 @@ export default function MediaDocs() {
           <World2Example />
         </DemoCard>
         <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
-          A file's animation can bend a body. This whale is a VRML file of segments, each hinged inside the one before,
-          curled at rest and swum by one wave that grows toward the tail. The page cuts between poses: the whale breaks
-          into coarse cells that drift apart, and the new pose prints back block by block through a reveal.
+          A file's animation can bend a body. This whale is one smooth surface in a VRML file, curled at rest; a
+          CoordinateInterpolator keys all its points as a wave runs down its spine, so it swims with no joint anywhere.
+          The page cuts between poses: the whale breaks into coarse cells that drift apart, and the new pose prints back
+          block by block through a reveal.
         </p>
         <DemoCard code={world4Code}>
           <World4Example />

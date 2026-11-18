@@ -273,7 +273,7 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
       let cageFloats = 0
       faces.forEach(({ m }, fi) => {
         const o = outFaces[fi]
-        const src = posedPositions(m, mats)
+        const src = posedPositions(m, mats, view.time ?? 0)
         const of = vertexPiece[fi]
         for (let k = 0; k < of.length; k++) {
           const pi = of[k]
@@ -340,6 +340,7 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
           edges: o.edges.subarray(0, e),
           // pieces turn apart: a mid-build shades flat, its corners' blend gone
           normals: null,
+          morph: null,
           // Turned pieces show their backs; nothing is culled mid-build.
           solid: m.solid && build >= 1 && scatter <= 0,
           node: -1,
@@ -351,7 +352,8 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
       for (const m of rest)
         meshes.push({
           ...m,
-          positions: new Float32Array(posedPositions(m, mats)),
+          positions: new Float32Array(posedPositions(m, mats, view.time ?? 0)),
+          morph: null,
           normals: null,
           node: -1,
           scratch: undefined,
@@ -371,6 +373,8 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
           triColors: null,
           uv: null,
           normals: null,
+          crease: 0,
+          morph: null,
           solid: false,
           kind: "points",
           node: -1,

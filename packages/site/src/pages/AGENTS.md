@@ -888,13 +888,16 @@ in the page's folder.
 - The World section's whale (`components/examples/world-4.tsx`, guarded
   by `tests/site/whale.spec.tsx`) is our own whale, never another
   product's mark or mascot, with no face: the example builds its VRML
-  file from a shape table (a body lofted every 2% of its length, domed
-  ends, flattened spheres for flippers and flukes, so nothing ends in a
-  point), cut into segments hinged one inside the next, curled at rest,
-  a cream belly by face colour, wandering and rolling on a slower clock;
-  it cuts between poses through the kit's own parts (coarser `cell` and a
-  little `scatter` out, a `DitherReveal` in), only while on screen;
-  reduced motion holds the first pose. No target boxes, readouts or HUD.
+  file from a shape table, ONE surface (the body lofted every 2.5% of its
+  length between domed ends, flippers and flukes as flattened
+  ellipsoids in the same face set, so nothing ends in a point and no joint
+  shows), curled at rest and swum by a `CoordinateInterpolator` that keys
+  every point as a wave runs down the spine, a cream belly by face
+  colour, smooth by `creaseAngle`, wandering and rolling on a slower
+  clock; it cuts between poses through the kit's own parts (coarser
+  `cell` and a little `scatter` out, a `DitherReveal` in), only while on
+  screen; reduced motion holds the first pose. No target boxes, readouts
+  or HUD.
 - Live readings: the Gauge section's second card is an instrument panel
   reading the page itself (frames a second, the worst frame over the last
   half second, the page's elements in thousands), measured by its own rAF

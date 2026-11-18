@@ -243,6 +243,34 @@ const NODE_FIELDS: Record<string, "translation" | "rotation" | "scale"> = {
   scale: "scale",
 }
 
+/** The points ROUTEd into a DEF'd Coordinate (`set_point`) by a
+ * CoordinateInterpolator a TimeSensor drives: a frame of every point a key. */
+function morphFor(name: string, count: number, routes: VrmlRoute[], byName: Map<string, VrmlNode>): Geometry["morph"] {
+  for (const r of routes) {
+    if (r.to !== name || (r.toField !== "set_point" && r.toField !== "point")) continue
+    const interp = byName.get(r.from)
+    if (!interp || interp.type !== "CoordinateInterpolator") continue
+    const clockRoute = routes.find((q) => q.to === r.from && TIME_FIELDS.has(q.toField))
+    const clock = clockRoute && byName.get(clockRoute.from)
+    if (!clock || clock.type !== "TimeSensor") continue
+    const cycle = nums(clock, "cycleInterval", [1])[0] || 1
+    const keys = nums(interp, "key", [])
+    const raw = nums(interp, "keyValue", [])
+    // a frame per key, every point in each: anything short is not a morph
+    if (!keys.length || !count || raw.length < keys.length * count * 3) continue
+    const frames = keys.map((_, k) => raw.slice(k * count * 3, (k + 1) * count * 3))
+    const startRaw = nums(clock, "startTime", [0])[0]
+    return {
+      key: keys.map((k) => k * cycle),
+      frames,
+      duration: cycle,
+      loop: flag(clock, "loop", false),
+      start: Number.isFinite(startRaw) && startRaw < 1e6 ? startRaw : 0,
+    }
+  }
+  return undefined
+}
+
 /** The tracks ROUTEd into a DEF'd Transform: interpolators driven by TimeSensors. */
 function tracksFor(
   name: string,
@@ -332,6 +360,9 @@ export function buildV2(nodes: VrmlNode[], routes: VrmlRoute[], world: World): v
           const geometry = children(n, "geometry")[0]
           const built = geometry ? geometryOf(geometry, null) : null
           if (built) {
+            // a face set whose Coordinate an interpolator keys moves its own points
+            const coord = built.kind === "faces" && geometry ? children(geometry, "coord")[0] : undefined
+            if (coord?.name) built.geo.morph = morphFor(coord.name, built.geo.points.length / 3, routes, byName)
             const { color, glow } = materialColor(n, built.kind)
             addMesh(world, built.geo, m, color, built.solid, {
               ccw: built.ccw,

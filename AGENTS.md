@@ -455,7 +455,7 @@ Default section order:
   `.wrl`, X3D, glTF / GLB, OBJ + MTL, STL, PLY, OFF and SVG (filled shapes extruded, its SMIL played) by URL or inline,
   and Gaussian splat captures (`.splat`, a trained capture's `.ply`;
   `engine/splats.ts`),
-  plays the file's animations (VRML ROUTEs, glTF) on the kit clock, and
+  plays the file's animations (VRML ROUTEs, a face set's keyed points, glTF) on the kit clock, and
   rasterizes on the CPU (byte-exact, video-safe) or through WebGL for big
   meshes — both into one shared dither pass that also runs the palette
   ramp, fbm grain and bloom engines. `DitherShader` (`shader.ts`, `gl.ts`)

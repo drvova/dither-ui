@@ -1,10 +1,11 @@
 // Smooth shading: a face set's creaseAngle (and every sphere) blends each
 // triangle corner's light across it, so a curved surface shades without
 // facets; an edge sharper than the angle stays a crease, and a file that
-// asks nothing shades flat, byte for byte as before.
+// asks nothing shades flat, byte for byte as before. A face set's points
+// keyed by a CoordinateInterpolator move on the clock, their normals with them.
 import { describe, expect, it } from "rstack/test"
 import { parseVrml } from "../src/engine/models"
-import { cornerNormals } from "../src/engine/world-scene"
+import { cornerNormals, morphedMesh, posedPositions } from "../src/engine/world-scene"
 import { createWorldTarget, rasterizeWorld, type WorldStyle } from "../src/engine/world"
 import { BAYER4 } from "../src/engine/pixel"
 
@@ -57,5 +58,51 @@ describe("smooth shading", () => {
     const plain = shadesOf(cube(0))
     // every corner keeps its face: the same picture as flat shading
     expect([...kept.target.shade]).toEqual([...plain.target.shade])
+  })
+})
+
+describe("points that move (CoordinateInterpolator)", () => {
+  /** A square whose top edge rises and falls, keyed by its own clock. */
+  const file = (crease = 0) => `#VRML V2.0 utf8
+Shape { geometry IndexedFaceSet { creaseAngle ${crease}
+  coord DEF SKIN Coordinate { point [0 0 0, 1 0 0, 1 1 0, 0 1 0] }
+  coordIndex [0 1 2 3 -1] } }
+DEF CLOCK TimeSensor { cycleInterval 2 loop TRUE }
+DEF LIFT CoordinateInterpolator { key [0 1] keyValue [0 0 0, 1 0 0, 1 1 0, 0 1 0, 0 0 0, 1 0 0, 1 3 0, 0 3 0] }
+ROUTE CLOCK.fraction_changed TO LIFT.set_fraction
+ROUTE LIFT.value_changed TO SKIN.set_point`
+
+  it("keys every point of a face set and plays them on the clock, the cycle counted", () => {
+    const world = parseVrml(file())
+    const [mesh] = world.meshes
+    expect(mesh.morph).not.toBeNull()
+    expect(world.duration).toBe(2)
+    const top = (t: number) => Math.max(...[...posedPositions(mesh, null, t)].filter((_, i) => i % 3 === 1))
+    expect(top(0)).toBeCloseTo(1)
+    expect(top(1)).toBeCloseTo(2)
+    expect(top(2)).toBeCloseTo(1)
+  })
+
+  it("keeps its corner normals with the moving points", () => {
+    const world = parseVrml(file(Math.PI))
+    const [mesh] = world.meshes
+    // a flat square stays facing +z however tall it grows
+    const { normals } = morphedMesh(mesh, 1)
+    expect(normals).not.toBeNull()
+    for (let i = 0; i < (normals as Float32Array).length; i += 3)
+      expect((normals as Float32Array)[i + 2]).toBeCloseTo(1)
+  })
+
+  it("leaves a face set no interpolator keys standing still", () => {
+    const still = parseVrml(file().replace(/ROUTE LIFT[^\n]*\n?/, ""))
+    expect(still.meshes[0].morph).toBeNull()
+    expect(posedPositions(still.meshes[0], null, 1)).toBe(still.meshes[0].positions)
+  })
+
+  it("ignores an interpolator whose frames do not hold every point", () => {
+    const short = parseVrml(
+      file().replace("keyValue [0 0 0, 1 0 0, 1 1 0, 0 1 0, 0 0 0, 1 0 0, 1 3 0, 0 3 0]", "keyValue [0 0 0, 1 0 0]"),
+    )
+    expect(short.meshes[0].morph).toBeNull()
   })
 })

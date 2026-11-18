@@ -41,6 +41,12 @@ export type WorldMesh = {
    * corner's light blends across its triangle. Null shades each triangle
    * flat, its own face's light. */
   normals: Float32Array | null
+  /** The crease angle the corner normals were averaged under (0 when flat). */
+  crease: number
+  /** The mesh's points keyed over time (VRML's CoordinateInterpolator):
+   * every coordinate a key, in the frame of `positions`; null when its
+   * points stand still. */
+  morph: Track | null
   /** Back faces are culled (the file promised outward winding). */
   solid: boolean
   kind: MeshKind
@@ -48,6 +54,10 @@ export type WorldMesh = {
   node: number
   /** Posed positions for an animated mesh (renderer scratch). */
   scratch?: Float32Array
+  /** The morph's points at the last time asked (renderer scratch). */
+  morphed?: { t: number; positions: Float32Array; normals: Float32Array | null }
+  /** The faces around each corner's point (corner normals' cache). */
+  around?: Around
   /** Per-vertex noise grain (renderer cache, keyed by seed + scale). */
   grain?: Float32Array
   grainKey?: string
@@ -57,7 +67,9 @@ export type WorldMesh = {
 export type Track = {
   key: number[]
   value: number[]
-  stride: 3 | 4
+  /** Values per key: 3 (a position, a scale), 4 (a rotation), or every
+   * coordinate of a mesh (a morph). */
+  stride: number
   kind: "lerp" | "slerp" | "step"
   /** Seconds of one cycle (the last key), looping or clamped. */
   duration: number
@@ -166,13 +178,42 @@ export function addNode(world: World, node: Partial<WorldNode> & { parent: numbe
  * shade as one smooth surface; 0 or unset shades every face flat. */
 export type MeshOptions = { kind?: MeshKind; node?: number; ccw?: boolean; glow?: boolean; crease?: number }
 
+/** The faces around each triangle corner's point, by its place (so a seam
+ * split for texture still smooths): `faces[at[i]..at[i + 1]]` for corner i. */
+export type Around = { at: Int32Array; faces: Int32Array }
+
+export function aroundCorners(positions: Float32Array, indices: Uint32Array): Around {
+  const key = (v: number) =>
+    `${Math.round(positions[v * 3] * 1e5)},${Math.round(positions[v * 3 + 1] * 1e5)},${Math.round(positions[v * 3 + 2] * 1e5)}`
+  const byPlace = new Map<string, number[]>()
+  for (let i = 0; i < indices.length; i++) {
+    const k = key(indices[i])
+    const list = byPlace.get(k)
+    if (list) list.push(Math.floor(i / 3))
+    else byPlace.set(k, [Math.floor(i / 3)])
+  }
+  const at = new Int32Array(indices.length + 1)
+  const lists = Array.from(indices, (v) => byPlace.get(key(v)) as number[])
+  for (let i = 0; i < lists.length; i++) at[i + 1] = at[i] + lists[i].length
+  const faces = new Int32Array(at[lists.length])
+  lists.forEach((list, i) => faces.set(list, at[i]))
+  return { at, faces }
+}
+
 /**
  * Normals per triangle corner for smooth shading: a corner takes the
- * area-weighted mean of the faces around its point (points matched by
- * place, so a seam split for texture still smooths) whose normal lies within
+ * area-weighted mean of the faces around its point whose normal lies within
  * `crease` of its own face's, so an edge sharper than that stays a crease.
+ * `around` (from `aroundCorners`) is reused when the points move but the
+ * faces do not.
  */
-export function cornerNormals(positions: Float32Array, indices: Uint32Array, crease: number): Float32Array {
+export function cornerNormals(
+  positions: Float32Array,
+  indices: Uint32Array,
+  crease: number,
+  around = aroundCorners(positions, indices),
+  out = new Float32Array(indices.length * 3),
+): Float32Array {
   const tc = indices.length / 3
   const face = new Float32Array(tc * 3)
   const unit = new Float32Array(tc * 3)
@@ -190,27 +231,21 @@ export function cornerNormals(positions: Float32Array, indices: Uint32Array, cre
     const ny = uz * vx - ux * vz
     const nz = ux * vy - uy * vx
     const l = Math.hypot(nx, ny, nz) || 1
-    face.set([nx, ny, nz], t * 3)
-    unit.set([nx / l, ny / l, nz / l], t * 3)
-  }
-  // the faces around each point, by its place
-  const key = (v: number) =>
-    `${Math.round(positions[v * 3] * 1e5)},${Math.round(positions[v * 3 + 1] * 1e5)},${Math.round(positions[v * 3 + 2] * 1e5)}`
-  const around = new Map<string, number[]>()
-  for (let i = 0; i < indices.length; i++) {
-    const k = key(indices[i])
-    const list = around.get(k)
-    if (list) list.push(Math.floor(i / 3))
-    else around.set(k, [Math.floor(i / 3)])
+    face[t * 3] = nx
+    face[t * 3 + 1] = ny
+    face[t * 3 + 2] = nz
+    unit[t * 3] = nx / l
+    unit[t * 3 + 1] = ny / l
+    unit[t * 3 + 2] = nz / l
   }
   const cos = Math.cos(Math.min(Math.PI, crease))
-  const out = new Float32Array(tc * 9)
   for (let i = 0; i < indices.length; i++) {
     const t = Math.floor(i / 3)
     let x = 0
     let y = 0
     let z = 0
-    for (const u of around.get(key(indices[i])) ?? [t]) {
+    for (let j = around.at[i]; j < around.at[i + 1]; j++) {
+      const u = around.faces[j]
       const d = unit[t * 3] * unit[u * 3] + unit[t * 3 + 1] * unit[u * 3 + 1] + unit[t * 3 + 2] * unit[u * 3 + 2]
       if (u !== t && d < cos) continue
       x += face[u * 3]
@@ -218,7 +253,9 @@ export function cornerNormals(positions: Float32Array, indices: Uint32Array, cre
       z += face[u * 3 + 2]
     }
     const l = Math.hypot(x, y, z) || 1
-    out.set([x / l, y / l, z / l], i * 3)
+    out[i * 3] = x / l
+    out[i * 3 + 1] = y / l
+    out[i * 3 + 2] = z / l
   }
   return out
 }
@@ -249,6 +286,9 @@ export function addMesh(
     positions[i * 3 + 2] = q[2]
   }
   const indices: number[] = []
+  // the file's point each vertex stands for (a texture seam splits one into several)
+  const split: number[] = []
+  let source: number[] | null = null
   const edges: number[] = []
   const tri: number[] = []
   let uv: Float32Array | null = null
@@ -272,6 +312,7 @@ export function addMesh(
       if (v === undefined) {
         v = xyz.length / 3
         seen.set(key, v)
+        split.push(p)
         xyz.push(positions[p * 3], positions[p * 3 + 1], positions[p * 3 + 2])
         const known = uvs && u >= 0 && u < uvCount
         st.push(known ? uvs[u * 2] : 0, known ? uvs[u * 2 + 1] : 0)
@@ -296,6 +337,7 @@ export function addMesh(
       }
     })
     if (corners) {
+      source = split
       positions = Float32Array.from(xyz)
       uv = Float32Array.from(st)
     } else if (uvs) {
@@ -323,10 +365,13 @@ export function addMesh(
     }
   }
   const tris = Uint32Array.from(indices)
+  const crease = kind === "faces" ? Math.max(0, opts.crease ?? 0) : 0
   const mesh: WorldMesh = {
     positions,
     indices: tris,
-    normals: kind === "faces" && (opts.crease ?? 0) > 0 ? cornerNormals(positions, tris, opts.crease ?? 0) : null,
+    normals: crease > 0 ? cornerNormals(positions, tris, crease) : null,
+    crease,
+    morph: geo.morph ? morphTrack(geo.morph, positions.length / 3, source, matrix) : null,
     edges: Uint32Array.from(edges),
     color: colorIndex(world, color, opts.glow),
     triColors,
@@ -397,11 +442,60 @@ export function nodeMatrices(world: World, t: number): Mat4[] {
   return mats
 }
 
-/** A mesh's positions in world space for the pose `mats` (its own array when static). */
-export function posedPositions(mesh: WorldMesh, mats: Mat4[] | null): Float32Array {
-  if (mesh.node < 0 || !mats || !mats[mesh.node]) return mesh.positions
+/** A file's keyed points as a mesh's morph track: each frame through the
+ * mesh's static matrix, one value a vertex (a seam's split vertices
+ * following their point). */
+function morphTrack(
+  morph: NonNullable<Geometry["morph"]>,
+  count: number,
+  source: number[] | null,
+  matrix: Mat4 | null,
+): Track | null {
+  const value: number[] = []
+  for (const frame of morph.frames) {
+    for (let v = 0; v < count; v++) {
+      const p = source ? source[v] : v
+      const q: Vec3 = [frame[p * 3] ?? 0, frame[p * 3 + 1] ?? 0, frame[p * 3 + 2] ?? 0]
+      value.push(...(matrix ? transformPoint(matrix, q) : q))
+    }
+  }
+  if (!morph.key.length || value.length !== morph.key.length * count * 3) return null
+  return {
+    key: morph.key,
+    value,
+    stride: count * 3,
+    kind: "lerp",
+    duration: morph.duration,
+    loop: morph.loop,
+    start: morph.start,
+  }
+}
+
+/** A mesh's points (in its own frame) and their corner normals at `t`
+ * seconds: its own arrays when its points stand still. */
+export function morphedMesh(mesh: WorldMesh, t: number): { positions: Float32Array; normals: Float32Array | null } {
+  if (!mesh.morph) return { positions: mesh.positions, normals: mesh.normals }
+  const hit = mesh.morphed
+  if (hit && hit.t === t) return hit
+  const positions = hit?.positions ?? new Float32Array(mesh.positions.length)
+  const values: number[] = new Array(mesh.morph.stride)
+  sampleTrack(mesh.morph, t, values)
+  for (let i = 0; i < positions.length; i++) positions[i] = values[i]
+  let normals = hit?.normals ?? null
+  if (mesh.normals) {
+    mesh.around ??= aroundCorners(mesh.positions, mesh.indices)
+    normals = cornerNormals(positions, mesh.indices, mesh.crease, mesh.around, normals ?? undefined)
+  }
+  mesh.morphed = { t, positions, normals }
+  return mesh.morphed
+}
+
+/** A mesh's positions in world space for the pose `mats` at `t` seconds
+ * (its own array when it stands still). */
+export function posedPositions(mesh: WorldMesh, mats: Mat4[] | null, t = 0): Float32Array {
+  const src = morphedMesh(mesh, t).positions
+  if (mesh.node < 0 || !mats || !mats[mesh.node]) return src
   const m = mats[mesh.node]
-  const src = mesh.positions
   if (!mesh.scratch || mesh.scratch.length !== src.length) mesh.scratch = new Float32Array(src.length)
   const out = mesh.scratch
   for (let i = 0; i < src.length; i += 3) {
@@ -450,6 +544,7 @@ export function finishWorld(world: World): World {
   let duration = 0
   for (const n of world.nodes)
     for (const tr of Object.values(n.tracks)) if (tr) duration = Math.max(duration, tr.start + tr.duration)
+  for (const m of world.meshes) if (m.morph) duration = Math.max(duration, m.morph.start + m.morph.duration)
   world.duration = duration
   if (minX === Infinity) {
     world.center = [0, 0, 0]

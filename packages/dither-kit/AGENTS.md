@@ -756,7 +756,10 @@ generated twin. Inside the kit every import is relative
   from the headlight + the file's lights, flat a face or, where the mesh
   carries `normals` (a face set's `creaseAngle`, every Sphere:
   `cornerNormals` in `world-scene.ts`, the faces around a point within
-  the angle averaged, sharper edges kept), each corner's light blended
+  the angle averaged, sharper edges kept), each corner's light blended (a face set whose `Coordinate` a
+  `CoordinateInterpolator` keys moves its points on the clock: the mesh's
+  `morph` track, `morphedMesh` its points and normals at a time,
+  `posedPositions(mesh, mats, t)`, the GPU engine uploading them each frame),
   across its triangle; a file that asks nothing shades as before, back faces culled on solid
   meshes, per-vertex fbm `meshGrain` interpolated into the shade) and
   `world-gl.ts` (`createWorldGpu`) is the GPU engine: the same contract

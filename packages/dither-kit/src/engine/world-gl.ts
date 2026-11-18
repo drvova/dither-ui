@@ -23,6 +23,7 @@ import {
 } from "./gl"
 import type { Rgb } from "./palette"
 import { wrapMaterial } from "./shader"
+import { morphedMesh } from "./world-scene"
 import {
   cameraOf,
   layCapture,
@@ -119,6 +120,18 @@ ${
     : ""
 }}
 `
+
+/** A mesh's points one vertex a triangle corner, as the expanded buffers take them. */
+function perCorner(indices: Uint32Array, positions: Float32Array): Float32Array {
+  const out = new Float32Array(indices.length * 3)
+  for (let i = 0; i < indices.length; i++) {
+    const v = indices[i] * 3
+    out[i * 3] = positions[v]
+    out[i * 3 + 1] = positions[v + 1]
+    out[i * 3 + 2] = positions[v + 2]
+  }
+  return out
+}
 
 type Buffers = {
   pos: WebGLBuffer
@@ -255,7 +268,7 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
       if (!pos) return null
       gl.bindBuffer(gl.ARRAY_BUFFER, pos)
       // a face colour or a corner normal rides per corner: one vertex a corner
-      const expanded = !!mesh.triColors || !!mesh.normals
+      const expanded = !!mesh.triColors || !!mesh.normals || !!mesh.morph
       let idx: WebGLBuffer | null = null
       let color: WebGLBuffer | null = null
       let uvData: Float32Array | null = mesh.uv
@@ -399,6 +412,22 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
             gl.vertexAttrib3f(4, 0, 0, 1)
           }
           gl.uniform1f(uniforms.uSmooth, b.normal ? 1 : 0)
+          if (mesh.morph) {
+            // points that move: this moment's, and their normals, every frame
+            const now = morphedMesh(mesh, view.time ?? 0)
+            gl.bindBuffer(gl.ARRAY_BUFFER, b.pos)
+            gl.bufferData(gl.ARRAY_BUFFER, perCorner(mesh.indices, now.positions), gl.DYNAMIC_DRAW)
+            if (b.normal && now.normals) {
+              gl.bindBuffer(gl.ARRAY_BUFFER, b.normal)
+              gl.bufferData(gl.ARRAY_BUFFER, now.normals, gl.DYNAMIC_DRAW)
+            }
+            gl.bindBuffer(gl.ARRAY_BUFFER, b.pos)
+            gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0)
+            if (b.normal) {
+              gl.bindBuffer(gl.ARRAY_BUFFER, b.normal)
+              gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 0, 0)
+            }
+          }
           const m = mesh.node >= 0 && mats ? mats[mesh.node] : null
           gl.uniformMatrix4fv(uniforms.uModel, false, m ? new Float32Array(m) : identity)
           if (mesh.solid) gl.enable(gl.CULL_FACE)
