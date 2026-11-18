@@ -1,91 +1,153 @@
 import { createSignal, onCleanup, onMount } from "solid-js"
 import { DitherReveal, DitherWorld } from "@dither-kit"
 
-// a whale of our own, written as a VRML97 file: a chain of segments, each
-// hinged inside the one before, curled at rest and bent by a wave that grows
-// toward the tail, a cream belly by face colour, wandering and rolling round
-// the frame on a slower clock
-const WHALE = `#VRML V2.0 utf8
+// A whale of our own, built here as a VRML97 file: a body lofted from the
+// shape table below, cut into segments hinged one inside the next, curled at
+// rest and swum by a wave that grows toward the tail. Flippers and flukes
+// are flattened spheres, so nothing on it ends in a point.
+
+/** Half height and half width of the body, nose (0) to tail (1). */
+const PROFILE = [
+  [0, 0.45, 0.36],
+  [0.12, 0.5, 0.4],
+  [0.28, 0.47, 0.37],
+  [0.42, 0.39, 0.31],
+  [0.56, 0.3, 0.24],
+  [0.7, 0.2, 0.16],
+  [0.82, 0.12, 0.1],
+  [0.92, 0.075, 0.07],
+  [1, 0.06, 0.055],
+]
+/** Where the segments meet, their curl at rest and how far a stroke swings them. */
+const JOINTS = [0, 0.3, 0.5, 0.66, 0.8, 0.9, 1]
+const CURL = [0, -0.1, -0.16, -0.22, -0.26, -0.3]
+const SWING = [0.03, 0.05, 0.08, 0.12, 0.18, 0.26]
+const LENGTH = 2.2
+const SIDES = 24
+const STROKE_S = 1.8
+const WANDER_S = 12
+const EMBER = "1 0.42 0.17"
+const CREAM = "0.96 0.9 0.82"
+
+const n = (v: number) => String(+v.toFixed(3))
+const along = (s: number) => LENGTH / 2 - s * LENGTH
+/** The body's half sizes at `s`, between the table's rows. */
+function size(s: number) {
+  const k = Math.min(
+    PROFILE.length - 1,
+    Math.max(
+      1,
+      PROFILE.findIndex(([at]) => at >= s),
+    ),
+  )
+  const [s0, h0, w0] = PROFILE[k - 1]
+  const [s1, h1, w1] = PROFILE[k]
+  const f = Math.max(0, Math.min(1, (s - s0) / (s1 - s0)))
+  return [h0 + (h1 - h0) * f, w0 + (w1 - w0) * f]
+}
+const look = (rgb: string) => `appearance Appearance { material Material { diffuseColor ${rgb} } }`
+
+/** The body from `a` to `b` around the joint at `a`: an ellipse every 2% of
+ * the length, a domed end where the body ends, a cream belly by face colour. */
+function body(a: number, b: number) {
+  const rings: [x: number, h: number, w: number][] = []
+  const dome = (s: number, toward: number) => {
+    const [h, w] = size(s)
+    for (const q of [0.6, 0.85, 0.97]) {
+      const r = Math.sqrt(1 - q * q)
+      rings.push([along(s) + toward * q * h * 0.9 - along(a), h * r, w * r])
+    }
+  }
+  if (a === 0) dome(0, 1)
+  rings.reverse()
+  for (let s = Math.max(0, a - 0.01); s <= Math.min(1, b + 0.01) + 1e-9; s += 0.02) {
+    const [h, w] = size(s)
+    rings.push([along(s) - along(a), h, w])
+  }
+  if (b === 1) dome(1, -1)
+  const points: string[] = []
+  for (const [x, h, w] of rings)
+    for (let k = 0; k < SIDES; k++) {
+      const t = (k / SIDES) * Math.PI * 2
+      const y = Math.sin(t) * h * (Math.sin(t) < 0 ? 0.85 : 1)
+      points.push(`${n(x)} ${n(y)} ${n(Math.cos(t) * w)}`)
+    }
+  const faces: string[] = []
+  const tint: number[] = []
+  for (let r = 0; r + 1 < rings.length; r++)
+    for (let k = 0; k < SIDES; k++) {
+      const p = r * SIDES + k
+      const q = r * SIDES + ((k + 1) % SIDES)
+      faces.push(`${p} ${q} ${q + SIDES} ${p + SIDES} -1`)
+      tint.push(Math.sin(((k + 0.5) / SIDES) * Math.PI * 2) < -0.5 ? 1 : 0)
+    }
+  // the domes close on their last ring
+  const close = (r: number, flip: boolean) => {
+    const ring = Array.from({ length: SIDES }, (_, k) => r * SIDES + k)
+    faces.push(`${(flip ? ring.reverse() : ring).join(" ")} -1`)
+    tint.push(0)
+  }
+  if (a === 0) close(0, true)
+  if (b === 1) close(rings.length - 1, false)
+  return `Shape { ${look(EMBER)} geometry IndexedFaceSet { coord Coordinate { point [${points.join(", ")}] } coordIndex [${faces.join(" ")}] color Color { color [${EMBER}, ${CREAM}] } colorPerVertex FALSE colorIndex [${tint.join(" ")}] } }`
+}
+
+/** A flattened sphere: a flipper or a fluke, rounded all round. */
+const paddle = (rgb: string, at: number[], turn: number[], scale: number[]) =>
+  `Transform { translation ${at.map(n).join(" ")} rotation ${turn.map(n).join(" ")} scale ${scale.map(n).join(" ")} children Shape { ${look(rgb)} geometry Sphere { radius 1 } } }`
+
+/** What rides on a segment besides its body: the flippers on the second,
+ * the flukes on the last. */
+function riders(k: number) {
+  if (k === 1)
+    return [1, -1].map((side) =>
+      paddle(
+        CREAM,
+        [along(0.4) - along(JOINTS[1]), -0.26, side * 0.32],
+        [1, 0, side * 0.6, side * 0.7],
+        [0.24, 0.035, 0.1],
+      ),
+    )
+  if (k === JOINTS.length - 2)
+    return [1, -1].map((side) =>
+      paddle(EMBER, [along(1) - along(JOINTS[k]) - 0.1, 0, side * 0.17], [0, 1, 0, side * 0.5], [0.24, 0.03, 0.13]),
+    )
+  return []
+}
+
+const KEYS = Array.from({ length: 9 }, (_, i) => i / 8)
+
+function segment(k: number): string {
+  const inner = k + 2 < JOINTS.length ? segment(k + 1) : ""
+  const at = k === 0 ? 0 : along(JOINTS[k]) - along(JOINTS[k - 1])
+  return `DEF SEG${k} Transform { translation ${n(at)} 0 0 children [
+${[body(JOINTS[k], JOINTS[k + 1]), ...riders(k), inner].filter(Boolean).join("\n")}
+] }`
+}
+
+const wave = (k: number) =>
+  KEYS.map((f) => `0 0 1 ${n(CURL[k] + SWING[k] * Math.sin(Math.PI * 2 * (f - 0.13 * k)))}`).join(", ")
+const WANDER = Array.from({ length: 13 }, (_, i) => i / 12)
+
+export const WHALE = `#VRML V2.0 utf8
 DirectionalLight { direction -0.3 0.5 -0.8 intensity 0.5 }
-DEF DRIFT Transform {
-  children [
-DEF WHALE Transform {
-  children [
-DEF SEG0 Transform {
-  translation 0 0 0
-  children [
-    Shape { appearance Appearance { material Material { diffuseColor 1 0.42 0.17 } } geometry IndexedFaceSet { coord Coordinate { point [0 0 0.2, 0 0.09 0.18, 0 0.17 0.14, 0 0.22 0.08, 0 0.24 0, 0 0.22 -0.08, 0 0.17 -0.14, 0 0.09 -0.18, 0 0 -0.2, 0 -0.08 -0.18, 0 -0.14 -0.14, 0 -0.19 -0.08, 0 -0.2 0, 0 -0.19 0.08, 0 -0.14 0.14, 0 -0.08 0.18, -0.02 0 0.26, -0.02 0.12 0.24, -0.02 0.23 0.18, -0.02 0.3 0.1, -0.02 0.32 0, -0.02 0.3 -0.1, -0.02 0.23 -0.18, -0.02 0.12 -0.24, -0.02 0 -0.26, -0.02 -0.1 -0.24, -0.02 -0.19 -0.18, -0.02 -0.25 -0.1, -0.02 -0.27 0, -0.02 -0.25 0.1, -0.02 -0.19 0.18, -0.02 -0.1 0.24, -0.07 0 0.31, -0.07 0.15 0.29, -0.07 0.28 0.22, -0.07 0.36 0.12, -0.07 0.39 0, -0.07 0.36 -0.12, -0.07 0.28 -0.22, -0.07 0.15 -0.29, -0.07 0 -0.31, -0.07 -0.13 -0.29, -0.07 -0.23 -0.22, -0.07 -0.31 -0.12, -0.07 -0.33 0, -0.07 -0.31 0.12, -0.07 -0.23 0.22, -0.07 -0.13 0.29, -0.13 0 0.35, -0.13 0.17 0.32, -0.13 0.31 0.25, -0.13 0.41 0.13, -0.13 0.44 0, -0.13 0.41 -0.13, -0.13 0.31 -0.25, -0.13 0.17 -0.32, -0.13 0 -0.35, -0.13 -0.14 -0.32, -0.13 -0.26 -0.25, -0.13 -0.35 -0.13, -0.13 -0.37 0, -0.13 -0.35 0.13, -0.13 -0.26 0.25, -0.13 -0.14 0.32, -0.22 0 0.38, -0.22 0.18 0.35, -0.22 0.33 0.27, -0.22 0.43 0.15, -0.22 0.47 0, -0.22 0.43 -0.15, -0.22 0.33 -0.27, -0.22 0.18 -0.35, -0.22 0 -0.38, -0.22 -0.15 -0.35, -0.22 -0.28 -0.27, -0.22 -0.37 -0.15, -0.22 -0.4 0, -0.22 -0.37 0.15, -0.22 -0.28 0.27, -0.22 -0.15 0.35, -0.33 0 0.39, -0.33 0.19 0.36, -0.33 0.35 0.28, -0.33 0.45 0.15, -0.33 0.49 0, -0.33 0.45 -0.15, -0.33 0.35 -0.28, -0.33 0.19 -0.36, -0.33 0 -0.39, -0.33 -0.16 -0.36, -0.33 -0.29 -0.28, -0.33 -0.38 -0.15, -0.33 -0.42 0, -0.33 -0.38 0.15, -0.33 -0.29 0.28, -0.33 -0.16 0.36, -0.62 0 0.37, -0.62 0.18 0.34, -0.62 0.33 0.26, -0.62 0.43 0.14, -0.62 0.47 0, -0.62 0.43 -0.14, -0.62 0.33 -0.26, -0.62 0.18 -0.34, -0.62 0 -0.37, -0.62 -0.15 -0.34, -0.62 -0.28 -0.26, -0.62 -0.37 -0.14, -0.62 -0.4 0, -0.62 -0.37 0.14, -0.62 -0.28 0.26, -0.62 -0.15 0.34, -0.69 0 0.35, -0.69 0.17 0.33, -0.69 0.32 0.25, -0.69 0.42 0.14, -0.69 0.45 0, -0.69 0.42 -0.14, -0.69 0.32 -0.25, -0.69 0.17 -0.33, -0.69 0 -0.35, -0.69 -0.15 -0.33, -0.69 -0.27 -0.25, -0.69 -0.35 -0.14, -0.69 -0.38 0, -0.69 -0.35 0.14, -0.69 -0.27 0.25, -0.69 -0.15 0.33, 0.08 -0.04 0] } coordIndex [0 1 17 16 -1 1 2 18 17 -1 2 3 19 18 -1 3 4 20 19 -1 4 5 21 20 -1 5 6 22 21 -1 6 7 23 22 -1 7 8 24 23 -1 8 9 25 24 -1 9 10 26 25 -1 10 11 27 26 -1 11 12 28 27 -1 12 13 29 28 -1 13 14 30 29 -1 14 15 31 30 -1 15 0 16 31 -1 16 17 33 32 -1 17 18 34 33 -1 18 19 35 34 -1 19 20 36 35 -1 20 21 37 36 -1 21 22 38 37 -1 22 23 39 38 -1 23 24 40 39 -1 24 25 41 40 -1 25 26 42 41 -1 26 27 43 42 -1 27 28 44 43 -1 28 29 45 44 -1 29 30 46 45 -1 30 31 47 46 -1 31 16 32 47 -1 32 33 49 48 -1 33 34 50 49 -1 34 35 51 50 -1 35 36 52 51 -1 36 37 53 52 -1 37 38 54 53 -1 38 39 55 54 -1 39 40 56 55 -1 40 41 57 56 -1 41 42 58 57 -1 42 43 59 58 -1 43 44 60 59 -1 44 45 61 60 -1 45 46 62 61 -1 46 47 63 62 -1 47 32 48 63 -1 48 49 65 64 -1 49 50 66 65 -1 50 51 67 66 -1 51 52 68 67 -1 52 53 69 68 -1 53 54 70 69 -1 54 55 71 70 -1 55 56 72 71 -1 56 57 73 72 -1 57 58 74 73 -1 58 59 75 74 -1 59 60 76 75 -1 60 61 77 76 -1 61 62 78 77 -1 62 63 79 78 -1 63 48 64 79 -1 64 65 81 80 -1 65 66 82 81 -1 66 67 83 82 -1 67 68 84 83 -1 68 69 85 84 -1 69 70 86 85 -1 70 71 87 86 -1 71 72 88 87 -1 72 73 89 88 -1 73 74 90 89 -1 74 75 91 90 -1 75 76 92 91 -1 76 77 93 92 -1 77 78 94 93 -1 78 79 95 94 -1 79 64 80 95 -1 80 81 97 96 -1 81 82 98 97 -1 82 83 99 98 -1 83 84 100 99 -1 84 85 101 100 -1 85 86 102 101 -1 86 87 103 102 -1 87 88 104 103 -1 88 89 105 104 -1 89 90 106 105 -1 90 91 107 106 -1 91 92 108 107 -1 92 93 109 108 -1 93 94 110 109 -1 94 95 111 110 -1 95 80 96 111 -1 96 97 113 112 -1 97 98 114 113 -1 98 99 115 114 -1 99 100 116 115 -1 100 101 117 116 -1 101 102 118 117 -1 102 103 119 118 -1 103 104 120 119 -1 104 105 121 120 -1 105 106 122 121 -1 106 107 123 122 -1 107 108 124 123 -1 108 109 125 124 -1 109 110 126 125 -1 110 111 127 126 -1 111 96 112 127 -1 1 0 128 -1 2 1 128 -1 3 2 128 -1 4 3 128 -1 5 4 128 -1 6 5 128 -1 7 6 128 -1 8 7 128 -1 9 8 128 -1 10 9 128 -1 11 10 128 -1 12 11 128 -1 13 12 128 -1 14 13 128 -1 15 14 128 -1 0 15 128 -1] color Color { color [1 0.42 0.17, 0.96 0.9 0.82] } colorPerVertex FALSE colorIndex [0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] } }
-    Transform { translation -0.440 -0.05 0.310 children Shape { appearance Appearance { material Material { diffuseColor 0.12 0.13 0.14 } } geometry Sphere { radius 0.035 } } }
-    Transform { translation -0.440 -0.05 -0.310 children Shape { appearance Appearance { material Material { diffuseColor 0.12 0.13 0.14 } } geometry Sphere { radius 0.035 } } }
-    DEF SEG1 Transform {
-  translation -0.660 0 0
-  children [
-    Shape { appearance Appearance { material Material { diffuseColor 1 0.42 0.17 } } geometry IndexedFaceSet { coord Coordinate { point [0.03 0 0.37, 0.03 0.18 0.34, 0.03 0.33 0.26, 0.03 0.43 0.14, 0.03 0.47 0, 0.03 0.43 -0.14, 0.03 0.33 -0.26, 0.03 0.18 -0.34, 0.03 0 -0.37, 0.03 -0.15 -0.34, 0.03 -0.28 -0.26, 0.03 -0.37 -0.14, 0.03 -0.4 0, 0.03 -0.37 0.14, 0.03 -0.28 0.26, 0.03 -0.15 0.34, -0.26 0 0.31, -0.26 0.15 0.29, -0.26 0.28 0.22, -0.26 0.36 0.12, -0.26 0.39 0, -0.26 0.36 -0.12, -0.26 0.28 -0.22, -0.26 0.15 -0.29, -0.26 0 -0.31, -0.26 -0.13 -0.29, -0.26 -0.23 -0.22, -0.26 -0.31 -0.12, -0.26 -0.33 0, -0.26 -0.31 0.12, -0.26 -0.23 0.22, -0.26 -0.13 0.29, -0.47 0 0.26, -0.47 0.13 0.24, -0.47 0.23 0.19, -0.47 0.3 0.1, -0.47 0.33 0, -0.47 0.3 -0.1, -0.47 0.23 -0.19, -0.47 0.13 -0.24, -0.47 0 -0.26, -0.47 -0.11 -0.24, -0.47 -0.2 -0.19, -0.47 -0.26 -0.1, -0.47 -0.28 0, -0.47 -0.26 0.1, -0.47 -0.2 0.19, -0.47 -0.11 0.24] } coordIndex [0 1 17 16 -1 1 2 18 17 -1 2 3 19 18 -1 3 4 20 19 -1 4 5 21 20 -1 5 6 22 21 -1 6 7 23 22 -1 7 8 24 23 -1 8 9 25 24 -1 9 10 26 25 -1 10 11 27 26 -1 11 12 28 27 -1 12 13 29 28 -1 13 14 30 29 -1 14 15 31 30 -1 15 0 16 31 -1 16 17 33 32 -1 17 18 34 33 -1 18 19 35 34 -1 19 20 36 35 -1 20 21 37 36 -1 21 22 38 37 -1 22 23 39 38 -1 23 24 40 39 -1 24 25 41 40 -1 25 26 42 41 -1 26 27 43 42 -1 27 28 44 43 -1 28 29 45 44 -1 29 30 46 45 -1 30 31 47 46 -1 31 16 32 47 -1] color Color { color [1 0.42 0.17, 0.96 0.9 0.82] } colorPerVertex FALSE colorIndex [0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0] } }
-    Shape { appearance Appearance { material Material { diffuseColor 0.96 0.9 0.82 } } geometry IndexedFaceSet { solid FALSE coord Coordinate { point [-0.088 -0.240 0.280, -0.388 -0.480 0.500, -0.508 -0.520 0.460, -0.308 -0.300 0.270] } coordIndex [0 1 2 3 -1] } }
-    Shape { appearance Appearance { material Material { diffuseColor 0.96 0.9 0.82 } } geometry IndexedFaceSet { solid FALSE coord Coordinate { point [-0.088 -0.240 -0.280, -0.388 -0.480 -0.500, -0.508 -0.520 -0.460, -0.308 -0.300 -0.270] } coordIndex [0 1 2 3 -1] } }
-    DEF SEG2 Transform {
-  translation -0.440 0 0
-  children [
-    Shape { appearance Appearance { material Material { diffuseColor 1 0.42 0.17 } } geometry IndexedFaceSet { coord Coordinate { point [0.03 0 0.28, 0.03 0.13 0.26, 0.03 0.25 0.2, 0.03 0.32 0.11, 0.03 0.35 0, 0.03 0.32 -0.11, 0.03 0.25 -0.2, 0.03 0.13 -0.26, 0.03 0 -0.28, 0.03 -0.11 -0.26, 0.03 -0.21 -0.2, 0.03 -0.27 -0.11, 0.03 -0.3 0, 0.03 -0.27 0.11, 0.03 -0.21 0.2, 0.03 -0.11 0.26, -0.13 0 0.24, -0.13 0.11 0.22, -0.13 0.21 0.17, -0.13 0.28 0.09, -0.13 0.3 0, -0.13 0.28 -0.09, -0.13 0.21 -0.17, -0.13 0.11 -0.22, -0.13 0 -0.24, -0.13 -0.1 -0.22, -0.13 -0.18 -0.17, -0.13 -0.24 -0.09, -0.13 -0.26 0, -0.13 -0.24 0.09, -0.13 -0.18 0.17, -0.13 -0.1 0.22, -0.39 0 0.17, -0.39 0.08 0.16, -0.39 0.15 0.12, -0.39 0.2 0.07, -0.39 0.22 0, -0.39 0.2 -0.07, -0.39 0.15 -0.12, -0.39 0.08 -0.16, -0.39 0 -0.17, -0.39 -0.07 -0.16, -0.39 -0.13 -0.12, -0.39 -0.17 -0.07, -0.39 -0.19 0, -0.39 -0.17 0.07, -0.39 -0.13 0.12, -0.39 -0.07 0.16] } coordIndex [0 1 17 16 -1 1 2 18 17 -1 2 3 19 18 -1 3 4 20 19 -1 4 5 21 20 -1 5 6 22 21 -1 6 7 23 22 -1 7 8 24 23 -1 8 9 25 24 -1 9 10 26 25 -1 10 11 27 26 -1 11 12 28 27 -1 12 13 29 28 -1 13 14 30 29 -1 14 15 31 30 -1 15 0 16 31 -1 16 17 33 32 -1 17 18 34 33 -1 18 19 35 34 -1 19 20 36 35 -1 20 21 37 36 -1 21 22 38 37 -1 22 23 39 38 -1 23 24 40 39 -1 24 25 41 40 -1 25 26 42 41 -1 26 27 43 42 -1 27 28 44 43 -1 28 29 45 44 -1 29 30 46 45 -1 30 31 47 46 -1 31 16 32 47 -1] color Color { color [1 0.42 0.17, 0.96 0.9 0.82] } colorPerVertex FALSE colorIndex [0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0] } }
-    DEF SEG3 Transform {
-  translation -0.352 0 0
-  children [
-    Shape { appearance Appearance { material Material { diffuseColor 1 0.42 0.17 } } geometry IndexedFaceSet { coord Coordinate { point [0.03 0 0.19, 0.03 0.09 0.18, 0.03 0.17 0.14, 0.03 0.22 0.07, 0.03 0.24 0, 0.03 0.22 -0.07, 0.03 0.17 -0.14, 0.03 0.09 -0.18, 0.03 0 -0.19, 0.03 -0.08 -0.18, 0.03 -0.14 -0.14, 0.03 -0.19 -0.07, 0.03 -0.2 0, 0.03 -0.19 0.07, 0.03 -0.14 0.14, 0.03 -0.08 0.18, -0.09 0 0.16, -0.09 0.08 0.15, -0.09 0.14 0.11, -0.09 0.18 0.06, -0.09 0.2 0, -0.09 0.18 -0.06, -0.09 0.14 -0.11, -0.09 0.08 -0.15, -0.09 0 -0.16, -0.09 -0.07 -0.15, -0.09 -0.12 -0.11, -0.09 -0.16 -0.06, -0.09 -0.17 0, -0.09 -0.16 0.06, -0.09 -0.12 0.11, -0.09 -0.07 0.15, -0.34 0 0.1, -0.34 0.05 0.09, -0.34 0.09 0.07, -0.34 0.11 0.04, -0.34 0.12 0, -0.34 0.11 -0.04, -0.34 0.09 -0.07, -0.34 0.05 -0.09, -0.34 0 -0.1, -0.34 -0.04 -0.09, -0.34 -0.07 -0.07, -0.34 -0.1 -0.04, -0.34 -0.1 0, -0.34 -0.1 0.04, -0.34 -0.07 0.07, -0.34 -0.04 0.09] } coordIndex [0 1 17 16 -1 1 2 18 17 -1 2 3 19 18 -1 3 4 20 19 -1 4 5 21 20 -1 5 6 22 21 -1 6 7 23 22 -1 7 8 24 23 -1 8 9 25 24 -1 9 10 26 25 -1 10 11 27 26 -1 11 12 28 27 -1 12 13 29 28 -1 13 14 30 29 -1 14 15 31 30 -1 15 0 16 31 -1 16 17 33 32 -1 17 18 34 33 -1 18 19 35 34 -1 19 20 36 35 -1 20 21 37 36 -1 21 22 38 37 -1 22 23 39 38 -1 23 24 40 39 -1 24 25 41 40 -1 25 26 42 41 -1 26 27 43 42 -1 27 28 44 43 -1 28 29 45 44 -1 29 30 46 45 -1 30 31 47 46 -1 31 16 32 47 -1] color Color { color [1 0.42 0.17, 0.96 0.9 0.82] } colorPerVertex FALSE colorIndex [0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0] } }
-    DEF SEG4 Transform {
-  translation -0.308 0 0
-  children [
-    Shape { appearance Appearance { material Material { diffuseColor 1 0.42 0.17 } } geometry IndexedFaceSet { coord Coordinate { point [0.03 0 0.12, 0.03 0.05 0.11, 0.03 0.1 0.08, 0.03 0.13 0.04, 0.03 0.14 0, 0.03 0.13 -0.04, 0.03 0.1 -0.08, 0.03 0.05 -0.11, 0.03 0 -0.12, 0.03 -0.05 -0.11, 0.03 -0.09 -0.08, 0.03 -0.11 -0.04, 0.03 -0.12 0, 0.03 -0.11 0.04, 0.03 -0.09 0.08, 0.03 -0.05 0.11, -0.04 0 0.1, -0.04 0.05 0.09, -0.04 0.08 0.07, -0.04 0.11 0.04, -0.04 0.12 0, -0.04 0.11 -0.04, -0.04 0.08 -0.07, -0.04 0.05 -0.09, -0.04 0 -0.1, -0.04 -0.04 -0.09, -0.04 -0.07 -0.07, -0.04 -0.09 -0.04, -0.04 -0.1 0, -0.04 -0.09 0.04, -0.04 -0.07 0.07, -0.04 -0.04 0.09, -0.25 0 0.07, -0.25 0.03 0.07, -0.25 0.05 0.05, -0.25 0.07 0.03, -0.25 0.07 0, -0.25 0.07 -0.03, -0.25 0.05 -0.05, -0.25 0.03 -0.07, -0.25 0 -0.07, -0.25 -0.02 -0.07, -0.25 -0.04 -0.05, -0.25 -0.06 -0.03, -0.25 -0.06 0, -0.25 -0.06 0.03, -0.25 -0.04 0.05, -0.25 -0.02 0.07] } coordIndex [0 1 17 16 -1 1 2 18 17 -1 2 3 19 18 -1 3 4 20 19 -1 4 5 21 20 -1 5 6 22 21 -1 6 7 23 22 -1 7 8 24 23 -1 8 9 25 24 -1 9 10 26 25 -1 10 11 27 26 -1 11 12 28 27 -1 12 13 29 28 -1 13 14 30 29 -1 14 15 31 30 -1 15 0 16 31 -1 16 17 33 32 -1 17 18 34 33 -1 18 19 35 34 -1 19 20 36 35 -1 20 21 37 36 -1 21 22 38 37 -1 22 23 39 38 -1 23 24 40 39 -1 24 25 41 40 -1 25 26 42 41 -1 26 27 43 42 -1 27 28 44 43 -1 28 29 45 44 -1 29 30 46 45 -1 30 31 47 46 -1 31 16 32 47 -1] color Color { color [1 0.42 0.17, 0.96 0.9 0.82] } colorPerVertex FALSE colorIndex [0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0] } }
-    DEF SEG5 Transform {
-  translation -0.220 0 0
-  children [
-    Shape { appearance Appearance { material Material { diffuseColor 1 0.42 0.17 } } geometry IndexedFaceSet { coord Coordinate { point [0.03 0 0.08, 0.03 0.03 0.07, 0.03 0.06 0.06, 0.03 0.08 0.03, 0.03 0.09 0, 0.03 0.08 -0.03, 0.03 0.06 -0.06, 0.03 0.03 -0.07, 0.03 0 -0.08, 0.03 -0.03 -0.07, 0.03 -0.05 -0.06, 0.03 -0.07 -0.03, 0.03 -0.07 0, 0.03 -0.07 0.03, 0.03 -0.05 0.06, 0.03 -0.03 0.07, -0.04 0 0.07, -0.04 0.03 0.06, -0.04 0.05 0.05, -0.04 0.06 0.03, -0.04 0.07 0, -0.04 0.06 -0.03, -0.04 0.05 -0.05, -0.04 0.03 -0.06, -0.04 0 -0.07, -0.04 -0.02 -0.06, -0.04 -0.04 -0.05, -0.04 -0.05 -0.03, -0.04 -0.06 0, -0.04 -0.05 0.03, -0.04 -0.04 0.05, -0.04 -0.02 0.06, -0.22 0 0.05, -0.22 0.02 0.05, -0.22 0.04 0.04, -0.22 0.05 0.02, -0.22 0.05 0, -0.22 0.05 -0.02, -0.22 0.04 -0.04, -0.22 0.02 -0.05, -0.22 0 -0.05, -0.22 -0.02 -0.05, -0.22 -0.03 -0.04, -0.22 -0.04 -0.02, -0.22 -0.04 0, -0.22 -0.04 0.02, -0.22 -0.03 0.04, -0.22 -0.02 0.05, -0.24 0 0] } coordIndex [0 1 17 16 -1 1 2 18 17 -1 2 3 19 18 -1 3 4 20 19 -1 4 5 21 20 -1 5 6 22 21 -1 6 7 23 22 -1 7 8 24 23 -1 8 9 25 24 -1 9 10 26 25 -1 10 11 27 26 -1 11 12 28 27 -1 12 13 29 28 -1 13 14 30 29 -1 14 15 31 30 -1 15 0 16 31 -1 16 17 33 32 -1 17 18 34 33 -1 18 19 35 34 -1 19 20 36 35 -1 20 21 37 36 -1 21 22 38 37 -1 22 23 39 38 -1 23 24 40 39 -1 24 25 41 40 -1 25 26 42 41 -1 26 27 43 42 -1 27 28 44 43 -1 28 29 45 44 -1 29 30 46 45 -1 30 31 47 46 -1 31 16 32 47 -1 32 33 48 -1 33 34 48 -1 34 35 48 -1 35 36 48 -1 36 37 48 -1 37 38 48 -1 38 39 48 -1 39 40 48 -1 40 41 48 -1 41 42 48 -1 42 43 48 -1 43 44 48 -1 44 45 48 -1 45 46 48 -1 46 47 48 -1 47 32 48 -1] color Color { color [1 0.42 0.17, 0.96 0.9 0.82] } colorPerVertex FALSE colorIndex [0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] } }
-    Shape { appearance Appearance { material Material { diffuseColor 1 0.42 0.17 } } geometry IndexedFaceSet { solid FALSE coord Coordinate { point [-0.180 0.000 0.020, -0.280 0.000 0.300, -0.480 0.000 0.460, -0.420 0.000 0.140, -0.460 0.000 0.000] } coordIndex [0 1 2 3 4 -1] } }
-    Shape { appearance Appearance { material Material { diffuseColor 1 0.42 0.17 } } geometry IndexedFaceSet { solid FALSE coord Coordinate { point [-0.180 0.000 -0.020, -0.280 0.000 -0.300, -0.480 0.000 -0.460, -0.420 0.000 -0.140, -0.460 0.000 0.000] } coordIndex [0 1 2 3 4 -1] } }
-  ]
-}
-  ]
-}
-  ]
-}
-  ]
-}
-  ]
-}
-  ]
-}
-  ]
-}
-  ]
-}
-DEF STROKE TimeSensor { cycleInterval 1.8 loop TRUE }
-DEF ROAM TimeSensor { cycleInterval 12 loop TRUE }
-DEF BOB PositionInterpolator { key [0 0.125 0.25 0.375 0.5 0.625 0.75 0.875 1] keyValue [0 0.040 0, 0 0.028 0, 0 0.000 0, 0 -0.028 0, 0 -0.040 0, 0 -0.028 0, 0 -0.000 0, 0 0.028 0, 0 0.040 0] }
+DEF DRIFT Transform { children DEF WHALE Transform { children ${segment(0)} } }
+DEF STROKE TimeSensor { cycleInterval ${STROKE_S} loop TRUE }
+DEF ROAM TimeSensor { cycleInterval ${WANDER_S} loop TRUE }
+DEF BOB PositionInterpolator { key [${KEYS.join(" ")}] keyValue [${KEYS.map((f) => `0 ${n(0.04 * Math.sin(Math.PI * 2 * (f + 0.25)))} 0`).join(", ")}] }
+DEF PATH PositionInterpolator { key [${WANDER.join(" ")}] keyValue [${WANDER.map((f) => `${n(0.35 * Math.sin(Math.PI * 2 * f))} ${n(0.22 * Math.sin(Math.PI * 4 * f))} 0`).join(", ")}] }
+DEF ROLL OrientationInterpolator { key [${WANDER.join(" ")}] keyValue [${WANDER.map((f) => `1 0 0 ${n(0.35 * Math.sin(Math.PI * 2 * f))}`).join(", ")}] }
 ROUTE STROKE.fraction_changed TO BOB.set_fraction
 ROUTE BOB.value_changed TO WHALE.set_translation
-DEF PATH PositionInterpolator { key [0 0.08333333333333333 0.16666666666666666 0.25 0.3333333333333333 0.4166666666666667 0.5 0.5833333333333334 0.6666666666666666 0.75 0.8333333333333334 0.9166666666666666 1] keyValue [0.000 0.000 0, 0.175 0.191 0, 0.303 0.191 0, 0.350 0.000 0, 0.303 -0.191 0, 0.175 -0.191 0, 0.000 -0.000 0, -0.175 0.191 0, -0.303 0.191 0, -0.350 0.000 0, -0.303 -0.191 0, -0.175 -0.191 0, -0.000 -0.000 0] }
-DEF ROLL OrientationInterpolator { key [0 0.08333333333333333 0.16666666666666666 0.25 0.3333333333333333 0.4166666666666667 0.5 0.5833333333333334 0.6666666666666666 0.75 0.8333333333333334 0.9166666666666666 1] keyValue [1 0 0 0.000, 1 0 0 0.175, 1 0 0 0.303, 1 0 0 0.350, 1 0 0 0.303, 1 0 0 0.175, 1 0 0 0.000, 1 0 0 -0.175, 1 0 0 -0.303, 1 0 0 -0.350, 1 0 0 -0.303, 1 0 0 -0.175, 1 0 0 -0.000] }
 ROUTE ROAM.fraction_changed TO PATH.set_fraction
 ROUTE PATH.value_changed TO DRIFT.set_translation
 ROUTE ROAM.fraction_changed TO ROLL.set_fraction
 ROUTE ROLL.value_changed TO DRIFT.set_rotation
-DEF WAVE0 OrientationInterpolator { key [0 0.125 0.25 0.375 0.5 0.625 0.75 0.875 1] keyValue [0 0 1 0.000, 0 0 1 0.021, 0 0 1 0.030, 0 0 1 0.021, 0 0 1 0.000, 0 0 1 -0.021, 0 0 1 -0.030, 0 0 1 -0.021, 0 0 1 -0.000] }
-ROUTE STROKE.fraction_changed TO WAVE0.set_fraction
-ROUTE WAVE0.value_changed TO SEG0.set_rotation
-DEF WAVE1 OrientationInterpolator { key [0 0.125 0.25 0.375 0.5 0.625 0.75 0.875 1] keyValue [0 0 1 -0.136, 0 0 1 -0.102, 0 0 1 -0.066, 0 0 1 -0.050, 0 0 1 -0.064, 0 0 1 -0.098, 0 0 1 -0.134, 0 0 1 -0.150, 0 0 1 -0.136] }
-ROUTE STROKE.fraction_changed TO WAVE1.set_fraction
-ROUTE WAVE1.value_changed TO SEG1.set_rotation
-DEF WAVE2 OrientationInterpolator { key [0 0.125 0.25 0.375 0.5 0.625 0.75 0.875 1] keyValue [0 0 1 -0.240, 0 0 1 -0.220, 0 0 1 -0.165, 0 0 1 -0.107, 0 0 1 -0.080, 0 0 1 -0.100, 0 0 1 -0.155, 0 0 1 -0.213, 0 0 1 -0.240] }
-ROUTE STROKE.fraction_changed TO WAVE2.set_fraction
-ROUTE WAVE2.value_changed TO SEG2.set_rotation
-DEF WAVE3 OrientationInterpolator { key [0 0.125 0.25 0.375 0.5 0.625 0.75 0.875 1] keyValue [0 0 1 -0.296, 0 0 1 -0.339, 0 0 1 -0.312, 0 0 1 -0.231, 0 0 1 -0.144, 0 0 1 -0.101, 0 0 1 -0.128, 0 0 1 -0.209, 0 0 1 -0.296] }
-ROUTE STROKE.fraction_changed TO WAVE3.set_fraction
-ROUTE WAVE3.value_changed TO SEG3.set_rotation
-DEF WAVE4 OrientationInterpolator { key [0 0.125 0.25 0.375 0.5 0.625 0.75 0.875 1] keyValue [0 0 1 -0.237, 0 0 1 -0.370, 0 0 1 -0.439, 0 0 1 -0.402, 0 0 1 -0.283, 0 0 1 -0.150, 0 0 1 -0.081, 0 0 1 -0.118, 0 0 1 -0.237] }
-ROUTE STROKE.fraction_changed TO WAVE4.set_fraction
-ROUTE WAVE4.value_changed TO SEG4.set_rotation
-DEF WAVE5 OrientationInterpolator { key [0 0.125 0.25 0.375 0.5 0.625 0.75 0.875 1] keyValue [0 0 1 -0.090, 0 0 1 -0.259, 0 0 1 -0.453, 0 0 1 -0.557, 0 0 1 -0.510, 0 0 1 -0.341, 0 0 1 -0.147, 0 0 1 -0.043, 0 0 1 -0.090] }
-ROUTE STROKE.fraction_changed TO WAVE5.set_fraction
-ROUTE WAVE5.value_changed TO SEG5.set_rotation
+${CURL.map(
+  (_, k) => `DEF WAVE${k} OrientationInterpolator { key [${KEYS.join(" ")}] keyValue [${wave(k)}] }
+ROUTE STROKE.fraction_changed TO WAVE${k}.set_fraction
+ROUTE WAVE${k}.value_changed TO SEG${k}.set_rotation`,
+).join("\n")}
 `
 
 /** The poses it cuts between. A cut breaks the whale into coarse blocks
@@ -157,7 +219,7 @@ export default function Example() {
           yaw={SHOTS[shot()].yaw}
           pitch={SHOTS[shot()].pitch}
           autoRotate={5}
-          zoom={1.65}
+          zoom={1.4}
           fov={35}
           cell={cut().cell}
           scatter={cut().scatter}
