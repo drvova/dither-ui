@@ -146,8 +146,8 @@ export default function MediaDocs() {
         </DemoCard>
         <p class="mt-6 text-[13px] leading-relaxed text-muted-foreground">
           A file's animation can bend a body. This whale is a VRML file of segments, each hinged inside the one before,
-          and one wave that grows toward the tail swims it; the page cuts between poses through the kit's own dissolve,
-          the cells growing coarse and the pieces drifting apart.
+          curled at rest and swum by one wave that grows toward the tail. The page cuts between poses: the whale breaks
+          into coarse cells that drift apart, and the new pose prints back block by block through a reveal.
         </p>
         <DemoCard code={world4Code}>
           <World4Example />
