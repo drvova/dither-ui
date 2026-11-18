@@ -338,6 +338,8 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
           indices: o.indices.subarray(0, n * 3),
           triColors: o.triColors.subarray(0, n),
           edges: o.edges.subarray(0, e),
+          // pieces turn apart: a mid-build shades flat, its corners' blend gone
+          normals: null,
           // Turned pieces show their backs; nothing is culled mid-build.
           solid: m.solid && build >= 1 && scatter <= 0,
           node: -1,
@@ -347,7 +349,13 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
         })
       })
       for (const m of rest)
-        meshes.push({ ...m, positions: new Float32Array(posedPositions(m, mats)), node: -1, scratch: undefined })
+        meshes.push({
+          ...m,
+          positions: new Float32Array(posedPositions(m, mats)),
+          normals: null,
+          node: -1,
+          scratch: undefined,
+        })
       if (cageFloats) {
         const cage = new Float32Array(cageFloats)
         let at = 0
@@ -362,6 +370,7 @@ export function createAssembly(world: World, heat: Rgb, seed = 0): Assembly {
           color: faces[0]?.m.color ?? 0,
           triColors: null,
           uv: null,
+          normals: null,
           solid: false,
           kind: "points",
           node: -1,

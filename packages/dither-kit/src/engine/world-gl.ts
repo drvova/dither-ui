@@ -1,5 +1,5 @@
 // The world's GPU engine: the same stage-one contract as `rasterizeWorld`
-// (world.ts) — flat Lambert under the camera's lights, back faces culled on
+// (world.ts) — Lambert under the camera's lights, flat or smooth as the mesh says, back faces culled on
 // solid meshes, the grain in the shade — rasterized by WebGL at the cell
 // resolution and read back into a WorldTarget: R the shade, G+B a 16-bit
 // depth from the eye, A the palette index + 1. Stage two (`paintTarget`)
@@ -44,6 +44,7 @@ IN vec3 p;
 IN float g;
 IN float c;
 IN vec2 t;
+IN vec3 nrm;
 uniform mat4 uModel;
 uniform vec3 uCenter;
 uniform vec4 uRot;   // cos yaw, sin yaw, cos pitch, sin pitch
@@ -53,8 +54,13 @@ OUT vec3 vPos;
 OUT float vGrain;
 OUT float vIndex;
 OUT vec2 vUv;
+OUT vec3 vNormal;
 void main() {
   vec3 w = (uModel * vec4(p, 1.0)).xyz - uCenter;
+  vec3 m = (uModel * vec4(nrm, 0.0)).xyz;
+  float mx = m.x * uRot.x + m.z * uRot.y;
+  float mz = -m.x * uRot.y + m.z * uRot.x;
+  vNormal = vec3(mx, m.y * uRot.z - mz * uRot.w, m.y * uRot.w + mz * uRot.z);
   float x1 = w.x * uRot.x + w.z * uRot.y;
   float z1 = -w.x * uRot.y + w.z * uRot.x;
   float y2 = w.y * uRot.z - z1 * uRot.w;
@@ -76,6 +82,8 @@ IN vec3 vPos;
 IN float vGrain;
 IN float vIndex;
 IN vec2 vUv;
+IN vec3 vNormal;
+uniform float uSmooth;
 uniform vec4 uLights[8];
 uniform int uLightCount;
 uniform vec2 uDepth;
@@ -83,6 +91,8 @@ uniform float uGrain;
 uniform float uHasUv;
 void main() {
   vec3 n = normalize(cross(dFdx(vPos), dFdy(vPos)));
+  // a smooth surface: the corners' normals blended, turned toward the eye
+  if (uSmooth > 0.5) n = normalize(vNormal) * (dot(vNormal, n) < 0.0 ? -1.0 : 1.0);
   float lit = 0.0;
   for (int i = 0; i < 8; i++) {
     if (i >= uLightCount) break;
@@ -115,6 +125,7 @@ type Buffers = {
   idx: WebGLBuffer | null
   color: WebGLBuffer | null
   uv: WebGLBuffer | null
+  normal: WebGLBuffer | null
   grain: WebGLBuffer | null
   grainKey: string
   count: number
@@ -206,13 +217,24 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
         problem = "the GPU engine needs WebGL2"
         return null
       }
-      const built = buildProgram(gl, VERTEX(handle.webgl2), FRAGMENT(handle.webgl2), ["p", "g", "c", "t"])
+      const built = buildProgram(gl, VERTEX(handle.webgl2), FRAGMENT(handle.webgl2), ["p", "g", "c", "t", "nrm"])
       if (typeof built === "string") {
         problem = built
         return null
       }
       program = built
-      for (const name of ["uModel", "uCenter", "uRot", "uCam", "uDepth", "uLights", "uLightCount", "uGrain", "uHasUv"])
+      for (const name of [
+        "uModel",
+        "uCenter",
+        "uRot",
+        "uCam",
+        "uDepth",
+        "uLights",
+        "uLightCount",
+        "uGrain",
+        "uHasUv",
+        "uSmooth",
+      ])
         uniforms[name] = gl.getUniformLocation(program, name)
     }
     // Per-pass state: the material pass on the same context sets its own.
@@ -232,7 +254,8 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
       const pos = gl.createBuffer()
       if (!pos) return null
       gl.bindBuffer(gl.ARRAY_BUFFER, pos)
-      const expanded = !!mesh.triColors
+      // a face colour or a corner normal rides per corner: one vertex a corner
+      const expanded = !!mesh.triColors || !!mesh.normals
       let idx: WebGLBuffer | null = null
       let color: WebGLBuffer | null = null
       let uvData: Float32Array | null = mesh.uv
@@ -246,7 +269,7 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
           xyz[i * 3] = mesh.positions[v]
           xyz[i * 3 + 1] = mesh.positions[v + 1]
           xyz[i * 3 + 2] = mesh.positions[v + 2]
-          col[i] = ((mesh.triColors as Uint8Array)[Math.floor(i / 3)] + 1) / 255
+          col[i] = ((mesh.triColors ? mesh.triColors[Math.floor(i / 3)] : mesh.color) + 1) / 255
           if (st && mesh.uv) {
             st[i * 2] = mesh.uv[mesh.indices[i] * 2]
             st[i * 2 + 1] = mesh.uv[mesh.indices[i] * 2 + 1]
@@ -274,7 +297,15 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
           gl.bufferData(gl.ARRAY_BUFFER, uvData, gl.STATIC_DRAW)
         }
       }
-      b = { pos, idx, color, uv, grain: null, grainKey: "", count: mesh.indices.length, expanded }
+      let normal: WebGLBuffer | null = null
+      if (mesh.normals) {
+        normal = gl.createBuffer()
+        if (normal) {
+          gl.bindBuffer(gl.ARRAY_BUFFER, normal)
+          gl.bufferData(gl.ARRAY_BUFFER, mesh.normals, gl.STATIC_DRAW)
+        }
+      }
+      b = { pos, idx, color, uv, normal, grain: null, grainKey: "", count: mesh.indices.length, expanded }
       buffers.set(mesh, b)
     }
     const amount = style.grain ?? 0
@@ -359,6 +390,15 @@ export function createWorldGpu(shared?: GlHandle): WorldGpu {
             gl.vertexAttrib2f(3, 0, 0)
           }
           gl.uniform1f(uniforms.uHasUv, b.uv ? 1 : 0)
+          if (b.normal) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, b.normal)
+            gl.enableVertexAttribArray(4)
+            gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 0, 0)
+          } else {
+            gl.disableVertexAttribArray(4)
+            gl.vertexAttrib3f(4, 0, 0, 1)
+          }
+          gl.uniform1f(uniforms.uSmooth, b.normal ? 1 : 0)
           const m = mesh.node >= 0 && mats ? mats[mesh.node] : null
           gl.uniformMatrix4fv(uniforms.uModel, false, m ? new Float32Array(m) : identity)
           if (mesh.solid) gl.enable(gl.CULL_FACE)

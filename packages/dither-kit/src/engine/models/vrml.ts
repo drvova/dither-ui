@@ -118,7 +118,8 @@ function faceColors(g: VrmlNode, faces: number[][]): number[] | undefined {
   return out
 }
 
-type Built = { geo: Geometry; solid: boolean; ccw: boolean; kind: MeshKind } | null
+/** `crease`: the face set's `creaseAngle`, under which its faces shade as one smooth surface. */
+type Built = { geo: Geometry; solid: boolean; ccw: boolean; kind: MeshKind; crease?: number } | null
 
 function geometryOf(g: VrmlNode, points: number[] | null): Built {
   switch (g.type) {
@@ -132,7 +133,8 @@ function geometryOf(g: VrmlNode, points: number[] | null): Built {
         kind: "faces",
       }
     case "Sphere":
-      return { geo: sphereGeometry(nums(g, "radius", [1])[0]), solid: true, ccw: true, kind: "faces" }
+      // a sphere is one smooth surface (VRML shades it so)
+      return { geo: sphereGeometry(nums(g, "radius", [1])[0]), solid: true, ccw: true, kind: "faces", crease: Math.PI }
     case "Cone":
       return {
         geo: coneGeometry(
@@ -175,6 +177,7 @@ function geometryOf(g: VrmlNode, points: number[] | null): Built {
         solid: flag(g, "solid", true),
         ccw: flag(g, "ccw", true),
         kind: "faces",
+        crease: nums(g, "creaseAngle", [0])[0],
       }
     }
     case "TriangleSet": {
@@ -335,6 +338,7 @@ export function buildV2(nodes: VrmlNode[], routes: VrmlRoute[], world: World): v
               kind: built.kind,
               node: parent,
               glow,
+              crease: built.crease,
             })
           }
           break
@@ -444,6 +448,7 @@ function buildV1(nodes: VrmlNode[], world: World): void {
             addMesh(world, built.geo, s.m, s.color, faceSet ? s.ccw !== null && s.solid : built.solid, {
               ccw: faceSet ? s.ccw !== false : true,
               kind: built.kind,
+              crease: built.crease,
             })
           break
         }

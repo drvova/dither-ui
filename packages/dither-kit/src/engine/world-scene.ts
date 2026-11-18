@@ -36,6 +36,11 @@ export type WorldMesh = {
   triColors: Uint8Array | null
   /** Texture coordinates per vertex (st, top-left origin) when the file or primitive has them. */
   uv: Float32Array | null
+  /** Normals per triangle corner (xyz, nine a triangle, in the frame of
+   * `positions`) where the file smooths its faces (`creaseAngle`): each
+   * corner's light blends across its triangle. Null shades each triangle
+   * flat, its own face's light. */
+  normals: Float32Array | null
   /** Back faces are culled (the file promised outward winding). */
   solid: boolean
   kind: MeshKind
@@ -156,8 +161,67 @@ export function addNode(world: World, node: Partial<WorldNode> & { parent: numbe
   return world.nodes.length - 1
 }
 
-/** `glow`: the mesh's material gives off light (its colour a `glows` entry). */
-export type MeshOptions = { kind?: MeshKind; node?: number; ccw?: boolean; glow?: boolean }
+/** `glow`: the mesh's material gives off light (its colour a `glows` entry).
+ * `crease` (radians, VRML's `creaseAngle`): faces meeting at a smaller angle
+ * shade as one smooth surface; 0 or unset shades every face flat. */
+export type MeshOptions = { kind?: MeshKind; node?: number; ccw?: boolean; glow?: boolean; crease?: number }
+
+/**
+ * Normals per triangle corner for smooth shading: a corner takes the
+ * area-weighted mean of the faces around its point (points matched by
+ * place, so a seam split for texture still smooths) whose normal lies within
+ * `crease` of its own face's, so an edge sharper than that stays a crease.
+ */
+export function cornerNormals(positions: Float32Array, indices: Uint32Array, crease: number): Float32Array {
+  const tc = indices.length / 3
+  const face = new Float32Array(tc * 3)
+  const unit = new Float32Array(tc * 3)
+  for (let t = 0; t < tc; t++) {
+    const a = indices[t * 3] * 3
+    const b = indices[t * 3 + 1] * 3
+    const c = indices[t * 3 + 2] * 3
+    const ux = positions[b] - positions[a]
+    const uy = positions[b + 1] - positions[a + 1]
+    const uz = positions[b + 2] - positions[a + 2]
+    const vx = positions[c] - positions[a]
+    const vy = positions[c + 1] - positions[a + 1]
+    const vz = positions[c + 2] - positions[a + 2]
+    const nx = uy * vz - uz * vy
+    const ny = uz * vx - ux * vz
+    const nz = ux * vy - uy * vx
+    const l = Math.hypot(nx, ny, nz) || 1
+    face.set([nx, ny, nz], t * 3)
+    unit.set([nx / l, ny / l, nz / l], t * 3)
+  }
+  // the faces around each point, by its place
+  const key = (v: number) =>
+    `${Math.round(positions[v * 3] * 1e5)},${Math.round(positions[v * 3 + 1] * 1e5)},${Math.round(positions[v * 3 + 2] * 1e5)}`
+  const around = new Map<string, number[]>()
+  for (let i = 0; i < indices.length; i++) {
+    const k = key(indices[i])
+    const list = around.get(k)
+    if (list) list.push(Math.floor(i / 3))
+    else around.set(k, [Math.floor(i / 3)])
+  }
+  const cos = Math.cos(Math.min(Math.PI, crease))
+  const out = new Float32Array(tc * 9)
+  for (let i = 0; i < indices.length; i++) {
+    const t = Math.floor(i / 3)
+    let x = 0
+    let y = 0
+    let z = 0
+    for (const u of around.get(key(indices[i])) ?? [t]) {
+      const d = unit[t * 3] * unit[u * 3] + unit[t * 3 + 1] * unit[u * 3 + 1] + unit[t * 3 + 2] * unit[u * 3 + 2]
+      if (u !== t && d < cos) continue
+      x += face[u * 3]
+      y += face[u * 3 + 1]
+      z += face[u * 3 + 2]
+    }
+    const l = Math.hypot(x, y, z) || 1
+    out.set([x / l, y / l, z / l], i * 3)
+  }
+  return out
+}
 
 /**
  * Bake geometry into a mesh: transform, enforce outward winding (`ccw` false
@@ -258,9 +322,11 @@ export function addMesh(
       triColors[t] = colorIndex(world, [geo.colors[f] * 255, geo.colors[f + 1] * 255, geo.colors[f + 2] * 255])
     }
   }
+  const tris = Uint32Array.from(indices)
   const mesh: WorldMesh = {
     positions,
-    indices: Uint32Array.from(indices),
+    indices: tris,
+    normals: kind === "faces" && (opts.crease ?? 0) > 0 ? cornerNormals(positions, tris, opts.crease ?? 0) : null,
     edges: Uint32Array.from(edges),
     color: colorIndex(world, color, opts.glow),
     triColors,

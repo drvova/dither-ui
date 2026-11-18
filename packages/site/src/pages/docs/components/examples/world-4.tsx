@@ -4,7 +4,8 @@ import { DitherReveal, DitherWorld } from "@dither-kit"
 // A whale of our own, built here as a VRML97 file: a body lofted from the
 // shape table below, cut into segments hinged one inside the next, curled at
 // rest and swum by a wave that grows toward the tail. Flippers and flukes
-// are flattened spheres, so nothing on it ends in a point.
+// are flattened spheres, so nothing on it ends in a point, and `creaseAngle`
+// shades the body as one smooth surface.
 
 /** Half height and half width of the body, nose (0) to tail (1). */
 const PROFILE = [
@@ -89,7 +90,7 @@ function body(a: number, b: number) {
   }
   if (a === 0) close(0, true)
   if (b === 1) close(rings.length - 1, false)
-  return `Shape { ${look(EMBER)} geometry IndexedFaceSet { coord Coordinate { point [${points.join(", ")}] } coordIndex [${faces.join(" ")}] color Color { color [${EMBER}, ${CREAM}] } colorPerVertex FALSE colorIndex [${tint.join(" ")}] } }`
+  return `Shape { ${look(EMBER)} geometry IndexedFaceSet { creaseAngle 1.2 coord Coordinate { point [${points.join(", ")}] } coordIndex [${faces.join(" ")}] color Color { color [${EMBER}, ${CREAM}] } colorPerVertex FALSE colorIndex [${tint.join(" ")}] } }`
 }
 
 /** A flattened sphere: a flipper or a fluke, rounded all round. */

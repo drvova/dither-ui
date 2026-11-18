@@ -718,7 +718,7 @@ generated twin. Inside the kit every import is relative
   translate, rotate about a centre, scale, `keyTimes`, `additive`) as
   node tracks, the motion outermost, framed by the viewBox when it
   moves; path numbers in `models/svg-path.ts`; bounded by `MAX_POINTS`; guarded by
-  `tests/svg-model.spec.ts`), and Gaussian captures (`splat`: the
+  `tests/svg-model.spec.ts`; smooth shading by `tests/world-smooth.spec.ts`), and Gaussian captures (`splat`: the
   32-byte `.splat` record). Splats live in `splats.ts` (no world import; world.ts imports
   it): a `SplatCloud` (positions, covariances from scale and rotation,
   colours, opacities, at most `MAX_SPLATS`, every k-th past it) on
@@ -752,13 +752,18 @@ generated twin. Inside the kit every import is relative
   degrees, `zoom` 1 frames the sphere, eye never inside it, camera-space
   lights) and the two-stage renderer: stage one fills a `WorldTarget`
   (shade 0-1, depth from the eye, palette index + 1) — `rasterizeWorld` is
-  the CPU engine (edge-function rasterizer with a z-buffer, flat Lambert
-  from the headlight + the file's lights, back faces culled on solid
+  the CPU engine (edge-function rasterizer with a z-buffer, Lambert
+  from the headlight + the file's lights, flat a face or, where the mesh
+  carries `normals` (a face set's `creaseAngle`, every Sphere:
+  `cornerNormals` in `world-scene.ts`, the faces around a point within
+  the angle averaged, sharper edges kept), each corner's light blended
+  across its triangle; a file that asks nothing shades as before, back faces culled on solid
   meshes, per-vertex fbm `meshGrain` interpolated into the shade) and
   `world-gl.ts` (`createWorldGpu`) is the GPU engine: the same contract
   through WebGL2 (WebGL1 with derivatives + uint indices), flat normals
-  from derivatives, the colour index as a vertex attribute (expanded
-  buffers for per-face colours), node poses as a per-mesh matrix uniform,
+  from derivatives or the corner normals as an attribute (`uSmooth`), the
+  colour index as a vertex attribute (expanded buffers for per-face
+  colours and corner normals), node poses as a per-mesh matrix uniform,
   a 16-bit depth code read back into the target — on WebGL2 through its
   own two-attachment framebuffer, so the texture coordinates come back too
   (`packUv`'s encoding: 16-bit s, 16-bit t offset by one, 0 = no uvs);

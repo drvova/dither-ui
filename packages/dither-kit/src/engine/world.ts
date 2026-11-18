@@ -17,6 +17,7 @@
 // the default content (`world-sample.ts`).
 
 import { nodeMatrices, posedPositions, type World, type WorldMesh } from "./world-scene"
+import type { Mat4 } from "./world-math"
 import { clamp01 } from "./pixel"
 import { sampleRgbGradient, type Rgb } from "./palette"
 import { fbm } from "./noise"
@@ -150,6 +151,28 @@ export function shadeOf(lights: number[], nx: number, ny: number, nz: number): n
   return Math.min(1, 0.15 + 0.85 * lit)
 }
 
+/** The light at a triangle's corner: its normal (`normals[at..at+2]`, in
+ * the mesh's frame) turned by the mesh's pose and the camera, toward the
+ * eye (`sign` -1 on a back face drawn two-sided). */
+function cornerShade(c: Camera, normals: Float32Array, pose: Mat4 | null, at: number, sign: number): number {
+  let x = normals[at]
+  let y = normals[at + 1]
+  let z = normals[at + 2]
+  if (pose) {
+    const px = pose[0] * x + pose[4] * y + pose[8] * z
+    const py = pose[1] * x + pose[5] * y + pose[9] * z
+    z = pose[2] * x + pose[6] * y + pose[10] * z
+    x = px
+    y = py
+  }
+  const x1 = x * c.cy + z * c.sy
+  const z1 = -x * c.sy + z * c.cy
+  const y2 = y * c.cp - z1 * c.sp
+  const z2 = y * c.sp + z1 * c.cp
+  const l = Math.hypot(x1, y2, z2) || 1
+  return shadeOf(c.lights, (sign * x1) / l, (sign * y2) / l, (sign * z2) / l)
+}
+
 // ---- stage one: the target --------------------------------------------------------------
 
 /** What a rasterizer produces per cell: lighting shade (0-1), depth from the
@@ -266,6 +289,8 @@ function rasterizeMeshes(world: World, view: WorldView, target: WorldTarget, sty
     project(c, world, posedPositions(mesh, mats))
     const grain = grainAmt > 0 ? meshGrain(mesh, world, style.seed ?? 0, style.grainScale ?? 4) : null
     const muv = mesh.uv
+    const smooth = mesh.normals
+    const pose = mesh.node >= 0 && mats ? mats[mesh.node] : null
     const tc = mesh.indices.length / 3
     for (let t = 0; t < tc; t++) {
       const va = mesh.indices[t * 3]
@@ -296,6 +321,16 @@ function rasterizeMeshes(world: World, view: WorldView, target: WorldTarget, sty
       const nl = Math.hypot(nx, ny, nz)
       if (!nl) continue
       const lit = shadeOf(c.lights, nx / nl, ny / nl, nz / nl)
+      // a smooth surface: each corner's own light, blended across the triangle
+      let litA = lit
+      let litB = lit
+      let litC = lit
+      if (smooth) {
+        const sign = facing ? 1 : -1
+        litA = cornerShade(c, smooth, pose, t * 9, sign)
+        litB = cornerShade(c, smooth, pose, t * 9 + 3, sign)
+        litC = cornerShade(c, smooth, pose, t * 9 + 6, sign)
+      }
       const color = (mesh.triColors ? mesh.triColors[t] : mesh.color) + 1
 
       const sax = scr[ia]
@@ -351,7 +386,8 @@ function rasterizeMeshes(world: World, view: WorldView, target: WorldTarget, sty
           if (d >= zbuf[i]) continue
           zbuf[i] = d
           index[i] = color
-          shade[i] = grain ? lit * (1 - grainAmt * (1 - (w0 * ga + w1 * gb + w2 * gc))) : lit
+          const here = smooth ? w0 * litA + w1 * litB + w2 * litC : lit
+          shade[i] = grain ? here * (1 - grainAmt * (1 - (w0 * ga + w1 * gb + w2 * gc))) : here
           if (muv) {
             const q0 = w0 * iwa
             const q1 = w1 * iwb
